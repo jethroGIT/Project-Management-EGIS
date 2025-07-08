@@ -1,0 +1,189 @@
+@font-face {
+    font-family: Arial;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: Arial;
+    font-weight: normal;
+}
+
+.table-bordered,
+.table-bordered td,
+.table-bordered th,
+.table-bordered {
+    border: 1px solid black;
+    border-collapse: collapse;
+    page-break-inside: auto !important;
+    page-break-before: always;
+    break-inside: auto;
+    overflow-wrap: break-word;
+    word-break: normal;
+    table-layout: fixed;
+    font-size: 12px !important;
+    padding: 5px;
+}
+
+.white-border {
+    border: none !important;
+}
+
+.table-remove-border {
+    border: 0px solid black;
+    border-collapse: collapse;
+    padding: 5px;
+}
+
+.table-page-name {
+    border: 3px solid black;
+}
+
+.table-page-name-slim {
+    border: 2px solid black;
+}
+
+.table-page-thin {
+    border: 1px solid black;
+}
+
+.text-align-center {
+    text-align: center;
+}
+
+.text-align-left {
+    text-align: left;
+}
+
+.text-align-right {
+    text-align: right;
+}
+
+.text-align-justify {
+    text-align: justify;
+}
+
+.wrapper {
+    width: 80%;
+    border: 1px solid black;
+    overflow: hidden;
+    /* will contain if #first is longer than #second */
+}
+
+.first-wrapper {
+    width: 300px;
+    height: 100%;
+    float: left;
+}
+
+.second-wrapper {
+    height: 100%;
+    overflow: hidden;
+}
+
+.page-break {
+    page-break-after: always;
+}
+
+.header-indikator {
+    text-align: left;
+    background-color: #D3D3D3;
+}
+
+.bg-grey-1 {
+    background-color: #D3D3D3;
+}
+
+.cell-left-top {
+    text-align: left;
+    vertical-align: top;
+}
+
+.cell-right-top {
+    text-align: right;
+    vertical-align: top;
+}
+
+.cell-center-top {
+    text-align: center;
+    vertical-align: top;
+}
+
+.width-50 {
+    width: 50px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.width-70 {
+    width: 70px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.width-100 {
+    width: 100px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.width-125 {
+    width: 125px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.width-150 {
+    width: 150px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.width-200 {
+    width: 200px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.width-300 {
+    width: 300px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.font-10 td th tr {
+    font-size: 20px;
+}
+
+.Table {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    margin: 0%;
+    float: left;
+}
+
+.Row {
+    flex: 1;
+    margin: 0%;
+    background: orange;
+    display: flex;
+    justify-content: center;
+    float: left;
+    display: flex;
+    height: max-content;
+}
+
+.Column {
+    margin: 0;
+    flex: 1;
+    float: left;
+    border: 1px solid black;
+    height: max-content;
+}
