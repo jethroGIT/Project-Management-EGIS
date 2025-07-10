@@ -18,171 +18,114 @@
 
 <body id="kt_body" class="app-blank">
     <!--begin::Root-->
-    <div class="d-flex flex-column flex-root" id="kt_app_root">
-
+    <!--begin::Root-->
+    <div class="d-flex flex-column flex-root">
         <!--begin::Authentication - Sign-in -->
-        <div class="d-flex flex-column flex-lg-row flex-column-fluid">
-            <!--begin::Body-->
-            <div class="d-flex flex-column flex-lg-row-fluid w-lg-50 p-10 order-2 order-lg-1">
-                <!--begin::Form-->
-                <div class="d-flex flex-center flex-column flex-lg-row-fluid">
-                    <!--begin::Wrapper-->
-                    <div class="w-lg-500px p-10">
-
-                        <!--begin::Form-->
-                        <form class="form w-100 fv-plugins-bootstrap5 fv-plugins-framework" novalidate="novalidate"
-                            id="kt_sign_in_form" data-kt-redirect-url="#" action="#">
-                            <!--begin::Heading-->
-                            <div class="text-center mb-11">
-                                <!--begin::Title-->
-                                <h1 class="text-gray-900 fw-bolder mb-3">
-                                    Sign In
-                                </h1>
-                                <!--end::Title-->
-
-                                <!--begin::Subtitle-->
-                                <div class="text-gray-500 fw-semibold fs-6">
-                                    Your Social Campaigns
-                                </div>
-                                <!--end::Subtitle--->
+        <div class="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed"
+            style="background-image: url(assets/media/illustrations/sketchy-1/14.png">
+            <!--begin::Content-->
+            <div class="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
+                <!--begin::Logo-->
+                <a href="../../demo14/dist/index.html" class="mb-12">
+                    <img alt="Logo" src="assets/media/logos/logo-1.svg" class="h-40px" />
+                </a>
+                <!--end::Logo-->
+                <!--begin::Wrapper-->
+                <div class="w-lg-500px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
+                    <!--begin::Form-->
+                    <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="#">
+                        <!--begin::Heading-->
+                        <div class="text-center mb-10">
+                            <!--begin::Title-->
+                            <h1 class="text-dark mb-3">Sign In to PMO EGIS</h1>
+                            <!--end::Title-->
+                            <!--begin::Link-->
+                            <div class="text-gray-400 fw-bold fs-4">New Here?
+                                <a href="../../demo14/dist/authentication/layouts/basic/sign-up.html"
+                                    class="link-primary fw-bolder">Create an Account</a>
                             </div>
-                            <!--begin::Heading-->
-
-                            <!--begin::Login options-->
-                            <div class="row g-3 mb-9">
-                                <!--begin::Google link--->
-                                <a href="#" class="btn btn-light-primary">
-                                    <img alt="Logo" src="{{ asset('assets/media/google-icon.svg') }}"
-                                        class="h-15px me-3">
-                                    Sign in with Google
-                                </a>
-                                <!--end::Google link--->
-                            </div>
-                            <!--end::Login options-->
-
-                            <!--begin::Separator-->
-                            <div class="separator separator-content my-14">
-                                <span class="w-125px text-gray-500 fw-semibold fs-7">Or with email</span>
-                            </div>
-                            <!--end::Separator-->
-
-                            <!--begin::Input group--->
-                            <div class="fv-row mb-8 fv-plugins-icon-container">
-                                <!--begin::Email-->
-                                <input type="text" placeholder="Email" name="email" autocomplete="off"
-                                    class="form-control bg-transparent">
-                                <!--end::Email-->
-                                <div
-                                    class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback">
-                                </div>
-                            </div>
-
-                            <!--end::Input group--->
-                            <div class="fv-row mb-3 fv-plugins-icon-container">
-                                <!--begin::Password-->
-                                <input type="password" placeholder="Password" name="password" autocomplete="off"
-                                    class="form-control bg-transparent">
-                                <!--end::Password-->
-                                <div
-                                    class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback">
-                                </div>
-                            </div>
-                            <!--end::Input group--->
-
+                            <!--end::Link-->
+                        </div>
+                        <!--begin::Heading-->
+                        <!--begin::Input group-->
+                        <div class="fv-row mb-10">
+                            <!--begin::Label-->
+                            <label class="form-label fs-6 fw-bolder text-dark">Email</label>
+                            <!--end::Label-->
+                            <!--begin::Input-->
+                            <input class="form-control form-control-lg form-control-solid" type="text" name="email"
+                                autocomplete="off" />
+                            <!--end::Input-->
+                        </div>
+                        <!--end::Input group-->
+                        <!--begin::Input group-->
+                        <div class="fv-row mb-10">
                             <!--begin::Wrapper-->
-                            <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
-                                <div></div>
-
+                            <div class="d-flex flex-stack mb-2">
+                                <!--begin::Label-->
+                                <label class="form-label fw-bolder text-dark fs-6 mb-0">Password</label>
+                                <!--end::Label-->
                                 <!--begin::Link-->
-                                <a href="/metronic8/demo1/authentication/layouts/corporate/reset-password.html"
-                                    class="link-primary">
-                                    Forgot Password ?
-                                </a>
+                                <a href="../../demo14/dist/authentication/layouts/basic/password-reset.html"
+                                    class="link-primary fs-6 fw-bolder">Forgot Password ?</a>
                                 <!--end::Link-->
                             </div>
                             <!--end::Wrapper-->
-
+                            <!--begin::Input-->
+                            <input class="form-control form-control-lg form-control-solid" type="password"
+                                name="password" autocomplete="off" />
+                            <!--end::Input-->
+                        </div>
+                        <!--end::Input group-->
+                        <!--begin::Actions-->
+                        <div class="text-center">
                             <!--begin::Submit button-->
-                            <div class="d-grid mb-10">
-                                <button type="submit" id="kt_sign_in_submit" class="btn btn-primary">
-
-                                    <!--begin::Indicator label-->
-                                    <span class="indicator-label">
-                                        Sign In</span>
-                                    <!--end::Indicator label-->
-
-                                    <!--begin::Indicator progress-->
-                                    <span class="indicator-progress">
-                                        Please wait... <span
-                                            class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                                    </span>
-                                    <!--end::Indicator progress--> </button>
-                            </div>
+                            <button type="submit" id="kt_sign_in_submit" class="btn btn-lg btn-primary w-100 mb-5">
+                                <span class="indicator-label">Continue</span>
+                                <span class="indicator-progress">Please wait...
+                                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                            </button>
                             <!--end::Submit button-->
-
-                            <!--begin::Sign up-->
-                            <div class="text-gray-500 text-center fw-semibold fs-6">
-                                Not a Member yet?
-
-                                <a href="/metronic8/demo1/authentication/layouts/corporate/sign-up.html"
-                                    class="link-primary">
-                                    Sign up
-                                </a>
-                            </div>
-                            <!--end::Sign up-->
-                        </form>
-                        <!--end::Form-->
-                    </div>
-                    <!--end::Wrapper-->
+                            <!--begin::Separator-->
+                            <div class="text-center text-muted text-uppercase fw-bolder mb-5">or</div>
+                            <!--end::Separator-->
+                            <!--begin::Google link-->
+                            <a href="#" class="btn btn-flex flex-center btn-light btn-lg w-100 mb-5">
+                                <img alt="Logo" src="assets/media/svg/brand-logos/google-icon.svg"
+                                    class="h-20px me-3" />Continue with Google</a>
+                            <!--end::Google link-->
+                        </div>
+                        <!--end::Actions-->
+                    </form>
+                    <!--end::Form-->
                 </div>
-                <!--end::Form-->
-
+                <!--end::Wrapper-->
             </div>
-            <!--end::Body-->
-
-            <!--begin::Aside-->
-            <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2"
-                style="background-image: url({{ asset('assets/media/auth-bg.png') }})">
-                <!--begin::Content-->
-                <div class="d-flex flex-column flex-center py-7 py-lg-15 px-5 px-md-15 w-100">
-                    <!--begin::Image-->
-                    <img class="d-none d-lg-block mx-auto w-275px w-md-50 w-xl-500px mb-10 mb-lg-20"
-                        src="{{ asset('assets/media/auth-screens.png') }}" alt="">
-                    <!--end::Image-->
-
-                    <!--begin::Title-->
-                    <h1 class="d-none d-lg-block text-white fs-2qx fw-bolder text-center mb-7">
-                        Fast, Efficient and Productive
-                    </h1>
-                    <!--end::Title-->
-
-                    <!--begin::Text-->
-                    <div class="d-none d-lg-block text-white fs-base text-center">
-                        In this kind of post, <a href="#" class="opacity-75-hover text-warning fw-bold me-1">the
-                            blogger</a>
-
-                        introduces a person they’ve interviewed <br> and provides some background information about
-
-                        <a href="#" class="opacity-75-hover text-warning fw-bold me-1">the interviewee</a>
-                        and their <br> work following this is a transcript of the interview.
-                    </div>
-                    <!--end::Text-->
+            <!--end::Content-->
+            <!--begin::Footer-->
+            <div class="d-flex flex-center flex-column-auto p-10">
+                <!--begin::Links-->
+                <div class="d-flex align-items-center fw-bold fs-6">
+                    <a href="https://keenthemes.com" class="text-muted text-hover-primary px-2">Copyright @2025</a>
                 </div>
-                <!--end::Content-->
+                <!--end::Links-->
             </div>
-            <!--end::Aside-->
+            <!--end::Footer-->
         </div>
         <!--end::Authentication - Sign-in-->
-
-        <!--end::Root-->
-        <!--end::Main-->
-        <!--begin::Javascript-->
-        <script>var hostUrl = "assets/";</script>
-        <!--begin::Global Javascript Bundle(used by all pages)-->
-        <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
-        <!--end::Global Javascript Bundle-->
-        <!--end::Javascript-->
-
+    </div>
+    <!--end::Root-->
+    <!--end::Main-->
+    <!--begin::Javascript-->
+    <script>var hostUrl = "assets/";</script>
+    <!--begin::Global Javascript Bundle(used by all pages)-->
+    <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
+    <!--end::Global Javascript Bundle-->
+    <!--end::Javascript-->
+    <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
+    <!--end::Global Javascript Bundle-->
+    <!--begin::Page Custom Javascript(used by this page)-->
+    <script src="{{ asset('assets/js/custom/authentication/sign-in/general.js') }}"></script>
 </body>
 <!--end::Body-->
 
