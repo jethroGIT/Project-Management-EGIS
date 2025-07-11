@@ -19,3 +19,4 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('perencanaan');
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
+Route::get('/documentation', [DocumentationController::class, 'index'])->name('documentation');
