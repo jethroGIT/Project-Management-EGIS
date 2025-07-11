@@ -2,6 +2,6 @@
 
 @section('content')
 <div class="container">
-    <h1 class="my-10">Dashboard Metronic dengan Laravel</h1>
+    <h1 class="my-10">Kanban</h1>
 </div>
 @endsection
