@@ -38,7 +38,7 @@
                 </div>
                 <div class="menu-item">
                     <a
-                        class="menu-link active"
+                        class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                         href="{{ route('dashboard') }}"
                     >
                         <span class="menu-icon">
@@ -103,7 +103,7 @@
                     </div>
                 </div>
                 <div
-                    class="menu-item menu-accordion"
+                    class="menu-item menu-accordion {{ request()->routeIs('perencanaan') || request()->routeIs('realisasi') ? 'show' : '' }}"
                     data-kt-menu-trigger="click"
                 >
                     <span class="menu-link">
@@ -124,7 +124,7 @@
                     <div class="menu-sub menu-sub-accordion menu-active-bg">
                         <div class="menu-item">
                             <a
-                                class="menu-link"
+                                class="menu-link {{ request()->routeIs('perencanaan') ? 'active' : '' }}"
                                 href="{{ route('perencanaan') }}"
                             >
                                 <span class="menu-bullet">
@@ -135,7 +135,7 @@
                         </div>
                         <div class="menu-item">
                             <a
-                                class="menu-link"
+                                class="menu-link {{ request()->routeIs('realisasi') ? 'active' : '' }}"
                                 href="{{ route('realisasi') }}"
                             >
                                 <span class="menu-bullet">
@@ -158,7 +158,7 @@
                 
                 <div class="menu-item">
                     <a
-                        class="menu-link"
+                        class="menu-link {{ request()->routeIs('kanban') ? 'active' : '' }}"
                         href="{{ route('kanban') }}"
                 >
                         <span class="menu-icon">
