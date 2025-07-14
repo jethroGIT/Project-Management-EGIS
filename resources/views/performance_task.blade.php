@@ -6,8 +6,8 @@
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-10">
-                <a href="#" class="btn btn-light btn-sm me-3 border border-secondary rounded-0" style="width: 40px; height: 40px;">
-                    <i class="bi bi-arrow-left text-dark"></i>
+                <a href="#" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <h2 class="my-3 mb-3">WP 3.1 Human Security Risk Awareness Program Planning</h2>
             </div>
@@ -20,7 +20,7 @@
             <div class="table-responsive">
                 <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3">
                     <thead>
-                        <tr class="fw-semibold fs-4 text-gray-1000">
+                        <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
                             <th scope="col" style="width: 100px; min-width: 80px;">Tanggal</th>
                             <th scope="col" style="width: 170px;">Task</th>
                             <th scope="col" style="width: 170px;">Deskripsi</th>
