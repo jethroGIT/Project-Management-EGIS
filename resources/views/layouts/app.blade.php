@@ -95,6 +95,8 @@ License: For each use you must have a valid license purchased only from above li
 		<script src="assets/plugins/global/plugins.bundle.js"></script>
 		<script src="assets/js/scripts.bundle.js"></script>
 		<!--end::Global Javascript Bundle-->
+		<!-- jQuery -->
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 		<!--begin::Page Vendors Javascript(used by this page)-->
 		<script src="assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 		<script src="assets/plugins/custom/datatables/datatables.bundle.js"></script>
@@ -107,6 +109,7 @@ License: For each use you must have a valid license purchased only from above li
 		<script src="assets/js/custom/modals/users-search.js"></script>
 		<!--end::Page Custom Javascript-->
 		<!--end::Javascript-->
+		@stack('scripts')
 	</body>
 	<!--end::Body-->
 </html>
