@@ -5,7 +5,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PerencanaanController;
 use App\Http\Controllers\RealisasiController;
 use App\Http\Controllers\KanbanController;
+use App\Http\Controllers\PerformanceTaskController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TimesheetController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,3 +22,5 @@ Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('peren
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
 Route::get('/task', [TaskController::class, 'index'])->name('task');
+Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
+Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
