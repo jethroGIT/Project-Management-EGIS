@@ -48,7 +48,7 @@
                              <div class="card-body py-5">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="form-label fw-bold">Kategori</label>
+                                        <label class="form-label fw-bold">Kategori Task</label>
                                         <select class="form-select form-select-solid" id="kategoriFilter">
                                             <option value="">Pilih Kategori</option>
                                             <option value="management">Management of Human Security Risk Programs</option>
@@ -74,10 +74,102 @@
 
                     <!-- Add Task Button -->
                     <div class="d-flex justify-content-start mb-4">
-                        <button type="button" class="btn btn-success">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
                             <i class="bi bi-plus-lg fs-2 me-1"></i>
                             Tambah Kategori Task
                         </button>
+
+                        <div class="modal fade" tabindex="-1" id="kt_modal_1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title">Tambah Task Work Project</h3>
+
+                                        <!--begin::Close-->
+                                        <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                        </div>
+                                        <!--end::Close-->
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <!-- <p>Modal body text goes here.</p> -->
+                                        <div class="form-group mb-6">
+                                            <label class="form-label fw-bold">Kategori Task</label>
+                                            <select class="form-select form-select-solid" id="kategoriFilter">
+                                                <option value="">Pilih Kategori</option>
+                                                <option value="management">Management of Human Security Risk Programs</option>
+                                                <option value="awareness">Human Security Risk Awareness Program</option>
+                                                <option value="training">Security Training Programs</option>
+                                                <option value="assessment">Risk Assessment Programs</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-4">
+                                            <label class="form-label fw-bold">Nama Task</label>
+                                            <input type="text" class="form-control" placeholder="Masukkan Nama Task"/>
+                                        </div>
+                                        <div class="form-group mb-4">
+                                            <label class="form-label fw-bold">Actual Scope</label>
+                                            <input type="text" class="form-control" placeholder="Masukkan Actual Scope"/>
+                                        </div>
+                                        <div class="form-group mb-4">
+                                            <label class="form-label fw-bold">Deliverables</label>
+                                            <textarea class="form-control" aria-label="With textarea" placeholder="Masukkan Deliverables"></textarea>
+                                        </div>
+                                        <div class="row mb-4">
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Duration</label>
+                                                <input type="number" class="form-control" id="duration" placeholder="Masukkan Durasi Hari Kerja"/>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Start Date</label>
+                                                <div class="input-group">
+                                                    <input type="date" class="form-control" id="startDate" placeholder="Pilih Tanggal Mulai"/>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">End Date</label>
+                                                <div class="input-group">
+                                                    <input type="date" class="form-control" id="endDate" placeholder="Pilih Tanggal Selesai"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group mb-6">
+                                            <label class="form-label fw-bold">% Complete</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="percentComplete" placeholder="Masukkan Persentase" min="0" max="100"/>
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group mb-4">
+                                            <label class="form-label fw-bold">Resource Names</label>
+                                            <div id="resourceContainer">
+                                                <div class="input-group mb-2" id="resource-0">
+                                                    <select class="form-select" name="resources[]">
+                                                        <option value="">Pilih Resource</option>
+                                                        <option value="pm">Project Manager (PM)</option>
+                                                        <option value="sc">Senior Consultant (SC)</option>
+                                                        <option value="asc">Associate Consultant (ASC)</option>
+                                                        <option value="jc">Junior Consultant (JC)</option>
+                                                        <option value="tw">Technical Writer (TW)</option>
+                                                        <option value="osc">On-Site Consultant (OSC)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-light-primary" id="addResourceBtn">
+                                                <i class="bi bi-plus-lg"></i>
+                                                Tambah Resource
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                        <button type="button" class="btn btn-primary">Simpan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Search Form -->
@@ -302,17 +394,6 @@
                             </tbody>
                         </table>
                     </div>
-                    
-                    <!-- <ul class="pagination">
-                        <li class="page-item previous disabled"><a href="#" class="page-link"><i class="previous"></i></a></li>
-                        <li class="page-item "><a href="#" class="page-link">1</a></li>
-                        <li class="page-item active"><a href="#" class="page-link">2</a></li>
-                        <li class="page-item "><a href="#" class="page-link">3</a></li>
-                        <li class="page-item "><a href="#" class="page-link">...</a></li>
-                        <li class="page-item "><a href="#" class="page-link">5</a></li>
-                        <li class="page-item "><a href="#" class="page-link">6</a></li>
-                        <li class="page-item next"><a href="#"  class="page-link"><i class="next"></i></a></li>
-                    </ul> -->
                 </div>
 
                 <!-- TAB WP KUANTITAS -->
@@ -677,9 +758,18 @@
 
 @push('scripts')
 <script>
+let resourceCounter = 2;
+
 $(document).ready(function () {
     initTabelWPDetail();
     initTabelWPKuantitas();
+
+    // Resource management
+    
+    // Add Resource Button Click Event
+    $('#addResourceBtn').on('click', function() {
+        addNewResource();
+    });
 });
 
 function initTabelWPDetail() {
@@ -710,10 +800,6 @@ function initTabelWPKuantitas() {
     $('#tabel_wp_kuantitas').DataTable({
         'scrollY': '400px',
         "scrollX": true,
-        // "fixedHeader": {
-        //     "header":true,
-        //     "headerOffset": 5
-        // },
         rowGroup: {
             dataSrc: 0,
             startRender: function (rows, group) {
@@ -728,6 +814,42 @@ function initTabelWPKuantitas() {
             }
         ]
     });
+}
+
+/* ADD RESOURCE BUTTON FORM */
+function addNewResource() {
+    const resourceHtml = `
+        <div class="input-group mb-2" id="resource-${resourceCounter}">
+            <select class="form-select" name="resources[]">
+                <option value="">Pilih Resource</option>
+                <option value="pm">Project Manager (PM)</option>
+                <option value="sc">Senior Consultant (SC)</option>
+                <option value="asc">Associate Consultant (ASC)</option>
+                <option value="jc">Junior Consultant (JC)</option>
+                <option value="tw">Technical Writer (TW)</option>
+                <option value="osc">On-Site Consultant (OSC)</option>
+            </select>
+            <button type="button" class="btn btn-light-danger" onclick="removeResource(${resourceCounter})">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    $('#resourceContainer').append(resourceHtml);
+    resourceCounter++;
+}
+
+function removeResource(index) {
+    const resourceCount = $('#resourceContainer .input-group').length;
+    
+    // Pastikan minimal ada 1 resource yang tersisa
+    if (resourceCount > 1) {
+        $(`#resource-${index}`).remove();
+    } else {
+        alert('Minimal harus ada 1 resource!');
+    }
 }
 </script>
 @endpush
