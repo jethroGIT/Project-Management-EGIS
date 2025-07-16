@@ -5,14 +5,13 @@
     <h1 class="my-10 mt-2">Timesheet Activity</h1>
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
-            <div class="d-flex align-items-center mb-10">
+            <div class="d-flex align-items-center mb-7">
                 <a href="#" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <h2 class="my-3 mb-3">WP 3.1 Human Security Risk Awareness Program Planning</h2>
             </div>
-            <div class="d-flex align-items-center justify-content-between">
-                <p class="mb-0">Summary</p>
+            <div class="d-flex align-items-center justify-content-end">                
                 <div class="d-flex align-items-center">
                     <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6 me-2">
                         <li class="nav-item">
@@ -31,83 +30,83 @@
                     <a href="#" class="btn btn-light btn-sm border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; margin-bottom: 10px;">
                         <i class="bi bi-plus fs-2 text-dark" style="margin-left: 5px"></i>
                     </a>
-                </div>
+                </div>                
             </div>
-            <div>
-                <a href="#" class="btn btn-light btn-sm border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; margin-bottom: 10px;" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard">
-                    <i class="bi bi-filter fs-2 text-dark" style="margin-left: 5px"></i>
-                </a>
-                <div class="collapse mt-2" id="filterCard">
-                    <div class="card card-body rounded-0 border shadow-sm mb-7">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-filter fs-2 text-dark" style="margin-bottom: 10px; margin-right: 5px;"></i>
-                            <h5 class="mb-3">Filter Data</h5>
-                        </div>
-                        <div class="mb-2">
-                            <label for="filterTask" class="form-label">Pekan</label>
-                            <div class="dropdown">
-                                <button class="btn btn-light btn-sm border border-secondary rounded-0 dropdown-toggle 
-                                                d-flex justify-content-between align-items-center
-                                                border-0 border-bottom border-1 border-secondary" 
-                                        type="button" id="dropdownPekan" data-bs-toggle="dropdown" aria-expanded="false"
-                                        style="width: 200px; text-align: left;">
-                                    <span>Pilih Pekan</span>
-                                </button>
-                                <ul class="dropdown-menu rounded-0" aria-labelledby="dropdownPekan">
-                                    <li><a class="dropdown-item" href="#">Minggu ke-1</a></li>
-                                    <li><a class="dropdown-item" href="#">Minggu ke-2</a></li>
-                                    <li><a class="dropdown-item" href="#">Minggu ke-3</a></li>
-                                    <li><a class="dropdown-item" href="#">Minggu ke-4</a></li>
-                                </ul>
+            <div class="d-flex justify-content-start">
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
+                        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+                    </svg>
+                    Filter Data
+                </button>
+            </div>
+            <div class="collapse" id="filterCard">
+                <div class="card card-flush shadow-lg mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+                            </svg>
+                            <div class="m-2">
+                            Filter Data
+                            </div>
+                        </h3>
+                    </div>
+                    <div class="card-body" style="padding: 25px;">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">Pekan</label>
+                                <select class="form-select form-select-solid" id="kategoriFilter" style="cursor: pointer;   ">
+                                    <option value="">Pilih Pekan</option>
+                                    <option value="management">Pekan ke-1</option>
+                                    <option value="awareness">Pekan ke-2</option>
+                                    <option value="training">Pekan ke-3</option>
+                                    <option value="assessment">Pekan ke-4</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-end align-items-center">
-                            <button class="btn btn-sm btn-light rounded-0 me-2" style="box-shadow: 2px 2px 6px rgba(0,0,0,0.25);">
-                                Terapkan
-                            </button>
-                            <button class="btn btn-sm btn-light rounded-0 me-2" style="box-shadow: 2px 2px 6px rgba(0,0,0,0.25);">
+                    </div>
+                    <div class="card-footer" style="padding: 15px;">
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-danger me-3" id="resetFilter">
                                 Hapus Filter
                             </button>
+                            <button type="button" class="btn btn-primary" id="applyFilter">
+                                Terapkan
+                            </button>
                         </div>
-                    </div>
+                    </div>  
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-between mb-4">
-                <div class="d-flex align-items-center" style="gap: 10px;">
-                    <label class="mb-0">Tampilkan</label>
-                    <div class="dropdown d-flex align-items-center">
-                        <button class="btn btn-light btn-sm border border-secondary rounded-0 dropdown-toggle d-flex justify-content-between align-items-center border-0 border-bottom border-1 border-secondary" 
-                                type="button" id="dropdownView" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="ms-1">10</span>
-                        </button>
-                        <ul class="dropdown-menu rounded-0" aria-labelledby="dropdownView">
-                            <li><a class="dropdown-item" href="#">10</a></li>
-                            <li><a class="dropdown-item" href="#">25</a></li>
-                            <li><a class="dropdown-item" href="#">50</a></li>
-                        </ul>
-                    </div>
-                    <label class="mb-0">data per halaman</label>
-                </div>
-                <form class="d-flex justify-content-end align-items-center">
-                    <label class="me-5 mt-3 mb-0" for="searchTask">Cari: </label>
-                    <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary mt-3" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
-                </form>
-            </div>
+            <form class="d-flex justify-content-end align-items-center">
+                <label class="me-5 mt-3 mb-0" for="searchTask">Cari: </label>
+                <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary mt-3" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
+            </form>
             <div class="table-responsive">
-                <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3">
+                <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
                     <thead>
                         <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
-                            <th scope="col" style="width: 20px;">No</th>
+                            <th scope="col" style="width: 40px;">No</th>
                             <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
-                            <th scope="col" style="width: 80px;">(Project Manager) Oki</th>
-                            <th scope="col" style="width: 80px;">(Senior Consultant) Restia</th>
-                            <th scope="col" style="width: 80px;">(Associate Consultant) Yudis</th>
-                            <th scope="col" style="width: 80px;">(Junior Consultant) Annisa</th>
-                            <th scope="col" style="width: 80px;">(Technical Writer) Vanika</th>
-                            <th scope="col" style="width: 50px;">Action</th>
+                            <th scope="col" style="width: 80px;">
+                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Project Manager">Oki</span>
+                            </th>
+                            <th scope="col" style="width: 80px;">
+                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Senior Consultant">Restia</span>
+                            </th>
+                            <th scope="col" style="width: 80px;">
+                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Associate Consultant">Yudis</span>
+                            </th>
+                            <th scope="col" style="width: 80px;">
+                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Junior Consultant">Annisa</span>
+                            </th>
+                            <th scope="col" style="width: 80px;">
+                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Technical Writer">Vanika</span>
+                            </th>
+                            <th scope="col" style="width: 30px;">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody style="font-size: 0.92rem;">
                         <tr>
                             <th scope="row">1</th>
                             <td>14</td>
@@ -141,7 +140,7 @@
                     </tbody>
                 </table>
             </div> 
-            <ul class="pagination justify-content-end">
+            {{-- <ul class="pagination justify-content-end">
                 <li class="page-item previous"><a href="#" class="page-link"><i class="previous"></i></a></li>
                 <li class="page-item active"><a href="#" class="page-link">1</a></li>
                 <li class="page-item "><a href="#" class="page-link">2</a></li>
@@ -150,48 +149,54 @@
                 <li class="page-item "><a href="#" class="page-link">5</a></li>
                 <li class="page-item "><a href="#" class="page-link">6</a></li>
                 <li class="page-item next"><a href="#"  class="page-link"><i class="next"></i></a></li>
-            </ul>
-            <div class="col-md-6 border border-gray bg-light h-100 px-3">
-                <span class="fw-bold mt-2 mb-2 d-flex justify-content-center">Total Mandays Sementara</span>
-                <div class="row" style="height: 40px;">
-                    <div class="col-md-6 border bg-light h-100 d-flex align-items-center">
-                        <span class="fw-bold">Project Manager</span>
-                    </div>
-                    <div class="col-md-6 border bg-white h-100 d-flex align-items-center">
-                        <span class="text">5</span>
-                    </div>
-                </div>
-                <div class="row" style="height: 40px;">
-                    <div class="col-md-6 border bg-light h-100 d-flex align-items-center">
-                        <span class="fw-bold">Senior Consultant</span>
-                    </div>
-                    <div class="col-md-6 border bg-white h-100 d-flex align-items-center">
-                        <span class="text">10</span>
-                    </div>
-                </div>
-                <div class="row" style="height: 40px;">
-                    <div class="col-md-6 border bg-light h-100 d-flex align-items-center">
-                        <span class="fw-bold">Associate Consultant</span>
-                    </div>
-                    <div class="col-md-6 border bg-white h-100 d-flex align-items-center">
-                        <span class="text">8</span>
-                    </div>
-                </div>
-                <div class="row" style="height: 40px;">
-                    <div class="col-md-6 border bg-light h-100 d-flex align-items-center">
-                        <span class="fw-bold">Junior Consultant</span>
-                    </div>
-                    <div class="col-md-6 border bg-white h-100 d-flex align-items-center">
-                        <span class="text">6</span>
-                    </div>
-                </div>
-                <div class="row" style="height: 40px;">
-                    <div class="col-md-6 border bg-light h-100 d-flex align-items-center">
-                        <span class="fw-bold">Technical Writer</span>
-                    </div>
-                    <div class="col-md-6 border bg-white h-100 d-flex align-items-center">
-                        <span class="text">4</span>
-                    </div>
+            </ul> --}}
+            <div class="col-md-6" style="width: 50%; min-width: 350px;">
+                <button class="btn btn-link px-0 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable" style="font-weight:600; text-decoration:none; color:#3b3b3b;">
+                    <i class="bi bi-chevron-down me-2"></i>Lihat Ringkasan Mandays
+                </button>
+                <div class="collapse" id="mandaysSummaryTable">
+                    <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
+                        <thead>
+                            <tr>
+                                <th scope="col" colspan="3" class="text-center bg-light">Total Mandays Sementara</th>
+                            </tr>
+                            <tr>
+                                <th scope="col" rowspan="2" class="align-middle">Roles</th>
+                                <th scope="col" colspan="2" class="text-center align-middle">Mandays</th>
+                            </tr>
+                            <tr>
+                                <th class="text-center align-middle">Rencana</th>
+                                <th class="text-center align-middle">Realisasi</th>                            
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="align-middle">Project Manager</td>
+                                <td class="text-center align-middle" style="color:gray">10</td>
+                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
+                            </tr>
+                            <tr>
+                                <td class="align-middle">Senior Consultant</td>
+                                <td class="text-center align-middle" style="color:gray">10</td>
+                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
+                            </tr>
+                            <tr>
+                                <td class="align-middle">Associate Consultant</td>
+                                <td class="text-center align-middle" style="color:gray">10</td>
+                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
+                            </tr>
+                            <tr>
+                                <td class="align-middle">Junior Consultant</td>
+                                <td class="text-center align-middle" style="color:gray">10</td>
+                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
+                            </tr>
+                            <tr>
+                                <td class="align-middle">Technical Writer</td>
+                                <td class="text-center align-middle" style="color:gray">10</td>
+                                <td class="text-center align-middle">{!! mandaysLabel(10, 20) !!}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>            
         </div>
@@ -203,7 +208,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Tambah Deskripsi Task Personel</h3>
+                <h3 class="modal-title">Deskripsi Task Personel</h3>
 
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
@@ -236,6 +241,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
     const button = document.getElementById('saveSuccessful');
 
@@ -252,5 +258,34 @@
             }
         });
     });
-</script>
 
+     // Initialize the DataTable
+    $(document).ready(function() {
+        initTabelTimesheet();
+    });
+
+    function initTabelTimesheet() {
+        $('#kt_datatable_example_2').DataTable({
+            // "scrollY": '500px',
+            "scrollX": true,
+            "fixedHeader": {
+                "header": true,
+                "headerOffset": 70
+            },
+            "ordering": false // Disable sorting
+        });
+    }
+
+    $(function () {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+@endpush
+
+@php
+    function mandaysLabel($plan, $realization) {
+        $bg = ($realization >= $plan) ? '#dc3545' : 'transparent';
+        $color = ($realization >= $plan) ? 'white' : 'black';
+        return '<span class="d-inline-block px-3 py-1 text-center" style="border-radius:8px; background:' . $bg . '; color:' . $color . '; min-width:40px; min-height:24px;">' . $realization . '</span>';
+    }
+@endphp
