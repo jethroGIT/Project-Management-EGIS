@@ -74,13 +74,13 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
                                                         </a>
@@ -114,13 +114,13 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
                                                         </a>
@@ -154,13 +154,13 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
                                                         </a>
@@ -194,13 +194,13 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
                                                         </a>
@@ -425,8 +425,9 @@
                                     <h3 class="card-title fw-bold">Duration</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2">
                                         <span class="fs-1 fw-bold text-primary">22</span>
+                                        <span class="fs-1">Hari</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
