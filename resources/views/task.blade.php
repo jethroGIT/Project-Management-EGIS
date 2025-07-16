@@ -89,11 +89,13 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="kt_datatable_example_2" class="table table-striped border gy-5 gs-7 rounded w-100">
+                        <table id="kt_datatable_example_2" class="table border table-row-dashed border-gray-300 table-row-gray-300 gy-5 gs-7 rounded w-100">
                             <thead>
                                 <tr class="fw-bolder fs-6 text-gray-800 px-7">
                                     <th>Kategori</th>
+                                    <th></th>
                                     <th class="align-middle border-bottom min-w-100px">No</th>
+                                    <th class="align-middle border-bottom min-w-200px">Work Package</th>
                                     <th class="align-middle border-bottom min-w-200px">Task</th>
                                     <th class="align-middle border-bottom min-w-200px">Actual Scope</th>
                                     <th class="align-middle border-bottom min-w-400px">Deliverables</th>
@@ -104,10 +106,16 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
+                                <tr class="task-row">
                                     <td>Management of Human Security Risk Programs</td>
+                                    <td style="cursor:pointer;">
+                                        <a class="toggle-collapse" data-bs-toggle="collapse" data-bs-target="#wp1-details" aria-expanded="false" aria-controls="wp1-details">
+                                            <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-wp1"></i>
+                                        </a>
+                                    </td>
                                     <td>1.1</td>
                                     <td>Human Security Risk Awareness Program Planning</td>
+                                    <td></td>
                                     <td>"Human firewall design program (awareness) - IS competency matrix"</td>
                                     <td>
                                         Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat:
@@ -169,10 +177,98 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr>
+                                <!-- Sub-rows for Work Package 1.1 -->
+                                <tr class="collapse sub-row" id="wp1-details">
                                     <td>Management of Human Security Risk Programs</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>a. Analisis kebutuhan program security awareness</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask('1.1.a')">
+                                                        <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                        Edit
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask('1.1.a')">
+                                                        <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                        Hapus
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <i class="bi bi-plus fs-2 me-2 text-dark"></i>
+                                                        <span>Tambah Baris</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Sub-rows for Work Package 1.1 -->
+                                <tr class="collapse sub-row" id="wp1-details">
+                                    <td>Management of Human Security Risk Programs</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>b. Identifikasi stakeholder dan kebutuhannya terhadap program security awareness</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask('1.1.a')">
+                                                        <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                        Edit
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask('1.1.a')">
+                                                        <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                        Hapus
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <i class="bi bi-plus fs-2 me-2 text-dark"></i>
+                                                        <span>Tambah Baris</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="task-row">
+                                    <td>Management of Human Security Risk Programs</td>
+                                    <td style="cursor:pointer;">
+                                        <a class="toggle-collapse" data-bs-toggle="collapse" data-bs-target="#wp2-details" aria-expanded="false" aria-controls="wp2-details">
+                                            <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-wp2"></i>
+                                        </a>
+                                    </td>
                                     <td>1.2</td>
                                     <td>Human Security Risk Awareness Program Planning</td>
+                                    <td></td>
                                     <td>"Human firewall design program (awareness) - IS competency matrix"</td>
                                     <td>
                                         Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat:
@@ -228,6 +324,47 @@
                                                     <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Sub-rows for Work Package 1.2 -->
+                                <tr class="collapse sub-row" id="wp2-details">
+                                    <td>Management of Human Security Risk Programs</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>c. Sumber daya yang dibutuhkan dalam program security awareness</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask('1.1.a')">
+                                                        <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                        Edit
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask('1.1.a')">
+                                                        <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                        Hapus
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                        <i class="bi bi-plus fs-2 me-2 text-dark"></i>
+                                                        <span>Tambah Baris</span>
                                                     </a>
                                                 </li>
                                             </ul>
@@ -236,8 +373,14 @@
                                 </tr>
                                 <tr>
                                     <td>Management of Information Security Compliance - Business Regulations</td>
+                                    <td style="cursor:pointer;">
+                                        <a class="toggle-collapse" data-bs-toggle="collapse" data-bs-target="#wp1-details" aria-expanded="false" aria-controls="wp1-details">
+                                            <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-wp1"></i>
+                                        </a>
+                                    </td>
                                     <td>2.1</td>
                                     <td>Human Security Risk Awareness Program Planning</td>
+                                    <td></td>
                                     <td>"Human firewall design program (awareness) - IS competency matrix"</td>
                                     <td>
                                         Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat:
@@ -303,8 +446,8 @@
                         </table>
                     </div>
 
-                    <!-- Modal for Adding Task -->
-                    <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
+                    <!-- Modal for Adding WP -->
+                    <div class="modal fade" tabindex="-1" id="kt_modal_insert_wp">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -330,8 +473,8 @@
                                         </select>
                                     </div>
                                     <div class="form-group mb-4">
-                                        <label class="form-label fw-bold">Nama Task</label>
-                                        <input type="text" class="form-control" placeholder="Masukkan Nama Task"/>
+                                        <label class="form-label fw-bold">Nama Work Package</label>
+                                        <input type="text" class="form-control" placeholder="Masukkan Nama Work Package"/>
                                     </div>
                                     <div class="form-group mb-4">
                                         <label class="form-label fw-bold">Actual Scope</label>
@@ -385,6 +528,35 @@
                                             <i class="bi bi-plus-lg"></i>
                                             Tambah Resource
                                         </button>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-primary">Simpan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal for Adding Task -->
+                    <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3 class="modal-title">Tambah Task</h3>
+
+                                    <!--begin::Close-->
+                                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                    </div>
+                                    <!--end::Close-->
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="form-group mb-4">
+                                        <label class="form-label fw-bold">Nama Task</label>
+                                        <input type="text" class="form-control" placeholder="Masukkan Nama Task"/>
                                     </div>
                                 </div>
 
@@ -466,7 +638,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="tabel_wp_kuantitas" class="table table-striped gy-5 gs-7 border rounded w-100">
+                        <table id="tabel_wp_kuantitas" class="table border table-row-dashed border-gray-300 table-row-gray-300 gy-5 gs-7 rounded w-100">
                             <thead class="align-middle text-center">
                                 <tr class="fw-bolder fs-6 text-gray-800 px-7">
                                     <th rowspan="3">Kategori</th>
@@ -794,11 +966,25 @@ $(document).ready(function () {
     initTabelWPDetail();
     initTabelWPKuantitas();
 
-    // Resource management
-    
     // Add Resource Button Click Event
     $('#addResourceBtn').on('click', function() {
         addNewResource();
+    });
+
+    // Toggle icon on collapse show/hide for work packages
+    $('#wp1-details').on('show.bs.collapse', function () {
+        $('#icon-wp1').removeClass('bi-plus').addClass('bi-dash');
+    });
+    $('#wp1-details').on('hide.bs.collapse', function () {
+        $('#icon-wp1').removeClass('bi-dash').addClass('bi-plus');
+    });
+
+    // Toggle icon on collapse show/hide for work packages
+    $('#wp2-details').on('show.bs.collapse', function () {
+        $('#icon-wp2').removeClass('bi-plus').addClass('bi-dash');
+    });
+    $('#wp2-details').on('hide.bs.collapse', function () {
+        $('#icon-wp2').removeClass('bi-dash').addClass('bi-plus');
     });
 });
 
@@ -814,7 +1000,7 @@ function initTabelWPDetail() {
             dataSrc: 0,
             startRender: function (rows, group) {
                 return $('<tr/>')
-                    .append('<td colspan="9" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>');
+                    .append('<td colspan="10" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>');
             }
         },
         columnDefs: [
@@ -853,7 +1039,7 @@ function insertAbove(taskId) {
     $('#insertTaskModalTitle').text('Masukkan Task di Atas - ' + taskId);
     
     // Show modal
-    $('#kt_modal_insert_task').modal('show');
+    $('#kt_modal_insert_wp').modal('show');
 }
 
 function insertBelow(taskId) {
@@ -862,7 +1048,7 @@ function insertBelow(taskId) {
     $('#insertTaskModalTitle').text('Masukkan Task di Bawah - ' + taskId);
     
     // Show modal
-    $('#kt_modal_insert_task').modal('show');
+    $('#kt_modal_insert_wp').modal('show');
 }
 
 /* ADD RESOURCE BUTTON FORM */

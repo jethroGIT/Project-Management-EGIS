@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <h1 class="my-10">Work Package</h1>
 
-    <div class="card card-flush shadow-sm">
+    <div class="card card-flush shadow-sm mb-8">
         <div class="card-header">
             <div class="mt-6">
                 <h3 class="card-title">WP 3.1 Human Security Risk Awareness Program Planning</h3>
@@ -238,98 +238,168 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end mb-4">
-                        <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-                            </svg>
-                            Edit Data
-                        </button>
-                    </div>
+                    <div class="card card-flush shadow mb-6">
+                        <div class="card-body py-5">
+                            <div class="d-flex justify-content-end mb-4">
+                                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                    </svg>
+                                    Edit Data
+                                </button>
 
-                    <div class="row">
-                        <!-- Actual Scope -->
-                        <div class="col-md-6 mb-4">
-                            <div class="card card-flush shadow-sm h-100">
-                                <div class="card-body">
-                                    <h3 class="card-title fw-bold">Actual Scope</h3>
-                                    <p class="mb-0 fs-6 text-dark fw-semibold">"Human firewall design program (awareness) - IS competency matrix"</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <div class="card card-flush shadow-sm h-100">
-                                <div class="card-body">
-                                    <h3 class="card-title fw-bold">% Complete</h3>
-                                    <div class="d-flex justify-content-center h-100">
-                                        <span class="fs-1">30 %</span>
+                                <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h3 class="modal-title">Edit Data</h3>
+
+                                                <!--begin::Close-->
+                                                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                                </div>
+                                                <!--end::Close-->
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <div class="form-group mb-4">
+                                                    <label class="form-label fw-bold">Actual Scope</label>
+                                                    <input type="text" class="form-control" placeholder="Masukkan Actual Scope"/>
+                                                </div>
+                                                <div class="form-group mb-4">
+                                                    <label class="form-label fw-bold">Deliverables</label>
+                                                    <textarea class="form-control" aria-label="With textarea" placeholder="Masukkan Deliverables"></textarea>
+                                                </div>
+                                                <div class="row mb-4">
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">Start Date</label>
+                                                        <div class="input-group">
+                                                            <input type="date" class="form-control" id="startDate" placeholder="Pilih Tanggal Mulai"/>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">End Date</label>
+                                                        <div class="input-group">
+                                                            <input type="date" class="form-control" id="endDate" placeholder="Pilih Tanggal Selesai"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group mb-4">
+                                                    <label class="form-label fw-bold">Resource Names</label>
+                                                    <div id="resourceContainer">
+                                                        <div class="input-group mb-2" id="resource-0">
+                                                            <select class="form-select" name="resources[]">
+                                                                <option value="">Pilih Resource</option>
+                                                                <option value="pm">Project Manager (PM)</option>
+                                                                <option value="sc">Senior Consultant (SC)</option>
+                                                                <option value="asc">Associate Consultant (ASC)</option>
+                                                                <option value="jc">Junior Consultant (JC)</option>
+                                                                <option value="tw">Technical Writer (TW)</option>
+                                                                <option value="osc">On-Site Consultant (OSC)</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-light-primary" id="addResourceBtn">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                        Tambah Resource
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                                <button type="button" class="btn btn-primary">Simpan</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Deliverables -->
-                        <div class="col-md-12 mb-4">
-                            <div class="card card-flush shadow-sm">
-                                <div class="card-body">
-                                    <h3 class="card-title fw-bold">Deliverables</h3>
-                                    <p class="mb-2 fs-7">
-                                        Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat: <br/>
-                                        1. Metode pembangunan awareness <br/>
-                                        2. Materi sosialisasi security awareness <br/>
-                                        3. Materi pengujian berkala untuk topik security awareness <br/>
-                                        4. Materi pelatihan dasar cyber hygiene, serta penggunaan tools pendukung cyber hygiene yang dimiliki PERUSAHAAN <br/>
-                                        5. Dokumentasi workshop pengembangan awareness keamanan informasi (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar hadir <br/>
-                                    </p>
+        
+                            <div class="row">
+                                <!-- Actual Scope -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="card card-flush shadow-sm h-100">
+                                        <div class="card-body">
+                                            <h3 class="card-title fw-bold">Actual Scope</h3>
+                                            <p class="mb-0 fs-6 text-dark fw-semibold">"Human firewall design program (awareness) - IS competency matrix"</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Resource Names -->
-                        <div class="col-md-12">
-                            <div class="card card-flush shadow-sm">
-                                <div class="card-header">
-                                    <h3 class="card-title fw-bold">Resource Names</h3>
+                                <div class="col-md-4 mb-4">
+                                    <div class="card card-flush shadow-sm h-100">
+                                        <div class="card-body">
+                                            <h3 class="card-title fw-bold">% Complete</h3>
+                                            <div class="d-flex justify-content-center h-100">
+                                                <span class="fs-1">30 %</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <div class="row g-3 justify-content-center">
-                                        <div class="col-md-4">
-                                            <div class="card card-bordered h-100">
-                                                <div class="card-body text-center">
-                                                    <h5 class="card-title fs-6 fw-bold">Oki Jamhur</h5>
-                                                    <span>Project Manager</span>
-                                                </div>
-                                            </div>
+        
+                                <!-- Deliverables -->
+                                <div class="col-md-12 mb-4">
+                                    <div class="card card-flush shadow-sm">
+                                        <div class="card-body">
+                                            <h3 class="card-title fw-bold">Deliverables</h3>
+                                            <p class="mb-2 fs-7">
+                                                Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat: <br/>
+                                                1. Metode pembangunan awareness <br/>
+                                                2. Materi sosialisasi security awareness <br/>
+                                                3. Materi pengujian berkala untuk topik security awareness <br/>
+                                                4. Materi pelatihan dasar cyber hygiene, serta penggunaan tools pendukung cyber hygiene yang dimiliki PERUSAHAAN <br/>
+                                                5. Dokumentasi workshop pengembangan awareness keamanan informasi (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar hadir <br/>
+                                            </p>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="card card-bordered h-100">
-                                                <div class="card-body text-center">
-                                                    <h5 class="card-title fs-6 fw-bold">Restia</h5>
-                                                    <span>Senior Consultant</span>
-                                                </div>
-                                            </div>
+                                    </div>
+                                </div>
+        
+                                <!-- Resource Names -->
+                                <div class="col-md-12">
+                                    <div class="card card-flush shadow-sm">
+                                        <div class="card-header">
+                                            <h3 class="card-title fw-bold">Resource Names</h3>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="card card-bordered h-100">
-                                                <div class="card-body text-center">
-                                                    <h5 class="card-title fs-6 fw-bold">Yudis</h5>
-                                                    <span>Associate Consultant</span>
+                                        <div class="card-body">
+                                            <div class="row g-3 justify-content-center">
+                                                <div class="col-md-4">
+                                                    <div class="card card-bordered h-100">
+                                                        <div class="card-body text-center">
+                                                            <h5 class="card-title fs-6 fw-bold">Oki Jamhur</h5>
+                                                            <span>Project Manager</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="card card-bordered h-100">
-                                                <div class="card-body text-center">
-                                                    <h5 class="card-title fs-6 fw-bold">Annisa Y</h5>
-                                                    <span>Junior Consultant</span>
+                                                <div class="col-md-4">
+                                                    <div class="card card-bordered h-100">
+                                                        <div class="card-body text-center">
+                                                            <h5 class="card-title fs-6 fw-bold">Restia</h5>
+                                                            <span>Senior Consultant</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="card card-bordered h-100">
-                                                <div class="card-body text-center">
-                                                    <h5 class="card-title fs-6 fw-bold">Vanika</h5>
-                                                    <span>Technical Writer</span>
+                                                <div class="col-md-4">
+                                                    <div class="card card-bordered h-100">
+                                                        <div class="card-body text-center">
+                                                            <h5 class="card-title fs-6 fw-bold">Yudis</h5>
+                                                            <span>Associate Consultant</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card card-bordered h-100">
+                                                        <div class="card-body text-center">
+                                                            <h5 class="card-title fs-6 fw-bold">Annisa Y</h5>
+                                                            <span>Junior Consultant</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card card-bordered h-100">
+                                                        <div class="card-body text-center">
+                                                            <h5 class="card-title fs-6 fw-bold">Vanika</h5>
+                                                            <span>Technical Writer</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -351,7 +421,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold">22</span>
+                                        <span class="fs-1 fw-bold text-primary">22</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -367,7 +437,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold">30 %</span>
+                                        <span class="fs-1 fw-bold text-success">30 %</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -377,13 +447,13 @@
 
                         <!-- WP Performance -->
                         <div class="col-md-4">
-                                <div class="card card-flush shadow-sm mb-4 wp-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card card-flush shadow-sm mb-4 wp-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold">30 %</span>
+                                        <span class="fs-1 fw-bold text-info">30 %</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -740,5 +810,45 @@ function toggleSubRows(rowId) {
     box-shadow: 0 1.5rem 3rem rgba(0,0,0, 0.9), 0 0.5rem 1rem rgba(0,0,0, 0.9);
     /* background: #f2f4f4; */
     transform: translateY(-2px) scale(0.985);
+}
+
+/* HOVER EFFECT UNTUK RESOURCE NAMES CARDS */
+.card-bordered {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card-bordered:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.15);
+    border-color: #007bff;
+}
+
+.card-bordered:hover .card-title {
+    color: #007bff;
+    transition: color 0.3s ease;
+}
+
+.card-bordered:hover span {
+    color: #6c757d;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* Smooth transition untuk semua elemen dalam card */
+.card-bordered .card-body {
+    transition: all 0.3s ease;
+}
+
+.card-bordered .card-title {
+    transition: color 0.3s ease;
+}
+
+.card-bordered span {
+    transition: all 0.3s ease;
+}
+
+.card-bordered:hover .card-body {
+    background-color: #f8f9fa;
 }
 </style>
