@@ -74,21 +74,15 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -120,21 +114,15 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -166,21 +154,15 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -212,21 +194,15 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Atas
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
                                                             <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                             Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -235,6 +211,35 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Modal for Adding Task -->
+                        <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title">Tambah Task</h3>
+
+                                        <!--begin::Close-->
+                                        <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                        </div>
+                                        <!--end::Close-->
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <div class="form-group mb-4">
+                                            <label class="form-label fw-bold">Nama Task</label>
+                                            <input type="text" class="form-control" placeholder="Masukkan Nama Task"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                        <button type="button" class="btn btn-primary">Simpan</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
