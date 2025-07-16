@@ -8,6 +8,8 @@ use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\PerformanceTaskController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimesheetController;
+use App\Http\Controllers\WorkPackageController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -24,3 +26,4 @@ Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
 Route::get('/task', [TaskController::class, 'index'])->name('task');
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
+Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');

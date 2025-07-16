@@ -74,102 +74,10 @@
 
                     <!-- Add Task Button -->
                     <div class="d-flex justify-content-start mb-4">
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_category_task">
                             <i class="bi bi-plus-lg fs-2 me-1"></i>
                             Tambah Kategori Task
                         </button>
-
-                        <div class="modal fade" tabindex="-1" id="kt_modal_1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title">Tambah Task Work Project</h3>
-
-                                        <!--begin::Close-->
-                                        <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                                        </div>
-                                        <!--end::Close-->
-                                    </div>
-
-                                    <div class="modal-body">
-                                        <!-- <p>Modal body text goes here.</p> -->
-                                        <div class="form-group mb-6">
-                                            <label class="form-label fw-bold">Kategori Task</label>
-                                            <select class="form-select form-select-solid" id="kategoriFilter">
-                                                <option value="">Pilih Kategori</option>
-                                                <option value="management">Management of Human Security Risk Programs</option>
-                                                <option value="awareness">Human Security Risk Awareness Program</option>
-                                                <option value="training">Security Training Programs</option>
-                                                <option value="assessment">Risk Assessment Programs</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group mb-4">
-                                            <label class="form-label fw-bold">Nama Task</label>
-                                            <input type="text" class="form-control" placeholder="Masukkan Nama Task"/>
-                                        </div>
-                                        <div class="form-group mb-4">
-                                            <label class="form-label fw-bold">Actual Scope</label>
-                                            <input type="text" class="form-control" placeholder="Masukkan Actual Scope"/>
-                                        </div>
-                                        <div class="form-group mb-4">
-                                            <label class="form-label fw-bold">Deliverables</label>
-                                            <textarea class="form-control" aria-label="With textarea" placeholder="Masukkan Deliverables"></textarea>
-                                        </div>
-                                        <div class="row mb-4">
-                                            <div class="col-md-4">
-                                                <label class="form-label fw-bold">Duration</label>
-                                                <input type="number" class="form-control" id="duration" placeholder="Masukkan Durasi Hari Kerja"/>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label fw-bold">Start Date</label>
-                                                <div class="input-group">
-                                                    <input type="date" class="form-control" id="startDate" placeholder="Pilih Tanggal Mulai"/>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label fw-bold">End Date</label>
-                                                <div class="input-group">
-                                                    <input type="date" class="form-control" id="endDate" placeholder="Pilih Tanggal Selesai"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group mb-6">
-                                            <label class="form-label fw-bold">% Complete</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" id="percentComplete" placeholder="Masukkan Persentase" min="0" max="100"/>
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                        </div>
-                                        <div class="form-group mb-4">
-                                            <label class="form-label fw-bold">Resource Names</label>
-                                            <div id="resourceContainer">
-                                                <div class="input-group mb-2" id="resource-0">
-                                                    <select class="form-select" name="resources[]">
-                                                        <option value="">Pilih Resource</option>
-                                                        <option value="pm">Project Manager (PM)</option>
-                                                        <option value="sc">Senior Consultant (SC)</option>
-                                                        <option value="asc">Associate Consultant (ASC)</option>
-                                                        <option value="jc">Junior Consultant (JC)</option>
-                                                        <option value="tw">Technical Writer (TW)</option>
-                                                        <option value="osc">On-Site Consultant (OSC)</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <button type="button" class="btn btn-light-primary" id="addResourceBtn">
-                                                <i class="bi bi-plus-lg"></i>
-                                                Tambah Resource
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                        <button type="button" class="btn btn-primary">Simpan</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Search Form -->
@@ -220,7 +128,7 @@
                                     </td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
                                                     <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
                                                 </svg>
@@ -285,7 +193,7 @@
                                     </td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
                                                     <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
                                                 </svg>
@@ -350,7 +258,7 @@
                                     </td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
                                                     <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
                                                 </svg>
@@ -393,6 +301,99 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Modal for Adding Task -->
+                    <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3 class="modal-title">Tambah Task Work Project</h3>
+
+                                    <!--begin::Close-->
+                                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                    </div>
+                                    <!--end::Close-->
+                                </div>
+
+                                <div class="modal-body">
+                                    <!-- <p>Modal body text goes here.</p> -->
+                                    <div class="form-group mb-6">
+                                        <label class="form-label fw-bold">Kategori Task</label>
+                                        <select class="form-select form-select-solid" id="kategoriFilter">
+                                            <option value="">Pilih Kategori</option>
+                                            <option value="management">Management of Human Security Risk Programs</option>
+                                            <option value="awareness">Human Security Risk Awareness Program</option>
+                                            <option value="training">Security Training Programs</option>
+                                            <option value="assessment">Risk Assessment Programs</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <label class="form-label fw-bold">Nama Task</label>
+                                        <input type="text" class="form-control" placeholder="Masukkan Nama Task"/>
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <label class="form-label fw-bold">Actual Scope</label>
+                                        <input type="text" class="form-control" placeholder="Masukkan Actual Scope"/>
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <label class="form-label fw-bold">Deliverables</label>
+                                        <textarea class="form-control" aria-label="With textarea" placeholder="Masukkan Deliverables"></textarea>
+                                    </div>
+                                    <div class="row mb-4">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Duration</label>
+                                            <input type="number" class="form-control" id="duration" placeholder="Masukkan Durasi Hari Kerja"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Start Date</label>
+                                            <div class="input-group">
+                                                <input type="date" class="form-control" id="startDate" placeholder="Pilih Tanggal Mulai"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">End Date</label>
+                                            <div class="input-group">
+                                                <input type="date" class="form-control" id="endDate" placeholder="Pilih Tanggal Selesai"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-6">
+                                        <label class="form-label fw-bold">% Complete</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="percentComplete" placeholder="Masukkan Persentase" min="0" max="100"/>
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <label class="form-label fw-bold">Resource Names</label>
+                                        <div id="resourceContainer">
+                                            <div class="input-group mb-2" id="resource-0">
+                                                <select class="form-select" name="resources[]">
+                                                    <option value="">Pilih Resource</option>
+                                                    <option value="pm">Project Manager (PM)</option>
+                                                    <option value="sc">Senior Consultant (SC)</option>
+                                                    <option value="asc">Associate Consultant (ASC)</option>
+                                                    <option value="jc">Junior Consultant (JC)</option>
+                                                    <option value="tw">Technical Writer (TW)</option>
+                                                    <option value="osc">On-Site Consultant (OSC)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-light-primary" id="addResourceBtn">
+                                            <i class="bi bi-plus-lg"></i>
+                                            Tambah Resource
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-primary">Simpan</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -450,7 +451,7 @@
 
                     <!-- Add Task Button -->
                     <div class="d-flex justify-content-start mb-4">
-                        <button type="button" class="btn btn-success">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_category_task">
                             <i class="bi bi-plus-lg fs-2 me-1"></i>
                             Tambah Kategori Task
                         </button>
@@ -519,7 +520,7 @@
                                     <td>20%</td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
                                                     <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
                                                 </svg>
@@ -580,7 +581,7 @@
                                     <td>20%</td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
                                                     <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
                                                 </svg>
@@ -641,7 +642,7 @@
                                     <td>20%</td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
                                                     <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
                                                 </svg>
@@ -702,7 +703,7 @@
                                     <td>20%</td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
                                                     <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
                                                 </svg>
@@ -745,6 +746,35 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for Adding Category Task -->
+            <div class="modal fade" tabindex="-1" id="kt_modal_category_task">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Tambah Kategori Task</h3>
+
+                            <!--begin::Close-->
+                            <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                            </div>
+                            <!--end::Close-->
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-bold">Nama Kategori</label>
+                                <input type="text" class="form-control" placeholder="Masukkan Nama Kategori"/>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                            <button type="button" class="btn btn-primary">Simpan</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -814,6 +844,25 @@ function initTabelWPKuantitas() {
             }
         ]
     });
+}
+
+/* ACTION BUTTON */
+function insertAbove(taskId) {
+    $('#insertPosition').val('above');
+    $('#insertTaskId').val(taskId);
+    $('#insertTaskModalTitle').text('Masukkan Task di Atas - ' + taskId);
+    
+    // Show modal
+    $('#kt_modal_insert_task').modal('show');
+}
+
+function insertBelow(taskId) {
+    $('#insertPosition').val('below');
+    $('#insertTaskId').val(taskId);
+    $('#insertTaskModalTitle').text('Masukkan Task di Bawah - ' + taskId);
+    
+    // Show modal
+    $('#kt_modal_insert_task').modal('show');
 }
 
 /* ADD RESOURCE BUTTON FORM */
