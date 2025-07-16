@@ -71,8 +71,8 @@
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
                                         <li>
-                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                <i class="bi bi-plus fs-2 me-2 text-dark"></i>
+                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                                <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                 <span>Tambah Sub Baris</span>
                                             </a>
                                         </li>
@@ -92,17 +92,17 @@
                                         <i class="bi bi-three-dots fs-3 text-dark"></i>
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
+                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
                                         </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus</a>
+                                        <li><a class="dropdown-item d-flex align-items-center deleteConfirmation text-danger">
+                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
                                         </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
+                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Atas</a>
                                         </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Bawah</a>
+                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Bawah</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -125,8 +125,8 @@
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
                                         <li>
-                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                <i class="bi bi-plus fs-2 me-2 text-dark"></i>
+                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                                <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                 <span>Tambah Sub Baris</span>
                                             </a>
                                         </li>
@@ -146,17 +146,17 @@
                                         <i class="bi bi-three-dots fs-3 text-dark"></i>
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
+                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
                                         </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus</a>
+                                        <li><a class="dropdown-item d-flex align-items-center deleteConfirmation text-danger">
+                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
                                         </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
+                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Atas</a>
                                         </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Bawah</a>
+                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Bawah</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -180,11 +180,11 @@
 </div>
 @endsection
 
-<div class="modal fade" tabindex="-1" id="kt_modal_1">
-    <div class="modal-dialog">
+<div class="modal fade" tabindex="-1" id="subtaskModal">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Tambah Deskripsi Task Personel</h3>
+                <h3 class="modal-title">Kelola Sub Task Personel</h3>
 
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
@@ -196,16 +196,12 @@
             <div class="modal-body">
                 <form>
                     <div class="mb-3">
-                        <label for="taskDescription" class="form-label">Deskripsi</label>
+                        <label for="taskDescription" class="form-label">Sub Task</label>
                         <textarea class="form-control" id="taskDescription" rows="3" placeholder="Deskripsi/sub-task"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="utilizationPercentage" class="form-label">Persentase Utilisasi</label>
                         <input type="number" step="0.01" class="form-control" id="utilizationPercentage" placeholder="% Utilisasi">
-                    </div>
-                    <div class="mb-3">
-                        <label for="taskDate" class="form-label">Tanggal</label>
-                        <input type="date" class="form-control" id="taskDate">
                     </div>
                 </form>
             </div>
@@ -219,9 +215,9 @@
 
 @push('scripts')
 <script>
-    const button = document.getElementById('saveSuccessful');
+    const saveButton = document.getElementById('saveSuccessful');
 
-    button.addEventListener('click', e => {
+    saveButton.addEventListener('click', e => {
         e.preventDefault();
 
         Swal.fire({
@@ -231,6 +227,35 @@
             confirmButtonText: "Tutup",
             customClass: {
                 confirmButton: "btn btn-secondary"
+            }
+        });
+    });
+
+    // Use event delegation for delete confirmation
+    $(document).on('click', '.deleteConfirmation', function(e) {
+        e.preventDefault();
+        Swal.fire({
+            text: "Apakah Anda yakin ingin menghapus data ini?",
+            icon: "warning",
+            buttonsStyling: false,
+            showCancelButton: true,
+            cancelButtonText: 'batal',
+            confirmButtonText: "Hapus",
+            customClass: {
+                confirmButton: "btn btn-danger",
+                cancelButton: 'btn btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    text: "Data berhasil dihapus!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
             }
         });
     });

@@ -151,8 +151,9 @@
                 <li class="page-item next"><a href="#"  class="page-link"><i class="next"></i></a></li>
             </ul> --}}
             <div class="col-md-6" style="width: 50%; min-width: 350px;">
-                <button class="btn btn-link px-0 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable" style="font-weight:600; text-decoration:none; color:#3b3b3b;">
-                    <i class="bi bi-chevron-down me-2"></i>Lihat Ringkasan Mandays
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
+                    <i class="bi bi-chevron-down me-2"></i>
+                    Lihat Ringkasan Mandays
                 </button>
                 <div class="collapse" id="mandaysSummaryTable">
                     <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
@@ -161,7 +162,7 @@
                                 <th scope="col" colspan="3" class="text-center bg-light">Total Mandays Sementara</th>
                             </tr>
                             <tr>
-                                <th scope="col" rowspan="2" class="align-middle">Roles</th>
+                                <th scope="col" rowspan="2" class="align-middle">Personel</th>
                                 <th scope="col" colspan="2" class="text-center align-middle">Mandays</th>
                             </tr>
                             <tr>
