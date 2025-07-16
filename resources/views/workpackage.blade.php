@@ -393,7 +393,7 @@
 
                         <!-- Finance Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4">
+                            <div class="card card-flush shadow-sm mb-4 wp-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">Finance Performance</h3>
                                 </div>
