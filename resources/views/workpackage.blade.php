@@ -377,7 +377,7 @@
 
                         <!-- WP Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4">
+                                <div class="card card-flush shadow-sm mb-4 wp-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
@@ -390,10 +390,12 @@
                                 </div>
                             </div>
                         </div>
+                        {{-- <div class="col-md-4">
+                        </div> --}}
 
                         <!-- Timesheet Button -->
-                        <div class="d-flex justify-content-end mb-6">
-                            <button type="button" class="btn btn-light-primary btn-lg" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                        <div class="d-flex justify-content-end mb-4">
+                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet') }}'">
                                 Timesheet
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
@@ -640,9 +642,6 @@
                 </div>
             </div>
         </div>
-        <div class="card-footer">
-            Footer
-        </div>
     </div>
 </div>
 @endsection
@@ -731,3 +730,15 @@ function toggleSubRows(rowId) {
 }
 </script>
 @endpush
+
+<style>
+.wp-performance-card {
+    box-shadow: 0 0.5rem 1.5rem rgba(33, 37, 41, 0.25), 0 0.25rem 0.5rem rgba(33, 37, 41, 0.18);
+    background: #f8fafc;
+}
+.wp-performance-card:hover {
+    box-shadow: 0 1.5rem 3rem rgba(0,0,0, 0.9), 0 0.5rem 1rem rgba(0,0,0, 0.9);
+    /* background: #f2f4f4; */
+    transform: translateY(-2px) scale(0.985);
+}
+</style>
