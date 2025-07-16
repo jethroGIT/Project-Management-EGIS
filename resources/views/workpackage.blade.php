@@ -249,63 +249,89 @@
 
                     <div class="row">
                         <!-- Actual Scope -->
-                        <div class="mb-6">
-                            <label class="form-label fw-bold fs-6 text-dark mb-3">Actual Scope</label>
-                            <div class="bg-secondary p-4 rounded">
-                                <p class="mb-0 fs-7">"Human firewall design program (awareness) - IS competency matrix"</p>
+                        <div class="col-md-6 mb-4">
+                            <div class="card card-flush shadow-sm h-100">
+                                <div class="card-body">
+                                    <h3 class="card-title fw-bold">Actual Scope</h3>
+                                    <p class="mb-0 fs-6 text-dark fw-semibold">"Human firewall design program (awareness) - IS competency matrix"</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card card-flush shadow-sm h-100">
+                                <div class="card-body">
+                                    <h3 class="card-title fw-bold">% Complete</h3>
+                                    <div class="d-flex justify-content-center h-100">
+                                        <span class="fs-1">30 %</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Deliverables -->
-                        <div class="mb-6">
-                            <label class="form-label fw-bold fs-6 text-dark mb-3">Deliverables</label>
-                            <div class="bg-secondary p-4 rounded">
-                                <p class="mb-2 fs-7">Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat: <br/>
-                                    1. Metode pembangunan awareness <br/>
-                                    2. Materi sosialisasi security awareness <br/>
-                                    3. Materi pengujian berkala untuk topik security awareness <br/>
-                                    4. Materi pelatihan dasar cyber hygiene, serta penggunaan tools pendukung cyber hygiene yang dimiliki PERUSAHAAN <br/>
-                                    5. Dokumentasi workshop pengembangan awareness keamanan informasi (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar hadir <br/>
-                                </p>
+                        <div class="col-md-12 mb-4">
+                            <div class="card card-flush shadow-sm">
+                                <div class="card-body">
+                                    <h3 class="card-title fw-bold">Deliverables</h3>
+                                    <p class="mb-2 fs-7">
+                                        Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat: <br/>
+                                        1. Metode pembangunan awareness <br/>
+                                        2. Materi sosialisasi security awareness <br/>
+                                        3. Materi pengujian berkala untuk topik security awareness <br/>
+                                        4. Materi pelatihan dasar cyber hygiene, serta penggunaan tools pendukung cyber hygiene yang dimiliki PERUSAHAAN <br/>
+                                        5. Dokumentasi workshop pengembangan awareness keamanan informasi (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar hadir <br/>
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Resource Names -->
-                        <div class="mb-6">
-                            <label class="form-label fw-bold fs-6 text-dark mb-3">Resource Names</label>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="bg-light-primary p-4 rounded">
-                                        <div>
-                                            <div class="fs-7 text-dark">Oki Jamhur - Project Manager</div>
-                                        </div>
-                                    </div>
+                        <div class="col-md-12">
+                            <div class="card card-flush shadow-sm">
+                                <div class="card-header">
+                                    <h3 class="card-title fw-bold">Resource Names</h3>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="bg-light-primary p-4 rounded">
-                                        <div>
-                                            <div class="fs-7 text-dark">Restia - Senior Consultant</div>
+                                <div class="card-body">
+                                    <div class="row g-3 justify-content-center">
+                                        <div class="col-md-4">
+                                            <div class="card card-bordered h-100">
+                                                <div class="card-body text-center">
+                                                    <h5 class="card-title fs-6 fw-bold">Oki Jamhur</h5>
+                                                    <span>Project Manager</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="bg-light-primary p-4 rounded">
-                                        <div>
-                                            <div class="fs-7 text-dark">Yudis - Associate Consultant</div>
+                                        <div class="col-md-4">
+                                            <div class="card card-bordered h-100">
+                                                <div class="card-body text-center">
+                                                    <h5 class="card-title fs-6 fw-bold">Restia</h5>
+                                                    <span>Senior Consultant</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="bg-light-primary p-4 rounded">
-                                        <div>
-                                            <div class="fs-7 text-dark">Annisa Y - Junior Consultant</div>
+                                        <div class="col-md-4">
+                                            <div class="card card-bordered h-100">
+                                                <div class="card-body text-center">
+                                                    <h5 class="card-title fs-6 fw-bold">Yudis</h5>
+                                                    <span>Associate Consultant</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="bg-light-primary p-4 rounded">
-                                        <div>
-                                            <div class="fs-7 text-dark">Vanika - Technical Writer</div>
+                                        <div class="col-md-4">
+                                            <div class="card card-bordered h-100">
+                                                <div class="card-body text-center">
+                                                    <h5 class="card-title fs-6 fw-bold">Annisa Y</h5>
+                                                    <span>Junior Consultant</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card card-bordered h-100">
+                                                <div class="card-body text-center">
+                                                    <h5 class="card-title fs-6 fw-bold">Vanika</h5>
+                                                    <span>Technical Writer</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -316,64 +342,6 @@
 
                 <!-- TAB WP KUANTITAS -->
                 <div class="tab-pane fade" id="kt_tab_pane_8" role="tabpanel">
-                    <!-- Filter Button -->
-                    <!-- <div class="d-flex justify-content-start mb-4">
-                        <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
-                                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-                            </svg>
-                            Filter Data
-                        </button>
-                    </div> -->
-
-                    <!-- Filter Collapse -->
-                    <!-- <div class="collapse" id="filterCollapse">
-                        <div class="card card-flush shadow-lg mb-4">
-                             <div class="card-header">
-                                 <h3 class="card-title">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-                                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-                                     </svg>
-                                     <div class="m-2">
-                                        Filter Data
-                                     </div>
-                                 </h3>
-                             </div>
-                             <div class="card-body py-5">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="form-label fw-bold">Kategori</label>
-                                        <select class="form-select form-select-solid" id="kategoriFilter">
-                                            <option value="">Pilih Kategori</option>
-                                            <option value="management">Management of Human Security Risk Programs</option>
-                                            <option value="awareness">Human Security Risk Awareness Program</option>
-                                            <option value="training">Security Training Programs</option>
-                                            <option value="assessment">Risk Assessment Programs</option>
-                                        </select>
-                                    </div>
-                                </div>
-                             </div>
-                             <div class="card-footer">
-                                <div class="d-flex justify-content-end">
-                                    <button type="button" class="btn btn-danger me-3" id="resetFilter">
-                                        Hapus Filter
-                                    </button>
-                                    <button type="button" class="btn btn-primary" id="applyFilter">
-                                        Terapkan
-                                    </button>
-                                </div>
-                             </div>
-                        </div>
-                    </div> -->
-
-                    <!-- Add Task Button -->
-                    <!-- <div class="d-flex justify-content-start mb-4">
-                        <button type="button" class="btn btn-success">
-                            <i class="bi bi-plus-lg fs-2 me-1"></i>
-                            Tambah Kategori Task
-                        </button>
-                    </div> -->
-
                     <div class="row">
                         <!-- Duration Section -->
                         <div class="col-md-4">
@@ -383,7 +351,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold text-success">22</span>
+                                        <span class="fs-1 fw-bold">22</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -399,7 +367,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold text-success">30 %</span>
+                                        <span class="fs-1 fw-bold">30 %</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -415,7 +383,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold text-primary">30 %</span>
+                                        <span class="fs-1 fw-bold">30 %</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -424,8 +392,8 @@
                         </div>
 
                         <!-- Timesheet Button -->
-                        <div class="d-flex justify-content-end mb-4">
-                            <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                        <div class="d-flex justify-content-end mb-6">
+                            <button type="button" class="btn btn-light-primary btn-lg" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
                                 Timesheet
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
