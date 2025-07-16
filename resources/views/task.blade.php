@@ -89,7 +89,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="kt_datatable_example_2" class="table table-striped border gy-5 gs-7 border rounded w-100">
+                        <table id="kt_datatable_example_2" class="table table-striped border gy-5 gs-7 rounded w-100">
                             <thead>
                                 <tr class="fw-bolder fs-6 text-gray-800 px-7">
                                     <th>Kategori</th>

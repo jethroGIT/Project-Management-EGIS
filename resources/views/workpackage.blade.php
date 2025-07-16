@@ -25,6 +25,219 @@
             <div class="tab-content" id="myTabContent">
                 <!-- TAB WP DETAIL -->
                 <div class="tab-pane fade show active" id="kt_tab_pane_7" role="tabpanel">
+                    <div class="mb-6">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-bold fs-6 text-dark mb-3">Task List</label>
+                            
+                            <!-- Search Form -->
+                            <div>
+                                <form class="d-flex justify-content-end mb-4">
+                                    <label class="me-5 mt-3" for="searchTask">Cari: </label>
+                                    <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
+                                </form>
+                            </div>
+                        </div>
+    
+                        <!-- Task List Section -->
+                        <div class="table-responsive">
+                            <table id="tabel_wp_task" class="table table-striped border gy-5 gs-7 border rounded w-100">
+                                <thead>
+                                    <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                                        <th class="align-middle border-bottom min-w-100px">No</th>
+                                        <th class="align-middle border-bottom min-w-200px">Task</th>
+                                        <th class="align-middle border-bottom">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Analisis kebutuhan program security awareness</td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                            Hapus
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Atas
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Bawah
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            Masukkan Sub Baris
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Identifikasi stakeholder dan kebutuhannya terhadap program security awareness</td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                            Hapus
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Atas
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Bawah
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            Masukkan Sub Baris
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Sumber daya yang dibutuhkan dalam program security awareness</td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                            Hapus
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Atas
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Bawah
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            Masukkan Sub Baris
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Penentuan cara penyampaian program security awareness</td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                            Hapus
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Atas
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Bawah
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            Masukkan Sub Baris
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end mb-4">
                         <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
@@ -97,207 +310,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <label class="form-label fw-bold fs-6 text-dark mb-3">Task List</label>
-                        <div class="table-responsive">
-                            <table id="tabel_wp_task" class="table table-striped border gy-5 gs-7 border rounded w-100">
-                                <thead>
-                                    <tr class="fw-bolder fs-6 text-gray-800 px-7">
-                                        <th class="align-middle border-bottom min-w-100px">No</th>
-                                        <th class="align-middle border-bottom min-w-200px">Task</th>
-                                        <th class="align-middle border-bottom">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1</td>
-                                        <td>Analisis kebutuhan program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td>Identifikasi stakeholder dan kebutuhannya terhadap program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>3</td>
-                                        <td>Sumber daya yang dibutuhkan dalam program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>4</td>
-                                        <td>Penentuan cara penyampaian program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            Masukkan Sub Baris
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
@@ -438,39 +450,220 @@
                                 </div>
 
                                 <div class="table-responsive">
-                                    <table id="tabel_wp_tenaga_kerja" class="table table-bordered border gy-5 gs-7 border rounded w-100">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="fw-bold text-gray-800">Personel</th>
-                                                <th class="fw-bold text-gray-800 text-center">JTK</th>
-                                                <th class="fw-bold text-gray-800 text-center">JHK</th>
+                                    <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-5 gs-7 border rounded w-100">
+                                        <thead>
+                                            <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                                                <th class="align-middle border-bottom min-w-200px">Personel</th>
+                                                <th class="align-middle border-bottom">JTK</th>
+                                                <th class="align-middle border-bottom">JHK</th>
+                                                <th class="align-middle border-bottom">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="fw-semibold">Project Manager</td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-center">4</td>
+                                                <td class="fw-bold">Project Manager</td>
+                                                <td>1</td>
+                                                <td>4</td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                            </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                    Edit
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                    Hapus
+                                                                </a>
+                                                            </li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Atas
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Bawah
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold">Senior Consultant</td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-center">10</td>
+                                                <td class="fw-bold">Senior Consultant</td>
+                                                <td>1</td>
+                                                <td>10</td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                            </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                    Edit
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                    Hapus
+                                                                </a>
+                                                            </li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Atas
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Bawah
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold">Associate Consultant</td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-center">10</td>
+                                                <td class="fw-bold">Associate Consultant</td>
+                                                <td>1</td>
+                                                <td>10</td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                            </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                    Edit
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                    Hapus
+                                                                </a>
+                                                            </li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Atas
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Bawah
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold">Junior Consultant</td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-center">4</td>
+                                                <td class="fw-bold">Junior Consultant</td>
+                                                <td>1</td>
+                                                <td>4</td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                            </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                    Edit
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                    Hapus
+                                                                </a>
+                                                            </li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Atas
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Bawah
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold">Technical Writer</td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-center">20</td>
+                                                <td class="fw-bold">Technical Writer</td>
+                                                <td>1</td>
+                                                <td>20</td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                            </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                    Edit
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                    Hapus
+                                                                </a>
+                                                            </li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Atas
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Bawah
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -513,14 +706,7 @@ function initTabelWPTask() {
 }
 
 function initTabelWPTenagaKerja() {
-    $('#tabel_wp_tenaga_kerja').DataTable({
-        'scrollY': '300px',
-        "scrollX": true,
-        // "fixedHeader": {
-        //     "header":true,
-        //     "headerOffset": 70
-        // }
-    });
+    $('#tabel_wp_tenaga_kerja').DataTable();
 }
 
 /* ADD RESOURCE BUTTON FORM */
