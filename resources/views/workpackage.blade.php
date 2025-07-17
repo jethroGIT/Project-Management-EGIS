@@ -229,7 +229,7 @@
                                 <div class="col-md-4 mb-4">
                                     <div class="card card-flush shadow-sm h-100">
                                         <div class="card-body">
-                                            <h3 class="card-title fw-bold">% Complete</h3>
+                                            <h3 class="card-title fw-bold">Total % Complete</h3>
                                             <div class="d-flex justify-content-center h-100">
                                                 <span class="fs-1">
                                                     @if(isset($volume))
@@ -326,14 +326,14 @@
                     <div class="row">
                         <!-- Duration Section -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4">
+                            <div class="card card-flush shadow-sm mb-4 duration-card">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">Duration</h3>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100 gap-2">
-                                        <span class="fs-1 fw-bold text-primary">22</span>
-                                        <span class="fs-1">Hari</span>
+                                        <span class="fs-1 fw-bold text-primary duration-highlight">22</span>
+                                        <span class="fs-1 text-primary duration-highlight">Hari</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -343,7 +343,7 @@
 
                         <!-- Finance Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">Finance Performance</h3>
                                 </div>
@@ -352,14 +352,17 @@
                                         <span class="fs-1 fw-bold text-success">30 %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer">
+                                <div class="card-footer"></div>
+                                <!-- Overlay -->
+                                <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- WP Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 wp-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
@@ -368,7 +371,10 @@
                                         <span class="fs-1 fw-bold text-info">30 %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer">
+                                <div class="card-footer"></div>
+                                <!-- Overlay -->
+                                <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
                                 </div>
                             </div>
                         </div>
@@ -769,13 +775,13 @@ function toggleSubRows(rowId) {
 @endpush
 
 <style>
-.wp-performance-card {
+.performance-card {
     box-shadow: 0 0.5rem 1.5rem rgba(33, 37, 41, 0.25), 0 0.25rem 0.5rem rgba(33, 37, 41, 0.18);
     background: #f8fafc;
 }
-.wp-performance-card:hover {
+.performance-card:hover {
     box-shadow: 0 1.5rem 3rem rgba(0,0,0, 0.9), 0 0.5rem 1rem rgba(0,0,0, 0.9);
-    /* background: #f2f4f4; */
+    background: #ffffff;
     transform: translateY(-2px) scale(0.985);
 }
 
@@ -788,6 +794,14 @@ function toggleSubRows(rowId) {
 }
 #tabel_wp_tenaga_kerja th {
     padding-bottom: 1.1rem !important;
+}
+
+/* Highlight Duration card number and text on hover */
+.duration-card .duration-highlight {
+    transition: transform 0.25s cubic-bezier(.4,2,.6,1), color 0.25s;
+}
+.duration-card:hover .duration-highlight {
+    transform: scale(1.18);
 }
 
 /* HOVER EFFECT UNTUK RESOURCE NAMES CARDS */
@@ -828,5 +842,26 @@ function toggleSubRows(rowId) {
 
 .card-bordered:hover .card-body {
     background-color: #f8f9fa;
+}
+
+/* for overlay card */
+.overlay-performance-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.performance-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(30, 30, 30, 0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.overlay-performance-card:hover .performance-overlay {
+    opacity: 1.2;
+    pointer-events: auto;
 }
 </style>

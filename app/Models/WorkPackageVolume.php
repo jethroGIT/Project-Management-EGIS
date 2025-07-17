@@ -14,7 +14,7 @@ class WorkPackageVolume extends Model
         'wp_id',
         'volume_number',
         'execution_year',
-        'completeness',
+        // 'completeness',
         'start_date',
         'end_date',
     ];
@@ -25,10 +25,14 @@ class WorkPackageVolume extends Model
     }
     public function timesheets()
     {
-        return $this->hasMany(Timesheet::class, 'volume_id', 'volume_id');
+        return $this->hasMany(Task::class, 'volume_id', 'volume_id');
+    }
+    public function work(){
+        return $this->hasMany(Work::class, 'work_id', 'work_id');
     }
     public function workPackage() 
     {
         return $this->belongsTo(WorkPackage::class, 'wp_id', 'wp_id');
     }
+    
 }

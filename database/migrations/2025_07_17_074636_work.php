@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('task', function (Blueprint $table) {
-            $table->id('task_id');
+        Schema::create('work', function (Blueprint $table) {
+            $table->id('work_id');
+            $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('volume_id');
-            $table->string('name');
-            // $table->decimal('completeness', 5, 2)->default(0.00);
-            $table->enum('status', ['open', 'closed'])->default('open'); // status of the task
+            // $table->integer('mandays_realization')->default(0);
+            $table->decimal('resource_cost', 5, 2)->default(0.00); // biaya tenaga kerja (Rp)
             $table->timestamps();
 
+            $table->foreign('user_id')->references('user_id')->on('user')->onDelete('cascade');
             $table->foreign('volume_id')->references('volume_id')->on('work_package_volume')->onDelete('cascade');
+            $table->unique(['user_id', 'volume_id']);
         });
     }
 
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('task');
+        Schema::dropIfExists('work');
     }
 };

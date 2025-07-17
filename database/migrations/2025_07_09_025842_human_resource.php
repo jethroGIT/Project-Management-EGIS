@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('resource', function (Blueprint $table) {
-            $table->id('resource_id');
+        Schema::create('human_resource', function (Blueprint $table) {
+            $table->id('hresource_id');
             $table->unsignedBigInteger('role_id');
             $table->unsignedBigInteger('wp_id');
             $table->integer('jtk')->default(1); // Jumlah Tenaga Kerja
-            $table->integer('jhk'); // Jumlah Hari Kerja
+            $table->integer('jhk'); // Jumlah Hari Kerja/mandays
             $table->timestamps();
 
             $table->foreign('role_id')->references('role_id')->on('role')->onDelete('cascade');
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('resource');
+        Schema::dropIfExists('human_resource');
     }
 };

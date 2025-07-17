@@ -21,8 +21,8 @@ class Role extends Model
         return $this->hasMany(User::class, 'role_id', 'role_id');
     }
 
-    public function resources()
+    public function humanResources()
     {
-        return $this->hasMany(Resource::class, 'role_id', 'role_id');
+        return $this->hasMany(HumanResource::class, 'role_id', 'role_id');
     }
 }

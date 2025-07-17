@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Resource extends Model
+class HumanResource extends Model
 {
-    protected $table = 'resource';
+    protected $table = 'human_resource';
 
-    protected $primaryKey = 'resource_id';
+    protected $primaryKey = 'hresource_id';
 
     protected $fillable = [
         'jtk',
