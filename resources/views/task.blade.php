@@ -187,7 +187,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td></td>
+                                    <td>81.6%</td>
                                     <td></td>
                                     <td>
                                         <div class="dropdown">
@@ -228,7 +228,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td></td>
+                                    <td>81.6%</td>
                                     <td></td>
                                     <td>
                                         <div class="dropdown">
@@ -330,7 +330,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <!-- Sub-rows for Work Package 1.2 -->
+                                <!-- Sub-rows for Work Package 2.1 -->
                                 <tr class="collapse sub-row" id="wp2-details">
                                     <td>Management of Human Security Risk Programs</td>
                                     <td></td>
@@ -340,7 +340,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td></td>
+                                    <td>81.6%</td>
                                     <td></td>
                                     <td>
                                         <div class="dropdown">
