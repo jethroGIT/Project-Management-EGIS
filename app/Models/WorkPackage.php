@@ -11,6 +11,7 @@ class WorkPackage extends Model
     protected $primaryKey = 'wp_id';
 
     protected $fillable = [
+        'wp_number',
         'name',
         'volume_qty',
         'duration',

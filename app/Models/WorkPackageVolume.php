@@ -18,12 +18,12 @@ class WorkPackageVolume extends Model
         'end_date',
     ];
 
-    public function workPackage()
+    public function task()
     {
         return $this->hasMany(Task::class, 'volume_id', 'volume_id');
     }
     public function timesheets()
     {
-        return $this->hasMany(Task::class, 'volume_id', 'volume_id');
+        return $this->hasMany(Timesheet::class, 'volume_id', 'volume_id');
     }
 }
