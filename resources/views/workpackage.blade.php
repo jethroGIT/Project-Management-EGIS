@@ -437,7 +437,7 @@
 
                         <!-- Finance Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 wp-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">Finance Performance</h3>
                                 </div>
@@ -446,14 +446,17 @@
                                         <span class="fs-1 fw-bold text-success">30 %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer">
+                                <div class="card-footer"></div>
+                                <!-- Overlay -->
+                                <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- WP Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 wp-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
@@ -462,7 +465,10 @@
                                         <span class="fs-1 fw-bold text-info">30 %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer">
+                                <div class="card-footer"></div>
+                                <!-- Overlay -->
+                                <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
                                 </div>
                             </div>
                         </div>
@@ -863,11 +869,11 @@ function toggleSubRows(rowId) {
 @endpush
 
 <style>
-.wp-performance-card {
+.performance-card {
     box-shadow: 0 0.5rem 1.5rem rgba(33, 37, 41, 0.25), 0 0.25rem 0.5rem rgba(33, 37, 41, 0.18);
     background: #f8fafc;
 }
-.wp-performance-card:hover {
+.performance-card:hover {
     box-shadow: 0 1.5rem 3rem rgba(0,0,0, 0.9), 0 0.5rem 1rem rgba(0,0,0, 0.9);
     background: #ffffff;
     transform: translateY(-2px) scale(0.985);
@@ -930,5 +936,26 @@ function toggleSubRows(rowId) {
 
 .card-bordered:hover .card-body {
     background-color: #f8f9fa;
+}
+
+/* for overlay card */
+.overlay-performance-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.performance-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(30, 30, 30, 0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.overlay-performance-card:hover .performance-overlay {
+    opacity: 1.2;
+    pointer-events: auto;
 }
 </style>
