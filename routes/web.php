@@ -27,3 +27,4 @@ Route::get('/task', [TaskController::class, 'index'])->name('task');
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
+Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');

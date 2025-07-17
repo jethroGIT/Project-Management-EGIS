@@ -36,7 +36,7 @@
                 <img
                     alt="Logo"
                     class="h-25px h-lg-30px"
-                    src="assets/media/logos/logo-2.svg"
+                    src="{{ asset('assets/media/logos/logo-2.svg') }}"
                 />
             </a>
             <!--end::Logo-->
@@ -299,7 +299,7 @@
                         <div class="symbol symbol-30px symbol-md-40px">
                             <img
                                 alt="image"
-                                src="assets/media/svg/avatars/blank.svg"
+                                src="{{ asset('assets/media/svg/avatars/blank.svg') }}"
                             />
                         </div>
                         <!--end::Symbol-->
@@ -319,7 +319,7 @@
                                 <div class="symbol symbol-50px me-5">
                                     <img
                                         alt="Logo"
-                                        src="assets/media/svg/avatars/blank-dark.svg"
+                                        src="{{ asset('assets/media/svg/avatars/blank-dark.svg') }}"
                                     />
                                 </div>
                                 <!--end::Avatar-->

@@ -7,8 +7,13 @@
     <div class="card card-flush shadow-sm mb-8">
         <div class="card-header">
             <div class="mt-6">
-                <h3 class="card-title">WP 3.1 Human Security Risk Awareness Program Planning</h3>
-                <p>Periode 3 Maret 2025 - 19 November 2025</p>
+                @if(isset($workPackage) && isset($volume))
+                    <h3 class="card-title">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h3>
+                    <p>Periode {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}</p>
+                @else
+                    <h3 class="card-title">WP 3.1 Human Security Risk Awareness Program Planning</h3>
+                    <p>Periode 3 Maret 2025 - 19 November 2025</p>
+                @endif
             </div>
             <div class="card-toolbar">
                 <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0">
@@ -49,166 +54,50 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>1</td>
-                                        <td>Analisis kebutuhan program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td>Identifikasi stakeholder dan kebutuhannya terhadap program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>3</td>
-                                        <td>Sumber daya yang dibutuhkan dalam program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>4</td>
-                                        <td>Penentuan cara penyampaian program security awareness</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                    </svg>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                            Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                            Hapus
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Atas
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                            Masukkan di Bawah
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    @if(isset($volume) && $volume->task->count() > 0)
+                                        @foreach($volume->task as $index => $task)
+                                            <tr>
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $task->name }}</td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                            </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
+                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                    Edit
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
+                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                    Hapus
+                                                                </a>
+                                                            </li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Atas
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                    Masukkan di Bawah
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
@@ -326,7 +215,14 @@
                                     <div class="card card-flush shadow-sm h-100">
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">Actual Scope</h3>
-                                            <p class="mb-0 fs-6 text-dark fw-semibold">"Human firewall design program (awareness) - IS competency matrix"</p>
+                                            <p class="mb-0 fs-6 text-dark fw-semibold">
+                                                <!-- "Human firewall design program (awareness) - IS competency matrix" -->
+                                                @if(isset($workPackage))
+                                                    {{ $workPackage->actual_scope_contract ?? 'N/A' }}
+                                                @else
+                                                    "Human firewall design program (awareness) - IS competency matrix"
+                                                @endif
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -335,7 +231,13 @@
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">% Complete</h3>
                                             <div class="d-flex justify-content-center h-100">
-                                                <span class="fs-1">30 %</span>
+                                                <span class="fs-1">
+                                                    @if(isset($volume))
+                                                        {{ $volume->completeness ?? 0 }}%
+                                                    @else
+                                                        30%
+                                                    @endif
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -346,14 +248,18 @@
                                     <div class="card card-flush shadow-sm">
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">Deliverables</h3>
-                                            <p class="mb-2 fs-7">
-                                                Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat: <br/>
-                                                1. Metode pembangunan awareness <br/>
-                                                2. Materi sosialisasi security awareness <br/>
-                                                3. Materi pengujian berkala untuk topik security awareness <br/>
-                                                4. Materi pelatihan dasar cyber hygiene, serta penggunaan tools pendukung cyber hygiene yang dimiliki PERUSAHAAN <br/>
-                                                5. Dokumentasi workshop pengembangan awareness keamanan informasi (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar hadir <br/>
-                                            </p>
+                                            <div class="mb-2 fs-7">
+                                                @if(isset($workPackage))
+                                                    {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
+                                                @else
+                                                    Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat: <br/>
+                                                    1. Metode pembangunan awareness <br/>
+                                                    2. Materi sosialisasi security awareness <br/>
+                                                    3. Materi pengujian berkala untuk topik security awareness <br/>
+                                                    4. Materi pelatihan dasar cyber hygiene, serta penggunaan tools pendukung cyber hygiene yang dimiliki PERUSAHAAN <br/>
+                                                    5. Dokumentasi workshop pengembangan awareness keamanan informasi (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar hadir <br/>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
