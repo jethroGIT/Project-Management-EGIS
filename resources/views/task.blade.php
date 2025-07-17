@@ -461,7 +461,6 @@
                                 </div>
 
                                 <div class="modal-body">
-                                    <!-- <p>Modal body text goes here.</p> -->
                                     <div class="form-group mb-6">
                                         <label class="form-label fw-bold">Kategori Task</label>
                                         <select class="form-select form-select-solid" id="kategoriFilter">
