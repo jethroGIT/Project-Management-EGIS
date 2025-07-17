@@ -12,7 +12,8 @@ class Task extends Model
 
     protected $fillable = [
         'name',
-        'completeness',
+        // 'completeness',
+        'status',
     ];
 
     public function subTask()

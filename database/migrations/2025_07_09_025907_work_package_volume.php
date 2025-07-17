@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('wp_id');
             $table->integer('volume_number');
             $table->integer('execution_year');
-            $table->decimal('completeness', 5, 2)->default(0.00);
+            // $table->decimal('completeness', 5, 2)->default(0.00);
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->timestamps();

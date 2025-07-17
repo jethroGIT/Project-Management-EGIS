@@ -17,12 +17,12 @@ class WorkPackage extends Model
         'duration',
         'actual_scope_contract',
         'deliverable',
-        'completeness',
+        // 'completeness',
     ];
 
-    public function resources()
+    public function humanResources()
     {
-        return $this->hasMany(Resource::class, 'wp_id', 'wp_id');
+        return $this->hasMany(HumanResource::class, 'wp_id', 'wp_id');
     }
 
     public function workPackageVolumes()

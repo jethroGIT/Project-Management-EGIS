@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             WorkPackageSeeder::class,
             WorkPackageVolumeSeeder::class,
-            ResourceSeeder::class,
+            HumanResourceSeeder::class,
             TaskSeeder::class,
             SubTaskSeeder::class,
             TimesheetSeeder::class,

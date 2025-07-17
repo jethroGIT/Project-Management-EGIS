@@ -18,10 +18,10 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'role_id',
         'name',
         'email',
         'password',
-        'role_id',
     ];
 
     /**
@@ -36,6 +36,11 @@ class User extends Authenticatable
     public function timesheets()
     {
         return $this->hasMany(Timesheet::class, 'user_id', 'user_id');
+    }
+
+    public function work()
+    {
+        return $this->hasMany(Work::class, 'user_id', 'user_id');
     }
 
     /**
