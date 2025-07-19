@@ -29,3 +29,4 @@ Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->na
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
+Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');

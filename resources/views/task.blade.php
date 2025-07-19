@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="my-10">Task</h1>
+    <h1 class="my-10">Management Task</h1>
 
     <div class="card card-flush shadow-sm">
         <div class="card-header">
@@ -143,32 +143,32 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Atas
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
                                                     </a>
@@ -187,7 +187,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td></td>
+                                    <td>81.6%</td>
                                     <td></td>
                                     <td>
                                         <div class="dropdown">
@@ -228,7 +228,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td></td>
+                                    <td>81.6%</td>
                                     <td></td>
                                     <td>
                                         <div class="dropdown">
@@ -296,32 +296,32 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Atas
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
                                                     </a>
@@ -330,7 +330,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <!-- Sub-rows for Work Package 1.2 -->
+                                <!-- Sub-rows for Work Package 2.1 -->
                                 <tr class="collapse sub-row" id="wp2-details">
                                     <td>Management of Human Security Risk Programs</td>
                                     <td></td>
@@ -340,7 +340,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td></td>
+                                    <td>81.6%</td>
                                     <td></td>
                                     <td>
                                         <div class="dropdown">
@@ -408,32 +408,32 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Atas
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
                                                     </a>
@@ -461,7 +461,6 @@
                                 </div>
 
                                 <div class="modal-body">
-                                    <!-- <p>Modal body text goes here.</p> -->
                                     <div class="form-group mb-6">
                                         <label class="form-label fw-bold">Kategori Task</label>
                                         <select class="form-select form-select-solid" id="kategoriFilter">
@@ -699,32 +698,32 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Atas
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
                                                     </a>
@@ -760,32 +759,32 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Atas
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
                                                     </a>
@@ -821,32 +820,32 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Atas
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
                                                     </a>
@@ -882,32 +881,32 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertAbove(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Atas
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertBelow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="#" onclick="insertSubRow(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         Masukkan Sub Baris
                                                     </a>

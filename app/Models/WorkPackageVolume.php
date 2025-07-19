@@ -11,6 +11,7 @@ class WorkPackageVolume extends Model
     protected $primaryKey = 'volume_id';
 
     protected $fillable = [
+        'wp_id',
         'volume_number',
         'execution_year',
         // 'completeness',
@@ -24,9 +25,14 @@ class WorkPackageVolume extends Model
     }
     public function timesheets()
     {
-        return $this->hasMany(Timesheet::class, 'volume_id', 'volume_id');
+        return $this->hasMany(Task::class, 'volume_id', 'volume_id');
     }
     public function work(){
         return $this->hasMany(Work::class, 'work_id', 'work_id');
     }
+    public function workPackage() 
+    {
+        return $this->belongsTo(WorkPackage::class, 'wp_id', 'wp_id');
+    }
+    
 }
