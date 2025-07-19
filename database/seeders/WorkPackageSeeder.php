@@ -16,6 +16,7 @@ class WorkPackageSeeder extends Seeder
     {
         $workpackages = [
             [
+                'category_id' => 1,
                 'wp_number' => '3.1',
                 'name' => 'Human Security Risk Awareness Program Planning',
                 'volume_qty' => 1,
@@ -34,6 +35,7 @@ class WorkPackageSeeder extends Seeder
                 // 'completeness' => 100.00,
             ],
             [
+                'category_id' => 2,
                 'wp_number' => '6.2',
                 'name' => 'Revisit Advisory & Consultancy - Information Security Management System (ISMS)',
                 'volume_qty' => 2,
