@@ -31,7 +31,7 @@ class WorkPackageSeeder extends Seeder
                                     5. Dokumentasi workshop pengembangan awareness keamanan informasi
                                     (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar
                                     hadir',
-                'completeness' => 100.00,
+                // 'completeness' => 100.00,
             ],
             [
                 'wp_number' => '6.2',
@@ -43,7 +43,7 @@ class WorkPackageSeeder extends Seeder
                                     2. Desain penyesuaian proses 
                                     3. Hasil desain proses 
                                     4. Laporan pendampingan Audit ',
-                'completeness' => 23.44,
+                // 'completeness' => 23.44,
             ],
         ];
 
