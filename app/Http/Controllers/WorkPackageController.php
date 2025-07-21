@@ -42,6 +42,11 @@ class WorkPackageController extends Controller
 
         $workPackage = $volume->workPackage;
 
+        $humanResources = HumanResource::with('role')
+            ->where('wp_id', $workPackage->wp_id)
+            ->orderBy('hresource_id')
+            ->get();
+
         // Ambil users yang terlibat di work package ini berdasarkan tabel work
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
@@ -62,6 +67,7 @@ class WorkPackageController extends Controller
         }
         
         return view('workpackage', compact(
+            'humanResources',
             'workPackage', 
             'volume', 
             'volume_id',
