@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class WorkPackageController extends Controller
@@ -31,10 +32,25 @@ class WorkPackageController extends Controller
 
     public function detail($volume_id)
     {
-        $volume = WorkPackageVolume::with(['workPackage', 'task'])->findOrFail($volume_id);
+        $volume = WorkPackageVolume::with([
+            'workPackage', 
+            'task',
+            'work.user'
+        ])->findOrFail($volume_id);
+
         $workPackage = $volume->workPackage;
+
+        // Ambil users yang terlibat di work package ini berdasarkan tabel work
+        $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
+            $query->where('volume_id', $volume_id);
+        })->with('role')->get();
         
-        return view('workpackage', compact('workPackage', 'volume', 'volume_id'));
+        return view('workpackage', compact(
+            'workPackage', 
+            'volume', 
+            'volume_id',
+            'assignedUsers'
+        ));
     }
 
     /**

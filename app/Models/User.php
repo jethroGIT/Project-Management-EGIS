@@ -43,6 +43,11 @@ class User extends Authenticatable
         return $this->hasMany(Work::class, 'user_id', 'user_id');
     }
 
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
+    }
+
     /**
      * The attributes that should be cast to native types.
      *
