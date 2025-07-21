@@ -14,7 +14,30 @@ class SidebarComposer
             ->orderBy('volume_number')
             ->get()
             ->groupBy('execution_year');
+        
+        // Mendapatkan volume_id yang sedang aktif dari route
+        $currentVolumeId = null;
+        if (request()->routeIs('work-package.detail')) {
+            $currentVolumeId = request()->route('volume_id');
+        }
 
-        $view->with('workPackagesByYear', $workPackagesByYear);
+        // Mendapatkan year yang sedang aktif untuk expand sidebar
+        $activeYear = null;
+        if ($currentVolumeId) {
+            foreach ($workPackagesByYear as $year => $volumes) {
+                foreach ($volumes as $volume) {
+                    if ($volume->volume_id == $currentVolumeId) {
+                        $activeYear = $year;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        $view->with([
+            'workPackagesByYear' => $workPackagesByYear,
+            'currentVolumeId' => $currentVolumeId,
+            'activeYear' => $activeYear
+        ]);
     }
 }

@@ -6,6 +6,7 @@ use App\Models\HumanResource;
 use App\Models\Role;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class WorkPackageController extends Controller
@@ -33,33 +34,40 @@ class WorkPackageController extends Controller
 
     public function detail($volume_id)
     {
-        $volume = WorkPackageVolume::with(['workPackage', 'task'])->findOrFail($volume_id);
+        $volume = WorkPackageVolume::with([
+            'workPackage', 
+            'task',
+            'work.user'
+        ])->findOrFail($volume_id);
+
         $workPackage = $volume->workPackage;
-        $humanResources = HumanResource::with('role')
-            ->where('wp_id', $workPackage->wp_id)
-            ->orderBy('hresource_id')
-            ->get();
+
+        // Ambil users yang terlibat di work package ini berdasarkan tabel work
+        $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
+            $query->where('volume_id', $volume_id);
+        })->with('role')->get();
+
+        // Hitung total completion dari task performance
+        $tasks = $volume->task;
+        $totalCompletion = 0;
+
+        if ($tasks->count() > 0) {
+            $taskCompletions = $tasks->map(function ($task) {
+                if ($task->subTask->count() > 0) {
+                    return $task->subTask->avg('completeness');
+                }
+                return 0;
+            });
+            $totalCompletion = round($taskCompletions->avg(), 2);
+        }
         
-        return view('workpackage', compact('workPackage', 'volume', 'humanResources'));
-    }
-
-    public function editHResource(Request $request)
-    {
-        $validated = $request->validate([
-            'role_id' => 'required|integer',
-            'jumlahTenagaKerja' => 'integer|min:0',
-            'jumlahHariKerja' => 'integer|min:0',
-        ]);
-
-        // Update jumlah tenaga kerja
-        HumanResource::where('role_id', $validated['role_id'])
-            ->update([
-                'jtk' => $validated['jumlahTenagaKerja'],
-                'jhk' => $validated['jumlahHariKerja'],
-                'updated_at' => now()
-            ]);
-
-        return redirect()->back()->with('success', 'Data berhasil diperbarui.');
+        return view('workpackage', compact(
+            'workPackage', 
+            'volume', 
+            'volume_id',
+            'assignedUsers',
+            'totalCompletion'
+        ));
     }
 
     /**

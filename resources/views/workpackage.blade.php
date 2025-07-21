@@ -5,7 +5,8 @@
     <h1 class="my-10">Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-8">
-        <div class="card-header">
+        <div class="card-header flex-column">
+            <!-- Title Section -->
             <div class="mt-6">
                 @if(isset($workPackage) && isset($volume))
                     <h3 class="card-title">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h3>
@@ -15,6 +16,8 @@
                     <p>Periode 3 Maret 2025 - 19 November 2025</p>
                 @endif
             </div>
+
+            <!-- Navigation Tabs -->
             <div class="card-toolbar">
                 <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0">
                     <li class="nav-item">
@@ -97,6 +100,14 @@
                                                 </td>
                                             </tr>
                                         @endforeach
+                                    @else
+                                        <!-- Fallback jika tidak ada data -->
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-4">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                Tidak ada data task untuk work package ini
+                                            </td>
+                                        </tr>
                                     @endif
                                 </tbody>
                             </table>
@@ -220,7 +231,9 @@
                                                 @if(isset($workPackage))
                                                     {{ $workPackage->actual_scope_contract ?? 'N/A' }}
                                                 @else
-                                                    "Human firewall design program (awareness) - IS competency matrix"
+                                                    <p class="text-muted">
+                                                        Belum ada Actual Scope Contract
+                                                    </p>
                                                 @endif
                                             </p>
                                         </div>
@@ -252,12 +265,9 @@
                                                 @if(isset($workPackage))
                                                     {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
                                                 @else
-                                                    Laporan perencanaan pengembangan awareness keamanan informasi, yang memuat: <br/>
-                                                    1. Metode pembangunan awareness <br/>
-                                                    2. Materi sosialisasi security awareness <br/>
-                                                    3. Materi pengujian berkala untuk topik security awareness <br/>
-                                                    4. Materi pelatihan dasar cyber hygiene, serta penggunaan tools pendukung cyber hygiene yang dimiliki PERUSAHAAN <br/>
-                                                    5. Dokumentasi workshop pengembangan awareness keamanan informasi (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar hadir <br/>
+                                                    <p class="text-muted">
+                                                        Belum ada Deliverables
+                                                    </p>
                                                 @endif
                                             </div>
                                         </div>
@@ -272,46 +282,37 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="row g-3 justify-content-center">
-                                                <div class="col-md-4">
-                                                    <div class="card card-bordered h-100">
-                                                        <div class="card-body text-center">
-                                                            <h5 class="card-title fs-6 fw-bold">Oki Jamhur</h5>
-                                                            <span>Project Manager</span>
+                                                @if(isset($assignedUsers) && $assignedUsers->count() > 0)
+                                                    @foreach($assignedUsers as $user)
+                                                        <div class="col-md-4">
+                                                            <div class="card card-bordered h-100">
+                                                                <div class="card-body text-center">
+                                                                    <h5 class="card-title fs-6 fw-bold">{{ $user->name }}</h5>
+                                                                    <span>{{ $user->role->name ?? 'N/A' }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @else
+                                                    <div class="col-md-12">
+                                                        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+                                                            <div class="text-center mb-4">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-people text-muted mb-3" viewBox="0 0 16 16">
+                                                                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
+                                                                </svg>
+                                                            </div>
+                                                            <h5 class="text-muted fw-bold mb-2">Belum Ada Resource Yang Ditugaskan</h5>
+                                                            <p class="text-muted mb-4 text-center">
+                                                                Resource belum ditugaskan untuk work package ini.<br>
+                                                                Silakan assign resource terlebih dahulu.
+                                                            </p>
+                                                            <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                                                                <i class="bi bi-plus-circle me-2"></i>
+                                                                Assign Resource
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="card card-bordered h-100">
-                                                        <div class="card-body text-center">
-                                                            <h5 class="card-title fs-6 fw-bold">Restia</h5>
-                                                            <span>Senior Consultant</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="card card-bordered h-100">
-                                                        <div class="card-body text-center">
-                                                            <h5 class="card-title fs-6 fw-bold">Yudis</h5>
-                                                            <span>Associate Consultant</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="card card-bordered h-100">
-                                                        <div class="card-body text-center">
-                                                            <h5 class="card-title fs-6 fw-bold">Annisa Y</h5>
-                                                            <span>Junior Consultant</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="card card-bordered h-100">
-                                                        <div class="card-body text-center">
-                                                            <h5 class="card-title fs-6 fw-bold">Vanika</h5>
-                                                            <span>Technical Writer</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -367,13 +368,13 @@
 
                         <!-- WP Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold text-info">30 %</span>
+                                        <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0}} %</span>
                                     </div>
                                 </div>
                                 <div class="card-footer"></div>
@@ -701,13 +702,13 @@ $(document).ready(function () {
 function initTabelWPTask() {
     $('#tabel_wp_task').DataTable({
         'scrollY': '300px',
-        "scrollX": true,
-        "fixedHeader": {
-            "header":true,
-            "headerOffset": 70
+        "scrollX": true
+        // "fixedHeader": {
+        //     "header":true,
+        //     "headerOffset": 10
         },
         "ordering": false,
-    }
+    // }
 );}
 
 function initTabelWPTenagaKerja() {
