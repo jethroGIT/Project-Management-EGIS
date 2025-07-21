@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HumanResource;
+use App\Models\Role;
+use App\Models\WorkPackageVolume;
 use Illuminate\Http\Request;
 
-class PerformanceFinanceController extends Controller
+class HumanResourceController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -12,12 +15,17 @@ class PerformanceFinanceController extends Controller
     public function index()
     {
         //
-        return view('performance_finance');
     }
 
-    public function completeness()
+    public function detail($volume_id)
     {
+        // $volume = WorkPackageVolume::with(['workPackage', 'task'])->findOrFail($volume_id);
+        // $workPackage = $volume->workPackage;
+        // $humanResources = HumanResource::with('role')
+        //     ->where('wp_id', $workPackage->wp_id)
+        //     ->get();
         
+        // return view('workpackage', compact('workPackage', 'volume', 'humanResources'));
     }
 
     /**

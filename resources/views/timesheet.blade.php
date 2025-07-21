@@ -9,23 +9,16 @@
                 <a href="{{route('work-package')}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
-                <h2 class="my-3 mb-3">WP 3.1 Human Security Risk Awareness Program Planning</h2>
+                <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
             </div>
             <div class="d-flex align-items-center justify-content-end">                
                 <div class="d-flex align-items-center">
                     <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6 me-2">
+                        @foreach($months as $month)
                         <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#kt_tab_pane_1">February</a>
+                            <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_2">March</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_3">April</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_4">May</a>
-                        </li>
+                        @endforeach
                     </ul>
                     <a href="#" class="btn btn-light btn-sm border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; margin-bottom: 10px;">
                         <i class="bi bi-plus fs-2 text-dark" style="margin-left: 5px"></i>
@@ -82,74 +75,67 @@
                 <label class="me-5 mt-3 mb-0" for="searchTask">Cari: </label>
                 <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary mt-3" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
             </form>
-            <div class="table-responsive">
-                <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
-                    <thead>
-                        <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
-                            <th scope="col" style="width: 40px;">No</th>
-                            <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
-                            <th scope="col" style="width: 80px;">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Project Manager">Oki</span>
-                            </th>
-                            <th scope="col" style="width: 80px;">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Senior Consultant">Restia</span>
-                            </th>
-                            <th scope="col" style="width: 80px;">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Associate Consultant">Yudis</span>
-                            </th>
-                            <th scope="col" style="width: 80px;">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Junior Consultant">Annisa</span>
-                            </th>
-                            <th scope="col" style="width: 80px;">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Technical Writer">Vanika</span>
-                            </th>
-                            <th scope="col" style="width: 30px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody style="font-size: 0.92rem;">
-                        <tr>
-                            <th scope="row">1</th>
-                            <td>14</td>
-                            <td>Eu minim eiusmod eiusmod ex velit exercitation occaecat do.</td>
-                            <td>Ullamco nulla occaecat incididunt nulla.</td>
-                            <td>Ullamco nulla occaecat incididunt nulla.</td>
-                            <td>Ullamco nulla occaecat incididunt nulla.</td>
-                            <td>Ullamco nulla occaecat incididunt nulla.</td>
-                            <td>
-                                <div class="dropdown">
-                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                            <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Bawah</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>            
-                    </tbody>
-                </table>
-            </div> 
-            {{-- <ul class="pagination justify-content-end">
-                <li class="page-item previous"><a href="#" class="page-link"><i class="previous"></i></a></li>
-                <li class="page-item active"><a href="#" class="page-link">1</a></li>
-                <li class="page-item "><a href="#" class="page-link">2</a></li>
-                <li class="page-item "><a href="#" class="page-link">3</a></li>
-                <li class="page-item "><a href="#" class="page-link">...</a></li>
-                <li class="page-item "><a href="#" class="page-link">5</a></li>
-                <li class="page-item "><a href="#" class="page-link">6</a></li>
-                <li class="page-item next"><a href="#"  class="page-link"><i class="next"></i></a></li>
-            </ul> --}}
+            <div class="tab-content">
+                <div class="tab-pane fade show active">
+                    <div class="table-responsive">
+                        @if($monthDates->isNotEmpty())
+                            <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
+                                <thead>
+                                    <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
+                                        <th scope="col" style="width: 40px;">No</th>
+                                        <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
+                                        @foreach($usersInSelectedMonth as $user)
+                                            <th scope="col" style="width: 80px;">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
+                                            </th>     
+                                        @endforeach                       
+                                        <th scope="col" style="width: 30px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size: 0.92rem;">
+                                    @foreach($monthDates as $date => $entries)
+                                    <tr>
+                                        <th scope="row">{{$loop->index+1}}</th>
+                                        <td>{{\Carbon\Carbon::parse($date)->format('d')}}</td>
+                                        @foreach($usersInSelectedMonth as $user)
+                                            <td>
+                                                @php
+                                                    $userEntry = $entries->where('user_id', $user->user_id)->first();
+                                                @endphp
+                                                {{ $userEntry->activity ?? '-'}}
+                                            </td>
+                                        @endforeach
+                                        <td>
+                                            <div class="dropdown">
+                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                </a>
+                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Bawah</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>  
+                                    @endforeach          
+                                </tbody>
+                            </table>
+                        @else
+                            <p>Tidak ada data Timesheet</p>
+                        @endif
+                    </div>
+                </div>           
+            </div>
             <div class="col-md-6" style="width: 50%; min-width: 350px;">
                 <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
                     <i class="bi bi-chevron-down me-2"></i>
@@ -171,31 +157,13 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach($humanResources as $hResource)
                             <tr>
-                                <td class="align-middle">Project Manager</td>
-                                <td class="text-center align-middle" style="color:gray">10</td>
-                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
-                            </tr>
-                            <tr>
-                                <td class="align-middle">Senior Consultant</td>
-                                <td class="text-center align-middle" style="color:gray">10</td>
-                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
-                            </tr>
-                            <tr>
-                                <td class="align-middle">Associate Consultant</td>
-                                <td class="text-center align-middle" style="color:gray">10</td>
-                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
-                            </tr>
-                            <tr>
-                                <td class="align-middle">Junior Consultant</td>
-                                <td class="text-center align-middle" style="color:gray">10</td>
-                                <td class="text-center align-middle">{!! mandaysLabel(10, 4) !!}</td>
-                            </tr>
-                            <tr>
-                                <td class="align-middle">Technical Writer</td>
-                                <td class="text-center align-middle" style="color:gray">10</td>
-                                <td class="text-center align-middle">{!! mandaysLabel(10, 20) !!}</td>
-                            </tr>
+                                <td class="align-middle">{{$hResource->role->name}}</td>
+                                <td class="text-center align-middle" style="color:gray">{{$hResource->jhk}}</td>
+                                <td class="text-center align-middle">{!! mandaysLabel($hResource->jhk, $timesheetCountPerRole[$hResource->role_id]) !!}</td>
+                            </tr> 
+                            @endforeach                           
                         </tbody>
                     </table>
                 </div>
@@ -312,7 +280,7 @@
 
     function initTabelTimesheet() {
         $('#kt_datatable_example_2').DataTable({
-            // "scrollY": '500px',
+            "scrollY": '500px',
             "scrollX": true,
             "fixedHeader": {
                 "header": true,
@@ -415,8 +383,16 @@
 
 @php
     function mandaysLabel($plan, $realization) {
-        $bg = ($realization >= $plan) ? '#dc3545' : 'transparent';
-        $color = ($realization >= $plan) ? 'white' : 'black';
+        if ($realization == $plan) {
+            $bg = '#f5b942';
+            $color = 'black';
+        }elseif ($realization < $plan) {
+            $bg = 'transparent';
+            $color = 'black';
+        } else {
+            $bg = '#dc3545';
+            $color = 'white';
+        }
         return '<span class="d-inline-block px-3 py-1 text-center" style="border-radius:8px; background:' . $bg . '; color:' . $color . '; min-width:40px; min-height:24px;">' . $realization . '</span>';
     }
 @endphp

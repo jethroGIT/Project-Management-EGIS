@@ -28,5 +28,8 @@ Route::get('/task', [TaskController::class, 'index'])->name('task');
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
+Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');
+
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
 Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
+Route::post('/work-package/edit-hresource', [WorkPackageController::class, 'editHResource'])->name('work-package.hResource.edit');

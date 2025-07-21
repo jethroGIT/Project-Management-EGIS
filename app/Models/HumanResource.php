@@ -14,4 +14,9 @@ class HumanResource extends Model
         'jtk',
         'jhk',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
+    }
 }

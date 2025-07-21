@@ -332,8 +332,13 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100 gap-2">
-                                        <span class="fs-1 fw-bold text-primary duration-highlight">22</span>
-                                        <span class="fs-1 text-primary duration-highlight">Hari</span>
+                                        @if(isset($workPackage) && isset($volume))
+                                            <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
+                                            <span class="fs-1 text-primary duration-highlight">Hari</span>
+                                        @else
+                                            <span class="fs-1 fw-bold text-primary duration-highlight">0</span>
+                                            <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -383,7 +388,7 @@
 
                         <!-- Timesheet Button -->
                         <div class="d-flex justify-content-end mb-4">
-                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet') }}'">
+                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
                                 Timesheet
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
@@ -420,10 +425,11 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            @foreach($humanResources as $hResource)
                                             <tr>
-                                                <td class="fw-bold">Project Manager</td>
-                                                <td>1</td>
-                                                <td>4</td>
+                                                <td class="fw-bold">{{$hResource->role->name}}</td>
+                                                <td>{{$hResource->jtk}}</td>
+                                                <td>{{$hResource->jhk}}</td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -433,7 +439,8 @@
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
+                                                                    data-role-id="{{$hResource->role_id}}" data-jtk="{{ $hResource->jtk }}" data-jhk="{{ $hResource->jhk }}">
                                                                     <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                                     Edit
                                                                 </a>
@@ -461,7 +468,8 @@
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            @endforeach
+                                            {{-- <tr>
                                                 <td class="fw-bold">Senior Consultant</td>
                                                 <td>1</td>
                                                 <td>10</td>
@@ -479,7 +487,7 @@
                                                                     Edit
                                                                 </a>
                                                             </li>
-                                                            {{-- <li>
+                                                            <li>
                                                                 <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                                     <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                                     Hapus
@@ -497,7 +505,7 @@
                                                                     <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                                     Masukkan di Bawah
                                                                 </a>
-                                                            </li> --}}
+                                                            </li>
                                                         </ul>
                                                     </div>
                                                 </td>
@@ -520,7 +528,7 @@
                                                                     Edit
                                                                 </a>
                                                             </li>
-                                                            {{-- <li>
+                                                            <li>
                                                                 <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                                     <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                                     Hapus
@@ -538,7 +546,7 @@
                                                                     <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                                     Masukkan di Bawah
                                                                 </a>
-                                                            </li> --}}
+                                                            </li>
                                                         </ul>
                                                     </div>
                                                 </td>
@@ -561,7 +569,7 @@
                                                                     Edit
                                                                 </a>
                                                             </li>
-                                                            {{-- <li>
+                                                            <li>
                                                                 <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                                     <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                                     Hapus
@@ -579,7 +587,7 @@
                                                                     <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                                     Masukkan di Bawah
                                                                 </a>
-                                                            </li> --}}
+                                                            </li>
                                                         </ul>
                                                     </div>
                                                 </td>
@@ -602,7 +610,7 @@
                                                                     Edit
                                                                 </a>
                                                             </li>
-                                                            {{-- <li>
+                                                            <li>
                                                                 <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
                                                                     <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                                     Hapus
@@ -620,11 +628,11 @@
                                                                     <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                                     Masukkan di Bawah
                                                                 </a>
-                                                            </li> --}}
+                                                            </li>
                                                         </ul>
                                                     </div>
                                                 </td>
-                                            </tr>
+                                            </tr> --}}
                                         </tbody>
                                     </table>
                                 </div>
@@ -638,7 +646,7 @@
 </div>
 @endsection
 
-<div class="modal fade" tabindex="-1" id="jtkandjhkModal">
+<div class="modal fade" tabindex="-1" id="jtkandjhkModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -652,22 +660,23 @@
             </div>
 
             <div class="modal-body">
-                <form>
+                <form method="POST" action="{{route('work-package.hResource.edit')}}" id="jtkJhkForm">
+                    <input type="hidden" name="role_id" id="role_id">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="jumlahTenagaKerja" class="form-label">Jumlah Tenaga Kerja</label>
-                            <input type="number" class="form-control" id="jumlahTenagaKerja" placeholder="0">
+                            <input type="number" class="form-control" name="jumlahTenagaKerja" id="jumlahTenagaKerja" placeholder="0">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="jumlahHariKerja" class="form-label">Jumlah Hari Kerja</label>                        
-                            <input type="number" class="form-control" id="jumlahHariKerja" placeholder="0">
+                            <input type="number" class="form-control" name="jumlahHariKerja" id="jumlahHariKerja" placeholder="0">
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="saveSuccessful">Simpan</button>
+                <button type="submit" class="btn btn-primary" id="saveSuccessful">Simpan</button>
             </div>
         </div>
     </div>
@@ -696,29 +705,32 @@ function initTabelWPTask() {
         "fixedHeader": {
             "header":true,
             "headerOffset": 70
-        }
-    });
-}
+        },
+        "ordering": false,
+    }
+);}
 
 function initTabelWPTenagaKerja() {
-    $('#tabel_wp_tenaga_kerja').DataTable();
+    $('#tabel_wp_tenaga_kerja').DataTable(
+        "ordering": false,
+    );
 }
 
-const saveButton = document.getElementById('saveSuccessful');
+// const saveButton = document.getElementById('saveSuccessful');
 
-saveButton.addEventListener('click', e => {
-    e.preventDefault();
+// saveButton.addEventListener('click', e => {
+//     e.preventDefault();
 
-    Swal.fire({
-        text: "Data berhasil disimpan!",
-        icon: "success",
-        buttonsStyling: false,
-        confirmButtonText: "Tutup",
-        customClass: {
-            confirmButton: "btn btn-secondary"
-        }
-    });
-});
+//     Swal.fire({
+//         text: "Data berhasil disimpan!",
+//         icon: "success",
+//         buttonsStyling: false,
+//         confirmButtonText: "Tutup",
+//         customClass: {
+//             confirmButton: "btn btn-secondary"
+//         }
+//     });
+// });
 
 /* ADD RESOURCE BUTTON FORM */
 function addNewResource() {
@@ -771,6 +783,21 @@ function toggleSubRows(rowId) {
         icon.classList.add('bi-chevron-down');
     }
 }
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     const modal = document.getElementById('jtkandjhkModal');
+//     modal.addEventListener('show.bs.modal', function (event) {
+//         const trigger = event.relatedTarget;
+
+//         const roleId = trigger.getAttribute('data-role-id');
+//         const jtk = trigger.getAttribute('data-jtk');
+//         const jhk = trigger.getAttribute('data-jhk');
+
+//         document.getElementById('role_id').value = roleId;
+//         document.getElementById('jumlahTenagaKerja').value = jtk;
+//         document.getElementById('jumlahHariKerja').value = jhk;
+//     });
+// });
 </script>
 @endpush
 

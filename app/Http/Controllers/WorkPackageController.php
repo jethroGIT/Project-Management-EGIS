@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HumanResource;
+use App\Models\Role;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use Illuminate\Http\Request;
@@ -33,8 +35,31 @@ class WorkPackageController extends Controller
     {
         $volume = WorkPackageVolume::with(['workPackage', 'task'])->findOrFail($volume_id);
         $workPackage = $volume->workPackage;
+        $humanResources = HumanResource::with('role')
+            ->where('wp_id', $workPackage->wp_id)
+            ->orderBy('hresource_id')
+            ->get();
         
-        return view('workpackage', compact('workPackage', 'volume'));
+        return view('workpackage', compact('workPackage', 'volume', 'humanResources'));
+    }
+
+    public function editHResource(Request $request)
+    {
+        $validated = $request->validate([
+            'role_id' => 'required|integer',
+            'jumlahTenagaKerja' => 'integer|min:0',
+            'jumlahHariKerja' => 'integer|min:0',
+        ]);
+
+        // Update jumlah tenaga kerja
+        HumanResource::where('role_id', $validated['role_id'])
+            ->update([
+                'jtk' => $validated['jumlahTenagaKerja'],
+                'jhk' => $validated['jumlahHariKerja'],
+                'updated_at' => now()
+            ]);
+
+        return redirect()->back()->with('success', 'Data berhasil diperbarui.');
     }
 
     /**
