@@ -34,7 +34,7 @@ class WorkPackageController extends Controller
         $volume = WorkPackageVolume::with(['workPackage', 'task'])->findOrFail($volume_id);
         $workPackage = $volume->workPackage;
         
-        return view('workpackage', compact('workPackage', 'volume'));
+        return view('workpackage', compact('workPackage', 'volume', 'volume_id'));
     }
 
     /**
