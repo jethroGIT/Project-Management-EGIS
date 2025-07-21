@@ -5,7 +5,8 @@
     <h1 class="my-10">Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-8">
-        <div class="card-header">
+        <div class="card-header flex-column">
+            <!-- Title Section -->
             <div class="mt-6">
                 @if(isset($workPackage) && isset($volume))
                     <h3 class="card-title">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h3>
@@ -15,6 +16,8 @@
                     <p>Periode 3 Maret 2025 - 19 November 2025</p>
                 @endif
             </div>
+
+            <!-- Navigation Tabs -->
             <div class="card-toolbar">
                 <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0">
                     <li class="nav-item">
@@ -97,6 +100,14 @@
                                                 </td>
                                             </tr>
                                         @endforeach
+                                    @else
+                                        <!-- Fallback jika tidak ada data -->
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-4">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                Tidak ada data task untuk work package ini
+                                            </td>
+                                        </tr>
                                     @endif
                                 </tbody>
                             </table>
@@ -352,13 +363,13 @@
 
                         <!-- WP Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold text-info">30 %</span>
+                                        <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0}} %</span>
                                     </div>
                                 </div>
                                 <div class="card-footer"></div>

@@ -44,12 +44,27 @@ class WorkPackageController extends Controller
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
         })->with('role')->get();
+
+        // Hitung total completion dari task performance
+        $tasks = $volume->task;
+        $totalCompletion = 0;
+
+        if ($tasks->count() > 0) {
+            $taskCompletions = $tasks->map(function ($task) {
+                if ($task->subTask->count() > 0) {
+                    return $task->subTask->avg('completeness');
+                }
+                return 0;
+            });
+            $totalCompletion = round($taskCompletions->avg(), 2);
+        }
         
         return view('workpackage', compact(
             'workPackage', 
             'volume', 
             'volume_id',
-            'assignedUsers'
+            'assignedUsers',
+            'totalCompletion'
         ));
     }
 

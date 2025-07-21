@@ -25,8 +25,12 @@ Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('peren
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
 Route::get('/task', [TaskController::class, 'index'])->name('task');
+
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
+Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
+
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
+
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
 Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
