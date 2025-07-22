@@ -72,8 +72,19 @@
                 </div>
             </div>
             <form class="d-flex justify-content-end align-items-center">
-                <label class="me-5 mt-3 mb-0" for="searchTask">Cari: </label>
-                <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary mt-3" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
+                <label class="me-5 mb-0" for="searchTask">Cari: </label>
+                <div>
+                    <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
+                        <input 
+                            class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                            style="width:200px" 
+                            type="search"
+                            id="searchActivity" 
+                            placeholder="Cari aktivitas" 
+                            aria-label="Search"
+                        >                    
+                    </form>
+                </div>                  
             </form>
             <div class="tab-content">
                 <div class="tab-pane fade show active">
@@ -285,7 +296,7 @@
     });
 
     function initTabelTimesheet() {
-        $('#kt_datatable_example_2').DataTable({
+        const table = $('#kt_datatable_example_2').DataTable({
             "scrollY": '500px',
             "scrollX": true,
             "fixedHeader": {
@@ -293,6 +304,35 @@
                 "headerOffset": 70
             },
             "ordering": false // Disable sorting
+        });
+
+        setupActivitySearch(table);
+    }
+
+    function setupActivitySearch(table) {
+        const searchInput = $('#searchActivity');
+
+        // Search input handler
+        searchInput.on('keyup change input', function() {
+            const searchValue = this.value.trim();
+            table.search(searchValue).draw();
+        });
+
+        // Clear button handler
+        searchInput.on('search', function() {
+            if (this.value === '') {
+                table.search('').draw();
+            }
+        });
+
+        // ESC key untuk clear search
+        searchInput.on('keydown', function(e) {
+            if (e.which === 27) { // ESC key
+                e.preventDefault();
+                this.value = '';
+                $(this).trigger('input');
+                this.focus();
+            }
         });
     }
 

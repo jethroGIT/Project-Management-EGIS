@@ -69,7 +69,7 @@ class TimesheetController extends Controller
         $monthDates = $monthTimesheets->groupBy('execution_date')->sortKeys();
 
         // daftar unique timesheet dari bulan yang dipilih
-        $usersInSelectedMonth = $monthTimesheets->pluck('user')->unique('user_id')->sortBy('role_id')->values();
+        $usersInSelectedMonth = $timesheets->pluck('user')->unique('user_id')->sortBy('role_id')->values();
 
         // menghitung jumlah timesheet untuk setiap role
         $timesheetCountPerRole = $timesheets->groupBy('user.role_id')->map(function ($entriesPerRole) {
