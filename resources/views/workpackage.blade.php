@@ -39,9 +39,16 @@
                             
                             <!-- Search Form -->
                             <div>
-                                <form class="d-flex justify-content-end mb-4">
-                                    <label class="me-5 mt-3" for="searchTask">Cari: </label>
-                                    <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
+                                <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
+                                    <label class="me-5 mt-3" for="searchTaskInput">Cari: </label>
+                                    <input 
+                                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                                        style="width:200px" 
+                                        type="search"
+                                        id="searchTaskInput" 
+                                        placeholder="Cari Task" 
+                                        aria-label="Search"
+                                    >                    
                                 </form>
                             </div>
                         </div>
@@ -222,7 +229,7 @@
         
                             <div class="row">
                                 <!-- Actual Scope -->
-                                <div class="col-md-6 mb-4">
+                                <div class="col-md-8 mb-4">
                                     <div class="card card-flush shadow-sm h-100">
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">Actual Scope</h3>
@@ -239,17 +246,15 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Total % Complete -->
                                 <div class="col-md-4 mb-4">
                                     <div class="card card-flush shadow-sm h-100">
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">Total % Complete</h3>
                                             <div class="d-flex justify-content-center h-100">
                                                 <span class="fs-1">
-                                                    @if(isset($volume))
-                                                        {{ $volume->completeness ?? 0 }}%
-                                                    @else
-                                                        30%
-                                                    @endif
+                                                    {{ $totalCompletion ?? 0 }} %
                                                 </span>
                                             </div>
                                         </div>
@@ -374,7 +379,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                        <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0}} %</span>
+                                        <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0 }} %</span>
                                     </div>
                                 </div>
                                 <div class="card-footer"></div>
@@ -691,22 +696,68 @@ $(document).ready(function () {
     });
 });
 
+/**
+ * Inisiasi Tabel Work Package Task
+ */
 function initTabelWPTask() {
-    $('#tabel_wp_task').DataTable({
+    const table = $('#tabel_wp_task').DataTable({
         'scrollY': '300px',
-        "scrollX": true
+        "scrollX": true,
         // "fixedHeader": {
         //     "header":true,
         //     "headerOffset": 10
-        },
+        // },
         "ordering": false,
-    // }
-);}
+        "searching": true,
+        "language": {
+            "search": "",
+            "searchPlaceholder": "Cari Task",
+            "zeroRecords": "Tidak ada task yang cocok dengan pencarian",
+            "emptyTable": "Tidak ada data task untuk Work Package ini"
+        }
+    });
 
+    // Search input to DataTables
+    setupTaskSearch(table);
+}
+
+/**
+ * Inisiasi Tabel Work Package Tenaga Kerja
+ */
 function initTabelWPTenagaKerja() {
-    $('#tabel_wp_tenaga_kerja').DataTable(
-        "ordering": false,
-    );
+    $('#tabel_wp_tenaga_kerja').DataTable({
+        "ordering": false
+    });
+}
+
+/**
+ * Function untuk search pada tabel
+ */
+function setupTaskSearch(table) {
+    const searchInput = $('#searchTaskInput');
+
+    // Search input handler
+    searchInput.on('keyup change input', function() {
+        const searchValue = this.value.trim();
+        table.search(searchValue).draw();
+    });
+
+    // Clear button handler
+    searchInput.on('search', function() {
+        if (this.value === '') {
+            table.search('').draw();
+        }
+    });
+
+    // ESC key untuk clear search
+    searchInput.on('keydown', function(e) {
+        if (e.which === 27) { // ESC key
+            e.preventDefault();
+            this.value = '';
+            $(this).trigger('input');
+            this.focus();
+        }
+    });
 }
 
 // const saveButton = document.getElementById('saveSuccessful');
@@ -725,6 +776,9 @@ function initTabelWPTenagaKerja() {
 //     });
 // });
 
+/**
+ * RESOURCE MANAGEMENT
+ */
 /* ADD RESOURCE BUTTON FORM */
 function addNewResource() {
     const resourceHtml = `

@@ -16,7 +16,6 @@ class WorkPackageController extends Controller
      */
     public function index(Request $request)
     {
-        //
         // Jika ada parameter volume_id di query string
         if ($request->has('volume_id')) {
             return $this->detail($request->get('volume_id'));
