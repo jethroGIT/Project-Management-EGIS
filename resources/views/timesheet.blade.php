@@ -6,7 +6,7 @@
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
-                <a href="{{route('work-package')}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
@@ -161,7 +161,13 @@
                             <tr>
                                 <td class="align-middle">{{$hResource->role->name}}</td>
                                 <td class="text-center align-middle" style="color:gray">{{$hResource->jhk}}</td>
-                                <td class="text-center align-middle">{!! mandaysLabel($hResource->jhk, $timesheetCountPerRole[$hResource->role_id]) !!}</td>
+                                <td class="text-center align-middle">
+                                    @php
+                                        // Ambil realisasi mandays untuk role ini. Jika tidak ada data, default 0.
+                                        $realisasiMandays = $timesheetCountPerRole[$hResource->role_id] ?? 0;
+                                    @endphp
+                                    {!! mandaysLabel($hResource->jhk, $realisasiMandays) !!}
+                                </td>
                             </tr> 
                             @endforeach                           
                         </tbody>

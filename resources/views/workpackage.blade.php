@@ -399,18 +399,10 @@
 
                         <!-- Kebutuhan Tenaga Kerja Section -->
                         <div class="card card-flush shadow-sm mb-6">
-                            <div class="card-header">
+                            <div class="card-header py-0">
                                 <h3 class="card-title fw-bold">Kebutuhan Tenaga Kerja</h3>
                             </div>
-                            <div class="card-body">
-                                <!-- Search Form -->
-                                <div>
-                                    <form class="d-flex justify-content-end mb-4">
-                                        <label class="me-5 mt-3" for="searchTask">Cari: </label>
-                                        <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
-                                    </form>
-                                </div>
-
+                            <div class="card-body py-0">
                                 <div class="table-responsive">
                                     <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-4 gs-7 border rounded w-100">
                                         <thead>
