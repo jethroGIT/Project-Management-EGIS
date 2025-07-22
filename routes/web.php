@@ -35,4 +35,4 @@ Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->n
 
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
 Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
-Route::post('/work-package/edit-hresource', [WorkPackageController::class, 'editHResource'])->name('work-package.hResource.edit');
+Route::put('/work-package/{volume_id}/hresource-edit', [WorkPackageController::class, 'editHResource'])->name('work-package.hResource.edit');
