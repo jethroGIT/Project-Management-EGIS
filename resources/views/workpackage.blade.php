@@ -229,7 +229,7 @@
         
                             <div class="row">
                                 <!-- Actual Scope -->
-                                <div class="col-md-6 mb-4">
+                                <div class="col-md-8 mb-4">
                                     <div class="card card-flush shadow-sm h-100">
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">Actual Scope</h3>
@@ -246,6 +246,8 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Total % Complete -->
                                 <div class="col-md-4 mb-4">
                                     <div class="card card-flush shadow-sm h-100">
                                         <div class="card-body">
@@ -700,11 +702,11 @@ $(document).ready(function () {
     $('#addResourceBtn').on('click', function() {
         addNewResource();
     });
-
-    // Search functionality untuk Task List
-    // setupTaskSearch();
 });
 
+/**
+ * Inisiasi Tabel Work Package Task
+ */
 function initTabelWPTask() {
     const table = $('#tabel_wp_task').DataTable({
         'scrollY': '300px',
@@ -724,20 +726,45 @@ function initTabelWPTask() {
     });
 
     // Search input to DataTables
-    $('#searchTaskInput').on('keyup change', function() {
-        table.search(this.value).draw();
-    });
+    setupTaskSearch(table);
 }
 
-// function setupTaskSearch() {
-//     $('#searchTaskInput').on('keyup change input', function() {
-//         $('#tabel_wp_task').DataTable().search(this.value).draw();
-//     });
-// }
-
+/**
+ * Inisiasi Tabel Work Package Tenaga Kerja
+ */
 function initTabelWPTenagaKerja() {
     $('#tabel_wp_tenaga_kerja').DataTable({
         "ordering": false
+    });
+}
+
+/**
+ * Function untuk search pada tabel
+ */
+function setupTaskSearch(table) {
+    const searchInput = $('#searchTaskInput');
+
+    // Search input handler
+    searchInput.on('keyup change input', function() {
+        const searchValue = this.value.trim();
+        table.search(searchValue).draw();
+    });
+
+    // Clear button handler
+    searchInput.on('search', function() {
+        if (this.value === '') {
+            table.search('').draw();
+        }
+    });
+
+    // ESC key untuk clear search
+    searchInput.on('keydown', function(e) {
+        if (e.which === 27) { // ESC key
+            e.preventDefault();
+            this.value = '';
+            $(this).trigger('input');
+            this.focus();
+        }
     });
 }
 
@@ -757,6 +784,9 @@ function initTabelWPTenagaKerja() {
 //     });
 // });
 
+/**
+ * RESOURCE MANAGEMENT
+ */
 /* ADD RESOURCE BUTTON FORM */
 function addNewResource() {
     const resourceHtml = `
