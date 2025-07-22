@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="my-10">Work Package</h1>
+    <h1 class="mt-0 mb-5">Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-8">
         <div class="card-header flex-column">
@@ -337,7 +337,7 @@
                                     <h3 class="card-title fw-bold">Duration</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2">
+                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
                                         @if(isset($workPackage) && isset($volume))
                                             <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
                                             <span class="fs-1 text-primary duration-highlight">Hari</span>
@@ -346,8 +346,6 @@
                                             <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
                                         @endif
                                     </div>
-                                </div>
-                                <div class="card-footer">
                                 </div>
                             </div>
                         </div>
@@ -359,11 +357,10 @@
                                     <h3 class="card-title fw-bold">Finance Performance</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
                                         <span class="fs-1 fw-bold text-success">30 %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer"></div>
                                 <!-- Overlay -->
                                 <div class="performance-overlay d-flex align-items-center justify-content-center">
                                     <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
@@ -378,11 +375,10 @@
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
                                         <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0 }} %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer"></div>
                                 <!-- Overlay -->
                                 <div class="performance-overlay d-flex align-items-center justify-content-center">
                                     <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
@@ -726,7 +722,9 @@ function initTabelWPTask() {
  */
 function initTabelWPTenagaKerja() {
     $('#tabel_wp_tenaga_kerja').DataTable({
-        "ordering": false
+        "ordering": false,
+        "paging": false,
+        "lengthChange": false
     });
 }
 
@@ -937,5 +935,11 @@ function toggleSubRows(rowId) {
 .overlay-performance-card:hover .performance-overlay {
     opacity: 1.2;
     pointer-events: auto;
+}
+
+.duration-card .card-body,
+.performance-card .card-body
+{
+    padding-top: 0px !important;
 }
 </style>
