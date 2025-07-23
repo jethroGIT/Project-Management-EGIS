@@ -89,7 +89,7 @@ class WorkPackageController extends Controller
             'volume_id' => 'required|exists:work_package_volume,volume_id',
             'task_name' => 'required|string|max:255',
             'reference_task_id' => 'nullable|exists:task,task_id',
-            'insert_position' => 'required|in:above,below'
+            'insert_position' => 'nullable|in:above,below'
         ]);
 
         try {
@@ -99,7 +99,7 @@ class WorkPackageController extends Controller
             $referenceTaskId = $request->reference_task_id ? (int) $request->reference_task_id : null;
 
             // Jika ada reference task, perlu mengatur ulang order
-            if ($referenceTaskId) {
+            if ($referenceTaskId && $request->insert_position) {
                 $referenceTask = Task::where('task_id', $referenceTaskId)
                     ->where('volume_id', $volumeId)
                     ->firstOrFail();
@@ -142,15 +142,8 @@ class WorkPackageController extends Controller
                 'success' => true,
                 'message' => 'Task berhasil ditambahkan',
                 'task' => $task
-                // 'redirect' => route('work-package.detail', ['volume_id' => $volumeId])
             ]);
 
-        } catch (ModelNotFoundException $e) {
-            \DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => 'Reference task tidak ditemukan'
-            ], 404);
         } catch (\Exception $e) {
             \DB::rollback();
 
@@ -256,6 +249,75 @@ class WorkPackageController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memperbarui task: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete existing task
+     */
+    public function deleteTask($taskId)
+    {
+        try {
+            \DB::beginTransaction();
+
+            $task = Task::with('subTask')->findOrFail($taskId);
+
+            // Cek apakah task masih memiliki sub task
+            if ($task->subTask->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Task tidak dapat dihapus karena masih memiliki ' . $task->subTask->count() . ' sub task. Hapus sub task terlebih dahulu.',
+                    'has_subtasks' => true,
+                    'subtask_count' => $task->subTask->count()
+                ], 400);
+            }
+
+            // Menangani order_index dan volume_id sebelum penghapusan
+            $deleteOrderIndex = $task->order_index;
+            $volumeId = $task->volume_id;
+
+            // Hapus task
+            $task->delete();
+
+            // Melakukan pengurutan kembali order_index dengan menggeser task order_index > deleted task turun - 1
+            Task::where('volume_id', $volumeId)
+                ->where('order_index', '>', $deleteOrderIndex)
+                ->decrement('order_index');
+
+            \DB::commit();
+
+            \Log::info('Task deleted successfully', [
+                'task_id' => $taskId,
+                'task_name' => $task->name,
+                'volume_id' => $volumeId
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Task berhasil dihapus'
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            \DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Task tidak ditemukan'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+
+            \Log::error('Error deleting task', [
+                'message' => $e->getMessage(),
+                'task_id' => $taskId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus task: ' . $e->getMessage()
             ], 500);
         }
     }

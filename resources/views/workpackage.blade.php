@@ -110,10 +110,18 @@
                                         @endforeach
                                     @else
                                         <!-- Fallback jika tidak ada data -->
-                                        <tr>
+                                        <tr class="">
                                             <td colspan="3" class="text-center text-muted py-4">
-                                                <i class="bi bi-info-circle me-2"></i>
-                                                Tidak ada data task untuk work package ini
+                                                <div class="d-flex flex-column align-items-center justify-content-center">
+                                                    <h6 class="text-muted">Belum Ada Task</h6>
+                                                    <p class="text-muted">
+                                                        Tidak ada data task untuk work package ini
+                                                    </p>
+                                                    <button type="button" class="btn btn-light-primary d-flex align-items-center" onclick="insertFirstTask()">
+                                                        <i class="bi bi-plus-circle me-2"></i>
+                                                        Tambah Task
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endif
@@ -222,14 +230,14 @@
                                             </div>
 
                                             <div class="modal-body">
-                                                <div class="form-group mb-4">
+                                                <!-- <div class="form-group mb-4">
                                                     <label class="form-label fw-bold">Actual Scope</label>
                                                     <input type="text" class="form-control" placeholder="Masukkan Actual Scope"/>
                                                 </div>
                                                 <div class="form-group mb-4">
                                                     <label class="form-label fw-bold">Deliverables</label>
                                                     <textarea class="form-control" aria-label="With textarea" placeholder="Masukkan Deliverables"></textarea>
-                                                </div>
+                                                </div> -->
                                                 <div class="row mb-4">
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-bold">Start Date</label>
@@ -282,7 +290,6 @@
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">Actual Scope</h3>
                                             <p class="mb-0 fs-6 text-dark fw-semibold">
-                                                <!-- "Human firewall design program (awareness) - IS competency matrix" -->
                                                 @if(isset($workPackage))
                                                     {{ $workPackage->actual_scope_contract ?? 'N/A' }}
                                                 @else
@@ -330,11 +337,11 @@
                                 <!-- Resource Names -->
                                 <div class="col-md-12">
                                     <div class="card card-flush shadow-sm">
-                                        <div class="card-header">
+                                        <div class="card-header py-0">
                                             <h3 class="card-title fw-bold">Resource Names</h3>
                                         </div>
-                                        <div class="card-body">
-                                            <div class="row g-3 justify-content-center">
+                                        <div class="card-body py-0">
+                                            <div class="row g-3 justify-content-center mb-4">
                                                 @if(isset($assignedUsers) && $assignedUsers->count() > 0)
                                                     @foreach($assignedUsers as $user)
                                                         <div class="col-md-4">
@@ -793,6 +800,42 @@ if (submitJtkJhkButton) {
 /** TASK MANAGEMENT **/
 /** Insert Task */
 /**
+ * Function untuk menambah task pertama (jika belum ada task di tabel)
+ */
+function insertFirstTask() {
+    // Reset semua field reference
+    $('#referenceTaskId').val('');
+    $('#insertPosition').val('');
+    $('#insertTaskModalTitle').text('Tambah Task');
+
+    // Pastikan volume_id tersedia
+    const volumeId = {{ $volume_id ?? 'null' }};
+    if (volumeId) {
+        $('#modalVolumeId').val(volumeId);
+    } else {
+        Swal.fire({
+            text: "Volume ID tidak ditemukan. Tidak dapat menambahkan task.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Reset form
+    $('#insertTaskForm')[0].reset();
+    $('#modalVolumeId').val(volumeId);
+    $('#referenceTaskId').val('');
+    $('#insertPosition').val('');
+
+    // Show modal
+    $('#kt_modal_insert_task').modal('show');
+}
+
+/**
  * Function untuk insert task di atas
  */
 function insertTaskAbove(taskId, taskName) {
@@ -857,10 +900,25 @@ function submitInsertTask() {
     const volumeId = formData.get('volume_id');
     const taskName = formData.get('task_name');
     const insertPosition = formData.get('insert_position');
+    const referenceTaskId = formData.get('reference_task_id');
     
-    if (!volumeId || !taskName || !insertPosition) {
+    if (!volumeId || !taskName) {
         Swal.fire({
             text: "Data tidak lengkap. Pastikan semua field terisi.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Jika ada reference task, maka insert_position wajib diisi
+    if (referenceTaskId && !insertPosition) {
+        Swal.fire({
+            text: "Posisi insert harus dipilih (above/below).",
             icon: "error",
             buttonsStyling: false,
             confirmButtonText: "Tutup",
@@ -1107,6 +1165,141 @@ function submitEditTask() {
             Swal.fire({
                 text: errorMessage,
                 icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Function untuk delete task
+ */
+function deleteTask(taskId) {
+    // Validasi taskId
+    if (!taskId) {
+        Swal.fire({
+            text: "Task ID tidak ditemukan.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Konfirmasi delete
+    Swal.fire({
+        title: "Konfirmasi Hapus",
+        text: "Apakah Anda yakin ingin menghapus task ini?",
+        icon: "warning",
+        buttonsStyling: false,
+        showCancelButton: true,
+        cancelButtonText: 'Batal',
+        confirmButtonText: "Ya, Hapus",
+        customClass: {
+            confirmButton: "btn btn-danger",
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            performDeleteTask(taskId);
+        }
+    });
+}
+
+/**
+ * Function untuk melakukan delete task via AJAX
+ */
+function performDeleteTask(taskId) {
+    $.ajax({
+        url: `/work-package/task/${taskId}`,
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            'Content-Type': 'application/json'
+        },
+        beforeSend: function() {
+            // Menampilkan loading
+            Swal.fire({
+                title: 'Menghapus...',
+                text: 'Sedang memproses penghapusan task',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+        },
+        success: function(response) {
+            console.log('Delete Success Response: ', response);
+
+            if (response.success) {
+                Swal.fire({
+                    title: 'Berhasil',
+                    text: 'Task berhasil dihapus',
+                    icon: 'success',
+                    buttonsStyling: false,
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Gagal',
+                    text: response.message || "Terjadi kesalahan saat menghapus task",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            console.log('Delete Error Response:', xhr);
+            
+            let errorTitle = "Gagal Menghapus Task";
+            let errorMessage = "Terjadi kesalahan saat menghapus task";
+            let iconType = "error";
+            
+            if (xhr.responseJSON) {
+                console.log('Response JSON:', xhr.responseJSON);
+                
+                if (xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                // Handle specific case for subtask validation
+                if (xhr.responseJSON.has_subtasks) {
+                    errorTitle = "Task Memiliki Sub Task";
+                    iconType = "warning";
+                }
+                
+                // Handle validation errors
+                if (xhr.responseJSON.errors) {
+                    console.log('Validation Errors:', xhr.responseJSON.errors);
+                    const errorDetails = Object.entries(xhr.responseJSON.errors)
+                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                        .join('\n');
+                    errorMessage += '\n\nDetail errors:\n' + errorDetails;
+                }
+            }
+            
+            Swal.fire({
+                title: errorTitle,
+                text: errorMessage,
+                icon: iconType,
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
                 customClass: {
