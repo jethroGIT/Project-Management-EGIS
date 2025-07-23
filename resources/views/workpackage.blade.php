@@ -55,18 +55,18 @@
     
                         <!-- Task List Section -->
                         <div class="table-responsive">
-                            <table id="tabel_wp_task" class="table table-striped border gy-5 gs-7 border rounded w-100">
+                            <table id="tabel_wp_task" class="table table-striped gy-4 gs-3 border rounded w-100">
                                 <thead>
-                                    <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                                    <tr class="fw-bolder fs-4 text-gray-1000 px-7">
                                         <th class="align-middle border-bottom min-w-100px">No</th>
                                         <th class="align-middle border-bottom min-w-200px">Task</th>
                                         <th class="align-middle border-bottom">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody style="font-size: 0.92rem;">
                                     @if(isset($volume) && $volume->task->count() > 0)
                                         @foreach($volume->task as $index => $task)
-                                            <tr>
+                                            <tr class="align-middle">
                                                 <td>{{ $index + 1 }}</td>
                                                 <td>{{ $task->name }}</td>
                                                 <td>
@@ -91,13 +91,14 @@
                                                             </li>
                                                             <li><hr class="dropdown-divider"></li>
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                                <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
                                                                     <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                                     Masukkan di Atas
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task">
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
                                                                     <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                                     Masukkan di Bawah
                                                                 </a>
@@ -125,7 +126,7 @@
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h3 class="modal-title">Tambah Task</h3>
+                                        <h3 class="modal-title" id="insertTaskModalTitle">Tambah Task</h3>
 
                                         <!--begin::Close-->
                                         <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
@@ -135,15 +136,62 @@
                                     </div>
 
                                     <div class="modal-body">
-                                        <div class="form-group mb-4">
-                                            <label class="form-label fw-bold">Nama Task</label>
-                                            <input type="text" class="form-control" placeholder="Masukkan Nama Task"/>
-                                        </div>
+                                        <form id="insertTaskForm" method="POST" action="{{ route('work-package.task.store') }}">
+                                            @csrf
+                                            <input type="hidden" name="volume_id" value="{{ $volume_id }}" id="modalVolumeId">
+                                            <input type="hidden" name="reference_task_id" id="referenceTaskId" value="">
+                                            <input type="hidden" name="insert_position" id="insertPosition" value="">
+                                            
+                                            <div class="form-group mb-4">
+                                                <label class="form-label fw-bold">Nama Task</label>
+                                                <input type="text" name="task_name" class="form-control" placeholder="Masukkan Nama Task" required/>
+                                            </div>
+                                        </form>
                                     </div>
 
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                        <button type="button" class="btn btn-primary">Simpan</button>
+                                        <button type="button" class="btn btn-primary" onClick="submitInsertTask()">Simpan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal for Editing Task -->
+                        <div class="modal fade" tabindex="-1" id="kt_modal_edit_task">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title" id="editTaskModalTitle">Edit Task</h3>
+                                        <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <form id="editTaskForm" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="task_id" id="editTaskId" value="">
+                                            <input type="hidden" name="volume_id" value="{{ $volume_id ?? '' }}" id="editModalVolumeId">
+
+                                            <div class="form-group mb-4">
+                                                <label class="form-label fw-bold">Nama Task</label>
+                                                <input 
+                                                    type="text" 
+                                                    name="task_name" 
+                                                    id="editTaskName" 
+                                                    class="form-control" 
+                                                    placeholder="Masukkan Nama Task" 
+                                                    required 
+                                                    maxlength="255" />
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                        <button type="button" class="btn btn-primary" onclick="submitEditTask()">Perbarui</button>
                                     </div>
                                 </div>
                             </div>
@@ -711,10 +759,6 @@ function initTabelWPTask() {
     const table = $('#tabel_wp_task').DataTable({
         'scrollY': '300px',
         "scrollX": true,
-        // "fixedHeader": {
-        //     "header":true,
-        //     "headerOffset": 10
-        // },
         "ordering": false,
         "searching": true,
         "language": {
@@ -853,6 +897,333 @@ function toggleSubRows(rowId) {
 //         document.getElementById('jumlahHariKerja').value = jhk;
 //     });
 // });
+
+/** TASK MANAGEMENT **/
+/** Insert Task */
+/**
+ * Function untuk insert task di atas
+ */
+function insertTaskAbove(taskId, taskName) {
+    $('#referenceTaskId').val(taskId);
+    $('#insertPosition').val('above');
+    $('#insertTaskModalTitle').text('Masukkan Task di Atas');
+
+    // Pastikan volume_id tersedia
+    const volumeId = {{ $volume_id ?? 'null' }};
+    if (volumeId) {
+        $('#modalVolumeId').val(volumeId);
+    }
+
+    // Reset form
+    $('#insertTaskForm')[0].reset();
+    $('#referenceTaskId').val(taskId);
+    $('#insertPosition').val('above');
+    $('#modalVolumeId').val(volumeId);
+
+    // Show modal
+    $('#kt_modal_insert_task').modal('show');
+}
+
+/**
+ * Function untuk insert task di bawah
+ */
+function insertTaskBelow(taskId, taskName) {
+    $('#referenceTaskId').val(taskId);
+    $('#insertPosition').val('below');
+    $('#insertTaskModalTitle').text('Masukkan Task di Bawah');
+
+    // Pastikan volume_id tersedia
+    const volumeId = {{ $volume_id ?? 'null' }};
+    if (volumeId) {
+        $('#modalVolumeId').val(volumeId);
+    }
+
+    // Reset form
+    $('#insertTaskForm')[0].reset();
+    $('#referenceTaskId').val(taskId);
+    $('#insertPosition').val('below');
+    $('#modalVolumeId').val(volumeId);
+
+    // Show modal
+    $('#kt_modal_insert_task').modal('show');
+}
+
+/**
+ * Function untuk submit insert task
+ */
+function submitInsertTask() {
+    const form = $('#insertTaskForm');
+    const formData = new FormData(form[0]);
+
+    // Validasi form
+    if (!form[0].checkValidity()) {
+        form[0].reportValidity();
+        return;
+    }
+
+    // Validasi manual untuk field wajib
+    const volumeId = formData.get('volume_id');
+    const taskName = formData.get('task_name');
+    const insertPosition = formData.get('insert_position');
+    
+    if (!volumeId || !taskName || !insertPosition) {
+        Swal.fire({
+            text: "Data tidak lengkap. Pastikan semua field terisi.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Submit
+    $.ajax({
+        url: form.attr('action'),
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    text: "Task berhasil ditambahkan!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-primary"
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+
+                // Tutup modal
+                $('kt_modal_insert_task').modal('hide');
+            } else {
+                Swal.fire({
+                    text: response.message || "Terjadi kesalahan saat menambahkan task",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = "Terjadi kesalahan saat menambahkan task";
+            
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                const errors = Object.values(xhr.responseJSON.errors).flat();
+                errorMessage = errors.join('\n');
+            }
+            
+            Swal.fire({
+                text: errorMessage,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        }
+    });
+}
+
+/** Edit Task */
+/**
+ * Function untuk edit task
+ */
+function editTask(taskId) {
+    // Get task data via AJAX
+    $.ajax({
+        url: `/work-package/task/${taskId}`,
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                // Populate modal dengan data task
+                $('#editTaskId').val(response.task.task_id);
+                $('#editTaskName').val(response.task.name);
+                $('#editModalVolumeId').val(response.task.volume_id);
+                
+                // Show modal
+                $('#kt_modal_edit_task').modal('show');
+            } else {
+                Swal.fire({
+                    text: response.message || "Gagal mengambil data task",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = "Terjadi kesalahan saat mengambil data task";
+            
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            Swal.fire({
+                text: errorMessage,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Function untuk submit edit task
+ */
+function submitEditTask() {
+    const form = $('#editTaskForm');
+    const taskId = $('#editTaskId').val();
+
+    // Validasi taskId
+    if (!taskId) {
+        Swal.fire({
+            text: "Task ID tidak ditemukan. Silakan coba lagi.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Create FormData manually dengan validasi
+    const formData = new FormData();
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+    formData.append('_method', 'PUT');
+    formData.append('task_name', $('#editTaskName').val().trim());
+    formData.append('volume_id', $('#editModalVolumeId').val());
+
+    // Debug log
+    console.log('Manual FormData:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': "' + pair[1] + '"');
+    }
+
+    // Validasi manual
+    const taskName = formData.get('task_name');
+    const volumeId = formData.get('volume_id');
+    
+    if (!taskName || !taskName === '') {
+        Swal.fire({
+            text: "Nama task harus diisi.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    if (!volumeId || volumeId === '') {
+        Swal.fire({
+            text: "Volume ID tidak ditemukan.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Submit via AJAX
+    $.ajax({
+        url: `/work-package/task/${taskId}`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            'X-HTTP-Method-Override': 'PUT'
+        },
+        beforeSend: function() {
+            console.log('Sending request to:', `/work-package/task/${taskId}`);
+        },
+        success: function(response) {
+            console.log('Update Success Response:', response);
+            
+            if (response.success) {
+                Swal.fire({
+                    text: "Task berhasil diperbarui!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-primary"
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+                
+                $('#kt_modal_edit_task').modal('hide');
+            } else {
+                Swal.fire({
+                    text: response.message || "Terjadi kesalahan saat memperbarui task",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            console.log('Update Error Response:', xhr);
+            
+            let errorMessage = "Terjadi kesalahan saat mengupdate task";
+            
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                const errors = Object.values(xhr.responseJSON.errors).flat();
+                errorMessage = errors.join('\n');
+            }
+            
+            Swal.fire({
+                text: errorMessage,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        }
+    });
+}
 </script>
 @endpush
 
