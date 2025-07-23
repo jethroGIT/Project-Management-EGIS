@@ -6,7 +6,7 @@
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
-                <a href="{{route('work-package')}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
@@ -72,8 +72,19 @@
                 </div>
             </div>
             <form class="d-flex justify-content-end align-items-center">
-                <label class="me-5 mt-3 mb-0" for="searchTask">Cari: </label>
-                <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary mt-3" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
+                <label class="me-5 mb-0" for="searchTask">Cari: </label>
+                <div>
+                    <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
+                        <input 
+                            class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                            style="width:200px" 
+                            type="search"
+                            id="searchActivity" 
+                            placeholder="Cari aktivitas" 
+                            aria-label="Search"
+                        >                    
+                    </form>
+                </div>                  
             </form>
             <div class="tab-content">
                 <div class="tab-pane fade show active">
@@ -161,7 +172,13 @@
                             <tr>
                                 <td class="align-middle">{{$hResource->role->name}}</td>
                                 <td class="text-center align-middle" style="color:gray">{{$hResource->jhk}}</td>
-                                <td class="text-center align-middle">{!! mandaysLabel($hResource->jhk, $timesheetCountPerRole[$hResource->role_id]) !!}</td>
+                                <td class="text-center align-middle">
+                                    @php
+                                        // Ambil realisasi mandays untuk role ini. Jika tidak ada data, default 0.
+                                        $realisasiMandays = $timesheetCountPerRole[$hResource->role_id] ?? 0;
+                                    @endphp
+                                    {!! mandaysLabel($hResource->jhk, $realisasiMandays) !!}
+                                </td>
                             </tr> 
                             @endforeach                           
                         </tbody>
@@ -279,7 +296,7 @@
     });
 
     function initTabelTimesheet() {
-        $('#kt_datatable_example_2').DataTable({
+        const table = $('#kt_datatable_example_2').DataTable({
             "scrollY": '500px',
             "scrollX": true,
             "fixedHeader": {
@@ -287,6 +304,35 @@
                 "headerOffset": 70
             },
             "ordering": false // Disable sorting
+        });
+
+        setupActivitySearch(table);
+    }
+
+    function setupActivitySearch(table) {
+        const searchInput = $('#searchActivity');
+
+        // Search input handler
+        searchInput.on('keyup change input', function() {
+            const searchValue = this.value.trim();
+            table.search(searchValue).draw();
+        });
+
+        // Clear button handler
+        searchInput.on('search', function() {
+            if (this.value === '') {
+                table.search('').draw();
+            }
+        });
+
+        // ESC key untuk clear search
+        searchInput.on('keydown', function(e) {
+            if (e.which === 27) { // ESC key
+                e.preventDefault();
+                this.value = '';
+                $(this).trigger('input');
+                this.focus();
+            }
         });
     }
 

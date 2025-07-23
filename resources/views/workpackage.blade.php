@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="my-10">Work Package</h1>
+    <h1 class="mt-0 mb-5">Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-8">
         <div class="card-header flex-column">
@@ -300,7 +300,7 @@
                                     <div class="card card-flush shadow-sm h-100">
                                         <div class="card-body">
                                             <h3 class="card-title fw-bold">Total % Complete</h3>
-                                            <div class="d-flex justify-content-center h-100">
+                                            <div class="d-flex justify-content-center h-100 total-complete">
                                                 <span class="fs-1">
                                                     {{ $totalCompletion ?? 0 }} %
                                                 </span>
@@ -385,7 +385,7 @@
                                     <h3 class="card-title fw-bold">Duration</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2">
+                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
                                         @if(isset($workPackage) && isset($volume))
                                             <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
                                             <span class="fs-1 text-primary duration-highlight">Hari</span>
@@ -394,8 +394,6 @@
                                             <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
                                         @endif
                                     </div>
-                                </div>
-                                <div class="card-footer">
                                 </div>
                             </div>
                         </div>
@@ -407,11 +405,10 @@
                                     <h3 class="card-title fw-bold">Finance Performance</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
                                         <span class="fs-1 fw-bold text-success">30 %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer"></div>
                                 <!-- Overlay -->
                                 <div class="performance-overlay d-flex align-items-center justify-content-center">
                                     <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
@@ -426,11 +423,10 @@
                                     <h3 class="card-title fw-bold">WP Performance</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
                                         <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0 }} %</span>
                                     </div>
                                 </div>
-                                <div class="card-footer"></div>
                                 <!-- Overlay -->
                                 <div class="performance-overlay d-flex align-items-center justify-content-center">
                                     <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
@@ -452,18 +448,10 @@
 
                         <!-- Kebutuhan Tenaga Kerja Section -->
                         <div class="card card-flush shadow-sm mb-6">
-                            <div class="card-header">
+                            <div class="card-header py-0">
                                 <h3 class="card-title fw-bold">Kebutuhan Tenaga Kerja</h3>
                             </div>
-                            <div class="card-body">
-                                <!-- Search Form -->
-                                <div>
-                                    <form class="d-flex justify-content-end mb-4">
-                                        <label class="me-5 mt-3" for="searchTask">Cari: </label>
-                                        <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">                    
-                                    </form>
-                                </div>
-
+                            <div class="card-body py-0">
                                 <div class="table-responsive">
                                     <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-4 gs-7 border rounded w-100">
                                         <thead>
@@ -480,7 +468,7 @@
                                         </thead>
                                         <tbody>
                                             @foreach($humanResources as $hResource)
-                                            <tr>
+                                            <tr data-hresource-id="{{ $hResource->res_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
                                                 <td class="fw-bold">{{$hResource->role->name}}</td>
                                                 <td>{{$hResource->jtk}}</td>
                                                 <td>{{$hResource->jhk}}</td>
@@ -493,8 +481,12 @@
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
-                                                                    data-role-id="{{$hResource->role_id}}" data-jtk="{{ $hResource->jtk }}" data-jhk="{{ $hResource->jhk }}">
+                                                                <a class="dropdown-item d-flex align-items-center edit-resource-btn" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
+                                                                    data-hresource-id="{{$hResource->hresource_id}}" 
+                                                                    data-role-id="{{$hResource->role_id}}" 
+                                                                    data-wp-id="{{$hResource->wp_id}}" 
+                                                                    data-jtk="{{ $hResource->jtk }}" 
+                                                                    data-jhk="{{ $hResource->jhk }}">
                                                                     <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                                     Edit
                                                                 </a>
@@ -522,171 +514,7 @@
                                                     </div>
                                                 </td>
                                             </tr>
-                                            @endforeach
-                                            {{-- <tr>
-                                                <td class="fw-bold">Senior Consultant</td>
-                                                <td>1</td>
-                                                <td>10</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                            </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                                    Hapus
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Atas
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Bawah
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Associate Consultant</td>
-                                                <td>1</td>
-                                                <td>10</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                            </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                                    Hapus
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Atas
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Bawah
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Junior Consultant</td>
-                                                <td>1</td>
-                                                <td>4</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                            </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                                    Hapus
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Atas
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Bawah
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Technical Writer</td>
-                                                <td>1</td>
-                                                <td>20</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                            </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                                    Hapus
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Atas
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Bawah
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr> --}}
+                                            @endforeach                                            
                                         </tbody>
                                     </table>
                                 </div>
@@ -714,23 +542,28 @@
             </div>
 
             <div class="modal-body">
-                <form method="POST" action="{{route('work-package.hResource.edit')}}" id="jtkJhkForm">
-                    <input type="hidden" name="role_id" id="role_id">
+                <form method="POST" action="{{route('work-package.hResource.edit', $volume->volume_id)}}" id="jtkJhkForm">
+                    {{-- action="{{route('work-package.hResource.edit')}}"  --}}
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="hresource_id" id="form_hresource_id">
+                    <input type="hidden" name="role_id" id="form_role_id">
+
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        {{-- <div class="col-md-6 mb-3">
                             <label for="jumlahTenagaKerja" class="form-label">Jumlah Tenaga Kerja</label>
-                            <input type="number" class="form-control" name="jumlahTenagaKerja" id="jumlahTenagaKerja" placeholder="0">
-                        </div>
+                            <input type="number" class="form-control" name="jtk" id="jumlahTenagaKerja" placeholder="0">
+                        </div> --}}
                         <div class="col-md-6 mb-3">
                             <label for="jumlahHariKerja" class="form-label">Jumlah Hari Kerja</label>                        
-                            <input type="number" class="form-control" name="jumlahHariKerja" id="jumlahHariKerja" placeholder="0">
+                            <input type="number" class="form-control" name="jhk" id="jumlahHariKerja" placeholder="0">
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-primary" id="saveSuccessful">Simpan</button>
+                <button type="button" class="btn btn-primary" id="submitJtkJhkForm">Simpan</button>
             </div>
         </div>
     </div>
@@ -778,7 +611,9 @@ function initTabelWPTask() {
  */
 function initTabelWPTenagaKerja() {
     $('#tabel_wp_tenaga_kerja').DataTable({
-        "ordering": false
+        "ordering": false,
+        "paging": false,
+        "lengthChange": false
     });
 }
 
@@ -812,7 +647,7 @@ function setupTaskSearch(table) {
     });
 }
 
-// const saveButton = document.getElementById('saveSuccessful');
+// const saveButton = document.getElementById('submitJtkJhkForm');
 
 // saveButton.addEventListener('click', e => {
 //     e.preventDefault();
@@ -883,20 +718,77 @@ function toggleSubRows(rowId) {
     }
 }
 
-// document.addEventListener('DOMContentLoaded', () => {
-//     const modal = document.getElementById('jtkandjhkModal');
-//     modal.addEventListener('show.bs.modal', function (event) {
-//         const trigger = event.relatedTarget;
+const jtkJhkModal = new bootstrap.Modal(document.getElementById('jtkandjhkModal')); // Asumsi ID modal Anda kt_modal_1
+const jtkJhkForm = document.getElementById('jtkJhkForm');
+const submitJtkJhkButton = document.getElementById('submitJtkJhkForm');
 
-//         const roleId = trigger.getAttribute('data-role-id');
-//         const jtk = trigger.getAttribute('data-jtk');
-//         const jhk = trigger.getAttribute('data-jhk');
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('click', function(event){
+        if(event.target.classList.contains('edit-resource-btn')){
+            const button = event.target.closest('.edit-resource-btn');
 
-//         document.getElementById('role_id').value = roleId;
-//         document.getElementById('jumlahTenagaKerja').value = jtk;
-//         document.getElementById('jumlahHariKerja').value = jhk;
-//     });
-// });
+            document.getElementById('form_hresource_id').value = button.dataset.hresourceId;
+            document.getElementById('form_role_id').value = button.dataset.roleId;
+            // document.getElementById('jumlahTenagaKerja').value = button.dataset.jtk;
+            document.getElementById('jumlahHariKerja').value = button.dataset.jhk;
+        }
+    })
+});
+
+if (submitJtkJhkButton) {
+    submitJtkJhkButton.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(jtkJhkForm); // Ambil semua data dari form
+        const url = jtkJhkForm.action; // Ambil URL dari atribut action form
+        const method = 'POST';
+
+        // Kirim permintaan AJAX
+        fetch(url, {
+            method: method,
+            body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                });
+            }
+            return response.json(); // Parse respons JSON
+        })
+        .then(data => {
+            // Logika jika permintaan sukses
+            Swal.fire({
+                text: data.message || "Data berhasil diperbarui!",
+                icon: "success",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            }).then(() => {
+                jtkJhkModal.hide(); // Sembunyikan modal
+                location.reload(); // Reload halaman untuk melihat perubahan
+                // ATAU update UI tanpa reload:
+                // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
+            });
+        })
+        .catch(error => {
+            // Logika jika ada error (jaringan, validasi, server error)
+            console.error('Error updating resource:', error);
+            Swal.fire({
+                text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "OK",
+                customClass: { confirmButton: "btn btn-danger" }
+            });
+        });
+    });
+}
 
 /** TASK MANAGEMENT **/
 /** Insert Task */
@@ -1249,6 +1141,13 @@ function submitEditTask() {
     padding-bottom: 1.1rem !important;
 }
 
+.total-complete {
+    transition: transform 0.25s cubic-bezier(.4,2,.6,1), color 0.25s;
+}
+.total-complete:hover {
+    transform: scale(1.10);
+}
+
 /* Highlight Duration card number and text on hover */
 .duration-card .duration-highlight {
     transition: transform 0.25s cubic-bezier(.4,2,.6,1), color 0.25s;
@@ -1316,5 +1215,11 @@ function submitEditTask() {
 .overlay-performance-card:hover .performance-overlay {
     opacity: 1.2;
     pointer-events: auto;
+}
+
+.duration-card .card-body,
+.performance-card .card-body
+{
+    padding-top: 0px !important;
 }
 </style>

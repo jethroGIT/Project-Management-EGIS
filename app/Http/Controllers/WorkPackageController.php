@@ -9,6 +9,7 @@ use App\Models\WorkPackageVolume;
 use App\Models\User;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Database\Eloquent;
 
 class WorkPackageController extends Controller
@@ -286,9 +287,40 @@ class WorkPackageController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function editHResource(Request $request, $volume_id)
     {
-        //
+        $volume = WorkPackageVolume::with([
+            'workPackage', 
+            'task',
+            'work.user'
+        ])->findOrFail($volume_id);
+
+        $workPackage = $volume->workPackage;
+        try {
+            $request->validate([
+                'hresource_id' => 'required|exists:human_resource,hresource_id', 
+                'role_id' => 'required|exists:role,role_id', 
+                'jhk' => 'integer|min:0', 
+            ]);
+
+            $resource = HumanResource::where('hresource_id', $request->hresource_id)
+                                ->where('wp_id', $workPackage->wp_id)
+                                ->where('role_id', $request->role_id)
+                                ->firstOrFail();
+            $resource->jhk = $request->jhk;
+            $resource->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data resource berhasil diperbarui.',
+                'data' => $resource // Kirim data yang diperbarui jika perlu untuk update UI
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
