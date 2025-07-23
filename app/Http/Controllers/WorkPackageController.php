@@ -128,7 +128,7 @@ class WorkPackageController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data resource berhasil diperbarui.',
+                'message' => 'Data berhasil diperbarui.',
                 'data' => $resource // Kirim data yang diperbarui jika perlu untuk update UI
             ]);
         } catch (\Exception $e) {

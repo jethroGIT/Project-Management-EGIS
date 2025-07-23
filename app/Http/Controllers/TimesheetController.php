@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\HumanResource;
 use App\Models\Timesheet;
+use App\Models\User;
 use App\Models\WorkPackageVolume;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class TimesheetController extends Controller
 {
@@ -71,13 +73,40 @@ class TimesheetController extends Controller
         // daftar unique timesheet dari bulan yang dipilih
         $usersInSelectedMonth = $timesheets->pluck('user')->unique('user_id')->sortBy('role_id')->values();
 
-        // menghitung jumlah timesheet untuk setiap role
+        // menghitung jumlah aktivitas untuk setiap role
         $timesheetCountPerRole = $timesheets->groupBy('user.role_id')->map(function ($entriesPerRole) {
             return $entriesPerRole->count();
         });
         return view('timesheet', compact('workPackage', 'volume', 'timesheets', 'usersInSelectedMonth', 
                                          'humanResources', 'months', 'selectedMonth', 
                                          'monthTimesheets', 'monthDates', 'timesheetCountPerRole'));
+    }
+
+    public function detailUser($volume_id, $user_id){
+        // work package volume
+        $volume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
+        $workPackage = $volume->workPackage;
+        
+        // timesheet activity
+        $activities= Timesheet::with('user.role')
+            ->where('user_id', $user_id)
+            ->where('volume_id', $volume_id)
+            ->orderBy('execution_date', 'asc')
+            ->get();
+
+        // user info
+        $user = User::with('role')
+            ->where('user_id', $user_id)->first();
+        
+        // ambil jhk
+        $humanResources = HumanResource::where('wp_id', $workPackage->wp_id)
+            ->where('role_id', $user->role->role_id)
+            ->first();
+
+        // menghitung jumlah aktivitas dari role tertentu
+        $activitiesCount = $activities->count();
+
+        return view('timesheet_per_user', compact('volume', 'workPackage', 'humanResources', 'activities', 'user', 'activitiesCount'));
     }
 
     /**
@@ -107,9 +136,38 @@ class TimesheetController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, $volume_id)
     {
-        //
+        try {
+            // validation
+            // save
+            //code...
+            $request->validate([
+                'timesheet_id' => 'required|exists:timesheet,timesheet_id', 
+                'user_id' => 'required|exists:user,user_id', 
+                'execution_date' => 'required|date',
+                'activity' => 'required'
+            ]);
+
+            $resource = Timesheet::where('timesheet_id', $request->timesheet_id)
+                                ->where('user_id', $request->user_id)
+                                ->where('volume_id', $volume_id)
+                                ->firstOrFail();
+            $resource->execution_date = $request->execution_date;
+            $resource->activity = $request->activity;
+            $resource->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diperbarui.',
+                'data' => $resource // Kirim data yang diperbarui jika perlu untuk update UI
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

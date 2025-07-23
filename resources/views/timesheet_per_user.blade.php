@@ -6,14 +6,24 @@
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
-                <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <a href="{{route('timesheet.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
-                <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
-            </div>            
-            <div class="d-flex align-items-center justify-content-end">                
+                <div>
+                    <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
+                    <span class="mb-2 px-2 rounded-1" 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="bottom" 
+                        title="{{$user->role->name}}"
+                        style="background-color: #a7d5f9; color: #212529; width: fit-content;"
+                    >
+                        {{$user->name}}
+                    </span>
+                </div>
+            </div>
+            {{-- <div class="d-flex align-items-center justify-content-end">                
                 <div class="d-flex align-items-center">
-                    <ul class="nav nav-tabs nav-line-tabs mb-7 fs-6 me-2">
+                    <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6 me-2">
                         @foreach($months as $month)
                         <li class="nav-item">
                             <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
@@ -24,14 +34,21 @@
                         <i class="bi bi-plus fs-2 text-dark" style="margin-left: 5px"></i>
                     </a>
                 </div>                
-            </div>            
-            <div class="d-flex justify-content-start">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard">
+            </div> --}}
+            <div class="d-flex justify-content-between mt-10">
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
                     </svg>
                     Filter Data
-                </button>                
+                </button>
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_1" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
+                        class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
+                        <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                    Tambah Aktivitas
+                </button>
             </div>
             <div class="collapse" id="filterCard">
                 <div class="card card-flush shadow-lg mb-4">
@@ -48,13 +65,10 @@
                     <div class="card-body" style="padding: 25px;">
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label class="form-label fw-bold">Pekan</label>
+                                <label class="form-label fw-bold">Bulan</label>
                                 <select class="form-select form-select-solid" id="kategoriFilter" style="cursor: pointer;   ">
-                                    <option value="">Pilih Pekan</option>
+                                    <option value="">Pilih Bulan</option>
                                     <option value="management">Pekan ke-1</option>
-                                    <option value="awareness">Pekan ke-2</option>
-                                    <option value="training">Pekan ke-3</option>
-                                    <option value="assessment">Pekan ke-4</option>
                                 </select>
                             </div>
                         </div>
@@ -71,50 +85,84 @@
                     </div>  
                 </div>
             </div>
-            <form class="d-flex justify-content-end align-items-center">
-                <label class="me-5 mb-0" for="searchActivity">Cari: </label>
-                <div>
-                    <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
-                        <input 
-                            class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
-                            style="width:200px" 
-                            type="search"
-                            id="searchActivity" 
-                            placeholder="Cari aktivitas" 
-                            aria-label="Search"
-                        >                    
-                    </form>
-                </div>                  
-            </form>
+            <div class="row mt-4 align-items-center" style="height: 50px; padding: 0px 0px;">
+                    <div class="col-md-6 d-flex align-items-center" style="height: 40px">
+                        <div class="border bg-light h-100 d-flex align-items-center justify-content-center w-100">
+                            <span class="fw-bold">Total Mandays</span>
+                        </div>
+                        <div class="border h-100 d-flex align-items-center justify-content-center w-100"
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="top" 
+                            title="Rencana"
+                        >
+                            <span class="text">{{$humanResources->jhk}}</span>
+                        </div>
+                        <div class="border h-100 d-flex align-items-center justify-content-center w-100"
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="top" 
+                            title="Realisasi"
+                        >
+                            <span class="text">{{$activitiesCount}}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-end mt-3">
+                        <form class="d-flex justify-content-end align-items-center">
+                            <label class="me-5 mb-0" for="searchActivityUser">Cari: </label>
+                            <div>
+                                <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
+                                    <input 
+                                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                                        style="width:200px" 
+                                        type="search"
+                                        id="searchActivityUser" 
+                                        placeholder="Cari aktivitas" 
+                                        aria-label="Search"
+                                    >                    
+                                </form>
+                            </div>                  
+                        </form>
+                    </div>
+                </div> 
             <div class="tab-content">
                 <div class="tab-pane fade show active">
-                    <div class="table-responsive">
-                        @if($monthDates->isNotEmpty())
+                    <div class="table-responsive mt-5">
+                        @if($activities->isNotEmpty())
                             <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
                                 <thead>
                                     <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
                                         <th scope="col" style="width: 40px;">No</th>
                                         <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
-                                        @foreach($usersInSelectedMonth as $user)
-                                            <th scope="col" style="width: 80px;">
-                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
-                                            </th>     
-                                        @endforeach                       
+                                        <th scope="col">Aktivitas</th>                       
+                                        <th scope="col" style="width: 40px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 0.92rem;">
-                                    @foreach($monthDates as $date => $entries)
+                                    @foreach($activities as $activity)
                                     <tr>
                                         <th scope="row">{{$loop->index+1}}</th>
-                                        <td>{{\Carbon\Carbon::parse($date)->format('d')}}</td>
-                                        @foreach($usersInSelectedMonth as $user)
-                                            <td>
-                                                @php
-                                                    $userEntry = $entries->where('user_id', $user->user_id)->first();
-                                                @endphp
-                                                {{ $userEntry->activity ?? '-'}}
-                                            </td>
-                                        @endforeach                                        
+                                        <td>{{\Carbon\Carbon::parse($activity->execution_date)->format('d M')}}</td>
+                                        <td>{{$activity->activity}}</td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                </a>
+                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus</a>
+                                                    </li>
+                                                    {{-- <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Bawah</a>
+                                                    </li> --}}
+                                                </ul>
+                                            </div>
+                                        </td>
                                     </tr>  
                                     @endforeach          
                                 </tbody>
@@ -125,37 +173,27 @@
                     </div>
                 </div>           
             </div>
-            <div class="separator my-3"></div>                        
-            <div class="col">
-                <div class="d-flex justify-content-between mb-5">
-                    <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
-                        <i class="bi bi-chevron-down me-2"></i>
-                        Lihat Ringkasan Mandays
-                    </button>
-                    {{-- id user dummy terlebih dulu, nanti ambil dari session user --}}
-                    <button type="button" class="btn btn-light-primary" aria-expanded="false" aria-controls="kelolaAktivitas" onclick="window.location.href='{{ route('timesheet.detail.user', [$volume->volume_id, 1]) }}'">
-                        Kelola Aktivitas
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                        </svg>
-                    </button>
-                </div>
+            {{-- <div class="col-md-6" style="width: 50%; min-width: 350px;">
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
+                    <i class="bi bi-chevron-down me-2"></i>
+                    Lihat Ringkasan Mandays
+                </button>
                 <div class="collapse" id="mandaysSummaryTable">
                     <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
                         <thead>
                             <tr>
-                                <th scope="col" colspan="3" class="text-center bg-light py-1">Total Mandays</th>
+                                <th scope="col" colspan="3" class="text-center bg-light">Total Mandays Sementara</th>
                             </tr>
                             <tr>
-                                <th scope="col" rowspan="2" class="align-middle py-1">Personel</th>
-                                <th scope="col" colspan="2" class="text-center align-middle py-1">Mandays</th>
+                                <th scope="col" rowspan="2" class="align-middle">Personel</th>
+                                <th scope="col" colspan="2" class="text-center align-middle">Mandays</th>
                             </tr>
                             <tr>
-                                <th class="text-center align-middle py-0">Rencana</th>
-                                <th class="text-center align-middle py-0">Realisasi</th>                            
+                                <th class="text-center align-middle">Rencana</th>
+                                <th class="text-center align-middle">Realisasi</th>                            
                             </tr>
                         </thead>
-                        <tbody style="font-size: 0.92rem;">
+                        <tbody>
                             @foreach($humanResources as $hResource)
                             <tr>
                                 <td class="align-middle">{{$hResource->role->name}}</td>
@@ -172,30 +210,17 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </div>             --}}
         </div>
     </div>
 </div>
 @endsection
 
-<!--begin::Scrollbottom-->
-{{-- <div id="kt_scrollbottom_button" class="scrolltop" data-kt-scrollbottom="true" style="bottom: 120px; display:flex">
-    <span class="svg-icon">
-        <!-- Icon panah ke bawah (reverse dari scrolltop) -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 15.5L6.5 10l1.41-1.41L12 13.67l4.09-4.08L17.5 10z" fill="black"/>
-        </svg>
-    </span>
-    <span id="closeScrollBottom" style="position:absolute;top:-8px;right:-8px;font-size:12px;background:red;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;">×</span>
-</div> --}}
-<!--end::Scrollbottom-->
-
-
 <div class="modal fade" tabindex="-1" id="kt_modal_1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Timesheet Work Package</h3>
+                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
 
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
@@ -206,54 +231,22 @@
 
             <div class="modal-body">
                 <form>
-                    <label class="form-label fw-bolder">February, 2025</label>
+                    {{-- <label class="form-label fw-bolder">{{\Carbon\Carbon::parse($activity->execution_date)->format('d M Y')}}</label> --}}
                     <div class="form-group mb-6">
                         <label class="form-label fw-bold">Tanggal</label>
                         <div class="input-group">
-                            <input type="number" class="form-control" id="percentComplete" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                            <input type="date" class="form-control" id="percentComplete" placeholder="Masukkan Tanggal" min="1" max="31"/>
                         </div>
-                    </div>
-                    <hr class="dropdown-divider mb-4">
-                    <div class="mb-4">
-                        <label class="form-label fw-bolder">Personel Activity</label>
-                        <div class="resourceContainer" id="resourceContainer">
-                            <div class="personel-activity-group mb-4" id="resource-0">
-                                <div class="card card-flush shadow">
-                                    <div class="card-header">
-                                        <h3 class="card-title">Personel 1</h3>
-                                    </div>
-                                    <div class="card-body py-5 mb-2">
-                                        <div class="form-group mb-4">
-                                            <label class="form-label fw-bold">Personel</label>
-                                            <select class="form-select mb-2" name="resources[]">
-                                                <option value="">Pilih Resource</option>
-                                                <option value="pm">Project Manager (PM)</option>
-                                                <option value="sc">Senior Consultant (SC)</option>
-                                                <option value="asc">Associate Consultant (ASC)</option>
-                                                <option value="jc">Junior Consultant (JC)</option>
-                                                <option value="tw">Technical Writer (TW)</option>
-                                                <option value="osc">On-Site Consultant (OSC)</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="activity-0" class="form-label">Aktivitas</label>
-                                            <textarea class="form-control" id="activity-0" name="activities[]" rows="3" placeholder="Aktivitas"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn btn-light-primary" id="addPersonelBtn">
-                            <i class="bi bi-plus-lg"></i>
-                            Tambah Personel
-                        </button>
+                    </div>                    
+                    <div class="mb-6">
+                        <label class="form-label fw-bolder">Aktivitas</label>
+                        <textarea class="form-control" id="activity" name="activity" rows="3" placeholder="Aktivitas"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light rounded-0" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary rounded-0" id="saveSuccessful">Simpan</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="saveSuccessful">Simpan</button>
             </div>
         </div>
     </div>
@@ -311,7 +304,7 @@
     }
 
     function setupActivitySearch(table) {
-        const searchInput = $('#searchActivity');
+        const searchInput = $('#searchActivityUser');
 
         // Search input handler
         searchInput.on('keyup change input', function() {
@@ -425,39 +418,6 @@
     $(function () {
         $('[data-bs-toggle="tooltip"]').tooltip();
     });
-
-    // document.addEventListener("DOMContentLoaded", function () {
-    //     const scrollBottomBtn = document.getElementById("kt_scrollbottom_button");
-    //     const closeScrollBottom = document.getElementById("closeScrollBottom");
-
-    //     // Tombol muncul langsung
-    //     scrollBottomBtn.style.display = "flex";
-
-    //     // Klik panah scroll ke bawah
-    //     scrollBottomBtn.addEventListener("click", function (e) {
-    //         if (e.target.id !== "closeScrollBottom" && !closeScrollBottom.contains(e.target)) {
-    //             const secondTable = document.getElementById('mandaysSummaryTable')
-    //             if(secondTable){
-    //                 window.scrollTo({
-    //                     top: secondTable.offsetTop,
-    //                     behavior:'smooth'
-    //                 });
-    //                 scrollBottomBtn.style.display="none";
-    //             }else{
-    //                 window.scrollTo({
-    //                     top: document.body.scrollHeight,
-    //                     behavior: 'smooth'
-    //                 });
-    //                 scrollBottomBtn.style.display="none";
-    //             }
-    //         }
-    //     });
-
-    //     // Tutup tombol
-    //     closeScrollBottom.addEventListener("click", function () {
-    //         scrollBottomBtn.style.display = "none";
-    //     });
-    // });
 </script>
 @endpush
 

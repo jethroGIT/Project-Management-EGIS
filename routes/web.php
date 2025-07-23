@@ -30,8 +30,11 @@ Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->na
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
 
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
+
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
 Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');
+Route::put('/timesheet/{volume_id?}/edit', [TimesheetController::class, 'edit'])->name('timesheet.edit');
+Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailUser'])->name('timesheet.detail.user');
 
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
 Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
