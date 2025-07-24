@@ -33,8 +33,12 @@ Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'
 
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
 Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');
-Route::put('/timesheet/{volume_id?}/edit', [TimesheetController::class, 'edit'])->name('timesheet.edit');
-Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailUser'])->name('timesheet.detail.user');
+// Route::put('/timesheet/{volume_id?}/edit', [TimesheetController::class, 'edit'])->name('timesheet.edit');
+
+Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
+Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
+Route::put('/timesheet-user/{volume_id}/{user_id}/edit', [TimesheetController::class, 'editperUser'])->name('timesheet.user.edit');
+Route::delete('/timesheet-user/{timesheet_id}/delete', [TimesheetController::class, 'deleteperUser'])->name('timesheet.user.delete');
 
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
 Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');

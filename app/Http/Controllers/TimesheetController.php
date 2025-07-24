@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\WorkPackageVolume;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use PhpParser\Node\Stmt\TryCatch;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class TimesheetController extends Controller
@@ -82,7 +83,7 @@ class TimesheetController extends Controller
                                          'monthTimesheets', 'monthDates', 'timesheetCountPerRole'));
     }
 
-    public function detailUser($volume_id, $user_id){
+    public function detailperUser($volume_id, $user_id){
         // work package volume
         $volume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
         $workPackage = $volume->workPackage;
@@ -136,31 +137,76 @@ class TimesheetController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, $volume_id)
+    public function editperUser(Request $request, $volume_id, $user_id)
     {
         try {
             // validation
             // save
-            //code...
-            $request->validate([
-                'timesheet_id' => 'required|exists:timesheet,timesheet_id', 
-                'user_id' => 'required|exists:user,user_id', 
-                'execution_date' => 'required|date',
-                'activity' => 'required'
-            ]);
-
-            $resource = Timesheet::where('timesheet_id', $request->timesheet_id)
-                                ->where('user_id', $request->user_id)
+            $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
+                                ->where('user_id', $user_id)
                                 ->where('volume_id', $volume_id)
                                 ->firstOrFail();
-            $resource->execution_date = $request->execution_date;
-            $resource->activity = $request->activity;
-            $resource->save();
+
+            if ($request->filled('execution_date')) {
+                $activity->execution_date = $request->execution_date;
+            }
+
+            if ($request->filled('activity')) {
+                $activity->activity = $request->activity;
+            }
+
+            $activity->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui.',
-                'data' => $resource // Kirim data yang diperbarui jika perlu untuk update UI
+                'data' => $activity // Kirim data yang diperbarui jika perlu untuk update UI
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function addperUser(Request $request, $volume_id, $user_id){
+        try {
+            // validate
+            // save
+            $request->validate([
+                'execution_date' => 'required|date',
+                'activity' => 'required'
+            ]);
+
+            $activity = new Timesheet();
+            $activity->user_id = $user_id;
+            $activity->volume_id = $volume_id;
+            $activity->execution_date = $request->execution_date;
+            $activity->activity = $request->activity;
+            $activity->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil ditambahkan.',
+                'data' => $activity // Kirim data yang diperbarui jika perlu untuk update UI
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteperUser($timesheet_id){
+        try {
+            $activity = Timesheet::findorfail($timesheet_id);
+            $activity->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil dihapus.'
             ]);
         } catch (\Exception $e) {
             return response()->json([

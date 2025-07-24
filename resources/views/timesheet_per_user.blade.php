@@ -42,7 +42,7 @@
                     </svg>
                     Filter Data
                 </button>
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_1" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#addActivityModal" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
                         class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
                         <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
@@ -148,11 +148,16 @@
                                                     <i class="bi bi-three-dots fs-3 text-dark"></i>
                                                 </a>
                                                 <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                                    <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
+                                                        data-timesheet-id="{{$activity->timesheet_id}}"
+                                                        data-execution-date="{{$activity->execution_date}}"
+                                                        data-activity="{{$activity->activity}}"
+                                                        >
                                                         <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
                                                     </li>
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                        <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus</a>
+                                                    <li><a class="dropdown-item d-flex align-items-center btn-delete-activity" data-timesheet-id="{{$activity->timesheet_id}}">
+                                                            <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus
+                                                        </a>
                                                     </li>
                                                     {{-- <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
                                                         <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
@@ -216,26 +221,23 @@
 </div>
 @endsection
 
-<div class="modal fade" tabindex="-1" id="kt_modal_1">
+{{-- tambah aktivitas --}}
+<div class="modal fade" tabindex="-1" id="addActivityModal">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
-
-                <!--begin::Close-->
-                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                </div>
-                <!--end::Close-->
             </div>
-
             <div class="modal-body">
-                <form>
+                <form method="POST" action="{{route('timesheet.user.add', [$volume->volume_id,1])}}" id="addActivityForm">
                     {{-- <label class="form-label fw-bolder">{{\Carbon\Carbon::parse($activity->execution_date)->format('d M Y')}}</label> --}}
+                    @csrf
+                    @method('POST')
+
                     <div class="form-group mb-6">
                         <label class="form-label fw-bold">Tanggal</label>
                         <div class="input-group">
-                            <input type="date" class="form-control" id="percentComplete" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                            <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31"/>
                         </div>
                     </div>                    
                     <div class="mb-6">
@@ -246,7 +248,41 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="saveSuccessful">Simpan</button>
+                <button type="button" class="btn btn-primary" id="submitAddActivitykForm">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- edit aktivitas --}}
+<div class="modal fade" tabindex="-1" id="editActivityModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id,1])}}" id="editActivityForm">
+                    {{-- <label class="form-label fw-bolder">{{\Carbon\Carbon::parse($activity->execution_date)->format('d M Y')}}</label> --}}
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="timesheet_id" id="form_timesheet_id">
+                    
+                    <div class="form-group mb-6">
+                        <label class="form-label fw-bold">Tanggal</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" name="execution_date" id="executionDate" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                        </div>
+                    </div>                    
+                    <div class="mb-6">
+                        <label class="form-label fw-bolder">Aktivitas</label>
+                        <textarea class="form-control" id="activity" name="activity" rows="3" placeholder="Aktivitas"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="submitEditActivitykForm">Simpan</button>
             </div>
         </div>
     </div>
@@ -255,21 +291,21 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-    const button = document.getElementById('saveSuccessful');
+    // const button = document.getElementById('saveSuccessful');
 
-    button.addEventListener('click', e => {
-        e.preventDefault();
+    // button.addEventListener('click', e => {
+    //     e.preventDefault();
 
-        Swal.fire({
-            text: "Data berhasil disimpan!",
-            icon: "success",
-            buttonsStyling: false,
-            confirmButtonText: "Tutup",
-            customClass: {
-                confirmButton: "btn btn-secondary"
-            }
-        });
-    });
+    //     Swal.fire({
+    //         text: "Data berhasil disimpan!",
+    //         icon: "success",
+    //         buttonsStyling: false,
+    //         confirmButtonText: "Tutup",
+    //         customClass: {
+    //             confirmButton: "btn btn-secondary"
+    //         }
+    //     });
+    // });
 
      // Initialize the DataTable
     $(document).ready(function() {
@@ -329,6 +365,189 @@
             }
         });
     }
+
+    // add activity
+    const addActivityModal = new bootstrap.Modal(document.getElementById('addActivityModal'));
+    const submitAddActivitykForm = document.getElementById('submitAddActivitykForm'); // tombol submit
+    const addActivityForm = document.getElementById('addActivityForm'); // form
+
+    if (submitAddActivitykForm) {
+        submitAddActivitykForm.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(addActivityForm);
+            const url = addActivityForm.action;
+
+            // Kirim permintaan AJAX
+            fetch(url, {
+                method: 'POST',
+                body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                    });
+                }
+                return response.json(); // Parse respons JSON
+            })
+            .then(data => {
+                // Logika jika permintaan sukses
+                Swal.fire({
+                    text: data.message || "Data berhasil ditambahkan!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                }).then(() => {
+                    addActivityModal.hide(); // Sembunyikan modal
+                    location.reload(); // Reload halaman untuk melihat perubahan
+                    // ATAU update UI tanpa reload:
+                    // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
+                });
+            })
+            .catch(error => {
+                // Logika jika ada error (jaringan, validasi, server error)
+                console.error('Error updating resource:', error);
+                Swal.fire({
+                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "OK",
+                    customClass: { confirmButton: "btn btn-danger" }
+                });
+            });
+        });
+    }
+
+    // edit activity
+    const editActivityModal = new bootstrap.Modal(document.getElementById('editActivityModal'));
+    const submitEditActivitykForm = document.getElementById('submitEditActivitykForm'); // tombol submit
+    const editActivityForm = document.getElementById('editActivityForm'); // form
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.addEventListener('click', function(event) {
+            // Pastikan elemen yang diklik adalah tombol edit aktivitas
+            if (event.target.classList.contains('edit-activity-btn')) {
+                const button = event.target;
+                // Isi input tersembunyi timesheet_id
+                document.getElementById('form_timesheet_id').value = button.dataset.timesheetId;
+                document.getElementById('executionDate').value = button.dataset.executionDate;
+                document.getElementById('activity').value = button.dataset.activity;
+            }
+        });
+    });
+
+    if (submitEditActivitykForm) {
+        submitEditActivitykForm.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(editActivityForm);
+            const url = editActivityForm.action;
+
+            // Kirim permintaan AJAX
+            fetch(url, {
+                method: 'POST',
+                body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                    });
+                }
+                return response.json(); // Parse respons JSON
+            })
+            .then(data => {
+                // Logika jika permintaan sukses
+                Swal.fire({
+                    text: data.message || "Data berhasil ditambahkan!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                }).then(() => {
+                    editActivityModal.hide(); // Sembunyikan modal
+                    location.reload(); // Reload halaman untuk melihat perubahan
+                    // ATAU update UI tanpa reload:
+                    // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
+                });
+            })
+            .catch(error => {
+                // Logika jika ada error (jaringan, validasi, server error)
+                console.error('Error updating resource:', error);
+                Swal.fire({
+                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "OK",
+                    customClass: { confirmButton: "btn btn-danger" }
+                });
+            });
+        });
+    }
+
+    // delete
+    $(document).on('click', '.btn-delete-activity', function(e) {
+        e.preventDefault();
+        const timesheetId = $(this).data('timesheet-id');
+
+        Swal.fire({
+            title: 'Yakin ingin menghapus aktivitas?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'btn btn-danger',
+                cancelButton: 'btn btn-secondary'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/timesheet-user/${timesheetId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title:'Berhasil!', 
+                            text: data.message, 
+                            icon: 'success',
+                            buttonsStyling: false,
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
+                        }).then(() => {
+                            // location.reload(); // atau remove baris dari DOM langsung
+                            $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
+                        });
+                    } else {
+                        Swal.fire('Gagal', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
+                });
+            }
+        });
+    });
+
 
     /* ADD NEW PERSONEL */
     function addNewPersonel() {

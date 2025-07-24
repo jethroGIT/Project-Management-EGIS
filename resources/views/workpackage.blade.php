@@ -420,7 +420,7 @@
                                         </thead>
                                         <tbody>
                                             @foreach($humanResources as $hResource)
-                                            <tr data-hresource-id="{{ $hResource->res_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
+                                            <tr data-hresource-id="{{ $hResource->hresource_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
                                                 <td class="fw-bold">{{$hResource->role->name}}</td>
                                                 <td>{{$hResource->jtk}}</td>
                                                 <td>{{$hResource->jhk}}</td>
@@ -485,12 +485,6 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Kelola JTK dan JHK Personel</h3>
-
-                <!--begin::Close-->
-                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                </div>
-                <!--end::Close-->
             </div>
 
             <div class="modal-body">
@@ -506,7 +500,7 @@
                             <label for="jumlahTenagaKerja" class="form-label">Jumlah Tenaga Kerja</label>
                             <input type="number" class="form-control" name="jtk" id="jumlahTenagaKerja" placeholder="0">
                         </div> --}}
-                        <div class="col-md-6 mb-3">
+                        <div class="col mb-3">
                             <label for="jumlahHariKerja" class="form-label">Jumlah Hari Kerja</label>                        
                             <input type="number" class="form-control" name="jhk" id="jumlahHariKerja" placeholder="0">
                         </div>
@@ -603,22 +597,6 @@ function setupTaskSearch(table) {
     });
 }
 
-// const saveButton = document.getElementById('submitJtkJhkForm');
-
-// saveButton.addEventListener('click', e => {
-//     e.preventDefault();
-
-//     Swal.fire({
-//         text: "Data berhasil disimpan!",
-//         icon: "success",
-//         buttonsStyling: false,
-//         confirmButtonText: "Tutup",
-//         customClass: {
-//             confirmButton: "btn btn-secondary"
-//         }
-//     });
-// });
-
 /**
  * RESOURCE MANAGEMENT
  */
@@ -674,7 +652,7 @@ function toggleSubRows(rowId) {
     }
 }
 
-const jtkJhkModal = new bootstrap.Modal(document.getElementById('jtkandjhkModal')); // Asumsi ID modal Anda kt_modal_1
+const jtkJhkModal = new bootstrap.Modal(document.getElementById('jtkandjhkModal')); 
 const jtkJhkForm = document.getElementById('jtkJhkForm');
 const submitJtkJhkButton = document.getElementById('submitJtkJhkForm');
 
@@ -683,6 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(event.target.classList.contains('edit-resource-btn')){
             const button = event.target.closest('.edit-resource-btn');
 
+            // ini yang bakal diedit dan tidak ada di parameter url
             document.getElementById('form_hresource_id').value = button.dataset.hresourceId;
             document.getElementById('form_role_id').value = button.dataset.roleId;
             // document.getElementById('jumlahTenagaKerja').value = button.dataset.jtk;
