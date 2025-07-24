@@ -4,527 +4,563 @@
 <div class="container-fluid">
     <h1 class="mt-0 mb-5">Work Package</h1>
 
+    <!-- Title Section -->
+    <div class="">
+        @if(isset($workPackage) && isset($volume))
+            <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
+            <p>Periode {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}</p>
+        @endif
+    </div>
+
+    <!-- Card Kuantitas -->
     <div class="card card-flush shadow-sm mb-8">
-        <div class="card-header flex-column">
-            <!-- Title Section -->
-            <div class="mt-6">
-                @if(isset($workPackage) && isset($volume))
-                    <h3 class="card-title">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h3>
-                    <p>Periode {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}</p>
-                @else
-                    <h3 class="card-title">WP 3.1 Human Security Risk Awareness Program Planning</h3>
-                    <p>Periode 3 Maret 2025 - 19 November 2025</p>
-                @endif
-            </div>
-
-            <!-- Navigation Tabs -->
-            <div class="card-toolbar">
-                <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#kt_tab_pane_7">Detail</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_8">Kuantitas</a>
-                    </li>
-                </ul>
-            </div>
+        <div class="card-header py-0">
+            <h3 class="card-title">Kuantitas</h3>
         </div>
-        <div class="card-body py-5">
-            <div class="tab-content" id="myTabContent">
-                <!-- TAB WP DETAIL -->
-                <div class="tab-pane fade show active" id="kt_tab_pane_7" role="tabpanel">
-                    <div class="mb-6">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <label class="form-label fw-bold fs-6 text-dark mb-3">Task List</label>
-                            
-                            <!-- Search Form -->
-                            <div>
-                                <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
-                                    <label class="me-5 mt-3" for="searchTaskInput">Cari: </label>
-                                    <input 
-                                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
-                                        style="width:200px" 
-                                        type="search"
-                                        id="searchTaskInput" 
-                                        placeholder="Cari Task" 
-                                        aria-label="Search"
-                                    >                    
-                                </form>
+        <div class="card-body py-0">
+            <div class="mb-6">
+                <div class="row">
+                    <!-- Duration Section -->
+                    <div class="col-md-4">
+                        <div class="card card-flush shadow-sm mb-4 duration-card">
+                            <div class="card-header">
+                                <h3 class="card-title fw-bold">Duration</h3>
                             </div>
-                        </div>
-    
-                        <!-- Task List Section -->
-                        <div class="table-responsive">
-                            <table id="tabel_wp_task" class="table table-striped gy-4 gs-3 border rounded w-100">
-                                <thead>
-                                    <tr class="fw-bolder fs-4 text-gray-1000 px-7">
-                                        <th class="align-middle border-bottom min-w-100px">No</th>
-                                        <th class="align-middle border-bottom min-w-200px">Task</th>
-                                        <th class="align-middle border-bottom">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody style="font-size: 0.92rem;">
-                                    @if(isset($volume) && $volume->task->count() > 0)
-                                        @foreach($volume->task as $index => $task)
-                                            <tr class="align-middle">
-                                                <td>{{ $index + 1 }}</td>
-                                                <td>{{ $task->name }}</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                            </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
-                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
-                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                                    Hapus
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Atas
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Bawah
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
+                                    @if(isset($workPackage) && isset($volume))
+                                        <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
+                                        <span class="fs-1 text-primary duration-highlight">Hari</span>
                                     @else
-                                        <!-- Fallback jika tidak ada data -->
-                                        <tr class="">
-                                            <td colspan="3" class="text-center text-muted py-4">
-                                                <div class="d-flex flex-column align-items-center justify-content-center">
-                                                    <h6 class="text-muted">Belum Ada Task</h6>
-                                                    <p class="text-muted">
-                                                        Tidak ada data task untuk work package ini
-                                                    </p>
-                                                    <button type="button" class="btn btn-light-primary d-flex align-items-center" onclick="insertFirstTask()">
-                                                        <i class="bi bi-plus-circle me-2"></i>
-                                                        Tambah Task
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <span class="fs-1 fw-bold text-primary duration-highlight">0</span>
+                                        <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
                                     @endif
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Modal for Adding Task -->
-                        <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title" id="insertTaskModalTitle">Tambah Task</h3>
-
-                                        <!--begin::Close-->
-                                        <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                                        </div>
-                                        <!--end::Close-->
-                                    </div>
-
-                                    <div class="modal-body">
-                                        <form id="insertTaskForm" method="POST" action="{{ route('work-package.task.store') }}">
-                                            @csrf
-                                            <input type="hidden" name="volume_id" value="{{ $volume_id }}" id="modalVolumeId">
-                                            <input type="hidden" name="reference_task_id" id="referenceTaskId" value="">
-                                            <input type="hidden" name="insert_position" id="insertPosition" value="">
-                                            
-                                            <div class="form-group mb-4">
-                                                <label class="form-label fw-bold">Nama Task</label>
-                                                <input type="text" name="task_name" class="form-control" placeholder="Masukkan Nama Task" required/>
-                                            </div>
-                                        </form>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                        <button type="button" class="btn btn-primary" onClick="submitInsertTask()">Simpan</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Modal for Editing Task -->
-                        <div class="modal fade" tabindex="-1" id="kt_modal_edit_task">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title" id="editTaskModalTitle">Edit Task</h3>
-                                        <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                                            <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                                        </div>
-                                    </div>
-
-                                    <div class="modal-body">
-                                        <form id="editTaskForm" method="POST">
-                                            @csrf
-                                            @method('PUT')
-                                            <input type="hidden" name="task_id" id="editTaskId" value="">
-                                            <input type="hidden" name="volume_id" value="{{ $volume_id ?? '' }}" id="editModalVolumeId">
-
-                                            <div class="form-group mb-4">
-                                                <label class="form-label fw-bold">Nama Task</label>
-                                                <input 
-                                                    type="text" 
-                                                    name="task_name" 
-                                                    id="editTaskName" 
-                                                    class="form-control" 
-                                                    placeholder="Masukkan Nama Task" 
-                                                    required 
-                                                    maxlength="255" />
-                                            </div>
-                                        </form>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                        <button type="button" class="btn btn-primary" onclick="submitEditTask()">Perbarui</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card card-flush shadow mb-6">
-                        <div class="card-body py-5">
-                            <div class="d-flex justify-content-end mb-4">
-                                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-                                    </svg>
-                                    Edit Data
-                                </button>
-
-                                <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h3 class="modal-title">Edit Data</h3>
-
-                                                <!--begin::Close-->
-                                                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                                                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                                                </div>
-                                                <!--end::Close-->
-                                            </div>
-
-                                            <div class="modal-body">
-                                                <!-- <div class="form-group mb-4">
-                                                    <label class="form-label fw-bold">Actual Scope</label>
-                                                    <input type="text" class="form-control" placeholder="Masukkan Actual Scope"/>
-                                                </div>
-                                                <div class="form-group mb-4">
-                                                    <label class="form-label fw-bold">Deliverables</label>
-                                                    <textarea class="form-control" aria-label="With textarea" placeholder="Masukkan Deliverables"></textarea>
-                                                </div> -->
-                                                <div class="row mb-4">
-                                                    <div class="col-md-4">
-                                                        <label class="form-label fw-bold">Start Date</label>
-                                                        <div class="input-group">
-                                                            <input type="date" class="form-control" id="startDate" placeholder="Pilih Tanggal Mulai"/>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <label class="form-label fw-bold">End Date</label>
-                                                        <div class="input-group">
-                                                            <input type="date" class="form-control" id="endDate" placeholder="Pilih Tanggal Selesai"/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group mb-4">
-                                                    <label class="form-label fw-bold">Resource Names</label>
-                                                    <div id="resourceContainer">
-                                                        <div class="input-group mb-2" id="resource-0">
-                                                            <select class="form-select" name="resources[]">
-                                                                <option value="">Pilih Resource</option>
-                                                                <option value="pm">Project Manager (PM)</option>
-                                                                <option value="sc">Senior Consultant (SC)</option>
-                                                                <option value="asc">Associate Consultant (ASC)</option>
-                                                                <option value="jc">Junior Consultant (JC)</option>
-                                                                <option value="tw">Technical Writer (TW)</option>
-                                                                <option value="osc">On-Site Consultant (OSC)</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <button type="button" class="btn btn-light-primary" id="addResourceBtn">
-                                                        <i class="bi bi-plus-lg"></i>
-                                                        Tambah Resource
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                                <button type="button" class="btn btn-primary">Simpan</button>
-                                            </div>
-                                        </div>
-                                    </div>
+                    <!-- Finance Performance -->
+                    <div class="col-md-4">
+                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card-header">
+                                <h3 class="card-title fw-bold">Finance Performance</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-center h-100 mb-3">
+                                    <span class="fs-1 fw-bold text-success">30 %</span>
                                 </div>
                             </div>
-        
-                            <div class="row">
-                                <!-- Actual Scope -->
-                                <div class="col-md-8 mb-4">
-                                    <div class="card card-flush shadow-sm h-100">
-                                        <div class="card-body">
-                                            <h3 class="card-title fw-bold">Actual Scope</h3>
-                                            <p class="mb-0 fs-6 text-dark fw-semibold">
-                                                @if(isset($workPackage))
-                                                    {{ $workPackage->actual_scope_contract ?? 'N/A' }}
-                                                @else
-                                                    <p class="text-muted">
-                                                        Belum ada Actual Scope Contract
-                                                    </p>
-                                                @endif
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                            <!-- Overlay -->
+                            <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
+                            </div>
+                        </div>
+                    </div>
 
-                                <!-- Total % Complete -->
-                                <div class="col-md-4 mb-4">
-                                    <div class="card card-flush shadow-sm h-100">
-                                        <div class="card-body">
-                                            <h3 class="card-title fw-bold">Total % Complete</h3>
-                                            <div class="d-flex justify-content-center h-100 total-complete">
-                                                <span class="fs-1">
-                                                    {{ $totalCompletion ?? 0 }} %
-                                                </span>
+                    <!-- WP Performance -->
+                    <div class="col-md-4">
+                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card-header">
+                                <h3 class="card-title fw-bold">WP Performance</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-center h-100 mb-3">
+                                    <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0 }} %</span>
+                                </div>
+                            </div>
+                            <!-- Overlay -->
+                            <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- <div class="col-md-4">
+                    </div> --}}
+
+                    <!-- Timesheet Button -->
+                    <div class="d-flex justify-content-end mb-4">
+                        <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
+                            Timesheet
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-flush shadow-sm mb-8">
+        <div class="card-header py-0">
+            <h3 class="card-title">Task List</h3>
+        </div>
+        <div class="card-body py-0">
+            <div class="d-flex justify-content-end align-items-center">
+                <!-- Search Form -->
+                <div>
+                    <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
+                        <label class="me-5 mt-3" for="searchTaskInput">Cari: </label>
+                        <input 
+                            class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                            style="width:200px" 
+                            type="search"
+                            id="searchTaskInput" 
+                            placeholder="Cari Task" 
+                            aria-label="Search"
+                        >                    
+                    </form>
+                </div>
+            </div>
+
+            <!-- Task List Section -->
+            <div class="table-responsive mb-4">
+                <table id="tabel_wp_task" class="table table-striped gy-4 gs-3 border rounded w-100">
+                    <thead>
+                        <tr class="fw-bolder fs-4 text-gray-1000 px-7">
+                            <th class="align-middle border-bottom min-w-100px">No</th>
+                            <th class="align-middle border-bottom min-w-200px">Task</th>
+                            <th class="align-middle border-bottom">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 0.92rem;">
+                        @if(isset($volume) && $volume->task->count() > 0)
+                            @foreach($volume->task as $index => $task)
+                                <tr class="align-middle">
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $task->name }}</td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                    <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                </svg>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
+                                                        <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                        Edit
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
+                                                        <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                        Hapus
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
+                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                        Masukkan di Atas
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
+                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                        Masukkan di Bawah
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <!-- Fallback jika tidak ada data -->
+                            <tr class="">
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <h6 class="text-muted">Belum Ada Task</h6>
+                                        <p class="text-muted">
+                                            Tidak ada data task untuk work package ini
+                                        </p>
+                                        <button type="button" class="btn btn-light-primary d-flex align-items-center" onclick="insertFirstTask()">
+                                            <i class="bi bi-plus-circle me-2"></i>
+                                            Tambah Task
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+    <!-- Modal for Adding Task -->
+    <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="insertTaskModalTitle">Tambah Task</h3>
+
+                    <!--begin::Close-->
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                    <!--end::Close-->
+                </div>
+
+                <div class="modal-body">
+                    <form id="insertTaskForm" method="POST" action="{{ route('work-package.task.store') }}">
+                        @csrf
+                        <input type="hidden" name="volume_id" value="{{ $volume_id }}" id="modalVolumeId">
+                        <input type="hidden" name="reference_task_id" id="referenceTaskId" value="">
+                        <input type="hidden" name="insert_position" id="insertPosition" value="">
+                        
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Nama Task</label>
+                            <input type="text" name="task_name" class="form-control" placeholder="Masukkan Nama Task" required/>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onClick="submitInsertTask()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Editing Task -->
+    <div class="modal fade" tabindex="-1" id="kt_modal_edit_task">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="editTaskModalTitle">Edit Task</h3>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+
+                <div class="modal-body">
+                    <form id="editTaskForm" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="task_id" id="editTaskId" value="">
+                        <input type="hidden" name="volume_id" value="{{ $volume_id ?? '' }}" id="editModalVolumeId">
+
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Nama Task</label>
+                            <input 
+                                type="text" 
+                                name="task_name" 
+                                id="editTaskName" 
+                                class="form-control" 
+                                placeholder="Masukkan Nama Task" 
+                                required 
+                                maxlength="255" />
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditTask()">Perbarui</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-flush shadow mb-6">
+        <div class="card-body py-5">
+            <div class="d-flex justify-content-end mb-4">
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                    </svg>
+                    Edit Data
+                </button>
+
+                <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Edit Data</h3>
+
+                                <!--begin::Close-->
+                                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                </div>
+                                <!--end::Close-->
+                            </div>
+
+                            <div class="modal-body">
+                                <!-- <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Actual Scope</label>
+                                    <input type="text" class="form-control" placeholder="Masukkan Actual Scope"/>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Deliverables</label>
+                                    <textarea class="form-control" aria-label="With textarea" placeholder="Masukkan Deliverables"></textarea>
+                                </div> -->
+                                <form id="editDataForm" method="POST">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Start Date</label>
+                                            <div class="input-group">
+                                                <input 
+                                                    type="date" 
+                                                    name="start_date"
+                                                    id="editStartDate" 
+                                                    class="form-control" 
+                                                    value="{{ isset($volume) ? \Carbon\Carbon::parse($volume->start_date)->format('Y-m-d') : '' }}"
+                                                    required 
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">End Date</label>
+                                            <div class="input-group">
+                                                <input 
+                                                    type="date" 
+                                                    name="end_date" 
+                                                    id="editEndDate" 
+                                                    class="form-control" 
+                                                    value="{{ isset($volume) ? \Carbon\Carbon::parse($volume->end_date)->format('Y-m-d') : '' }}"
+                                                    required
+                                                />
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-        
-                                <!-- Deliverables -->
-                                <div class="col-md-12 mb-4">
-                                    <div class="card card-flush shadow-sm">
-                                        <div class="card-body">
-                                            <h3 class="card-title fw-bold">Deliverables</h3>
-                                            <div class="mb-2 fs-7">
-                                                @if(isset($workPackage))
-                                                    {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
-                                                @else
-                                                    <p class="text-muted">
-                                                        Belum ada Deliverables
-                                                    </p>
-                                                @endif
+                                    <div class="form-group mb-4">
+                                        <label class="form-label fw-bold">Resource Names</label>
+                                        <!-- <div id="resourceContainer">
+                                            <div class="input-group mb-2" id="resource-0">
+                                                <select class="form-select" name="resources[]">
+                                                    <option value="">Pilih Resource</option>
+                                                    <option value="pm">Project Manager (PM)</option>
+                                                    <option value="sc">Senior Consultant (SC)</option>
+                                                    <option value="asc">Associate Consultant (ASC)</option>
+                                                    <option value="jc">Junior Consultant (JC)</option>
+                                                    <option value="tw">Technical Writer (TW)</option>
+                                                    <option value="osc">On-Site Consultant (OSC)</option>
+                                                </select>
                                             </div>
+                                        </div> -->
+                                        <div id="editResourceContainer">
+                                            <!-- Ditambahkan oleh JavaScript -->
                                         </div>
+                                        <button type="button" class="btn btn-light-primary" id="addEditResourceBtn">
+                                            <i class="bi bi-plus-lg"></i>
+                                            Tambah Resource
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                <button type="button" class="btn btn-primary" onclick="submitEditData()">Simpan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Actual Scope -->
+                <div class="col-md-8 mb-4">
+                    <div class="card card-flush shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="symbol symbol-50px me-3">
+                                    <div class="symbol-label bg-light-primary">
+                                        <i class="bi bi-bullseye text-primary fs-2"></i>
                                     </div>
                                 </div>
-        
-                                <!-- Resource Names -->
-                                <div class="col-md-12">
-                                    <div class="card card-flush shadow-sm">
-                                        <div class="card-header py-0">
-                                            <h3 class="card-title fw-bold">Resource Names</h3>
-                                        </div>
-                                        <div class="card-body py-0">
-                                            <div class="row g-3 justify-content-center mb-4">
-                                                @if(isset($assignedUsers) && $assignedUsers->count() > 0)
-                                                    @foreach($assignedUsers as $user)
-                                                        <div class="col-md-4">
-                                                            <div class="card card-bordered h-100">
-                                                                <div class="card-body text-center">
-                                                                    <h5 class="card-title fs-6 fw-bold">{{ $user->name }}</h5>
-                                                                    <span>{{ $user->role->name ?? 'N/A' }}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                @else
-                                                    <div class="col-md-12">
-                                                        <div class="d-flex flex-column align-items-center justify-content-center py-5">
-                                                            <div class="text-center mb-4">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-people text-muted mb-3" viewBox="0 0 16 16">
-                                                                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
-                                                                </svg>
-                                                            </div>
-                                                            <h5 class="text-muted fw-bold mb-2">Belum Ada Resource Yang Ditugaskan</h5>
-                                                            <p class="text-muted mb-4 text-center">
-                                                                Resource belum ditugaskan untuk work package ini.<br>
-                                                                Silakan assign resource terlebih dahulu.
-                                                            </p>
-                                                            <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                                                                <i class="bi bi-plus-circle me-2"></i>
-                                                                Assign Resource
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
+                                <h3 class="card-title fw-bold">Actual Scope</h3>
+                            </div>
+                            <p class="mb-0 fs-6 text-dark fw-semibold">
+                                @if(isset($workPackage))
+                                    {{ $workPackage->actual_scope_contract ?? 'N/A' }}
+                                @else
+                                    <p class="text-muted">
+                                        Belum ada Actual Scope Contract
+                                    </p>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total % Complete -->
+                <div class="col-md-4 mb-4">
+                    <div class="card card-flush shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="symbol symbol-50px me-3">
+                                    <div class="symbol-label bg-light-primary">
+                                        <i class="bi bi-percent text-primary fs-2"></i>
                                     </div>
                                 </div>
+                                <h3 class="card-title fw-bold">Total Complete</h3>
+                            </div>
+                            <div class="d-flex justify-content-center h-100 total-complete">
+                                <span class="fs-1">
+                                    {{ $totalCompletion ?? 0 }} %
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB WP KUANTITAS -->
-                <div class="tab-pane fade" id="kt_tab_pane_8" role="tabpanel">
-                    <div class="row">
-                        <!-- Duration Section -->
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 duration-card">
-                                <div class="card-header">
-                                    <h3 class="card-title fw-bold">Duration</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
-                                        @if(isset($workPackage) && isset($volume))
-                                            <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
-                                            <span class="fs-1 text-primary duration-highlight">Hari</span>
-                                        @else
-                                            <span class="fs-1 fw-bold text-primary duration-highlight">0</span>
-                                            <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
-                                        @endif
+                <!-- Deliverables -->
+                <div class="col-md-12 mb-4">
+                    <div class="card card-flush shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="symbol symbol-50px me-3">
+                                    <div class="symbol-label bg-light-info">
+                                        <i class="bi bi-list-check text-info fs-2"></i>
                                     </div>
                                 </div>
+                                <h3 class="card-title fw-bold">Deliverables</h3>
+                            </div>
+                            <div class="mb-2 fs-7">
+                                @if(isset($workPackage))
+                                    {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
+                                @else
+                                    <p class="text-muted">
+                                        Belum ada Deliverables
+                                    </p>
+                                @endif
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Finance Performance -->
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
-                                <div class="card-header">
-                                    <h3 class="card-title fw-bold">Finance Performance</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                        <span class="fs-1 fw-bold text-success">30 %</span>
+                <!-- Resource Names -->
+                <div class="col-md-12 mb-4">
+                    <div class="card card-flush shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="symbol symbol-50px me-3">
+                                    <div class="symbol-label bg-light-warning">
+                                        <i class="bi bi-people text-warning fs-2"></i>
                                     </div>
                                 </div>
-                                <!-- Overlay -->
-                                <div class="performance-overlay d-flex align-items-center justify-content-center">
-                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
-                                </div>
+                                <h3 class="card-title fw-bold">Resource Names</h3>
+                                <span class="badge badge-light-success ms-auto">{{ isset($assignedUsers) ? $assignedUsers->count() : 0 }} Members</span>
                             </div>
-                        </div>
-
-                        <!-- WP Performance -->
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
-                                <div class="card-header">
-                                    <h3 class="card-title fw-bold">WP Performance</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                        <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0 }} %</span>
+                            <div class="row g-3 justify-content-center mb-4">
+                                @if(isset($assignedUsers) && $assignedUsers->count() > 0)
+                                    @foreach($assignedUsers as $user)
+                                        <div class="col-md-4">
+                                            <div class="card card-bordered h-100">
+                                                <div class="card-body text-center">
+                                                    <h5 class="card-title fs-6 fw-bold">{{ $user->name }}</h5>
+                                                    <span>{{ $user->role->name ?? 'N/A' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="col-md-12">
+                                        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+                                            <div class="text-center mb-4">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-people text-muted mb-3" viewBox="0 0 16 16">
+                                                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
+                                                </svg>
+                                            </div>
+                                            <h5 class="text-muted fw-bold mb-2">Belum Ada Resource Yang Ditugaskan</h5>
+                                            <p class="text-muted mb-4 text-center">
+                                                Resource belum ditugaskan untuk work package ini.<br>
+                                                Silakan assign resource terlebih dahulu.
+                                            </p>
+                                            <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                                                <i class="bi bi-plus-circle me-2"></i>
+                                                Assign Resource
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                                <!-- Overlay -->
-                                <div class="performance-overlay d-flex align-items-center justify-content-center">
-                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
-                                </div>
+                                @endif
                             </div>
                         </div>
-                        {{-- <div class="col-md-4">
-                        </div> --}}
+                    </div>
+                </div>
 
-                        <!-- Timesheet Button -->
-                        <div class="d-flex justify-content-end mb-4">
-                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
-                                Timesheet
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                                </svg>
-                            </button>
+                <!-- Kebutuhan Tenaga Kerja -->
+                <div class="col-md-12 mb-4">
+                    <div class="card card-flush shadow-sm">
+                        <div class="card-header">
+                            <h3 class="card-title py-0">Kebutuhan Tenaga Kerja</h3>
                         </div>
-
-                        <!-- Kebutuhan Tenaga Kerja Section -->
-                        <div class="card card-flush shadow-sm mb-6">
-                            <div class="card-header py-0">
-                                <h3 class="card-title fw-bold">Kebutuhan Tenaga Kerja</h3>
-                            </div>
-                            <div class="card-body py-0">
-                                <div class="table-responsive">
-                                    <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-4 gs-7 border rounded w-100">
-                                        <thead>
-                                            <tr class="fw-bolder fs-6 text-gray-800 px-7">
-                                                <th class="align-middle border-bottom min-w-200px  mb-3">Personel</th>
-                                                <th class="align-middle border-bottom  mb-3">
-                                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Tenaga Kerja">JTK</span>                                                    
-                                                </th>                                                
-                                                <th class="align-middle border-bottom  mb-3">
-                                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Hari Kerja">JHK</span>                                                    
-                                                </th>
-                                                <th class="align-middle border-bottom  mb-3 ">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($humanResources as $hResource)
-                                            <tr data-hresource-id="{{ $hResource->res_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
-                                                <td class="fw-bold">{{$hResource->role->name}}</td>
-                                                <td>{{$hResource->jtk}}</td>
-                                                <td>{{$hResource->jhk}}</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                            </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center edit-resource-btn" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
-                                                                    data-hresource-id="{{$hResource->hresource_id}}" 
-                                                                    data-role-id="{{$hResource->role_id}}" 
-                                                                    data-wp-id="{{$hResource->wp_id}}" 
-                                                                    data-jtk="{{ $hResource->jtk }}" 
-                                                                    data-jhk="{{ $hResource->jhk }}">
-                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                            {{-- <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                                    Hapus
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Atas
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Bawah
-                                                                </a>
-                                                            </li> --}}
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            @endforeach                                            
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <div class="card-body py-0">
+                            <div class="table-responsive">
+                                <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-4 gs-7 border rounded w-100">
+                                    <thead>
+                                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                                            <th class="align-middle border-bottom min-w-200px  mb-3">Personel</th>
+                                            <th class="align-middle border-bottom  mb-3">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Tenaga Kerja">JTK</span>                                                    
+                                            </th>                                                
+                                            <th class="align-middle border-bottom  mb-3">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Hari Kerja">JHK</span>                                                    
+                                            </th>
+                                            <th class="align-middle border-bottom  mb-3 ">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($humanResources as $hResource)
+                                        <tr data-hresource-id="{{ $hResource->res_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
+                                            <td class="fw-bold">{{$hResource->role->name}}</td>
+                                            <td>{{$hResource->jtk}}</td>
+                                            <td>{{$hResource->jhk}}</td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                            <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                        </svg>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center edit-resource-btn" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
+                                                                data-hresource-id="{{$hResource->hresource_id}}" 
+                                                                data-role-id="{{$hResource->role_id}}" 
+                                                                data-wp-id="{{$hResource->wp_id}}" 
+                                                                data-jtk="{{ $hResource->jtk }}" 
+                                                                data-jhk="{{ $hResource->jhk }}">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                Edit
+                                                            </a>
+                                                        </li>
+                                                        {{-- <li>
+                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
+                                                                <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                Hapus
+                                                            </a>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
+                                                                <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                Masukkan di Atas
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
+                                                                <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                Masukkan di Bawah
+                                                            </a>
+                                                        </li> --}}
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforeach                                            
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -578,17 +614,40 @@
 
 @push('scripts')
 <script>
-let resourceCounter = 2;
+let editResourceCounter = 1;
+
+// Mendapatkan semua user yang tersedia untuk dropdown
+const availableUsers = @json(\App\Models\User::with('role')->get()->map(function($user) {
+    return [
+        'user_id' => $user->user_id,
+        'name' => $user->name,
+        'role_name' => $user->role->name ?? 'No Role'
+    ];
+}));
+console.log('availableUsers:', availableUsers);
+
+// Mendapatkan user saat ini
+const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
+
+console.log('Available users from Blade:', @json(\App\Models\User::with('role')->get()));
+
 
 $(document).ready(function () {
     initTabelWPTask();
     initTabelWPTenagaKerja();
 
     // Resource management
-    
+
     // Add Resource Button Click Event
-    $('#addResourceBtn').on('click', function() {
-        addNewResource();
+    $('#addEditResourceBtn').off('click').on('click', function() {
+        console.log('Add Resource button clicked');
+        console.log('Button element:', this);
+        addEditResource();
+    });
+
+    // Inisialisasi edit modal ketika membuka
+    $('#kt_modal_edit_data').on('show.bs.modal', function () {
+        initializeEditModal();
     });
 });
 
@@ -670,23 +729,253 @@ function setupTaskSearch(table) {
 //     });
 // });
 
+/* WORK PACKAGE MANAGEMENT */
 /**
- * RESOURCE MANAGEMENT
+ * Inisialisasi edit modal dengan data saat ini
  */
-/* ADD RESOURCE BUTTON FORM */
-function addNewResource() {
+function initializeEditModal() {
+    // Reset container
+    $('#editResourceContainer').empty();
+    editResourceCounter = 1;
+
+    // Debug log
+    console.log('availableUsers:', availableUsers);
+    console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+    
+    // Menambahkan assigned user saat ini
+    if (currentlyAssignedUsers && currentlyAssignedUsers.length > 0) {
+        currentlyAssignedUsers.forEach(function(userId) {
+            addEditResource(userId);
+        });
+    } else {
+        // Menambahkan setidaknya 1 field kosong
+        addEditResource();
+    }
+    
+    // Update end date min when start date changes
+    $('#editStartDate').on('change', function() {
+        const startDate = this.value;
+        $('#editEndDate').attr('min', startDate);
+        
+        // Reset end date if it's before start date
+        const endDate = $('#editEndDate').val();
+        if (endDate && endDate < startDate) {
+            $('#editEndDate').val('');
+        }
+    });
+
+    // Mengatur inisial end date minimum berdasarkan start date saat ini
+    const currentStartDate = $('#editStartDate').val();
+    if (currentStartDate) {
+        $('#editEndDate').attr('min', currentStartDate);
+    }
+}
+
+/**
+ * Submit edit data form
+ */
+function submitEditData() {
+    const form = $('#editDataForm');
+    const formData = new FormData(form[0]);
+    
+    // Get volume ID from current page
+    const volumeId = {{ $volume_id ?? 'null' }};
+    
+    if (!volumeId) {
+        Swal.fire({
+            text: "Volume ID tidak ditemukan.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Manual validation
+    const startDate = formData.get('start_date');
+    const endDate = formData.get('end_date');
+    const resources = formData.getAll('resources[]');
+
+    if (!startDate || !endDate) {
+        Swal.fire({
+            text: "Start Date dan End Date harus diisi.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+        Swal.fire({
+            text: "End Date harus sama atau setelah Start Date.",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Filter out empty resource selections
+    // const validResources = resources.filter(resource => resource !== '');
+    const validResources = resources.filter(resource => {
+        return resource !== '' && resource !== null && resource !== undefined && !isNaN(resource);
+    });
+    
+    // Debug log
+    console.log('Edit Data Form Submission:', {
+        volumeId: volumeId,
+        startDate: startDate,
+        endDate: endDate,
+        resources: validResources
+    });
+    
+    // Create clean FormData with filtered resources
+    const cleanFormData = new FormData();
+    cleanFormData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+    cleanFormData.append('_method', 'PUT');
+    cleanFormData.append('start_date', startDate);
+    cleanFormData.append('end_date', endDate);
+    
+    // Add valid resources
+    validResources.forEach(function(resource) {
+        cleanFormData.append('resources[]', resource);
+    });
+    
+    // Submit via AJAX
+    $.ajax({
+        url: `/work-package/volume/${volumeId}/data`,
+        method: 'POST', // Laravel method spoofing requires POST
+        data: cleanFormData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        beforeSend: function() {
+            // Show loading
+            Swal.fire({
+                title: 'Memperbarui...',
+                text: 'Sedang memproses pembaruan data',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+        },
+        success: function(response) {
+            console.log('Edit Data Success Response:', response);
+            
+            if (response.success) {
+                Swal.fire({
+                    title: "Berhasil!",
+                    text: "Data berhasil diperbarui!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-primary"
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+                
+                $('#kt_modal_edit_data').modal('hide');
+            } else {
+                Swal.fire({
+                    title: "Gagal!",
+                    text: response.message || "Terjadi kesalahan saat memperbarui data",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            console.log('Edit Data Error Response:', xhr);
+            
+            let errorTitle = "Gagal Memperbarui Data";
+            let errorMessage = "Terjadi kesalahan saat memperbarui data";
+            
+            if (xhr.responseJSON) {
+                console.log('Response JSON:', xhr.responseJSON);
+                
+                if (xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                // Handle validation errors
+                if (xhr.responseJSON.errors) {
+                    console.log('Validation Errors:', xhr.responseJSON.errors);
+                    const errorDetails = Object.entries(xhr.responseJSON.errors)
+                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                        .join('\n');
+                    errorMessage += '\n\nDetail errors:\n' + errorDetails;
+                }
+            }
+            
+            Swal.fire({
+                title: errorTitle,
+                text: errorMessage,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        }
+    });
+}
+
+/* Resource Management */
+/**
+ * Tambah resource field baru di edit modal
+ */
+function addEditResource(selectedUserId = null) {
+    // Validasi availableUsers
+    if (!availableUsers || availableUsers.length === 0) {
+        console.error('No available users found in addEditResource');
+        Swal.fire({
+            text: "Tidak ada data user yang tersedia. Pastikan ada user dalam sistem.",
+            icon: "warning",
+            buttonsStyling: false,
+            confirmButtonText: "OK",
+            customClass: {
+                confirmButton: "btn btn-warning"
+            }
+        });
+        return;
+    }
+
+    let optionsHtml = '<option value="">Pilih Resource</option>';
+    
+    availableUsers.forEach(function(user) {
+        const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
+        optionsHtml += `<option value="${user.user_id}" ${selected}>${user.name} (${user.role_name})</option>`;
+    });
+    
     const resourceHtml = `
-        <div class="input-group mb-2" id="resource-${resourceCounter}">
-            <select class="form-select" name="resources[]">
-                <option value="">Pilih Resource</option>
-                <option value="pm">Project Manager (PM)</option>
-                <option value="sc">Senior Consultant (SC)</option>
-                <option value="asc">Associate Consultant (ASC)</option>
-                <option value="jc">Junior Consultant (JC)</option>
-                <option value="tw">Technical Writer (TW)</option>
-                <option value="osc">On-Site Consultant (OSC)</option>
+        <div class="input-group mb-2" id="edit-resource-${editResourceCounter}">
+            <select class="form-select" name="resources[]" onchange="handleResourceChange(this)">
+                ${optionsHtml}
             </select>
-            <button type="button" class="btn btn-light-danger" onclick="removeResource(${resourceCounter})">
+            
+            <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
                     <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
                 </svg>
@@ -694,20 +983,86 @@ function addNewResource() {
         </div>
     `;
     
-    $('#resourceContainer').append(resourceHtml);
-    resourceCounter++;
+    $('#editResourceContainer').append(resourceHtml);
+    editResourceCounter++;
 }
 
-function removeResource(index) {
-    const resourceCount = $('#resourceContainer .input-group').length;
+/**
+ * Menghapus resource field di edit modal
+ */
+function removeEditResource(index) {
+    const resourceCount = $('#editResourceContainer .input-group').length;
+
+    $(`#edit-resource-${index}`).remove();
+}
+
+/**
+ * Menangani perubahan seleksi resource untuk menghindari duplikasi
+ */
+function handleResourceChange(selectElement) {
+    const selectedValue = selectElement.value;
+    const allSelects = document.querySelectorAll('#editResourceContainer select');
     
-    // Pastikan minimal ada 1 resource yang tersisa
-    if (resourceCount > 1) {
-        $(`#resource-${index}`).remove();
-    } else {
-        alert('Minimal harus ada 1 resource!');
+    // Check for duplicates
+    let duplicateCount = 0;
+    allSelects.forEach(function(select) {
+        if (select.value === selectedValue && selectedValue !== '') {
+            duplicateCount++;
+        }
+    });
+    
+    if (duplicateCount > 1) {
+        Swal.fire({
+            text: "User ini sudah dipilih di resource lain!",
+            icon: "warning",
+            buttonsStyling: false,
+            confirmButtonText: "OK",
+            customClass: {
+                confirmButton: "btn btn-warning"
+            }
+        });
+        selectElement.value = ''; // Reset selection
     }
 }
+
+/**
+ * RESOURCE MANAGEMENT
+ */
+/* ADD RESOURCE BUTTON FORM */
+// function addNewResource() {
+//     const resourceHtml = `
+//         <div class="input-group mb-2" id="resource-${resourceCounter}">
+//             <select class="form-select" name="resources[]">
+//                 <option value="">Pilih Resource</option>
+//                 <option value="pm">Project Manager (PM)</option>
+//                 <option value="sc">Senior Consultant (SC)</option>
+//                 <option value="asc">Associate Consultant (ASC)</option>
+//                 <option value="jc">Junior Consultant (JC)</option>
+//                 <option value="tw">Technical Writer (TW)</option>
+//                 <option value="osc">On-Site Consultant (OSC)</option>
+//             </select>
+//             <button type="button" class="btn btn-light-danger" onclick="removeResource(${resourceCounter})">
+//                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+//                     <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+//                 </svg>
+//             </button>
+//         </div>
+//     `;
+    
+//     $('#resourceContainer').append(resourceHtml);
+//     resourceCounter++;
+// }
+
+// function removeResource(index) {
+//     const resourceCount = $('#resourceContainer .input-group').length;
+    
+//     // Pastikan minimal ada 1 resource yang tersisa
+//     if (resourceCount > 1) {
+//         $(`#resource-${index}`).remove();
+//     } else {
+//         alert('Minimal harus ada 1 resource!');
+//     }
+// }
 
 // Function untuk toggle sub-rows
 function toggleSubRows(rowId) {

@@ -8,6 +8,7 @@ use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use App\Models\User;
 use App\Models\Task;
+use App\Models\Work;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Database\Eloquent;
@@ -318,6 +319,96 @@ class WorkPackageController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus task: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update work package volume data
+     */
+    public function updateVolumeData(Request $request, $volume_id)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'resources' => 'nullable|array',
+            'resources.*' => 'exists:user,user_id'
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            // Update tanggal periode work package volume
+            $volume = WorkPackageVolume::findOrFail($volume_id);
+            $volume->update([
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date
+            ]);
+
+            // Menangani Resource dengan tabel Work
+            Work::where('volume_id', $volume_id)->delete();
+
+            // Tambah assignments baru
+            if ($request->has('resources') && !empty($request->resources)) {
+                foreach ($request->resources as $userId) {
+                    if (!empty($userId) && is_numeric($userId)) {
+                        Work::create([
+                            'user_id' => (int) $userId,
+                            'volume_id' => (int) $volume_id,
+                            'resource_cost' => 0.00
+                        ]);
+                    }
+                }
+            }
+
+            \DB::commit();
+
+            $resourcesCount = $request->resources ? count(array_filter($request->resources)) : 0;
+
+            \Log::info('Volume data updated successfully', [
+                'volume_id' => $volume_id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'resources_count' => $resourcesCount,
+                'resources' => $request->resources,
+                'has_resources' => $resourcesCount > 0
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diperbarui',
+                'data' => [
+                    'volume_id' => $volume->volume_id,
+                    'start_date' => $volume->start_date,
+                    'end_date' => $volume->end_date,
+                    'resources_count' => $resourcesCount,
+                    'has_resources' => $resourcesCount > 0
+                ]
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            \DB::rollback();
+        
+            return response()->json([
+                'success' => false,
+                'message' => 'Volume tidak ditemukan'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+
+            \Log::error('Error updating volume data', [
+                'message' => $e->getMessage(),
+                'volume_id' => $volume_id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'resources' => $request->resources,
+                'trace' => $e->getTraceAsString()
+            ]);
+        
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui data: ' . $e->getMessage()
             ], 500);
         }
     }

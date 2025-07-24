@@ -39,6 +39,12 @@ class WorkSeeder extends Seeder
                 'volume_id' => 1,
                 'resource_cost' => 800000.00,
             ],
+            // Tambahan
+            [
+                'user_id' => 3,
+                'volume_id' => 3,
+                'resource_cost' => 800000.00,
+            ],
         ];
 
         foreach ($works as $work) {
