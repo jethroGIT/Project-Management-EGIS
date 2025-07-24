@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\HumanResource;
 use App\Models\Role;
+use App\Models\Timesheet;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use App\Models\User;
+use App\Models\Work;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\TryCatch;
 
@@ -65,6 +67,38 @@ class WorkPackageController extends Controller
             });
             $totalCompletion = round($taskCompletions->avg(), 2);
         }
+
+        // hitung persentase finance performance
+        // Ambil semua work dan timesheet berdasarkan volume
+        $works = Work::with('user.role')->where('volume_id', $volume_id)->get();
+        $timesheets = Timesheet::with('user.role')->where('volume_id', $volume_id)->get();
+
+        // Group dan jumlahkan resource cost per role
+        $resourceCostPerRole = $works->groupBy(fn($w) => optional($w->user->role)->role_id)
+            ->map(fn($group) => $group->sum('resource_cost'));
+
+        // Hitung aktivitas per role dari timesheet
+        $timesheetCountPerRole = $timesheets->groupBy(fn($t) => optional($t->user->role)->role_id)
+            ->map(fn($group) => $group->count());
+        
+        $totalByYoy = 0;
+        $totalRealization = 0;
+
+        foreach ($humanResources as $hr) {
+            $roleId = $hr->role_id;
+            $jhk = $hr->jhk ?? 0;
+            $resourceCost = $resourceCostPerRole[$roleId] ?? 0;
+            $timesheetCount = $timesheetCountPerRole[$roleId] ?? 0;
+
+            $totalByYoy += $jhk * $resourceCost;
+            $totalRealization += $timesheetCount * $resourceCost;
+        }
+
+        // Hitung persentase realisasi
+        $realizationPercentage = $totalByYoy > 0 ? ($totalRealization / $totalByYoy) * 100 : 0;
+        if($realizationPercentage > 100){
+            $realizationPercentage = 100;
+        }
         
         return view('workpackage', compact(
             'humanResources',
@@ -72,7 +106,8 @@ class WorkPackageController extends Controller
             'volume', 
             'volume_id',
             'assignedUsers',
-            'totalCompletion'
+            'totalCompletion',
+            'realizationPercentage'
         ));
     }
 

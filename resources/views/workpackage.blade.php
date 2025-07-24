@@ -352,13 +352,13 @@
 
                         <!-- Finance Performance -->
                         <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                                 <div class="card-header">
                                     <h3 class="card-title fw-bold">Finance Performance</h3>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                        <span class="fs-1 fw-bold text-success">30 %</span>
+                                        <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
                                     </div>
                                 </div>
                                 <!-- Overlay -->

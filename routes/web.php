@@ -30,6 +30,7 @@ Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->na
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
 
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
+Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');
 
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
 Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');

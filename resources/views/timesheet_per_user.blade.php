@@ -68,7 +68,7 @@
                                 <label class="form-label fw-bold">Bulan</label>
                                 <select class="form-select form-select-solid" id="kategoriFilter" style="cursor: pointer;   ">
                                     <option value="">Pilih Bulan</option>
-                                    <option value="management">Pekan ke-1</option>
+                                    <option value="management">Bulan ke-1</option>
                                 </select>
                             </div>
                         </div>
@@ -159,12 +159,6 @@
                                                             <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus
                                                         </a>
                                                     </li>
-                                                    {{-- <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Bawah</a>
-                                                    </li> --}}
                                                 </ul>
                                             </div>
                                         </td>
@@ -178,44 +172,6 @@
                     </div>
                 </div>           
             </div>
-            {{-- <div class="col-md-6" style="width: 50%; min-width: 350px;">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
-                    <i class="bi bi-chevron-down me-2"></i>
-                    Lihat Ringkasan Mandays
-                </button>
-                <div class="collapse" id="mandaysSummaryTable">
-                    <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
-                        <thead>
-                            <tr>
-                                <th scope="col" colspan="3" class="text-center bg-light">Total Mandays Sementara</th>
-                            </tr>
-                            <tr>
-                                <th scope="col" rowspan="2" class="align-middle">Personel</th>
-                                <th scope="col" colspan="2" class="text-center align-middle">Mandays</th>
-                            </tr>
-                            <tr>
-                                <th class="text-center align-middle">Rencana</th>
-                                <th class="text-center align-middle">Realisasi</th>                            
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($humanResources as $hResource)
-                            <tr>
-                                <td class="align-middle">{{$hResource->role->name}}</td>
-                                <td class="text-center align-middle" style="color:gray">{{$hResource->jhk}}</td>
-                                <td class="text-center align-middle">
-                                    @php
-                                        // Ambil realisasi mandays untuk role ini. Jika tidak ada data, default 0.
-                                        $realisasiMandays = $timesheetCountPerRole[$hResource->role_id] ?? 0;
-                                    @endphp
-                                    {!! mandaysLabel($hResource->jhk, $realisasiMandays) !!}
-                                </td>
-                            </tr> 
-                            @endforeach                           
-                        </tbody>
-                    </table>
-                </div>
-            </div>             --}}
         </div>
     </div>
 </div>
@@ -291,21 +247,6 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-    // const button = document.getElementById('saveSuccessful');
-
-    // button.addEventListener('click', e => {
-    //     e.preventDefault();
-
-    //     Swal.fire({
-    //         text: "Data berhasil disimpan!",
-    //         icon: "success",
-    //         buttonsStyling: false,
-    //         confirmButtonText: "Tutup",
-    //         customClass: {
-    //             confirmButton: "btn btn-secondary"
-    //         }
-    //     });
-    // });
 
      // Initialize the DataTable
     $(document).ready(function() {
