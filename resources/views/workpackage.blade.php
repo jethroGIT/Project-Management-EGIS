@@ -892,6 +892,19 @@ function submitEditData() {
                 });
                 
                 $('#kt_modal_edit_data').modal('hide');
+
+            } else if (response.no_changes) {
+                Swal.fire({
+                    title: "Tidak Ada Perubahan",
+                    text: "Tidak ada data yang diubah. Silakan lakukan perubahan terlebih dahulu atau klik Batal untuk menutup modal.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-primary",
+                    }
+                });
+
             } else {
                 Swal.fire({
                     title: "Gagal!",

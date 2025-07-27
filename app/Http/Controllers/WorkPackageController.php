@@ -12,6 +12,7 @@ use App\Models\Work;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Database\Eloquent;
+use Carbon\Carbon;
 
 class WorkPackageController extends Controller
 {
@@ -340,6 +341,41 @@ class WorkPackageController extends Controller
 
             // Update tanggal periode work package volume
             $volume = WorkPackageVolume::findOrFail($volume_id);
+
+            // Deteksi Perubahan
+            $originalStartDate = Carbon::parse($volume->start_date)->format('Y-m-d');
+            $originalEndDate = Carbon::parse($volume->end_date)->format('Y-m-d');
+            $originalResources = $volume->work()->pluck('user_id')->sort()->values()->toArray();
+
+            $newStartDate = $request->start_date;
+            $newEndDate = $request->end_date;
+            $newResources = collect($request->resources ?? [])
+                ->filter()
+                ->map(fn($id) => (int) $id)
+                ->sort()
+                ->values()
+                ->toArray();
+
+            // Check for changes
+            $startDateChanged = $originalStartDate !== $newStartDate;
+            $endDateChanged = $originalEndDate !== $newEndDate;
+            $resourcesChanged = $originalResources != $newResources;
+            $hasChanges = $startDateChanged || $endDateChanged || $resourcesChanged;
+
+            // Jika tidak ada perubahan
+            if (!$hasChanges) {
+                return response()->json([
+                    'success' => false,
+                    'no_changes' => true,
+                    'message' => 'Tidak ada perubahan data yang terdeteksi.',
+                    'original_data' => [
+                        'start_date' => $originalStartDate,
+                        'end_date' => $originalEndDate,
+                        'resources_count' => count($originalResources)
+                    ]
+                ], 200);
+            }
+
             $volume->update([
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date
