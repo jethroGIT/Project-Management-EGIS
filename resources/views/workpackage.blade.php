@@ -171,8 +171,9 @@
                             @endforeach
                         @else
                             <!-- Fallback jika tidak ada data -->
-                            <tr class="">
-                                <td colspan="3" class="text-center text-muted py-4">
+                            <tr>
+                                <td></td>
+                                <td class="text-center text-muted py-4">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <h6 class="text-muted">Belum Ada Task</h6>
                                         <p class="text-muted">
@@ -184,6 +185,7 @@
                                         </button>
                                     </div>
                                 </td>
+                                <td></td>
                             </tr>
                         @endif
                     </tbody>
@@ -1297,6 +1299,10 @@ function submitInsertTask() {
         return;
     }
 
+    // Disable form dan button saat loading
+    const submitButton = $('button[onclick="submitInsertTask()"]');
+    const originalButtonText = submitButton.html();
+
     // Submit
     $.ajax({
         url: form.attr('action'),
@@ -1306,6 +1312,28 @@ function submitInsertTask() {
         contentType: false,
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        beforeSend: function() {
+            // Disable form elements
+            form.find('input, button').prop('disabled', true);
+            
+            // Change button to loading state
+            submitButton.html(`
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Menyimpan...
+            `).prop('disabled', true);
+            
+            // Show loading modal
+            Swal.fire({
+                title: 'Menambahkan Task...',
+                text: 'Sedang memproses penambahan task baru',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
         },
         success: function(response) {
             if (response.success) {
@@ -1354,6 +1382,14 @@ function submitInsertTask() {
                     confirmButton: "btn btn-secondary"
                 }
             });
+        },
+        complete: function() {
+            // Reset form state setelah request selesai
+            // Re-enable form elements
+            form.find('input, button').prop('disabled', false);
+            
+            // Reset button text
+            submitButton.html(originalButtonText).prop('disabled', false);
         }
     });
 }
@@ -1475,6 +1511,10 @@ function submitEditTask() {
         return;
     }
 
+    // Button loading state
+    const submitButton = $('button[onclick="submitEditTask()"]');
+    const originalButtonText = submitButton.html();
+
     // Submit via AJAX
     $.ajax({
         url: `/work-package/task/${taskId}`,
@@ -1488,6 +1528,27 @@ function submitEditTask() {
         },
         beforeSend: function() {
             console.log('Sending request to:', `/work-package/task/${taskId}`);
+
+            // Disable form elements
+            form.find('input, button').prop('disabled', true);
+            
+            // Change button to loading state
+            submitButton.html(`
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Memperbarui...
+            `).prop('disabled', true);
+            
+            // Show loading modal
+            Swal.fire({
+                title: 'Memperbarui Task...',
+                text: 'Sedang memproses pembaruan task',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
         },
         success: function(response) {
             console.log('Update Success Response:', response);
@@ -1539,6 +1600,14 @@ function submitEditTask() {
                     confirmButton: "btn btn-secondary"
                 }
             });
+        },
+        complete: function() {
+            // Reset form state setelah request selesai
+            // Re-enable form elements
+            form.find('input, button').prop('disabled', false);
+            
+            // Reset button text
+            submitButton.html(originalButtonText).prop('disabled', false);
         }
     });
 }

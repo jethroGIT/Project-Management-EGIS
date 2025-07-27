@@ -43,7 +43,7 @@ class WorkPackageController extends Controller
             'task' => function($query) {
                 $query->orderBy('order_index')->orderBy('task_id');
             },
-            'work.user'
+            'work.user.role'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -52,6 +52,9 @@ class WorkPackageController extends Controller
             ->where('wp_id', $workPackage->wp_id)
             ->orderBy('hresource_id')
             ->get();
+
+        // Default empty collection
+        $assignedUsers = collect();
 
         // Ambil users yang terlibat di work package ini berdasarkan tabel work
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
