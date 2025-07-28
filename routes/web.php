@@ -52,3 +52,6 @@ Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'del
 
 // Work Package Volume Data Management
 Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
+
+Route::get('/wpcategory-management', [WorkPackageController::class, 'wpCategoryManagement'])->name('wpcategory-management.detail');
+Route::get('/timesheet-management', [TimesheetController::class, 'timesheetManagement'])->name('timesheet-management.detail');

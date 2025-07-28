@@ -78,6 +78,24 @@ class TimesheetController extends Controller
         $timesheetCountPerRole = $timesheets->groupBy('user.role_id')->map(function ($entriesPerRole) {
             return $entriesPerRole->count();
         });
+
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $monthTimesheets = $timesheets->filter(function ($timesheet) use ($selectedMonth, $startDate, $endDate) {
+            $date = Carbon::parse($timesheet->execution_date);
+            
+            // Cek bulan
+            $isInSelectedMonth = $date->format('F') === $selectedMonth;
+
+            // Cek rentang tanggal jika diberikan
+            $isInDateRange = true;
+            if ($startDate && $endDate) {
+                $isInDateRange = $date->between(Carbon::parse($startDate), Carbon::parse($endDate));
+            }
+
+            return $isInSelectedMonth && $isInDateRange;
+        });
+
         return view('timesheet', compact('workPackage', 'volume', 'timesheets', 'usersInSelectedMonth', 
                                          'humanResources', 'months', 'selectedMonth', 
                                          'monthTimesheets', 'monthDates', 'timesheetCountPerRole'));
@@ -132,6 +150,19 @@ class TimesheetController extends Controller
     public function show(string $id)
     {
         //
+    }
+
+    public function timesheetManagement()
+    {
+        // Ambil semua timesheet
+        $timesheets = Timesheet::with('user.role')
+            ->orderBy('execution_date', 'asc')
+            ->get();
+
+        // Ambil semua user
+        $users = User::with('role')->get();
+
+        return view('timesheet_management', compact('timesheets', 'users'));
     }
 
     /**

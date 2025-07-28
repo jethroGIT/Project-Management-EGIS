@@ -86,91 +86,87 @@
                 </div>
             </div>
             <div class="row mt-4 align-items-center" style="height: 50px; padding: 0px 0px;">
-                    <div class="col-md-6 d-flex align-items-center" style="height: 40px">
-                        <div class="border bg-light h-100 d-flex align-items-center justify-content-center w-100">
-                            <span class="fw-bold">Total Mandays</span>
-                        </div>
-                        <div class="border h-100 d-flex align-items-center justify-content-center w-100"
-                            data-bs-toggle="tooltip" 
-                            data-bs-placement="top" 
-                            title="Rencana"
-                        >
-                            <span class="text">{{$humanResources->jhk}}</span>
-                        </div>
-                        <div class="border h-100 d-flex align-items-center justify-content-center w-100"
-                            data-bs-toggle="tooltip" 
-                            data-bs-placement="top" 
-                            title="Realisasi"
-                        >
-                            <span class="text">{{$activitiesCount}}</span>
-                        </div>
+                <div class="col-md-6 d-flex align-items-center" style="height: 40px">
+                    <div class="border bg-light h-100 d-flex align-items-center justify-content-center w-100">
+                        <span class="fw-bold">Total Mandays</span>
                     </div>
-                    <div class="col-md-6 d-flex justify-content-end mt-3">
-                        <form class="d-flex justify-content-end align-items-center">
-                            <label class="me-5 mb-0" for="searchActivityUser">Cari: </label>
-                            <div>
-                                <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
-                                    <input 
-                                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
-                                        style="width:200px" 
-                                        type="search"
-                                        id="searchActivityUser" 
-                                        placeholder="Cari aktivitas" 
-                                        aria-label="Search"
-                                    >                    
-                                </form>
-                            </div>                  
-                        </form>
+                    <div class="border h-100 d-flex align-items-center justify-content-center w-100"
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        title="Rencana"
+                    >
+                        <span class="text">{{$humanResources->jhk}}</span>
                     </div>
-                </div> 
-            <div class="tab-content">
-                <div class="tab-pane fade show active">
-                    <div class="table-responsive mt-5">
-                        @if($activities->isNotEmpty())
-                            <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
-                                <thead>
-                                    <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
-                                        <th scope="col" style="width: 40px;">No</th>
-                                        <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
-                                        <th scope="col">Aktivitas</th>                       
-                                        <th scope="col" style="width: 40px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody style="font-size: 0.92rem;">
-                                    @foreach($activities as $activity)
-                                    <tr>
-                                        <th scope="row">{{$loop->index+1}}</th>
-                                        <td>{{\Carbon\Carbon::parse($activity->execution_date)->format('d M')}}</td>
-                                        <td>{{$activity->activity}}</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
+                    <div class="border h-100 d-flex align-items-center justify-content-center w-100"
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        title="Realisasi"
+                    >
+                        <span class="text">{{$activitiesCount}}</span>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex justify-content-end mt-3">
+                    <form class="d-flex justify-content-end align-items-center">
+                        <label class="me-5 mb-0" for="searchActivityUser">Cari: </label>
+                        <div>
+                            <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
+                                <input 
+                                    class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                                    style="width:200px" 
+                                    type="search"
+                                    id="searchActivityUser" 
+                                    placeholder="Cari aktivitas" 
+                                    aria-label="Search"
+                                >                    
+                            </form>
+                        </div>                  
+                    </form>
+                </div>
+            </div> 
+            <div class="table-responsive mt-5">
+                @if($activities->isNotEmpty())
+                    <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
+                        <thead>
+                            <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
+                                <th scope="col" style="width: 40px;">No</th>
+                                <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
+                                <th scope="col">Aktivitas</th>                       
+                                <th scope="col" style="width: 40px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size: 0.92rem;">
+                            @foreach($activities as $activity)
+                            <tr>
+                                <th scope="row">{{$loop->index+1}}</th>
+                                <td>{{\Carbon\Carbon::parse($activity->execution_date)->format('d M')}}</td>
+                                <td>{{$activity->activity}}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                            <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
+                                                data-timesheet-id="{{ $activity->timesheet_id }}"
+                                                data-execution-date="{{ $activity->execution_date }}"
+                                                data-activity="{{ $activity->activity }}"
+                                                >
+                                                <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
+                                            </li>
+                                            <li><a class="dropdown-item d-flex align-items-center btn-delete-activity" data-timesheet-id="{{$activity->timesheet_id}}">
+                                                    <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus
                                                 </a>
-                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                    <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
-                                                        data-timesheet-id="{{$activity->timesheet_id}}"
-                                                        data-execution-date="{{$activity->execution_date}}"
-                                                        data-activity="{{$activity->activity}}"
-                                                        >
-                                                        <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item d-flex align-items-center btn-delete-activity" data-timesheet-id="{{$activity->timesheet_id}}">
-                                                            <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>  
-                                    @endforeach          
-                                </tbody>
-                            </table>
-                        @else
-                            <p>Tidak ada data Timesheet</p>
-                        @endif
-                    </div>
-                </div>           
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>  
+                            @endforeach          
+                        </tbody>
+                    </table>
+                @else
+                    <p>Tidak ada data Timesheet</p>
+                @endif
             </div>
         </div>
     </div>
@@ -232,7 +228,7 @@
                     </div>                    
                     <div class="mb-6">
                         <label class="form-label fw-bolder">Aktivitas</label>
-                        <textarea class="form-control" id="activity" name="activity" rows="3" placeholder="Aktivitas"></textarea>
+                        <textarea class="form-control" id="activityTimesheet" name="activity" rows="3" placeholder="Aktivitas"></textarea>
                     </div>
                 </form>
             </div>
@@ -374,12 +370,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         document.body.addEventListener('click', function(event) {
             // Pastikan elemen yang diklik adalah tombol edit aktivitas
-            if (event.target.classList.contains('edit-activity-btn')) {
-                const button = event.target;
+            if (event.target.closest('.edit-activity-btn')) {
+                const button = event.target.closest('.edit-activity-btn');
                 // Isi input tersembunyi timesheet_id
                 document.getElementById('form_timesheet_id').value = button.dataset.timesheetId;
                 document.getElementById('executionDate').value = button.dataset.executionDate;
-                document.getElementById('activity').value = button.dataset.activity;
+                document.getElementById('activityTimesheet').value = button.dataset.activity;
+
+                console.log("Button Data:", {
+                id: button.dataset.timesheetId,
+                date: button.dataset.executionDate,
+                activity: button.dataset.activity,
+            });
             }
         });
     });

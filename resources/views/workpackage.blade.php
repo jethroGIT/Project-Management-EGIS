@@ -196,7 +196,7 @@
     </div>
     <!-- Modal for Adding Task -->
     <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="insertTaskModalTitle">Tambah Task</h3>
@@ -232,7 +232,7 @@
 
     <!-- Modal for Editing Task -->
     <div class="modal fade" tabindex="-1" id="kt_modal_edit_task">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="editTaskModalTitle">Edit Task</h3>
@@ -281,7 +281,7 @@
                 </button>
 
                 <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h3 class="modal-title">Edit Data</h3>
@@ -1088,6 +1088,7 @@ function toggleSubRows(rowId) {
     }
 }
 
+// modal untuk edit jhk
 const jtkJhkModal = new bootstrap.Modal(document.getElementById('jtkandjhkModal')); 
 const jtkJhkForm = document.getElementById('jtkJhkForm');
 const submitJtkJhkButton = document.getElementById('submitJtkJhkForm');

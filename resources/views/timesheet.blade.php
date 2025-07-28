@@ -24,52 +24,10 @@
                         <i class="bi bi-plus fs-2 text-dark" style="margin-left: 5px"></i>
                     </a>
                 </div>                
-            </div>            
-            <div class="d-flex justify-content-start">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
-                        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-                    </svg>
-                    Filter Data
-                </button>                
             </div>
-            <div class="collapse" id="filterCard">
-                <div class="card card-flush shadow-lg mb-4">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-                                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-                            </svg>
-                            <div class="m-2">
-                            Filter Data
-                            </div>
-                        </h3>
-                    </div>
-                    <div class="card-body" style="padding: 25px;">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="form-label fw-bold">Pekan</label>
-                                <select class="form-select form-select-solid" id="kategoriFilter" style="cursor: pointer;   ">
-                                    <option value="">Pilih Pekan</option>
-                                    <option value="management">Pekan ke-1</option>
-                                    <option value="awareness">Pekan ke-2</option>
-                                    <option value="training">Pekan ke-3</option>
-                                    <option value="assessment">Pekan ke-4</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer" style="padding: 15px;">
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-danger me-3" id="resetFilter">
-                                Hapus Filter
-                            </button>
-                            <button type="button" class="btn btn-primary" id="applyFilter">
-                                Terapkan
-                            </button>
-                        </div>
-                    </div>  
-                </div>
+            <div class="mb-2">
+                <label class="form-label">Filter Berdasarkan Tanggal</label>
+                <input type="text" class="form-control form-control-solid" placeholder="Pilih rentang tanggal" id="kt_daterangepicker_1" style="width: 35%"/>
             </div>
             <form class="d-flex justify-content-end align-items-center">
                 <label class="me-5 mb-0" for="searchActivity">Cari: </label>
@@ -336,6 +294,68 @@
             }
         });
     }
+
+    // datepicker
+    let startDate = '';
+    let endDate = '';
+
+    moment.locale('id'); // Set locale to Indonesian
+    $(document).ready(function () {
+    $('#kt_daterangepicker_1').daterangepicker({
+            locale: {
+                format: 'D MMMM YYYY',
+                applyLabel: "Terapkan",
+                cancelLabel: "Batal",
+                weekLabel: "Minggu",
+                daysOfWeek: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+                monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+                firstDay: 1 // Set hari pertama minggu ke Senin
+            }
+        }, function(start, end) {
+            startDate = start.format('YYYY-MM-DD');
+            endDate = end.format('YYYY-MM-DD');
+        });
+         $('#applyFilter').on('click', function () {
+            if (!startDate || !endDate) {
+                Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
+                return;
+            }
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('start_date', startDate);
+            url.searchParams.set('end_date', endDate);
+            window.location.href = url.toString();
+        });
+
+        $('#resetFilter').on('click', function () {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('start_date');
+            url.searchParams.delete('end_date');
+            window.location.href = url.toString();
+        });
+    });
+
+
+    // Saat tombol Terapkan diklik
+    // document.getElementById('applyFilter').addEventListener('click', function () {
+    //     if (!startDate || !endDate) {
+    //         Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
+    //         return;
+    //     }
+
+    //     const url = new URL(window.location.href);
+    //     url.searchParams.set('start_date', startDate);
+    //     url.searchParams.set('end_date', endDate);
+    //     window.location.href = url.toString(); // reload dengan query string
+    // });
+
+    // Reset filter
+    // document.getElementById('resetFilter').addEventListener('click', function () {
+    //     const url = new URL(window.location.href);
+    //     url.searchParams.delete('start_date');
+    //     url.searchParams.delete('end_date');
+    //     window.location.href = url.toString();
+    // });
 
     /* ADD NEW PERSONEL */
     function addNewPersonel() {
