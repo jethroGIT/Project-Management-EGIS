@@ -55,10 +55,14 @@ Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'del
 // Work Package Volume Data Management
 Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
 
+// manajemen kategori work package
 Route::get('/wpcategory-management', [WorkPackageController::class, 'wpCategoryManagement'])->name('wpcategory-management.detail');
+
+// Manajemen Timesheet
 Route::get('/timesheet-management', [TimesheetController::class, 'timesheetManagement'])->name('timesheet-management.detail');
 
 // Manajemen Resource
 Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
 
+// Manajemen Roles
 Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
