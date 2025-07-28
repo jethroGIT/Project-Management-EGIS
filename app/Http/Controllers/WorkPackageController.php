@@ -12,8 +12,9 @@ use App\Models\Timesheet;
 use App\Models\Work;
 use App\Models\WpCategory;
 use Illuminate\Http\Request;
-use PhpParser\Node\Stmt\TryCatch;
-use Illuminate\Database\Eloquent;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 
@@ -134,7 +135,7 @@ class WorkPackageController extends Controller
         ]);
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             $volumeId = (int) $request->volume_id;
             $referenceTaskId = $request->reference_task_id ? (int) $request->reference_task_id : null;
@@ -177,7 +178,7 @@ class WorkPackageController extends Controller
                 'order_index' => $newOrderIndex
             ]);
 
-            \DB::commit();
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -186,9 +187,9 @@ class WorkPackageController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \DB::rollback();
+            DB::rollback();
 
-            \Log::error('Error creating task', [
+            Log::error('Error creating task', [
                 'message' => $e->getMessage(),
                 'volume_id' => $request->volume_id,
                 'task_name' => $request->task_name,
@@ -245,7 +246,7 @@ class WorkPackageController extends Controller
         ]);
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             $task = Task::where('task_id', $taskId)
                 ->where('volume_id', $request->volume_id)
@@ -255,7 +256,7 @@ class WorkPackageController extends Controller
                 'name' => trim($request->task_name)
             ]);
 
-            \DB::commit();
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -269,7 +270,7 @@ class WorkPackageController extends Controller
             ]);
 
         } catch (ModelNotFoundException $e) {
-            \DB::rollback();
+            DB::rollback();
             
             return response()->json([
                 'success' => false,
@@ -277,9 +278,9 @@ class WorkPackageController extends Controller
             ], 404);
 
         } catch (\Exception $e) {
-            \DB::rollback();
+            DB::rollback();
 
-            \Log::error('Error updating task', [
+            Log::error('Error updating task', [
                 'message' => $e->getMessage(),
                 'task_id' => $taskId,
                 'volume_id' => $request->volume_id,
@@ -300,7 +301,7 @@ class WorkPackageController extends Controller
     public function deleteTask($taskId)
     {
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             $task = Task::with('subTask')->findOrFail($taskId);
 
@@ -326,9 +327,9 @@ class WorkPackageController extends Controller
                 ->where('order_index', '>', $deleteOrderIndex)
                 ->decrement('order_index');
 
-            \DB::commit();
+            DB::commit();
 
-            \Log::info('Task deleted successfully', [
+            Log::info('Task deleted successfully', [
                 'task_id' => $taskId,
                 'task_name' => $task->name,
                 'volume_id' => $volumeId
@@ -340,7 +341,7 @@ class WorkPackageController extends Controller
             ]);
 
         } catch (ModelNotFoundException $e) {
-            \DB::rollback();
+            DB::rollback();
 
             return response()->json([
                 'success' => false,
@@ -348,9 +349,9 @@ class WorkPackageController extends Controller
             ], 404);
 
         } catch (\Exception $e) {
-            \DB::rollback();
+            DB::rollback();
 
-            \Log::error('Error deleting task', [
+            Log::error('Error deleting task', [
                 'message' => $e->getMessage(),
                 'task_id' => $taskId,
                 'trace' => $e->getTraceAsString()
@@ -376,7 +377,7 @@ class WorkPackageController extends Controller
         ]);
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             // Update tanggal periode work package volume
             $volume = WorkPackageVolume::findOrFail($volume_id);
@@ -436,11 +437,11 @@ class WorkPackageController extends Controller
                 }
             }
 
-            \DB::commit();
+            DB::commit();
 
             $resourcesCount = $request->resources ? count(array_filter($request->resources)) : 0;
 
-            \Log::info('Volume data updated successfully', [
+            Log::info('Volume data updated successfully', [
                 'volume_id' => $volume_id,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
@@ -462,7 +463,7 @@ class WorkPackageController extends Controller
             ]);
 
         } catch (ModelNotFoundException $e) {
-            \DB::rollback();
+            DB::rollback();
         
             return response()->json([
                 'success' => false,
@@ -470,9 +471,9 @@ class WorkPackageController extends Controller
             ], 404);
 
         } catch (\Exception $e) {
-            \DB::rollback();
+            DB::rollback();
 
-            \Log::error('Error updating volume data', [
+            Log::error('Error updating volume data', [
                 'message' => $e->getMessage(),
                 'volume_id' => $volume_id,
                 'start_date' => $request->start_date,

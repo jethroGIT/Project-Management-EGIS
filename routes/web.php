@@ -10,6 +10,8 @@ use App\Http\Controllers\PerformanceFinanceController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\WorkPackageController;
+use App\Http\Controllers\ResourceManagementController;
+use App\Http\Controllers\RolesManagementController;
 
 
 Route::get('/', function () {
@@ -55,3 +57,8 @@ Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::clas
 
 Route::get('/wpcategory-management', [WorkPackageController::class, 'wpCategoryManagement'])->name('wpcategory-management.detail');
 Route::get('/timesheet-management', [TimesheetController::class, 'timesheetManagement'])->name('timesheet-management.detail');
+
+// Manajemen Resource
+Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
+
+Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
