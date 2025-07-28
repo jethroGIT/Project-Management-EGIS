@@ -28,7 +28,7 @@ class WorkPackageVolume extends Model
         return $this->hasMany(Task::class, 'volume_id', 'volume_id');
     }
     public function work(){
-        return $this->hasMany(Work::class, 'work_id', 'work_id');
+        return $this->hasMany(Work::class, 'volume_id', 'volume_id');
     }
     public function workPackage() 
     {
