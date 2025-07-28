@@ -42,13 +42,13 @@
 
                     <!-- Finance Performance -->
                     <div class="col-md-4">
-                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                             <div class="card-header">
                                 <h3 class="card-title fw-bold">Finance Performance</h3>
                             </div>
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                    <span class="fs-1 fw-bold text-success">30 %</span>
+                                    <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
                                 </div>
                             </div>
                             <!-- Overlay -->
@@ -490,150 +490,78 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- TAB WP KUANTITAS -->
-                <div class="tab-pane fade" id="kt_tab_pane_8" role="tabpanel">
-                    <div class="row">
-                        <!-- Duration Section -->
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 duration-card">
-                                <div class="card-header">
-                                    <h3 class="card-title fw-bold">Duration</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
-                                        @if(isset($workPackage) && isset($volume))
-                                            <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
-                                            <span class="fs-1 text-primary duration-highlight">Hari</span>
-                                        @else
-                                            <span class="fs-1 fw-bold text-primary duration-highlight">0</span>
-                                            <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Kebutuhan Tenaga Kerja -->
+                <div class="col-md-12 mb-4">
+                    <div class="card card-flush shadow-sm">
+                        <div class="card-header">
+                            <h3 class="card-title py-0">Kebutuhan Tenaga Kerja</h3>
                         </div>
-
-                        <!-- Finance Performance -->
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
-                                <div class="card-header">
-                                    <h3 class="card-title fw-bold">Finance Performance</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                        <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
-                                    </div>
-                                </div>
-                                <!-- Overlay -->
-                                <div class="performance-overlay d-flex align-items-center justify-content-center">
-                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- WP Performance -->
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
-                                <div class="card-header">
-                                    <h3 class="card-title fw-bold">WP Performance</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                        <span class="fs-1 fw-bold text-info">{{ $totalCompletion ?? 0 }} %</span>
-                                    </div>
-                                </div>
-                                <!-- Overlay -->
-                                <div class="performance-overlay d-flex align-items-center justify-content-center">
-                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
-                                </div>
-                            </div>
-                        </div>
-                        {{-- <div class="col-md-4">
-                        </div> --}}
-
-                        <!-- Timesheet Button -->
-                        <div class="d-flex justify-content-end mb-4">
-                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
-                                Timesheet
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <!-- Kebutuhan Tenaga Kerja Section -->
-                        <div class="card card-flush shadow-sm mb-6">
-                            <div class="card-header py-0">
-                                <h3 class="card-title fw-bold">Kebutuhan Tenaga Kerja</h3>
-                            </div>
-                            <div class="card-body py-0">
-                                <div class="table-responsive">
-                                    <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-4 gs-7 border rounded w-100">
-                                        <thead>
-                                            <tr class="fw-bolder fs-6 text-gray-800 px-7">
-                                                <th class="align-middle border-bottom min-w-200px  mb-3">Personel</th>
-                                                <th class="align-middle border-bottom  mb-3">
-                                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Tenaga Kerja">JTK</span>                                                    
-                                                </th>                                                
-                                                <th class="align-middle border-bottom  mb-3">
-                                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Hari Kerja">JHK</span>                                                    
-                                                </th>
-                                                <th class="align-middle border-bottom  mb-3 ">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($humanResources as $hResource)
-                                            <tr data-hresource-id="{{ $hResource->hresource_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
-                                                <td class="fw-bold">{{$hResource->role->name}}</td>
-                                                <td>{{$hResource->jtk}}</td>
-                                                <td>{{$hResource->jhk}}</td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                            </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center edit-resource-btn" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
-                                                                    data-hresource-id="{{$hResource->hresource_id}}" 
-                                                                    data-role-id="{{$hResource->role_id}}" 
-                                                                    data-wp-id="{{$hResource->wp_id}}" 
-                                                                    data-jtk="{{ $hResource->jtk }}" 
-                                                                    data-jhk="{{ $hResource->jhk }}">
-                                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                                    Edit
-                                                                </a>
-                                                            </li>
-                                                            {{-- <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
-                                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                                    Hapus
-                                                                </a>
-                                                            </li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Atas
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
-                                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                                    Masukkan di Bawah
-                                                                </a>
-                                                            </li> --}}
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            @endforeach                                            
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <div class="card-body py-0">
+                            <div class="table-responsive">
+                                <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-4 gs-7 border rounded w-100">
+                                    <thead>
+                                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                                            <th class="align-middle border-bottom min-w-200px  mb-3">Personel</th>
+                                            <th class="align-middle border-bottom  mb-3">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Tenaga Kerja">JTK</span>                                                    
+                                            </th>                                                
+                                            <th class="align-middle border-bottom  mb-3">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Hari Kerja">JHK</span>                                                    
+                                            </th>
+                                            <th class="align-middle border-bottom  mb-3 ">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($humanResources as $hResource)
+                                        <tr data-hresource-id="{{ $hResource->res_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
+                                            <td class="fw-bold">{{$hResource->role->name}}</td>
+                                            <td>{{$hResource->jtk}}</td>
+                                            <td>{{$hResource->jhk}}</td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                            <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                        </svg>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center edit-resource-btn" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
+                                                                data-hresource-id="{{$hResource->hresource_id}}" 
+                                                                data-role-id="{{$hResource->role_id}}" 
+                                                                data-wp-id="{{$hResource->wp_id}}" 
+                                                                data-jtk="{{ $hResource->jtk }}" 
+                                                                data-jhk="{{ $hResource->jhk }}">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                Edit
+                                                            </a>
+                                                        </li>
+                                                        {{-- <li>
+                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
+                                                                <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                                Hapus
+                                                            </a>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
+                                                                <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                Masukkan di Atas
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal">
+                                                                <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                                Masukkan di Bawah
+                                                            </a>
+                                                        </li> --}}
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforeach                                            
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
