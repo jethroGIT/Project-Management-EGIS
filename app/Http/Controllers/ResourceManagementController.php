@@ -21,7 +21,11 @@ class ResourceManagementController extends Controller
             $roles = Role::orderBy('name')->get();
     
             return view('resource_management', compact('users', 'roles'));
-        } catch()
+        } catch(\Exception $e) {
+            // Log the error or handle it as needed
+            return redirect()->back()->withErrors(['error' => 'Failed to load resources: ' . $e->getMessage()]);
+
+        };
     }
 
     /**

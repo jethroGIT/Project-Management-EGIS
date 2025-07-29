@@ -376,12 +376,6 @@
                 document.getElementById('form_timesheet_id').value = button.dataset.timesheetId;
                 document.getElementById('executionDate').value = button.dataset.executionDate;
                 document.getElementById('activityTimesheet').value = button.dataset.activity;
-
-                console.log("Button Data:", {
-                id: button.dataset.timesheetId,
-                date: button.dataset.executionDate,
-                activity: button.dataset.activity,
-            });
             }
         });
     });

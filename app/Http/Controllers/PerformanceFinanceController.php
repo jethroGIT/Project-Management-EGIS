@@ -25,7 +25,6 @@ class PerformanceFinanceController extends Controller
         $volume = WorkPackageVolume::with([
             'workPackage', 
             'task',
-            'work.user'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -36,7 +35,7 @@ class PerformanceFinanceController extends Controller
             ->get();
 
         // Ambil work
-        $works = Work::with(['user.role'])
+        $works = Work::with('role')
             ->where('volume_id', $volume_id)
             ->get();
         
@@ -53,11 +52,11 @@ class PerformanceFinanceController extends Controller
 
         // Kelompokkan resource_cost berdasarkan role
         $resourceCostPerRole = $works->groupBy(function ($work) {
-            return optional($work->user->role)->role_id;
+            return optional($work->role)->role_id;
         })->map(function ($groupedWorks) {
             return [
-                'role_id' => optional($groupedWorks->first()->user->role)->role_id,
-                'role_name' => optional($groupedWorks->first()->user->role)->name,
+                'role_id' => optional($groupedWorks->first()->role)->role_id,
+                'role_name' => optional($groupedWorks->first()->role)->name,
                 'resource_cost' => $groupedWorks->sum('resource_cost'),
             ];
         });

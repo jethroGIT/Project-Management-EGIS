@@ -1,52 +1,138 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h1 class="my-10 mt-2 mb-3">Timesheet Management</h1>
-    <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
-        <div class="card-body">
-            <div class="d-flex align-items-center mb-7">
-                <h2 class="my-3 mb-0 mt-1">Manage Timesheet Activities</h2>
+<div class="container-fluid">
+    <h1 class="mt-0 mb-5">Manajemen Timesheet</h1>
+
+    <!-- Card Activity -->
+     <div class="card card-flush shadow-sm">
+        <div class="card-body row">
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Add Activity Button -->
+                <div class="d-flex justify-content-start mb-4">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_category">
+                        <i class="bi bi-plus-lg fs-2 me-1"></i>
+                        Tambah Aktivitas
+                    </button>
+                </div>
+
+                <!-- Search Form -->
+                <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
+                    <label class="me-5 mt-3" for="searchActivity">Cari: </label>
+                    <input 
+                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                        style="width:200px" 
+                        type="search"
+                        id="searchActivity" 
+                        placeholder="Cari Aktivitas" 
+                        aria-label="Search"
+                    >                    
+                </form>
             </div>
-            {{-- <div class="table-responsive">
-                @if($monthDates->isNotEmpty())
-                    <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
-                        <thead>
-                            <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
-                                <th scope="col" style="width: 40px;">No</th>
-                                <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
-                                @foreach($usersInSelectedMonth as $user)
-                                    <th scope="col" style="width: 80px;">
-                                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
-                                    </th>     
-                                @endforeach                       
+
+            <!-- Activity Table -->
+            <div class="table-responsive mb-2">
+                <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="tabel_aktivitas">
+                    <thead>
+                        <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
+                            <th scope="col" style="width: 40px;">No</th>
+                            <th scope="col" style="width: 40px;">Volume</th>
+                            <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
+                            @foreach($users as $user)
+                                <th scope="col" style="width: 80px;">
+                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
+                                </th>     
+                            @endforeach                       
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 0.92rem;">
+                        @foreach($groupedByWP as $wpKey => $entries)
+                            @php
+                                [$wpNumber, $wpName] = explode('|', $wpKey);
+                                $groupId = Str::slug($wpNumber . '-' . $wpName);
+                                $groupedEntries = $entries->groupBy(fn($e) => $e->volume_id . '|' . $e->execution_date);
+                            @endphp
+                            <tr class="bg-light text-dark fw-bold" data-group="{{ $groupId }}">
+                                <td colspan="{{ 3 + $users->count() }}">
+                                    {{$wpNumber}} {{ $wpName }}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody style="font-size: 0.92rem;">
-                            @foreach($monthDates as $date => $entries)
-                            <tr>
-                                <th scope="row">{{$loop->index+1}}</th>
-                                <td>{{\Carbon\Carbon::parse($date)->format('d')}}</td>
-                                @foreach($usersInSelectedMonth as $user)
-                                    <td>
+                            @foreach($groupedEntries as $key => $rowEntries)
+                                @php
+                                    [$volumeId, $date] = explode('|', $key);
+                                    $firstEntry = $rowEntries->first();
+                                @endphp
+                                <tr>
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td>{{ $volumeId }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($date)->format('d M Y') }}</td>
+                                    @foreach($users as $user)
                                         @php
-                                            $userEntry = $entries->where('user_id', $user->user_id)->first();
+                                            $entry = $rowEntries->where('user_id', $user->user_id)->first();
                                         @endphp
-                                        {{ $userEntry->activity ?? '-'}}
-                                    </td>
-                                @endforeach                                        
-                            </tr>  
-                            @endforeach          
-                        </tbody>
-                    </table>
-                @else
-                    <p>Tidak ada data Timesheet</p>
-                @endif
-            </div> --}}
+                                        <td>{{ $entry->activity ?? '-' }}</td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        @endforeach
+                    </tbody>
+                </table>
+            </div> 
         </div>
     </div>
 </div>
 @endsection
+
+{{-- tambah kategori --}}
+{{-- <div class="modal fade" tabindex="-1" id="kt_modal_add_category">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{route('wpcategory.add')}}" id="addCategoryForm">
+                    @csrf
+                    @method('POST')                   
+                    <div class="mb-6">
+                        <label class="form-label fw-bolder">Kategori WP</label>
+                        <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="submitAddCategoryForm">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div> --}}
+
+{{-- edit kategori --}}
+{{-- <div class="modal fade" tabindex="-1" id="kt_modal_edit_category">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{route('wpcategory.edit')}}" id="editCategoryForm">
+                    @csrf
+                    @method('PUT') 
+                    <input type="hidden" name="category_id" id="form_category_id">
+                    <div class="mb-6">
+                        <label class="form-label fw-bolder">Kategori WP</label>
+                        <input class="form-control" id="categoryName" name="name" placeholder="Kategori"></input>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="submitEditCategoryForm">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div> --}}
 
 @push('scripts')
 <script>
@@ -56,17 +142,222 @@
     });
 
     function initTabelTimesheet() {
-        const table = $('#kt_datatable_example_2').DataTable({
-            // "scrollY": '500px',
+        const table = $('#tabel_aktivitas').DataTable({
+            "scrollY": '500px',
             "scrollX": true,
             "fixedHeader": {
                 "header": true,
                 "headerOffset": 70
             },
-            "ordering": false // Disable sorting
+            "ordering": false, // Disable sorting
         });
 
-        // setupActivitySearch(table);
+        setupActivitySearch(table);
     }
+
+    function setupActivitySearch(table) {
+        const searchInput = $('#searchActivity');
+
+        // Search input handler
+        searchInput.on('keyup change input', function() {
+            const searchValue = this.value.trim();
+            table.search(searchValue).draw();
+        });
+
+        // Clear button handler
+        searchInput.on('search', function() {
+            if (this.value === '') {
+                table.search('').draw();
+            }
+        });
+
+        // ESC key untuk clear search
+        searchInput.on('keydown', function(e) {
+            if (e.which === 27) { // ESC key
+                e.preventDefault();
+                this.value = '';
+                $(this).trigger('input');
+                this.focus();
+            }
+        });
+    }
+
+    // Modal and form handling for adding a new category
+    const addCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_add_category'));
+    const submitAddCategoryForm = document.getElementById('submitAddCategoryForm');
+    const addCategoryForm = document.getElementById('addCategoryForm');
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (submitAddCategoryForm) {
+            submitAddCategoryForm.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(addCategoryForm);
+                const url = addCategoryForm.action;
+
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        Swal.fire({
+                            text: data.message || "Data berhasil ditambahkan!",
+                            icon: "success",
+                            buttonsStyling: false,
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
+                        }).then(() => {
+                            addCategoryModal.hide();
+                            location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error adding category:', error);
+                        Swal.fire({
+                            text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                            icon: "error",
+                            buttonsStyling: false,
+                            confirmButtonText: "OK",
+                            customClass: { confirmButton: "btn btn-danger" }
+                        });
+                    });
+            });
+        }
+    });
+
+    // Modal and form handling for editing a new category
+    const editCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_edit_category'));
+    const submitEditCategoryForm = document.getElementById('submitEditCategoryForm');
+    const editCategoryForm = document.getElementById('editCategoryForm');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.addEventListener('click', function(event) {
+            // Pastikan elemen yang diklik adalah tombol edit aktivitas
+            if (event.target.closest('.btn-edit-category')) {
+                const button = event.target.closest('.btn-edit-category');
+                // Isi input tersembunyi timesheet_id
+                document.getElementById('form_category_id').value = button.dataset.categoryId;
+                document.getElementById('categoryName').value = button.dataset.categoryName;
+
+                console.log("Button Data:", {
+                id: button.dataset.categoryId,
+                name: button.dataset.categoryName,
+            });
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (submitEditCategoryForm) {
+            submitEditCategoryForm.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(editCategoryForm);
+                const url = editCategoryForm.action;
+
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        Swal.fire({
+                            text: data.message || "Data berhasil diubah!",
+                            icon: "success",
+                            buttonsStyling: false,
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
+                        }).then(() => {
+                            addCategoryModal.hide();
+                            location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error adding category:', error);
+                        Swal.fire({
+                            text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                            icon: "error",
+                            buttonsStyling: false,
+                            confirmButtonText: "OK",
+                            customClass: { confirmButton: "btn btn-danger" }
+                        });
+                    });
+            });
+        }
+    });
+
+    // delete category
+    $(document).on('click', '.btn-delete-category', function(e) {
+        e.preventDefault();
+        const categoryId = $(this).data('category-id');
+
+        Swal.fire({
+            title: 'Yakin ingin menghapus kategori?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'btn btn-danger',
+                cancelButton: 'btn btn-secondary'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/wpcategory-management/${categoryId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title:'Berhasil!', 
+                            text: data.message, 
+                            icon: 'success',
+                            buttonsStyling: false,
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
+                        }).then(() => {
+                            // location.reload(); // atau remove baris dari DOM langsung
+                            $(`[data-category-id="${categoryId}"]`).closest('tr').remove();
+                        });
+                    } else {
+                        Swal.fire('Gagal', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
+                });
+            }
+        });
+    });
 </script>
 @endpush

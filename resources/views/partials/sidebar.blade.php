@@ -445,6 +445,32 @@
                         <span class="menu-title">Manajemen Roles</span>
                     </a>
                 </div>
+                <div class="menu-item">
+                    <a
+                        class="menu-link {{ request()->routeIs('wpcategory.management') ? 'active' : '' }}"
+                        href="{{ route('wpcategory.management') }}"
+                    >
+                        <span class="menu-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tag-fill" viewBox="0 0 16 16">
+                                <path d="M2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l6.414 6.414a1 1 0 0 1 0 1.414l-5.586 5.586a1 1 0 0 1-1.414 0L2.293 9.707A1 1 0 0 1 2 9V3a1 1 0 0 1 1-1z"/>
+                            </svg>
+                        </span>
+                        <span class="menu-title">Manajemen Kategori WP</span>
+                    </a>
+                </div>
+                 <div class="menu-item">
+                    <a
+                        class="menu-link {{ request()->routeIs('timesheet.management') ? 'active' : '' }}"
+                        href="{{ route('timesheet.management') }}"
+                    >
+                        <span class="menu-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-week" viewBox="0 0 16 16">
+                                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v1H0V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM16 14V5H0v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zM4.5 7.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"/>
+                            </svg>
+                        </span>
+                        <span class="menu-title">Manajemen Timesheet</span>
+                    </a>
+                </div>
             
                 <!-- Section Board -->
                 <div class="menu-item">

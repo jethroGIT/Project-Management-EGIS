@@ -152,19 +152,6 @@ class TimesheetController extends Controller
         //
     }
 
-    public function timesheetManagement()
-    {
-        // Ambil semua timesheet
-        $timesheets = Timesheet::with('user.role')
-            ->orderBy('execution_date', 'asc')
-            ->get();
-
-        // Ambil semua user
-        $users = User::with('role')->get();
-
-        return view('timesheet_management', compact('timesheets', 'users'));
-    }
-
     /**
      * Show the form for editing the specified resource.
      */

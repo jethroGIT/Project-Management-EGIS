@@ -12,7 +12,8 @@ use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\WorkPackageController;
 use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
-
+use App\Http\Controllers\TimesheetManagementController;
+use App\Http\Controllers\WPCategoryManagementController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -56,10 +57,13 @@ Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'del
 Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
 
 // manajemen kategori work package
-Route::get('/wpcategory-management', [WorkPackageController::class, 'wpCategoryManagement'])->name('wpcategory-management.detail');
+Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
+Route::post('/wpcategory-management/add', [WPCategoryManagementController::class, 'add'])->name('wpcategory.add');
+Route::put('/wpcategory-management/edit', [WPCategoryManagementController::class, 'edit'])->name('wpcategory.edit');
+Route::delete('/wpcategory-management/{id}/delete', [WPCategoryManagementController::class, 'delete'])->name('wpcategory.delete');
 
 // Manajemen Timesheet
-Route::get('/timesheet-management', [TimesheetController::class, 'timesheetManagement'])->name('timesheet-management.detail');
+Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');
 
 // Manajemen Resource
 Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');

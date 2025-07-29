@@ -47,7 +47,7 @@ class WorkPackageController extends Controller
             'task' => function($query) {
                 $query->orderBy('order_index')->orderBy('task_id');
             },
-            'work.user.role'
+            'work.role'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -81,11 +81,11 @@ class WorkPackageController extends Controller
 
         // hitung persentase finance performance
         // Ambil semua work dan timesheet berdasarkan volume
-        $works = Work::with('user.role')->where('volume_id', $volume_id)->get();
+        $works = Work::with('role')->where('volume_id', $volume_id)->get();
         $timesheets = Timesheet::with('user.role')->where('volume_id', $volume_id)->get();
 
         // Group dan jumlahkan resource cost per role
-        $resourceCostPerRole = $works->groupBy(fn($w) => optional($w->user->role)->role_id)
+        $resourceCostPerRole = $works->groupBy(fn($w) => optional($w->role)->role_id)
             ->map(fn($group) => $group->sum('resource_cost'));
 
         // Hitung aktivitas per role dari timesheet
@@ -425,17 +425,17 @@ class WorkPackageController extends Controller
             Work::where('volume_id', $volume_id)->delete();
 
             // Tambah assignments baru
-            if ($request->has('resources') && !empty($request->resources)) {
-                foreach ($request->resources as $userId) {
-                    if (!empty($userId) && is_numeric($userId)) {
-                        Work::create([
-                            'user_id' => (int) $userId,
-                            'volume_id' => (int) $volume_id,
-                            'resource_cost' => 0.00
-                        ]);
-                    }
-                }
-            }
+            // if ($request->has('resources') && !empty($request->resources)) {
+            //     foreach ($request->resources as $userId) {
+            //         if (!empty($userId) && is_numeric($userId)) {
+            //             Work::create([
+            //                 'role_id' => (int) $userId,
+            //                 'volume_id' => (int) $volume_id,
+            //                 'resource_cost' => 0.00
+            //             ]);
+            //         }
+            //     }
+            // }
 
             DB::commit();
 
@@ -513,11 +513,6 @@ class WorkPackageController extends Controller
         //
     }
 
-    public function wpCategoryManagement(){
-        $wpCategories = WpCategory::orderBy('category_id')->get();
-        return view('wp_category_management', compact('wpCategories'));
-    }
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -526,7 +521,7 @@ class WorkPackageController extends Controller
         $volume = WorkPackageVolume::with([
             'workPackage', 
             'task',
-            'work.user'
+            'work.role'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
