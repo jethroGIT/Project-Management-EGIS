@@ -19,7 +19,7 @@ class Work extends Model
 
     public function role()
     {
-        return $this->belongsTo(User::class, 'role_id', 'role_id');
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
     }
 
     public function volume()

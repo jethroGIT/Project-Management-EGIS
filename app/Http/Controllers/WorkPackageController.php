@@ -57,13 +57,12 @@ class WorkPackageController extends Controller
             ->orderBy('hresource_id')
             ->get();
 
-        // Default empty collection
-        $assignedUsers = collect();
-
-        // Ambil users yang terlibat di work package ini berdasarkan tabel work
-        $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
-            $query->where('volume_id', $volume_id);
-        })->with('role')->get();
+        // Ambil users berdasarkan role yang ter-assign di work
+        $assignedRoleIds = Work::where('volume_id', $volume_id)->pluck('role_id');
+        
+        $assignedUsers = User::whereIn('role_id', $assignedRoleIds)
+            ->with('role')
+            ->get();
 
         // Hitung total completion dari task performance
         $tasks = $volume->task;
@@ -85,7 +84,7 @@ class WorkPackageController extends Controller
         $timesheets = Timesheet::with('user.role')->where('volume_id', $volume_id)->get();
 
         // Group dan jumlahkan resource cost per role
-        $resourceCostPerRole = $works->groupBy(fn($w) => optional($w->role)->role_id)
+        $resourceCostPerRole = $works->groupBy(fn($w) => $w->role_id)
             ->map(fn($group) => $group->sum('resource_cost'));
 
         // Hitung aktivitas per role dari timesheet
@@ -385,13 +384,18 @@ class WorkPackageController extends Controller
             // Deteksi Perubahan
             $originalStartDate = Carbon::parse($volume->start_date)->format('Y-m-d');
             $originalEndDate = Carbon::parse($volume->end_date)->format('Y-m-d');
-            $originalResources = $volume->work()->pluck('user_id')->sort()->values()->toArray();
+            $originalResources = Work::where('volume_id', $volume_id)->pluck('role_id')->sort()->values()->toArray();
 
             $newStartDate = $request->start_date;
             $newEndDate = $request->end_date;
             $newResources = collect($request->resources ?? [])
                 ->filter()
-                ->map(fn($id) => (int) $id)
+                ->map(function($userId) {
+                    $user = User::find($userId);
+                    return $user ? $user->role_id : null;
+                })
+                ->filter()
+                ->unique()
                 ->sort()
                 ->values()
                 ->toArray();
@@ -424,29 +428,26 @@ class WorkPackageController extends Controller
             // Menangani Resource dengan tabel Work
             Work::where('volume_id', $volume_id)->delete();
 
-            // Tambah assignments baru
-            // if ($request->has('resources') && !empty($request->resources)) {
-            //     foreach ($request->resources as $userId) {
-            //         if (!empty($userId) && is_numeric($userId)) {
-            //             Work::create([
-            //                 'role_id' => (int) $userId,
-            //                 'volume_id' => (int) $volume_id,
-            //                 'resource_cost' => 0.00
-            //             ]);
-            //         }
-            //     }
-            // }
+            // Tambah assignments baru berdasarkan role_id
+            foreach ($newResources as $roleId) {
+                Work::create([
+                    'role_id' => (int) $roleId,
+                    'volume_id' => (int) $volume_id,
+                    'resource_cost' => 0.00
+                ]);
+            }
 
             DB::commit();
 
-            $resourcesCount = $request->resources ? count(array_filter($request->resources)) : 0;
+            // $resourcesCount = $request->resources ? count(array_filter($request->resources)) : 0;
+            $resourcesCount = count($newResources);
 
             Log::info('Volume data updated successfully', [
                 'volume_id' => $volume_id,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
                 'resources_count' => $resourcesCount,
-                'resources' => $request->resources,
+                'role_ids' => $newResources,
                 'has_resources' => $resourcesCount > 0
             ]);
 
