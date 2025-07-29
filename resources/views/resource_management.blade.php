@@ -5,7 +5,7 @@
     <h1 class="mt-0 mb-5">Manajemen Sumber Daya Manusia</h1>
 
     <!-- Card Resource -->
-     <div class="card card-flush shadow-sm mb-6">
+    <div class="card card-flush shadow-sm mb-6">
         <div class="card-body row">
             <div class="d-flex justify-content-between align-items-center">
                 <!-- Add Resource Button -->
@@ -91,6 +91,53 @@
                 </table>
             </div> 
 
+            <!-- Modal Add User -->
+             <div class="modal fade" tabindex="-1" id="kt_modal_add_user">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Tambah User</h3>
+                            
+                            <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                            </div>
+                        </div>
+
+                        <div class="modal-body">
+                            <form id="addUserForm" method="POST" action="{{ route('resource.store') }}">
+                                @csrf
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Nama User</label>
+                                    <input type="text" name="name" class="form-control" placeholder="Masukkan nama lengkap" required/>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" name="email" class="form-control" placeholder="Masukkan email" required/>
+                                </div>
+                                
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Role</label>
+                                    <select name="role_id" class="form-select" required>
+                                        <option value="">Pilih Role</option>
+                                        @foreach($roles as $role)
+                                            <option value="{{ $role->role_id }}">{{ $role->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                            <button type="button" class="btn btn-primary" onclick="submitAddUser()">
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+             </div>
+
             <!-- Modal Edit User -->
             <div class="modal fade" tabindex="-1" id="kt_modal_edit_user">
                 <div class="modal-dialog">
@@ -172,6 +219,10 @@ function initTabelResource() {
             "searchPlaceholder": "Cari User",
             "zeroRecords": "Tidak ada user yang cocok dengan pencarian",
             "emptyTable": "Tidak ada data user"
+        },
+        "fixedHeader": {
+            "header":true,
+            "headerOffset": 70
         },
     });
 
@@ -450,6 +501,106 @@ function submitEditUser() {
         },
         complete: function() {
             // Re-enable form elements
+            form.find('input, select, button').prop('disabled', false);
+        }
+    });
+}
+
+/**
+ * Function untuk submit add user form
+ */
+function submitAddUser() {
+    const form = $('#addUserForm');
+
+    // Basic validation
+    if (!form[0].checkValidity()) {
+        form[0].reportValidity();
+        return;
+    }
+
+    const formData = new FormData(form[0]);
+
+    $.ajax({
+        url: form.attr('action'),
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        beforedSend: function() {
+            form.find('input, select, button').prop('disabled', true);
+
+            Swal.fire({
+                title: 'Menambahkan User...',
+                text: 'Sedang memproses penambahan user baru',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+        },
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: "Berhasil",
+                    text: response.message || "User berhasil ditambahkan",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-primary"
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+                
+                $('#kt_modal_add_user').modal('hide');
+
+            } else {
+                Swal.fire({
+                    title: "Gagal",
+                    text: response.message || "Gagal menambahkan user",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = "Terjadi kesalahan saat menambahkan user";
+
+            if (xhr.responseJSON) {
+                if (xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+
+                if (xhr.responseJSON.errors) {
+                    const errors = Object.entries(xhr.responseJSON.errors)
+                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                        .join('\n');
+                    errorMessage += '\n\nValidation Errors:\n' + errors;
+                }
+            }
+
+            Swal.fire({
+                title: "Gagal Menambahkan User",
+                text: errorMessage,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        },
+        complete: function() {
             form.find('input, select, button').prop('disabled', false);
         }
     });

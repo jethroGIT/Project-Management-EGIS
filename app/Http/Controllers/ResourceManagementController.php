@@ -20,7 +20,7 @@ class ResourceManagementController extends Controller
     {
         try {
             // Fetch users dengan role
-            $users = User::with('role')->orderBy('name')->get();
+            $users = User::with('role')->get();
     
             // Fetch all roles
             $roles = Role::orderBy('name')->get();
@@ -49,7 +49,72 @@ class ResourceManagementController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:user,email',
+            'role_id' => 'required|exists:role,role_id',
+            'password' => 'nullable|string|min:6|confirmed'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $generatedPassword = $this->generatePasswordFromName($request->name);
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'role_id' => $request->role_id,
+                'password' => Hash::make($generatedPassword)
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User berhasil ditambahkan',
+                'user' => [
+                    'user_id' => $user->user_id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role_name' => $user->role->name ?? 'Belum ada peran'
+                ],
+                'password_info' => $generatedPassword
+            ]);
+
+        } catch (Exception $e) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bagian dari function store()
+     * 
+     * Generate password from user name
+     * Format: 3 first letter (lowercase) + "123"
+     */
+    private function generatePasswordFromName(String $name)
+    {
+        // Clean name: remve spaces, special characters, keep only letters
+        $cleanName = preg_replace('/[^a-zA-Z]/', '', $name);
+
+        // Take 3 first characters, convert to lowercase
+        $prefix = strtolower(substr($cleanName, 0, 3));
+
+        // Ensure minimum 3 characters (pad with 'x' if needed)
+        if (strlen($prefix) < 3) {
+            $prefix = str_pad($prefix, 3, 'x');
+        }
+
+        // Combine with "123"
+        $password = $prefix . '123';
+
+        return $password;
     }
 
     /**
@@ -80,6 +145,7 @@ class ResourceManagementController extends Controller
                 ],
                 'roles' => $roles
             ]);
+
         } catch(Exception $e) {
             Log::error('Error getting user for edit', [
                 'user_id' => $id,
