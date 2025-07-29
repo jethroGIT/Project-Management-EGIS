@@ -5,7 +5,7 @@
     <h1 class="mt-0 mb-5">Manajemen Sumber Daya Manusia</h1>
 
     <!-- Card Resource -->
-     <div class="card card-flush shadow-sm">
+     <div class="card card-flush shadow-sm mb-6">
         <div class="card-body row">
             <div class="d-flex justify-content-between align-items-center">
                 <!-- Add Resource Button -->
@@ -49,14 +49,23 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                <span class="badge badge-light badge-lg">
-                                    {{ $user->role->name ?? 'No Role' }}
-                                </span>
+                                @if($user->role)
+                                    <span class="badge badge-light badge-lg">
+                                        {{ $user->role->name }}
+                                    </span>
+                                @else
+                                    Belum memiliki peran
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
                                     <!-- Edit Button -->
-                                    <button type="button" class="btn btn-warning btn-sm" title="Edit User">
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-warning btn-sm" 
+                                        title="Edit User"
+                                        onClick="editUser({{ $user->user_id }})"
+                                    >
                                         <i class="bi bi-pencil-square fs-6"></i>
                                     </button>
 
@@ -78,26 +87,68 @@
                             </td>
                         </tr>
                         @endforelse
-                        <!-- <tr class="align-middle">
-                            <td>2</td>
-                            <td>Restia</td>
-                            <td>restia123@gmail.com</td>
-                            <td>Senior Consultant</td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button type="button" class="btn btn-warning btn-sm" title="Edit User">
-                                        <i class="bi bi-pencil-square fs-6"></i>
-                                    </button>
-
-                                    <button type="button" class="btn btn-danger btn-sm" title="Nonaktifkan User">
-                                        <i class="bi bi-power fs-6"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr> -->
                     </tbody>
                 </table>
             </div> 
+
+            <!-- Modal Edit User -->
+            <div class="modal fade" tabindex="-1" id="kt_modal_edit_user">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Edit User</h3>
+
+                            <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                            </div>
+                        </div>
+
+                        <div class="modal-body">
+                            <form id="editUserForm" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="user_id" id="editUserId">
+
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Nama User</label>
+                                    <input type="text" name="name" id="editUserName" class="form-control" placeholder="Masukkan nama lengkap" required/>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" name="email" id="editUserEmail" class="form-control" placeholder="Masukkan email" required/>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Peran</label>
+                                    <select name="role_id" id="editUserRole" class="form-select" required>
+                                        <option value="">Pilih Role</option>
+                                        <!-- Akan diisi via JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Password Baru</label>
+                                    <input type="password" name="password" id="editUserPassword" class="form-control" placeholder="Masukkan password baru" minlength="6"/>
+                                    <div class="form-text">Kosongkan jika tidak ingin mengubah password</div>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold">Konfirmasi Password Baru</label>
+                                    <input type="password" name="password_confirmation" id="editUserPasswordConfirmation" class="form-control" placeholder="Konfirmasi password baru" minlength="6"/>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                            <button type="button" class="btn btn-primary" onclick="submitEditUser()">
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -154,6 +205,252 @@ function setupResourceSearch(table) {
             this.value = '';
             $(this).trigger('input');
             this.focus();
+        }
+    });
+}
+
+/* MANAJEMEN RESOURCE (USER) */
+/**
+ * Function untuk edit user
+ */
+function editUser(userId) {
+    console.log('Edit user with ID: ', userId);
+
+    // Get user data via AJAX
+    $.ajax({
+        url: `/resource-management/${userId}/edit`,
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        beforeSend: function() {
+            Swal.fire({
+                title: 'Memuat Data...',
+                text: 'Sedang mengambil data user',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+        },
+        success: function(response) {
+            Swal.close();
+            
+            if (response.success) {
+                // Populate modal dengan data user
+                $('#editUserId').val(response.user.user_id);
+                $('#editUserName').val(response.user.name);
+                $('#editUserEmail').val(response.user.email);
+                
+                // Clear dan populate role dropdown
+                const roleSelect = $('#editUserRole');
+                roleSelect.empty();
+                roleSelect.append('<option value="">Pilih Role</option>');
+                
+                response.roles.forEach(function(role) {
+                    const selected = role.role_id == response.user.role_id ? 'selected' : '';
+                    roleSelect.append(`<option value="${role.role_id}" ${selected}>${role.name}</option>`);
+                });
+                
+                // Clear password fields
+                $('#editUserPassword').val('');
+                $('#editUserPasswordConfirmation').val('');
+                
+                // Set form action
+                $('#editUserForm').attr('action', `/resource-management/${userId}`);
+                
+                // Show modal
+                $('#kt_modal_edit_user').modal('show');
+
+            } else {
+                Swal.fire({
+                    title: "Gagal",
+                    text: response.message || "Gagal mengambil data user",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            Swal.close();
+
+            let errorMessage = "Terjadi kesalahan saat mengambil data user";
+
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+
+            Swal.fire({
+                title: "Error",
+                text: errorMessage,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Function untuk submit edit user form
+ */
+function submitEditUser() {
+    const form = $('#editUserForm');
+    const userId = $('#editUserId').val();
+
+    // Validasi form
+    if (!form[0].checkValidity()) {
+        form[0].reportValidity();
+        return;
+    }
+
+    // Validasi password confirmation
+    const password = $('#editUserPassword').val();
+    const passwordConfirmation = $('#editUserPasswordConfirmation').val();
+
+    if (password && password !== passwordConfirmation) {
+        Swal.fire({
+            title: "Validasi Error",
+            text: "Password dan konfirmasi password tidak cocok",
+            icon: "error",
+            buttonsStyling: false,
+            confirmButtonText: "Tutup",
+            customClass: {
+                confirmButton: "btn btn-secondary"
+            }
+        });
+        return;
+    }
+
+    // Create FormData
+    const formData = new FormData(form[0]);
+    
+    console.log('Updating user with ID:', userId);
+
+    // Get original data untuk debugging
+    const originalData = {
+        name: $('#editUserName').data('original') || $('#editUserName').val(),
+        email: $('#editUserEmail').data('original') || $('#editUserEmail').val(),
+        role_id: $('#editUserRole').data('original') || $('#editUserRole').val()
+    };
+
+    console.log('Original data:', originalData);
+    console.log('New data:', {
+        name: $('#editUserName').val(),
+        email: $('#editUserEmail').val(),
+        role_id: $('#editUserRole').val(),
+        password_filled: password ? 'Yes' : 'No'
+    });
+
+    $.ajax({
+        url: `/resource-management/${userId}`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        beforeSend: function() {
+            // Disable form elements
+            form.find('input, select, button').prop('disabled', true);
+            
+            Swal.fire({
+                title: 'Memperbarui User...',
+                text: 'Sedang memproses pembaruan data user',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+        },
+        success: function(response) {
+            if (response.success) {
+                let successMessage = response.message || "User berhasil diperbarui!";
+
+                Swal.fire({
+                    title: "Berhasil",
+                    text: successMessage,
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-primary"
+                    }
+                }).then(() => {
+                    $('#kt_modal_edit_user').modal('hide');
+                    window.location.reload();
+                });
+                
+            } else if (response.no_changes) {
+                let noChangeMessage = "Tidak ada data yang diubah. Silakan lakukan perubahan terlebih dahulu atau klik Batal.";
+
+                Swal.fire({
+                    title: "Tidak Ada Perubahan",
+                    text: noChangeMessage,
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-primary",
+                    }
+                });
+
+            } else {
+                Swal.fire({
+                    title: "Gagal",
+                    text: response.message || "Gagal memperbarui user",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = "Terjadi kesalahan saat memperbarui user";
+            
+            if (xhr.responseJSON) {
+                if (xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                // Handle validation errors
+                if (xhr.responseJSON.errors) {
+                    const errors = Object.entries(xhr.responseJSON.errors)
+                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                        .join('\n');
+                    errorMessage += '\n\nValidation Errors:\n' + errors;
+                }
+            }
+
+            Swal.fire({
+                title: "Gagal Memperbarui User",
+                text: errorMessage,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+        },
+        complete: function() {
+            // Re-enable form elements
+            form.find('input, select, button').prop('disabled', false);
         }
     });
 }

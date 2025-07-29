@@ -428,7 +428,7 @@
                                 </svg>
                             </span>
                         </span>
-                        <span class="menu-title">Manajemen Sumber Daya Manusia</span>
+                        <span class="menu-title">Manajemen SDM</span>
                     </a>
                 </div>
                 <div class="menu-item">

@@ -49,5 +49,7 @@ Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::clas
 
 // Manajemen Resource
 Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
+Route::get('/resource-management/{id}/edit', [ResourceManagementController::class, 'edit'])->name('resource.edit');
+Route::put('/resource-management/{id}', [ResourceManagementController::class, 'update'])->name('resource.update');
 
 Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
