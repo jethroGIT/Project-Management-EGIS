@@ -42,13 +42,13 @@
 
                     <!-- Finance Performance -->
                     <div class="col-md-4">
-                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance') }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
                             <div class="card-header">
                                 <h3 class="card-title fw-bold">Finance Performance</h3>
                             </div>
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                    <span class="fs-1 fw-bold text-success">30 %</span>
+                                    <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
                                 </div>
                             </div>
                             <!-- Overlay -->
@@ -197,7 +197,7 @@
     </div>
     <!-- Modal for Adding Task -->
     <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="insertTaskModalTitle">Tambah Task</h3>
@@ -233,7 +233,7 @@
 
     <!-- Modal for Editing Task -->
     <div class="modal fade" tabindex="-1" id="kt_modal_edit_task">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="editTaskModalTitle">Edit Task</h3>
@@ -282,7 +282,7 @@
                 </button>
 
                 <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h3 class="modal-title">Edit Data</h3>
@@ -491,7 +491,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Kebutuhan Tenaga Kerja -->
                 <div class="col-md-12 mb-4">
                     <div class="card card-flush shadow-sm">
@@ -579,12 +578,6 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Kelola JTK dan JHK Personel</h3>
-
-                <!--begin::Close-->
-                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                </div>
-                <!--end::Close-->
             </div>
 
             <div class="modal-body">
@@ -600,7 +593,7 @@
                             <label for="jumlahTenagaKerja" class="form-label">Jumlah Tenaga Kerja</label>
                             <input type="number" class="form-control" name="jtk" id="jumlahTenagaKerja" placeholder="0">
                         </div> --}}
-                        <div class="col-md-6 mb-3">
+                        <div class="col mb-3">
                             <label for="jumlahHariKerja" class="form-label">Jumlah Hari Kerja</label>                        
                             <input type="number" class="form-control" name="jhk" id="jumlahHariKerja" placeholder="0">
                         </div>
@@ -1096,7 +1089,8 @@ function toggleSubRows(rowId) {
     }
 }
 
-const jtkJhkModal = new bootstrap.Modal(document.getElementById('jtkandjhkModal')); // Asumsi ID modal Anda kt_modal_1
+// modal untuk edit jhk
+const jtkJhkModal = new bootstrap.Modal(document.getElementById('jtkandjhkModal')); 
 const jtkJhkForm = document.getElementById('jtkJhkForm');
 const submitJtkJhkButton = document.getElementById('submitJtkJhkForm');
 
@@ -1105,6 +1099,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(event.target.classList.contains('edit-resource-btn')){
             const button = event.target.closest('.edit-resource-btn');
 
+            // ini yang bakal diedit dan tidak ada di parameter url
             document.getElementById('form_hresource_id').value = button.dataset.hresourceId;
             document.getElementById('form_role_id').value = button.dataset.roleId;
             // document.getElementById('jumlahTenagaKerja').value = button.dataset.jtk;

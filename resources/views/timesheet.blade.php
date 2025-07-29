@@ -10,10 +10,10 @@
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
-            </div>
+            </div>            
             <div class="d-flex align-items-center justify-content-end">                
                 <div class="d-flex align-items-center">
-                    <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6 me-2">
+                    <ul class="nav nav-tabs nav-line-tabs mb-7 fs-6 me-2">
                         @foreach($months as $month)
                         <li class="nav-item">
                             <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
@@ -25,54 +25,12 @@
                     </a>
                 </div>                
             </div>
-            <div class="d-flex justify-content-start">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
-                        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-                    </svg>
-                    Filter Data
-                </button>
-            </div>
-            <div class="collapse" id="filterCard">
-                <div class="card card-flush shadow-lg mb-4">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-                                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-                            </svg>
-                            <div class="m-2">
-                            Filter Data
-                            </div>
-                        </h3>
-                    </div>
-                    <div class="card-body" style="padding: 25px;">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="form-label fw-bold">Pekan</label>
-                                <select class="form-select form-select-solid" id="kategoriFilter" style="cursor: pointer;   ">
-                                    <option value="">Pilih Pekan</option>
-                                    <option value="management">Pekan ke-1</option>
-                                    <option value="awareness">Pekan ke-2</option>
-                                    <option value="training">Pekan ke-3</option>
-                                    <option value="assessment">Pekan ke-4</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer" style="padding: 15px;">
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-danger me-3" id="resetFilter">
-                                Hapus Filter
-                            </button>
-                            <button type="button" class="btn btn-primary" id="applyFilter">
-                                Terapkan
-                            </button>
-                        </div>
-                    </div>  
-                </div>
+            <div class="mb-2">
+                <label class="form-label">Filter Berdasarkan Tanggal</label>
+                <input type="text" class="form-control form-control-solid" placeholder="Pilih rentang tanggal" id="kt_daterangepicker_1" style="width: 35%"/>
             </div>
             <form class="d-flex justify-content-end align-items-center">
-                <label class="me-5 mb-0" for="searchTask">Cari: </label>
+                <label class="me-5 mb-0" for="searchActivity">Cari: </label>
                 <div>
                     <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
                         <input 
@@ -100,7 +58,6 @@
                                                 <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
                                             </th>     
                                         @endforeach                       
-                                        <th scope="col" style="width: 30px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 0.92rem;">
@@ -115,28 +72,7 @@
                                                 @endphp
                                                 {{ $userEntry->activity ?? '-'}}
                                             </td>
-                                        @endforeach
-                                        <td>
-                                            <div class="dropdown">
-                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                        <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                        <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Atas</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
-                                                        <i class="bi bi-plus fs-2 me-1 text-dark"></i>Tambah Baris di Bawah</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
+                                        @endforeach                                        
                                     </tr>  
                                     @endforeach          
                                 </tbody>
@@ -147,27 +83,37 @@
                     </div>
                 </div>           
             </div>
-            <div class="col-md-6" style="width: 50%; min-width: 350px;">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
-                    <i class="bi bi-chevron-down me-2"></i>
-                    Lihat Ringkasan Mandays
-                </button>
+            <div class="separator my-3"></div>                        
+            <div class="col">
+                <div class="d-flex justify-content-between mb-5">
+                    <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
+                        <i class="bi bi-chevron-down me-2"></i>
+                        Lihat Ringkasan Mandays
+                    </button>
+                    {{-- id user dummy terlebih dulu, nanti ambil dari session user --}}
+                    <button type="button" class="btn btn-light-primary" aria-expanded="false" aria-controls="kelolaAktivitas" onclick="window.location.href='{{ route('timesheet.detail.user', [$volume->volume_id, 1]) }}'">
+                        Kelola Aktivitas
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="collapse" id="mandaysSummaryTable">
                     <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
                         <thead>
                             <tr>
-                                <th scope="col" colspan="3" class="text-center bg-light">Total Mandays Sementara</th>
+                                <th scope="col" colspan="3" class="text-center bg-light py-1">Total Mandays</th>
                             </tr>
                             <tr>
-                                <th scope="col" rowspan="2" class="align-middle">Personel</th>
-                                <th scope="col" colspan="2" class="text-center align-middle">Mandays</th>
+                                <th scope="col" rowspan="2" class="align-middle py-1">Personel</th>
+                                <th scope="col" colspan="2" class="text-center align-middle py-1">Mandays</th>
                             </tr>
                             <tr>
-                                <th class="text-center align-middle">Rencana</th>
-                                <th class="text-center align-middle">Realisasi</th>                            
+                                <th class="text-center align-middle py-0">Rencana</th>
+                                <th class="text-center align-middle py-0">Realisasi</th>                            
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="font-size: 0.92rem;">
                             @foreach($humanResources as $hResource)
                             <tr>
                                 <td class="align-middle">{{$hResource->role->name}}</td>
@@ -184,11 +130,24 @@
                         </tbody>
                     </table>
                 </div>
-            </div>            
+            </div>
         </div>
     </div>
 </div>
 @endsection
+
+<!--begin::Scrollbottom-->
+{{-- <div id="kt_scrollbottom_button" class="scrolltop" data-kt-scrollbottom="true" style="bottom: 120px; display:flex">
+    <span class="svg-icon">
+        <!-- Icon panah ke bawah (reverse dari scrolltop) -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 15.5L6.5 10l1.41-1.41L12 13.67l4.09-4.08L17.5 10z" fill="black"/>
+        </svg>
+    </span>
+    <span id="closeScrollBottom" style="position:absolute;top:-8px;right:-8px;font-size:12px;background:red;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;">×</span>
+</div> --}}
+<!--end::Scrollbottom-->
+
 
 <div class="modal fade" tabindex="-1" id="kt_modal_1">
     <div class="modal-dialog">
@@ -336,6 +295,68 @@
         });
     }
 
+    // datepicker
+    let startDate = '';
+    let endDate = '';
+
+    moment.locale('id'); // Set locale to Indonesian
+    $(document).ready(function () {
+    $('#kt_daterangepicker_1').daterangepicker({
+            locale: {
+                format: 'D MMMM YYYY',
+                applyLabel: "Terapkan",
+                cancelLabel: "Batal",
+                weekLabel: "Minggu",
+                daysOfWeek: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+                monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+                firstDay: 1 // Set hari pertama minggu ke Senin
+            }
+        }, function(start, end) {
+            startDate = start.format('YYYY-MM-DD');
+            endDate = end.format('YYYY-MM-DD');
+        });
+         $('#applyFilter').on('click', function () {
+            if (!startDate || !endDate) {
+                Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
+                return;
+            }
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('start_date', startDate);
+            url.searchParams.set('end_date', endDate);
+            window.location.href = url.toString();
+        });
+
+        $('#resetFilter').on('click', function () {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('start_date');
+            url.searchParams.delete('end_date');
+            window.location.href = url.toString();
+        });
+    });
+
+
+    // Saat tombol Terapkan diklik
+    // document.getElementById('applyFilter').addEventListener('click', function () {
+    //     if (!startDate || !endDate) {
+    //         Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
+    //         return;
+    //     }
+
+    //     const url = new URL(window.location.href);
+    //     url.searchParams.set('start_date', startDate);
+    //     url.searchParams.set('end_date', endDate);
+    //     window.location.href = url.toString(); // reload dengan query string
+    // });
+
+    // Reset filter
+    // document.getElementById('resetFilter').addEventListener('click', function () {
+    //     const url = new URL(window.location.href);
+    //     url.searchParams.delete('start_date');
+    //     url.searchParams.delete('end_date');
+    //     window.location.href = url.toString();
+    // });
+
     /* ADD NEW PERSONEL */
     function addNewPersonel() {
         const personelHtml = `
@@ -424,6 +445,39 @@
     $(function () {
         $('[data-bs-toggle="tooltip"]').tooltip();
     });
+
+    // document.addEventListener("DOMContentLoaded", function () {
+    //     const scrollBottomBtn = document.getElementById("kt_scrollbottom_button");
+    //     const closeScrollBottom = document.getElementById("closeScrollBottom");
+
+    //     // Tombol muncul langsung
+    //     scrollBottomBtn.style.display = "flex";
+
+    //     // Klik panah scroll ke bawah
+    //     scrollBottomBtn.addEventListener("click", function (e) {
+    //         if (e.target.id !== "closeScrollBottom" && !closeScrollBottom.contains(e.target)) {
+    //             const secondTable = document.getElementById('mandaysSummaryTable')
+    //             if(secondTable){
+    //                 window.scrollTo({
+    //                     top: secondTable.offsetTop,
+    //                     behavior:'smooth'
+    //                 });
+    //                 scrollBottomBtn.style.display="none";
+    //             }else{
+    //                 window.scrollTo({
+    //                     top: document.body.scrollHeight,
+    //                     behavior: 'smooth'
+    //                 });
+    //                 scrollBottomBtn.style.display="none";
+    //             }
+    //         }
+    //     });
+
+    //     // Tutup tombol
+    //     closeScrollBottom.addEventListener("click", function () {
+    //         scrollBottomBtn.style.display = "none";
+    //     });
+    // });
 </script>
 @endpush
 

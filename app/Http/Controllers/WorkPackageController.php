@@ -8,12 +8,15 @@ use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use App\Models\User;
 use App\Models\Task;
+use App\Models\Timesheet;
 use App\Models\Work;
+use App\Models\WpCategory;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+
 
 class WorkPackageController extends Controller
 {
@@ -44,7 +47,7 @@ class WorkPackageController extends Controller
             'task' => function($query) {
                 $query->orderBy('order_index')->orderBy('task_id');
             },
-            'work.user.role'
+            'work.role'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -75,6 +78,38 @@ class WorkPackageController extends Controller
             });
             $totalCompletion = round($taskCompletions->avg(), 2);
         }
+
+        // hitung persentase finance performance
+        // Ambil semua work dan timesheet berdasarkan volume
+        $works = Work::with('role')->where('volume_id', $volume_id)->get();
+        $timesheets = Timesheet::with('user.role')->where('volume_id', $volume_id)->get();
+
+        // Group dan jumlahkan resource cost per role
+        $resourceCostPerRole = $works->groupBy(fn($w) => optional($w->role)->role_id)
+            ->map(fn($group) => $group->sum('resource_cost'));
+
+        // Hitung aktivitas per role dari timesheet
+        $timesheetCountPerRole = $timesheets->groupBy(fn($t) => optional($t->user->role)->role_id)
+            ->map(fn($group) => $group->count());
+        
+        $totalByYoy = 0;
+        $totalRealization = 0;
+
+        foreach ($humanResources as $hr) {
+            $roleId = $hr->role_id;
+            $jhk = $hr->jhk ?? 0;
+            $resourceCost = $resourceCostPerRole[$roleId] ?? 0;
+            $timesheetCount = $timesheetCountPerRole[$roleId] ?? 0;
+
+            $totalByYoy += $jhk * $resourceCost;
+            $totalRealization += $timesheetCount * $resourceCost;
+        }
+
+        // Hitung persentase realisasi
+        $realizationPercentage = $totalByYoy > 0 ? ($totalRealization / $totalByYoy) * 100 : 0;
+        if($realizationPercentage > 100){
+            $realizationPercentage = 100;
+        }
         
         return view('workpackage', compact(
             'humanResources',
@@ -82,7 +117,8 @@ class WorkPackageController extends Controller
             'volume', 
             'volume_id',
             'assignedUsers',
-            'totalCompletion'
+            'totalCompletion',
+            'realizationPercentage'
         ));
     }
 
@@ -389,17 +425,17 @@ class WorkPackageController extends Controller
             Work::where('volume_id', $volume_id)->delete();
 
             // Tambah assignments baru
-            if ($request->has('resources') && !empty($request->resources)) {
-                foreach ($request->resources as $userId) {
-                    if (!empty($userId) && is_numeric($userId)) {
-                        Work::create([
-                            'user_id' => (int) $userId,
-                            'volume_id' => (int) $volume_id,
-                            'resource_cost' => 0.00
-                        ]);
-                    }
-                }
-            }
+            // if ($request->has('resources') && !empty($request->resources)) {
+            //     foreach ($request->resources as $userId) {
+            //         if (!empty($userId) && is_numeric($userId)) {
+            //             Work::create([
+            //                 'role_id' => (int) $userId,
+            //                 'volume_id' => (int) $volume_id,
+            //                 'resource_cost' => 0.00
+            //             ]);
+            //         }
+            //     }
+            // }
 
             DB::commit();
 
@@ -451,7 +487,7 @@ class WorkPackageController extends Controller
                 'message' => 'Gagal memperbarui data: ' . $e->getMessage()
             ], 500);
         }
-    }
+    }    
 
     /**
      * Show the form for creating a new resource.
@@ -485,7 +521,7 @@ class WorkPackageController extends Controller
         $volume = WorkPackageVolume::with([
             'workPackage', 
             'task',
-            'work.user'
+            'work.role'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -505,7 +541,7 @@ class WorkPackageController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data resource berhasil diperbarui.',
+                'message' => 'Data berhasil diperbarui.',
                 'data' => $resource // Kirim data yang diperbarui jika perlu untuk update UI
             ]);
         } catch (\Exception $e) {

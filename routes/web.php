@@ -12,7 +12,8 @@ use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\WorkPackageController;
 use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
-
+use App\Http\Controllers\TimesheetManagementController;
+use App\Http\Controllers\WPCategoryManagementController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -32,8 +33,16 @@ Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->na
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
 
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
+Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');
+
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
 Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');
+// Route::put('/timesheet/{volume_id?}/edit', [TimesheetController::class, 'edit'])->name('timesheet.edit');
+
+Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
+Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
+Route::put('/timesheet-user/{volume_id}/{user_id}/edit', [TimesheetController::class, 'editperUser'])->name('timesheet.user.edit');
+Route::delete('/timesheet-user/{timesheet_id}/delete', [TimesheetController::class, 'deleteperUser'])->name('timesheet.user.delete');
 
 Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
 Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
@@ -47,10 +56,20 @@ Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'del
 // Work Package Volume Data Management
 Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
 
+// manajemen kategori work package
+Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
+Route::post('/wpcategory-management/add', [WPCategoryManagementController::class, 'add'])->name('wpcategory.add');
+Route::put('/wpcategory-management/edit', [WPCategoryManagementController::class, 'edit'])->name('wpcategory.edit');
+Route::delete('/wpcategory-management/{id}/delete', [WPCategoryManagementController::class, 'delete'])->name('wpcategory.delete');
+
+// Manajemen Timesheet
+Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');
+
 // Manajemen Resource
 Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
 Route::post('/resource-management', [ResourceManagementController::class, 'store'])->name('resource.store');
 Route::get('/resource-management/{id}/edit', [ResourceManagementController::class, 'edit'])->name('resource.edit');
 Route::put('/resource-management/{id}', [ResourceManagementController::class, 'update'])->name('resource.update');
 
+// Manajemen Roles
 Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
