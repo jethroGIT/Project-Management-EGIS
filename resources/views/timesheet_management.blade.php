@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <!-- Add Activity Button -->
                 <div class="d-flex justify-content-start mb-4">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_category">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addActivityModal">
                         <i class="bi bi-plus-lg fs-2 me-1"></i>
                         Tambah Aktivitas
                     </button>
@@ -35,45 +35,65 @@
                 <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="tabel_aktivitas">
                     <thead>
                         <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
-                            <th scope="col" style="width: 40px;">No</th>
-                            <th scope="col" style="width: 40px;">Volume</th>
-                            <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
+                            <th scope="col" style="display: none;">WP Group Key</th> {{-- Ini untuk WP Number dan WP Name --}}
+
+                            <th scope="col" style="width: 30px;">No</th>
+                            <th scope="col" style="width: 30px;">Vol</th>
+                            <th scope="col" style="width: 75px; min-width: 40px;">Tanggal</th>
                             @foreach($users as $user)
                                 <th scope="col" style="width: 80px;">
                                     <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
                                 </th>     
-                            @endforeach                       
+                            @endforeach
+                            <th scope="col" style="width: 100px;">Action</th>
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.92rem;">
-                        @foreach($groupedByWP as $wpKey => $entries)
+                        @foreach($activitiesForTable as $activity)
                             @php
-                                [$wpNumber, $wpName] = explode('|', $wpKey);
-                                $groupId = Str::slug($wpNumber . '-' . $wpName);
-                                $groupedEntries = $entries->groupBy(fn($e) => $e->volume_id . '|' . $e->execution_date);
+                                $wpNumber = optional($activity->volume->workPackage)->wp_number ?? 'N/A';
+                                $wpName = optional($activity->volume->workPackage)->name ?? 'N/A';
+                                $volumeNum = optional($activity->volume)->volume_number ?? 'N/A';
+                                $executionDate = optional($activity)->execution_date;
                             @endphp
-                            <tr class="bg-light text-dark fw-bold" data-group="{{ $groupId }}">
-                                <td colspan="{{ 3 + $users->count() }}">
-                                    {{$wpNumber}} {{ $wpName }}
+                            <tr>
+                                {{-- Data untuk Kolom Tersembunyi (digunakan oleh RowGroup) --}}
+                                <td>{{ $wpNumber }} {{$wpName}}</td>
+
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $volumeNum }}</td> {{-- Data Volume tampil di kolom ini --}}
+                                <td>{{ \Carbon\Carbon::parse($executionDate)->format('d M Y') }}</td>
+                                @foreach($users as $user)
+                                    @php
+                                        // Untuk mendapatkan aktivitas user spesifik pada tanggal ini,
+                                        // Anda perlu mencari dalam koleksi $activitiesForTable untuk tanggal dan user yang sama.
+                                        // Karena $activitiesForTable adalah koleksi flat, Anda perlu logic pencarian.
+                                        $userEntryForThisDateAndUser = $activitiesForTable->filter(function($entry) use ($activity, $user){
+                                            return $entry->execution_date == $activity->execution_date && $entry->user_id == $user->user_id;
+                                        })->first();
+                                    @endphp
+                                    <td>{{ $userEntryForThisDateAndUser->activity ?? '-' }}</td>
+                                @endforeach
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <!-- Edit Button -->
+                                        <button type="button" class="btn btn-warning btn-sm btn-edit-category" title="Edit User" 
+                                                {{-- data-bs-toggle="modal" data-bs-target="#kt_modal_edit_category"
+                                                data-category-id="{{$wpCategory->category_id}}" 
+                                                data-category-name="{{$wpCategory->name}}" --}}
+                                        >
+                                            <i class="bi bi-pencil-square fs-6"></i>
+                                        </button>
+
+                                        <!-- Delete Button -->
+                                        <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Nonaktifkan User" 
+                                                {{-- data-category-id="{{$wpCategory->category_id}}" --}}
+                                        >
+                                            <i class="bi bi-trash fs-6"></i>
+                                        </button>
+                                    </div>                                    
                                 </td>
                             </tr>
-                            @foreach($groupedEntries as $key => $rowEntries)
-                                @php
-                                    [$volumeId, $date] = explode('|', $key);
-                                    $firstEntry = $rowEntries->first();
-                                @endphp
-                                <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $volumeId }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($date)->format('d M Y') }}</td>
-                                    @foreach($users as $user)
-                                        @php
-                                            $entry = $rowEntries->where('user_id', $user->user_id)->first();
-                                        @endphp
-                                        <td>{{ $entry->activity ?? '-' }}</td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
                         @endforeach
                     </tbody>
                 </table>
@@ -83,30 +103,100 @@
 </div>
 @endsection
 
-{{-- tambah kategori --}}
-{{-- <div class="modal fade" tabindex="-1" id="kt_modal_add_category">
-    <div class="modal-dialog modal-dialog-centered">
+{{-- tambah aktivitas --}}
+<div class="modal fade" tabindex="-1" id="addActivityModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{{route('wpcategory.add')}}" id="addCategoryForm">
+                <form>
+                    {{-- method="POST" action="{{route('timesheet.user.add', [$volume->volume_id,1])}}" id="addActivityForm" --}}
                     @csrf
-                    @method('POST')                   
-                    <div class="mb-6">
-                        <label class="form-label fw-bolder">Kategori WP</label>
-                        <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                    @method('POST')
+
+                    <div class="form-group mb-6">
+                        <label for="work_package_select" class="form-label fw-bold">Work Package</label>
+                        <div class="input-group">
+                            <select class="form-select form-select-solid" name="work_package_id" id="work_package_select">
+                                <option value="">Pilih Work Package</option>
+                                {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
+                                @foreach($uniqueWorkPackages as $wp)
+                                    <option value="{{ $wp->wp_id }}">{{ $wp->wp_number }} {{ $wp->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group mb-6">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="volume_select" class="form-label fw-bold">Volume</label>
+                                <div class="input-group">
+                                    <select class="form-select form-select-solid" name="work_package_id" id="work_package_select">
+                                        <option value="">Pilih Volume</option>
+                                        {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
+                                        @foreach($uniqueVolumes as $vol)
+                                            <option value="{{ $vol->volume_id }}">{{ $vol->volume_number }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Tanggal</label>
+                                <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="personelActivityContainer">
+                        <template id="personelActivityTemplate">
+                            <div class="card card-flush shadow-sm mb-6">
+                                <div class="card-body">
+                                    <div class="form-group mb-6">
+                                        <label for="personel_select" class="form-label fw-bold">Personel</label>
+                                        <div class="input-group">
+                                            <select class="form-select form-select-solid" name="work_package_id" id="work_package_select">
+                                                <option value="">Pilih Personel</option>
+                                                {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
+                                                @foreach($users as $user)
+                                                    <option value="{{ $user->user_id }}">{{ $user->name }} - {{$user->role->name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div> 
+                                    <div class="form-group mb-6">
+                                        <label class="form-label fw-bold">Aktivitas</label>
+                                        <textarea class="form-control" id="activity" name="activity" rows="2" placeholder="Aktivitas" required></textarea>
+                                    </div>                    
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="d-flex justify-content-start mb-4">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addActivityModal">
+                            <i class="bi bi-plus-lg fs-2 me-1"></i>
+                            Tambah Aktivitas Personel
+                        </button>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="submitAddCategoryForm">Simpan</button>
+                <button type="button" class="btn btn-primary" id="submitAddActivitykForm">Simpan</button>
             </div>
         </div>
     </div>
-</div> --}}
+</div>
+
+{{-- 1. work package yg mana? dropdown
+2. volume berapa? dropdown
+3. mau isi aktivitas siapa?
+	isi tanggal
+	pilih pekerja yang kerja di wp volume yang dipilih
+	isi aktivitasnya
+	(bisa isi lebih dari 1 orang pekerja) --}}
 
 {{-- edit kategori --}}
 {{-- <div class="modal fade" tabindex="-1" id="kt_modal_edit_category">
@@ -143,13 +233,27 @@
 
     function initTabelTimesheet() {
         const table = $('#tabel_aktivitas').DataTable({
-            "scrollY": '500px',
+            "scrollY": '350px',
             "scrollX": true,
             "fixedHeader": {
                 "header": true,
                 "headerOffset": 70
             },
-            "ordering": false, // Disable sorting
+            "rowGroup": {
+                // dataSrc bisa berupa array indeks kolom untuk multiple grouping levels
+                dataSrc: [0], // Menggunakan kolom indeks 0 (WP Group Key) dan 1 (Volume Group Key)
+
+                // Render header untuk setiap grup
+                startRender: function (rows, group, level) {
+                    return $('<tr/>')
+                        .append('<td colspan="' + rows.columns()[0].length + '" class="bg-light text-dark fw-bold">' + group + '</td>')
+                        .addClass('wp-group-header');                    
+                }
+            },
+            // Kolom definisi: Sembunyikan kolom yang digunakan untuk grouping
+            "columnDefs": [
+                { "visible": false, "targets": [0] }, // Sembunyikan kolom WP Group Key (index 0) dan Volume Group Key (index 1)
+            ]
         });
 
         setupActivitySearch(table);
