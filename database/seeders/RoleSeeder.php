@@ -17,8 +17,7 @@ class RoleSeeder extends Seeder
         $roles =[
             [
                 'name' => 'Project Manager', 
-                'alt_name' => 
-                'Manajer Proyek', 
+                'alt_name' => 'Manajer Proyek', 
                 'desc' => 'PM',
                 'resource_cost' => 2150000.00
             ],
