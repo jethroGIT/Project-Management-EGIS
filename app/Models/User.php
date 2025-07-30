@@ -40,7 +40,7 @@ class User extends Authenticatable
 
     public function work()
     {
-        return $this->hasMany(Work::class, 'role_id', 'role_id');
+        return $this->hasMany(Work::class, 'user_id', 'user_id');
     }
 
     public function role()

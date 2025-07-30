@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Role;
+use Exception;
+
 class RolesManagementController extends Controller
 {
     /**
@@ -12,7 +15,10 @@ class RolesManagementController extends Controller
     public function index()
     {
         //
-        return view('roles_management');
+        $roles = Role::get();
+        // $roles = collect();
+
+        return view('roles_management', compact('roles'));
     }
 
     /**

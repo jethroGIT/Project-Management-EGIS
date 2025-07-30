@@ -15,35 +15,29 @@ class WorkSeeder extends Seeder
     {
         $works = [
             [
-                'role_id' => 1,
+                'user_id' => 1,
                 'volume_id' => 1,
-                'resource_cost' => 2150000.00,
             ],
             [
-                'role_id' => 2,
+                'user_id' => 2,
                 'volume_id' => 1,
-                'resource_cost' => 2700000.00,
             ],
             [
-                'role_id' => 3,
+                'user_id' => 3,
                 'volume_id' => 1,
-                'resource_cost' => 2175000.00,
             ],
             [
-                'role_id' => 4,
+                'user_id' => 4,
                 'volume_id' => 1,
-                'resource_cost' => 1700000.00,
             ],
             [
-                'role_id' => 5,
+                'user_id' => 5,
                 'volume_id' => 1,
-                'resource_cost' => 800000.00,
             ],
             // Tambahan
             [
-                'role_id' => 3,
+                'user_id' => 3,
                 'volume_id' => 3,
-                'resource_cost' => 800000.00,
             ],
         ];
 

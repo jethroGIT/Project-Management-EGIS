@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name',30)->unique();
             $table->string('alt_name', 30)->nullable();
             $table->text('desc')->nullable();
+            $table->decimal('resource_cost', 15, 2)->default(0.00);
             $table->timestamps();
         });
     }

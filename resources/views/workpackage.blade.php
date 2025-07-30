@@ -265,7 +265,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="submitEditTask()">Perbarui</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditTask()">Simpan</button>
                 </div>
             </div>
         </div>
@@ -892,7 +892,7 @@ function submitEditData() {
             } else if (response.no_changes) {
                 Swal.fire({
                     title: "Tidak Ada Perubahan",
-                    text: "Tidak ada data yang diubah. Silakan lakukan perubahan terlebih dahulu atau klik Batal untuk menutup modal.",
+                    text: "Tidak ada data yang diubah. Silakan lakukan perubahan terlebih dahulu atau klik Batal.",
                     icon: "info",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",

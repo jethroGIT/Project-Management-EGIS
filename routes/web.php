@@ -70,6 +70,9 @@ Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementControlle
 
 // Manajemen Resource
 Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
+Route::post('/resource-management', [ResourceManagementController::class, 'store'])->name('resource.store');
+Route::get('/resource-management/{id}/edit', [ResourceManagementController::class, 'edit'])->name('resource.edit');
+Route::put('/resource-management/{id}', [ResourceManagementController::class, 'update'])->name('resource.update');
 
 // Manajemen Roles
 Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');

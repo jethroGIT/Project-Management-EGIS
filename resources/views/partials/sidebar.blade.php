@@ -428,7 +428,7 @@
                                 </svg>
                             </span>
                         </span>
-                        <span class="menu-title">Manajemen Sumber Daya Manusia</span>
+                        <span class="menu-title">Manajemen SDM</span>
                     </a>
                 </div>
                 <div class="menu-item">
@@ -442,7 +442,7 @@
                                 <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
                             </svg>
                         </span>
-                        <span class="menu-title">Manajemen Roles</span>
+                        <span class="menu-title">Manajemen Peran</span>
                     </a>
                 </div>
                 <div class="menu-item">
