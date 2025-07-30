@@ -48,7 +48,7 @@
                             <td>
                                 <div class="d-flex gap-2">
                                     <!-- Edit Button -->
-                                    <button type="button" class="btn btn-warning btn-sm btn-edit-category" title="Edit User" 
+                                    <button type="button" class="btn btn-warning btn-sm btn-edit-category" title="Edit Kategori WP" 
                                             data-bs-toggle="modal" data-bs-target="#kt_modal_edit_category"
                                             data-category-id="{{$wpCategory->category_id}}" 
                                             data-category-name="{{$wpCategory->name}}"
@@ -57,7 +57,7 @@
                                     </button>
 
                                     <!-- Delete Button -->
-                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Nonaktifkan User" data-category-id="{{$wpCategory->category_id}}">
+                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Hapus Kategori WP" data-category-id="{{$wpCategory->category_id}}">
                                         <i class="bi bi-trash fs-6"></i>
                                     </button>
                                 </div>                                    
