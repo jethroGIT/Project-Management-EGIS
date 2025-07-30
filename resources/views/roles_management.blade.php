@@ -37,8 +37,8 @@
                         <tr class="fw-bolder fs-4 text-gray-1000 px-7">
                             <th class="align-middle border-bottom">No</th>
                             <th class="align-middle border-bottom min-w-200px">Nama Peran</th>
-                            <th class="align-middle border-bottom min-w-200px">Singkatan</th>
-                            <th class="align-middle border-bottom">Biaya Tenaga Kerja</th>
+                            <th class="align-middle border-bottom">Singkatan</th>
+                            <th class="align-middle border-bottom min-w-200px">Biaya Tenaga Kerja</th>
                             <th class="align-middle border-bottom">Action</th>
                         </tr>
                     </thead>
