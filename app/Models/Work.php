@@ -12,14 +12,14 @@ class Work extends Model
 
     protected $fillable = [
         // 'mandays_realization',
-        'role_id',
+        'user_id',
         'volume_id',
-        'resource_cost',
+        // 'resource_cost',
     ];
 
-    public function role()
+    public function user()
     {
-        return $this->belongsTo(Role::class, 'role_id', 'role_id');
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
     public function volume()

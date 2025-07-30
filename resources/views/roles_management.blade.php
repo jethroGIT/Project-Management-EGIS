@@ -48,7 +48,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $role->name }}</td>
                             <td>{{ $role->desc ?? 'N/A' }}</td>
-                            <td>Rp2,150,000</td>
+                            <td>Rp{{ number_format($role->resource_cost, 0, ',', '.') }}</td>
                             <td>
                                 <div class="d-flex gap-2">
                                     <!-- Edit Button -->

@@ -47,7 +47,7 @@ class WorkPackageController extends Controller
             'task' => function($query) {
                 $query->orderBy('order_index')->orderBy('task_id');
             },
-            'work.role'
+            'work.user.role'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -57,12 +57,16 @@ class WorkPackageController extends Controller
             ->orderBy('hresource_id')
             ->get();
 
-        // Ambil users berdasarkan role yang ter-assign di work
-        $assignedRoleIds = Work::where('volume_id', $volume_id)->pluck('role_id');
+        // Ambil users yang ter-assign langsung dari work
+        // $assignedRoleIds = Work::where('volume_id', $volume_id)->pluck('role_id');
         
-        $assignedUsers = User::whereIn('role_id', $assignedRoleIds)
-            ->with('role')
-            ->get();
+        // $assignedUsers = User::whereIn('role_id', $assignedRoleIds)
+        //     ->with('role')
+        //     ->get();
+
+        $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
+            $query->where('volume_id', $volume_id);
+        })->with('role')->get();
 
         // Hitung total completion dari task performance
         $tasks = $volume->task;
@@ -80,12 +84,12 @@ class WorkPackageController extends Controller
 
         // hitung persentase finance performance
         // Ambil semua work dan timesheet berdasarkan volume
-        $works = Work::with('role')->where('volume_id', $volume_id)->get();
+        $works = Work::with('user.role')->where('volume_id', $volume_id)->get();
         $timesheets = Timesheet::with('user.role')->where('volume_id', $volume_id)->get();
 
         // Group dan jumlahkan resource cost per role
-        $resourceCostPerRole = $works->groupBy(fn($w) => $w->role_id)
-            ->map(fn($group) => $group->sum('resource_cost'));
+        $resourceCostPerRole = $works->groupBy(fn($w) => optional($w->user->role)->role_id)
+            ->map(fn($group) => $group->first()->user->role->resource_cost ?? 0);
 
         // Hitung aktivitas per role dari timesheet
         $timesheetCountPerRole = $timesheets->groupBy(fn($t) => optional($t->user->role)->role_id)
@@ -384,17 +388,15 @@ class WorkPackageController extends Controller
             // Deteksi Perubahan
             $originalStartDate = Carbon::parse($volume->start_date)->format('Y-m-d');
             $originalEndDate = Carbon::parse($volume->end_date)->format('Y-m-d');
-            $originalResources = Work::where('volume_id', $volume_id)->pluck('role_id')->sort()->values()->toArray();
+            $originalResources = Work::where('volume_id', $volume_id)->pluck('user_id')->sort()->values()->toArray();
 
             $newStartDate = $request->start_date;
             $newEndDate = $request->end_date;
             $newResources = collect($request->resources ?? [])
                 ->filter()
                 ->map(function($userId) {
-                    $user = User::find($userId);
-                    return $user ? $user->role_id : null;
+                    return (int) $userId;
                 })
-                ->filter()
                 ->unique()
                 ->sort()
                 ->values()
@@ -428,12 +430,11 @@ class WorkPackageController extends Controller
             // Menangani Resource dengan tabel Work
             Work::where('volume_id', $volume_id)->delete();
 
-            // Tambah assignments baru berdasarkan role_id
-            foreach ($newResources as $roleId) {
+            // Tambah assignments baru berdasarkan user_id
+            foreach ($newResources as $userId) {
                 Work::create([
-                    'role_id' => (int) $roleId,
-                    'volume_id' => (int) $volume_id,
-                    'resource_cost' => 0.00
+                    'user_id' => (int) $userId,
+                    'volume_id' => (int) $volume_id
                 ]);
             }
 

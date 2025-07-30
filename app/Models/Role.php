@@ -14,6 +14,7 @@ class Role extends Model
         'name',
         'alt_name',
         'desc',
+        'resource_cost',
     ];
 
     public function users()
