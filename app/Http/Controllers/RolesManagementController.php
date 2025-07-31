@@ -129,7 +129,9 @@ class RolesManagementController extends Controller
                     'alt_name' => $role->alt_name,
                     'desc' => $role->desc,
                     'resource_cost' => $role->resource_cost,
-                    'resource_cost_formatted' => number_format($role->resource_cost, 0, ',', '.')
+                    'resource_cost_formatted' => $role->resource_cost == intval($role->resource_cost)
+                        ? intval($role->resource_cost)
+                        : $role->resource_cost
                 ]
             ]);
 
@@ -161,14 +163,14 @@ class RolesManagementController extends Controller
             'name' => 'required|string|max:30|unique:role,name,' . $id . ',role_id',
             'alt_name' => 'nullable|string|max:30',
             'desc' => 'nullable|string|max:10',
-            'resource_cost' => 'required|numeric|min:0'
+            'resource_cost' => 'numeric|min:0'
         ], [
             'name.required' => 'Nama peran harus diisi',
             'name.unique' => 'Nama peran sudah ada dalam sistem',
             'name.max' => 'Nama peran maksimal 30 karakter',
             'desc.max' => 'Singkatan maksimal 10 karakter',
-            'resource_cost.required' => 'Biaya tenaga kerja harus diisi',
-            'resource_cost.numeric' => 'Biaya tenaga kerja harus berupa angka',
+            // 'resource_cost.required' => 'Biaya tenaga kerja harus diisi',
+            'resource_cost.numeric' => 'Biaya tenaga kerja harus diisi dengan nominal uang',
             'resource_cost.min' => 'Biaya tenaga kerja tidak boleh negatif'
         ]);
 
@@ -188,9 +190,15 @@ class RolesManagementController extends Controller
             $newDesc = $request->desc ? trim($request->desc) : null;
 
             // Parse resource cost
-            $costString = str_replace(['.', ',', 'Rp', ' '], '', $request->resource_cost);
-            $newResourceCost = (float) $costString;
+            $resourceCostInput = $request->resource_cost;
 
+            if (is_string($resourceCostInput)) {
+                $costString = str_replace(['.', ',', 'Rp', ' '], '', $resourceCostInput);
+                $newResourceCost = (float) $costString;
+            } else {
+                $newResourceCost = (float) $resourceCostInput;
+            }
+            
             // Pengecekan perubahan
             $nameChanged = $originalName !== $newName;
             $altNameChanged = $originalAltName !== $newAltName;
@@ -212,7 +220,7 @@ class RolesManagementController extends Controller
                         'alt_name' => $originalAltName,
                         'desc' => $originalDesc,
                         'resource_cost' => $originalResourceCost,
-                        'resource_cost_formatted' => 'Rp' . number_format($originalResourceCost, 0, ',', '.')
+                        'resource_cost_display' => 'Rp' . number_format($originalResourceCost, 0, ',', '.')
                     ]
                 ], 200);
             }
@@ -281,6 +289,24 @@ class RolesManagementController extends Controller
                 'message' => 'Gagal memperbarui peran: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Helper method untuk membersihkan input currency
+     * 
+     * Digunakan pada function store() dan update()
+     */
+    private function cleanCurrencyInput($input)
+    {
+        if (is_null($input) || $input === '') {
+            return 0;
+        }
+
+        // Hapus semua karakter non-numeric kecuali titik desimal
+        $cleaned = preg_replace('/[^\d.]/', '', $input);
+
+        // Convert ke float
+        return (float) $cleaned;
     }
 
     /**

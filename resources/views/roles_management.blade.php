@@ -186,7 +186,14 @@
                                     <label class="form-label fw-bold">Biaya Tenaga Kerja</label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="text" name="resource_cost" id="editRoleCost" class="form-control" placeholder="0" required/>
+                                        <input 
+                                            type="text" 
+                                            name="resource_cost" 
+                                            id="editRoleCost" 
+                                            class="form-control" 
+                                            placeholder="0" 
+                                            required
+                                        />
                                     </div>
                                 </div>
 
@@ -203,7 +210,7 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                            <button type="button" class="btn btn-warning" onclick="submitEditRole()">
+                            <button type="button" class="btn btn-primary" onclick="submitEditRole()">
                                 Simpan
                             </button>
                         </div>
@@ -219,6 +226,12 @@
 <script>
 $(document).ready(function () {
     initTabelRole();
+
+    const addCostInput = $('#addRoleCost')
+    const editCostInput = $('#editRoleCost')
+
+    setupEditCurrencyFormatting(addCostInput);
+    setupEditCurrencyFormatting(editCostInput);
 })
 
 /**
@@ -274,6 +287,33 @@ function setupRoleSearch(table) {
     });
 }
 
+/**
+ * Function untuk format currency pada edit modal
+ */
+function setupEditCurrencyFormatting(costInput) {
+    costInput.on('input', function() {
+        let value = $(this).val().replace(/[^\d]/g, ''); // Hapus semua kecuali angka
+        
+        if (value) {
+            // Format dengan thousand separator
+            const formattedValue = parseInt(value).toLocaleString('id-ID');
+            $(this).val(formattedValue);
+        }
+    });
+    
+    // Handle paste event
+    costInput.on('paste', function(e) {
+        const self = this;
+        setTimeout(() => {
+            let value = $(self).val().replace(/[^\d]/g, '');
+            if (value) {
+                const formattedValue = parseInt(value).toLocaleString('id-ID');
+                $(self).val(formattedValue);
+            }
+        }, 10);
+    });
+}
+
 /* MANAJEMEN PERAN (ROLE) */
 /**
  * Function untuk submit add role form
@@ -305,7 +345,13 @@ function submitAddRole() {
         return;
     }
 
+    // Bersihkan currency formatting sebelum submit
+    const resourceCostClean = resourceCost.replace(/[^\d]/g, '');
+
     const formData = new FormData(form[0]);
+    
+    // Replace resource_cost dengan nilai yang bersih
+    formData.set('resource_cost', resourceCostClean);
 
     $.ajax({
         url: form.attr('action'),
@@ -440,7 +486,7 @@ function editRole(roleId) {
                 $('#editRoleName').val(response.role.name);
                 $('#editRoleAltName').val(response.role.alt_name || '');
                 $('#editRoleDesc').val(response.role.desc || '');
-                $('#editRoleCost').val(response.role.resource_cost);
+                $('#editRoleCost').val(response.role.resource_cost_formatted);
                 
                 // Set form action
                 $('#editRoleForm').attr('action', `/roles-management/${roleId}`);
@@ -516,7 +562,7 @@ function submitEditRole() {
     const name = $('#editRoleName').val().trim();
     const resourceCost = $('#editRoleCost').val().trim();
 
-    if (!name || !resourceCost) {
+    if (!name) {
         Swal.fire({
             title: "Validasi Error",
             text: "Semua field wajib harus diisi",
@@ -530,8 +576,14 @@ function submitEditRole() {
         return;
     }
 
+    // Bersihkan currency formatting sebelum submit
+    const resourceCostClean = resourceCost.replace(/[^\d]/g, '');
+
     // Create Form Data
     const formData = new FormData(form[0]);
+
+    // Replace resource_cost dengan nilai yang bersih
+    formData.set('resource_cost', resourceCostClean);
 
     $.ajax({
         url: `/roles-management/${roleId}`,
