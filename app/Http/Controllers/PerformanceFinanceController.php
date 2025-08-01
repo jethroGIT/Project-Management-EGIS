@@ -35,7 +35,7 @@ class PerformanceFinanceController extends Controller
             ->get();
 
         // Ambil work
-        $works = Work::with('role')
+        $works = Work::with('user')
             ->where('volume_id', $volume_id)
             ->get();
         
@@ -50,48 +50,39 @@ class PerformanceFinanceController extends Controller
             return $entriesPerRole->count();
         });
 
-        // Kelompokkan resource_cost berdasarkan role
-        $resourceCostPerRole = $works->groupBy(function ($work) {
-            return optional($work->role)->role_id;
-        })->map(function ($groupedWorks) {
-            return [
-                'role_id' => optional($groupedWorks->first()->role)->role_id,
-                'role_name' => optional($groupedWorks->first()->role)->name,
-                'resource_cost' => $groupedWorks->sum('resource_cost'),
-            ];
-        });
-
-        $costsPerRole = $humanResources->map(function ($hResource) use ($resourceCostPerRole, $timesheetCountPerRole) {
+        $costsPerRole = $humanResources->map(function ($hResource) use ($timesheetCountPerRole) {
             $roleId = $hResource->role_id;
-
-            // Ambil resource cost untuk role
-            $resCost = $resourceCostPerRole->firstWhere('role_id', $roleId);
-            $resourceCost = $resCost['resource_cost'] ?? 0;
-
-            // Ambil jumlah aktivitas dari timesheet untuk role ini
+            $roleName = optional($hResource->role)->name ?? 'Unknown Role'; // Ambil nama role
+            
+            // Ambil resource cost langsung dari relasi Role
+            // Pastikan 'resource_cost' adalah kolom di tabel 'role'
+            $resourceCost = optional($hResource->role)->resource_cost ?? 0; 
+            
+            // Ambil jumlah aktivitas (realisasi mandays) dari timesheet untuk role ini
+            // Gunakan null coalescing operator (??) untuk default ke 0 jika roleId tidak ada di timesheetCountPerRole
             $timesheetCount = $timesheetCountPerRole[$roleId] ?? 0;
 
             // Hitung biaya-biaya
-            $byYoyCost = $hResource->jhk * $resourceCost;
-            $realizaationCost = $timesheetCount * $resourceCost;
-            $remainingCost = $byYoyCost - $realizaationCost;
+            $byYoyCost = $hResource->jhk * $resourceCost; // Rencana (jhk dari HumanResource * resource_cost dari Role)
+            $realizationCost = $timesheetCount * $resourceCost; // Realisasi (timesheet count * resource_cost dari Role)
+            $remainingCost = $byYoyCost - $realizationCost; // Sisa biaya
 
             return [
                 'role_id' => $roleId,
-                'role_name' => $hResource->role->name,
-                'jhk' => $hResource->jhk,
-                'resource_cost' => $resourceCost,
-                'timesheet_count' => $timesheetCount,
-                'by_yoy' => $byYoyCost,
-                'actual' => $realizaationCost,
-                'remaining' => $remainingCost,
+                'role_name' => $roleName,
+                'jhk' => $hResource->jhk, // JHK rencana dari HumanResource (resource plan)
+                'resource_cost' => $resourceCost, // Cost per hari dari Role
+                'timesheet_count' => $timesheetCount, // Total aktivitas (realisasi mandays)
+                'by_yoy' => $byYoyCost, // Biaya rencana
+                'realization_cost' => $realizationCost, // Biaya realisasi
+                'remaining_cost' => $remainingCost, // Biaya sisa
             ];
         });
 
         // Hitung total biaya dari semua role
         $totalByYoy = $costsPerRole->sum('by_yoy');
-        $totalRealization = $costsPerRole->sum('actual');
-        $totalRemaining = $costsPerRole->sum('remaining');
+        $totalRealization = $costsPerRole->sum('realization_cost');
+        $totalRemaining = $costsPerRole->sum('remaining_cost');
 
         // Jika realisasi < byYoy maka ada overtime
         $overtimeCost = $totalRealization > $totalByYoy ? ($totalRealization - $totalByYoy) : 0;

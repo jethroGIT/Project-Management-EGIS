@@ -396,37 +396,37 @@
     });
 
     // menampilkan personel berdasarkan volume yang dipilih
-    const personelData = @json($workPackages->flatMap(function ($wp) {
-        return $wp->volumes->mapWithKeys(function ($volume) {
-            return [
-                $volume->volume_id => $volume->users->map(function ($user) {
-                    return [
-                        'user_id' => $user->user_id,
-                        'name' => $user->name,
-                        'role' => $user->role->name,
-                    ];
-                })
-            ];
-        });
-    }));
-    document.addEventListener('DOMContentLoaded', function () {
-        const volumeSelect = document.getElementById('volume_select');
-        const personelSelect = document.getElementById('personel_select_0');
+    // const personelData = @json($workPackages->flatMap(function ($wp) {
+    //     return $wp->volumes->mapWithKeys(function ($volume) {
+    //         return [
+    //             $volume->volume_id => $volume->users->map(function ($user) {
+    //                 return [
+    //                     'user_id' => $user->user_id,
+    //                     'name' => $user->name,
+    //                     'role' => $user->role->name,
+    //                 ];
+    //             })
+    //         ];
+    //     });
+    // }));
+    // document.addEventListener('DOMContentLoaded', function () {
+    //     const volumeSelect = document.getElementById('volume_select');
+    //     const personelSelect = document.getElementById('personel_select_0');
 
-        volumeSelect.addEventListener('change', function () {
-            const volumeId = this.value;
-            const personels = personelData[volumeId] || [];
+    //     volumeSelect.addEventListener('change', function () {
+    //         const volumeId = this.value;
+    //         const personels = personelData[volumeId] || [];
 
-            // Kosongkan dropdown personel
-            personelSelect.innerHTML = '<option value="">Pilih Personel</option>';
+    //         // Kosongkan dropdown personel
+    //         personelSelect.innerHTML = '<option value="">Pilih Personel</option>';
 
-            personels.forEach(personel => {
-                const option = document.createElement('option');
-                option.value = personel.user_id;
-                option.textContent = `${personel.name} - ${personel.role}`;
-                personelSelect.appendChild(option);
-            });
-        });
-    });
+    //         personels.forEach(personel => {
+    //             const option = document.createElement('option');
+    //             option.value = personel.user_id;
+    //             option.textContent = `${personel.name} - ${personel.role}`;
+    //             personelSelect.appendChild(option);
+    //         });
+    //     });
+    // });
 </script>
 @endpush
