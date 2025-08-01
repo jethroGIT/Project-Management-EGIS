@@ -31,6 +31,8 @@ Route::get('/task', [TaskController::class, 'index'])->name('task');
 
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
+Route::post('/performance-task/sub-task', [PerformanceTaskController::class, 'storeSubTask'])->name('performance-task.sub-task.store');
+Route::get('/performance-task/task/{taskId}/info', [PerformanceTaskController::class, 'getTaskForSubTask'])->name('performance-task.task.info');
 
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
 Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');

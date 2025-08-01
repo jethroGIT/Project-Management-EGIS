@@ -13,7 +13,7 @@
                     @if(isset($workPackage))
                         WP {{ $workPackage->wp_number }} {{ $workPackage->name }}
                     @else
-                        WP 3.1 Human Security Risk Awareness Program Planning
+                        WP tidak diketahui
                     @endif
                 </h2>
             </div>
@@ -30,13 +30,20 @@
                     <div class="col-md-8 d-flex justify-content-end">
                         <form class="d-flex align-items-center mb-0">
                             <label class="me-3" for="searchTask">Cari: </label>
-                            <input class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" style="width:200px" type="search" placeholder="Cari Data" aria-label="Search">
+                            <input 
+                                id="searchInput"
+                                class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                                style="width:200px" 
+                                type="search" 
+                                placeholder="Cari Data" 
+                                aria-label="Search"
+                            >
                         </form>
                     </div>
                 </div> 
             </div>
             <div class="table-responsive">
-                <table class="table border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
+                <table class="table border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="table_performance_task">
                     <thead>
                         <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
                             <th scope="col" style="width: 20px;"></th>
@@ -80,7 +87,7 @@
                                             </a>
                                             <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
                                                         <span>Tambah Sub Baris</span>
                                                     </a>
@@ -135,8 +142,10 @@
                                                     <i class="bi bi-three-dots fs-3 text-dark"></i>
                                                 </a>
                                                 <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                    <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                                        <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>Tambah Sub Task</a>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>Tambah Sub Task
+                                                        </a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -153,114 +162,6 @@
                                 </td>
                             </tr>
                         @endif
-                        <!-- <tr class="task-row">
-                            <td style="cursor:pointer;">
-                                <a class="toggle-collapse" data-bs-toggle="collapse" data-bs-target="#task1-details" aria-expanded="false" aria-controls="task1-details">
-                                    <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-task1"></i>
-                                </a>
-                            </td>
-                            <th scope="row" style="width: 70px;">{!! statusLabel('Closed') !!}</th>
-                            <td>Officia cupidatat proident ullamco reprehenderit ex deserunt cupidatat deserunt dolore irure anim exercitation et qui.</td>
-                            <td></td>
-                            <td>100.00%</td>
-                            <td>
-                                <div class="dropdown">
-                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                                <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                <span>Tambah Sub Baris</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr> -->
-                        <!-- <tr class="collapse deskripsi-row" id="task1-details">
-                            <td></td>
-                            <th scope="row"></th>
-                            <td></td>
-                            <td>Deskripsi untuk task 1.</td>
-                            <td>100.00%</td>
-                            <td>
-                                <div class="dropdown">
-                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center deleteConfirmation text-danger">
-                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Atas</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Bawah</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr> -->
-                        <!-- <tr class="task-row">
-                            <td style="cursor:pointer;">
-                                <a class="toggle-collapse" data-bs-toggle="collapse" data-bs-target="#task2-details" aria-expanded="false" aria-controls="task2-details">
-                                    <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-task2"></i>
-                                </a>
-                            </td>
-                            <th scope="row" style="width: 70px;">{!! statusLabel('Open') !!}</th>
-                            <td>Officia cupidatat proident ullamco reprehenderit ex deserunt cupidatat deserunt dolore irure anim exercitation et qui.</td>
-                            <td></td>
-                            <td>0%</td>
-                            <td>
-                                <div class="dropdown">
-                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                                <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                <span>Tambah Sub Baris</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="collapse deskripsi-row" id="task2-details">
-                            <td></td>
-                            <th scope="row"></th>
-                            <td></td>
-                            <td>Deskripsi untuk task 2.</td>
-                            <td>0%</td>
-                            <td>
-                                <div class="dropdown">
-                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center deleteConfirmation text-danger">
-                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Atas</a>
-                                        </li>
-                                        <li><a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Bawah</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>                                               -->
                     </tbody>
                 </table>
             </div>                       
@@ -279,7 +180,8 @@
 </div>
 @endsection
 
-<div class="modal fade" tabindex="-1" id="subtaskModal">
+<!-- Add Sub Task Modal -->
+<div class="modal fade" tabindex="-1" id="addSubTaskModal">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -293,20 +195,26 @@
             </div>
 
             <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="taskDescription" class="form-label">Sub Task</label>
-                        <textarea class="form-control" id="taskDescription" rows="3" placeholder="Deskripsi/sub-task"></textarea>
+                <form id="addSubTaskForm" method="POST" action="{{ route('performance-task.sub-task.store') }}">
+                    @csrf
+                    <input type="hidden" name="task_id" id="subTaskTaskId" value="">
+
+                    <div class="form-group mb-3">
+                        <label for="subTaskName" class="form-label">Sub Task</label>
+                        <textarea name="sub_task_name" class="form-control" id="subTaskName" rows="3" placeholder="Deskripsi/sub-task" required maxlength="500"></textarea>
                     </div>
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <label for="utilizationPercentage" class="form-label">Persentase Utilisasi</label>
                         <input type="number" step="0.01" class="form-control" id="utilizationPercentage" placeholder="% Utilisasi">
-                    </div>
+                    </div> -->
                 </form>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="saveSuccessful">Simpan</button>
+                <button type="button" class="btn btn-primary" onClick="submitAddSubTask()">
+                    Simpan
+                </button>
             </div>
         </div>
     </div>
@@ -314,50 +222,50 @@
 
 @push('scripts')
 <script>
-    const saveButton = document.getElementById('saveSuccessful');
+    // const saveButton = document.getElementById('saveSuccessful');
 
-    saveButton.addEventListener('click', e => {
-        e.preventDefault();
+    // saveButton.addEventListener('click', e => {
+    //     e.preventDefault();
 
-        Swal.fire({
-            text: "Data berhasil disimpan!",
-            icon: "success",
-            buttonsStyling: false,
-            confirmButtonText: "Tutup",
-            customClass: {
-                confirmButton: "btn btn-secondary"
-            }
-        });
-    });
+    //     Swal.fire({
+    //         text: "Data berhasil disimpan!",
+    //         icon: "success",
+    //         buttonsStyling: false,
+    //         confirmButtonText: "Tutup",
+    //         customClass: {
+    //             confirmButton: "btn btn-secondary"
+    //         }
+    //     });
+    // });
 
-    // Use event delegation for delete confirmation
-    $(document).on('click', '.deleteConfirmation', function(e) {
-        e.preventDefault();
-        Swal.fire({
-            text: "Apakah Anda yakin ingin menghapus data ini?",
-            icon: "warning",
-            buttonsStyling: false,
-            showCancelButton: true,
-            cancelButtonText: 'batal',
-            confirmButtonText: "Hapus",
-            customClass: {
-                confirmButton: "btn btn-danger",
-                cancelButton: 'btn btn-secondary'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    text: "Data berhasil dihapus!",
-                    icon: "success",
-                    buttonsStyling: false,
-                    confirmButtonText: "Tutup",
-                    customClass: {
-                        confirmButton: "btn btn-secondary"
-                    }
-                });
-            }
-        });
-    });
+    // // Use event delegation for delete confirmation
+    // $(document).on('click', '.deleteConfirmation', function(e) {
+    //     e.preventDefault();
+    //     Swal.fire({
+    //         text: "Apakah Anda yakin ingin menghapus data ini?",
+    //         icon: "warning",
+    //         buttonsStyling: false,
+    //         showCancelButton: true,
+    //         cancelButtonText: 'batal',
+    //         confirmButtonText: "Hapus",
+    //         customClass: {
+    //             confirmButton: "btn btn-danger",
+    //             cancelButton: 'btn btn-secondary'
+    //         }
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             Swal.fire({
+    //                 text: "Data berhasil dihapus!",
+    //                 icon: "success",
+    //                 buttonsStyling: false,
+    //                 confirmButtonText: "Tutup",
+    //                 customClass: {
+    //                     confirmButton: "btn btn-secondary"
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
 
     // Initialize the DataTable
     $(document).ready(function() {
@@ -377,17 +285,209 @@
     });
 
     function initTabelPerformanceTask() {
-        $('#kt_datatable_example_2').DataTable({
+        const table = $('#table_performance_task').DataTable({
             "scrollY": '400px',
             "scrollX": true,
+            "searching": true,
             "fixedHeader": {
                 "header": true,
                 "headerOffset": 70
             },
             "ordering": false, // Disable sorting
-            "paging": false
+            "paging": false,
+            "language": {
+                "search": "",
+                "searchPlaceholder": "Cari Data",
+                "zeroRecords": "Tidak ada data yang ditemukan",
+                "emptyTable": "Tidak ada data yang tersedia"
+            }
+        });
+
+        // Search input to DataTables
+        setupSearch(table);
+    }
+
+    function setupSearch(table) {
+        const searchInput = $('#searchInput');
+        
+        // Custom search functionality
+        searchInput.on('keyup change input', function() {
+            const searchValue = this.value.trim();
+            table.search(searchValue).draw();
+        });
+
+        // Clear button handler
+        searchInput.on('search', function() {
+            if (this.value === '') {
+                table.search('').draw();
+            }
+        });
+
+        // ESC key to clear search
+        searchInput.on('keydown', function(e) {
+            if (e.which === 27) { // ESC key
+                e.preventDefault();
+                this.value = '';
+                $(this).trigger('input'); // Trigger input event to clear search
+                this.focus();
+            }
+        });
+    }
+
+    /* MANAJEMEN SUB TASK */
+    /**
+     * Function untuk mempermudah sub task
+     */
+    function addSubTask(taskId, taskName) {
+        // Validasi parameter
+        if (!taskId || !taskName) {
+            Swal.fire({
+                title: "Error",
+                text: "Data task tidak valid",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+            return;
+        }
+
+        // Set data di modal
+        $('#subTaskTaskId').val(taskId);
+        // $('#subTaskTaskName').val(taskName);
+        $('#subTaskName').val('');
+
+        // Show modal
+        $('#addSubTaskModal').modal('show');
+    }
+
+    /**
+     * Function untuk submit add sub task
+     */
+    function submitAddSubTask() {
+        const form = $('#addSubTaskForm');
+
+        // Basic validation
+        if (!form[0].checkValidity()) {
+            form[0].reportValidity();
+            return;
+        }
+
+        // Additional validation
+        const taskId = $('#subTaskTaskId').val();
+        const subTaskName = $('#subTaskName').val().trim();
+
+        if (!taskId || !subTaskName) {
+            Swal.fire({
+                title: "Validasi Error",
+                text: "Semua field wajib harus diisi",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+            return;
+        }
+
+        const formData = new FormData(form[0]);
+
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            beforeSend: function() {
+                // Disable form elements
+                form.find('input, textarea, button').prop('disabled', true);
+
+                Swal.fire({
+                    title: 'Menambahkan Sub Task...',
+                    text: 'Sedang memproses penambahan sub task baru',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+            },
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: "Berhasil Ditambahkan!",
+                        html: `
+                            <p>${response.message}</p>
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <strong>Detail Sub Task:</strong><br>
+                                <strong>Task:</strong> ${response.task_name}<br>
+                                <strong>Sub Task:</strong> ${response.sub_task.name}<br>
+                                <strong>Completeness:</strong> ${response.sub_task.completeness}%
+                            </div>
+                        `,
+                        icon: "success",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: {
+                            confirmButton: "btn btn-primary"
+                        }
+                    }).then(() => {
+                        $('#addSubTaskModal').modal('hide');
+                        window.location.reload();
+                    });
+
+                } else {
+                    Swal.fire({
+                        title: "Gagal",
+                        text: response.message || "Gagal menambahkan sub task",
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: {
+                            confirmButton: "btn btn-secondary"
+                        }
+                    });
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = "Terjadi kesalahan saat menambahkan sub task";
+
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+
+                    if (xhr.responseJSON.errors) {
+                        const errors = Object.entries(xhr.responseJSON.errors)
+                            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                            .join('\n');
+                        // errorMessage += '\n\nValidation Errors:\n' + errors;
+                    }
+                }
+
+                Swal.fire({
+                    title: "Gagal Menambahkan Sub Task",
+                    text: errorMessage,
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: {
+                        confirmButton: "btn btn-secondary"
+                    }
+                });
+            },
+            complete: function() {
+                // Re-enable form elements
+                form.find('input, textarea, button').prop('disabled', false);
+            }
         });
     }
 </script>
 @endpush
-
