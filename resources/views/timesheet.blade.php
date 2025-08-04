@@ -29,7 +29,7 @@
                 <label class="form-label">Filter Berdasarkan Tanggal</label>
                 <input type="text" class="form-control form-control-solid" placeholder="Pilih rentang tanggal" id="kt_daterangepicker_1" style="width: 35%"/>
             </div>
-            <form class="d-flex justify-content-end align-items-center">
+            <form class="d-flex justify-content-end align-items-center mb-5">
                 <label class="me-5 mb-0" for="searchActivity">Cari: </label>
                 <div>
                     <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
@@ -139,38 +139,38 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-    const button = document.getElementById('saveSuccessful');
+    // const button = document.getElementById('saveSuccessful');
 
-    button.addEventListener('click', e => {
-        e.preventDefault();
+    // button.addEventListener('click', e => {
+    //     e.preventDefault();
 
-        Swal.fire({
-            text: "Data berhasil disimpan!",
-            icon: "success",
-            buttonsStyling: false,
-            confirmButtonText: "Tutup",
-            customClass: {
-                confirmButton: "btn btn-secondary"
-            }
-        });
-    });
+    //     Swal.fire({
+    //         text: "Data berhasil disimpan!",
+    //         icon: "success",
+    //         buttonsStyling: false,
+    //         confirmButtonText: "Tutup",
+    //         customClass: {
+    //             confirmButton: "btn btn-secondary"
+    //         }
+    //     });
+    // });
 
      // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
 
-        // Add Personel Button Click Event
-        $('#addPersonelBtn').on('click', function() {
-            addNewPersonel();
-        });
+        // // Add Personel Button Click Event
+        // $('#addPersonelBtn').on('click', function() {
+        //     addNewPersonel();
+        // });
 
-        // Remove Personel Button Click Event
-        $('#removePersonelBtn').on('click', function() {
-            removeLastPersonel();
-        });
+        // // Remove Personel Button Click Event
+        // $('#removePersonelBtn').on('click', function() {
+        //     removeLastPersonel();
+        // });
 
-        // Update remove button visibility on page load
-        updateRemoveButtonVisibility();
+        // // Update remove button visibility on page load
+        // updateRemoveButtonVisibility();
     });
 
     function initTabelTimesheet() {
@@ -193,6 +193,7 @@
         // Search input handler
         searchInput.on('keyup change input', function() {
             const searchValue = this.value.trim();
+            console.log('Search value:', searchValue);
             table.search(searchValue).draw();
         });
 
