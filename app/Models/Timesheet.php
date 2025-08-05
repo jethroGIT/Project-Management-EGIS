@@ -11,6 +11,8 @@ class Timesheet extends Model
     protected $primaryKey = 'timesheet_id';
 
     protected $fillable = [
+        'user_id',
+        'volume_id',
         'execution_date',
         'activity',
     ];

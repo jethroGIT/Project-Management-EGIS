@@ -35,4 +35,9 @@ class WorkPackageVolume extends Model
         return $this->belongsTo(WorkPackage::class, 'wp_id', 'wp_id');
     }
     
+    // Untuk akses user langsung
+    public function users()
+    {
+        return $this->hasManyThrough(User::class, Work::class, 'volume_id', 'user_id', 'volume_id', 'user_id');
+    }
 }

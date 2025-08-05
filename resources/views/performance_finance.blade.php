@@ -50,8 +50,8 @@
                                 <td class="text-center align-middle">{{ $cost['jhk'] }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['resource_cost'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['by_yoy'], 0, ',', '.') }}</td>
-                                <td class="text-center align-middle">{{ number_format($cost['actual'], 0, ',', '.') }}</td>
-                                <td class="text-center align-middle">{{ number_format($cost['remaining'], 0, ',', '.') }}</td>               
+                                <td class="text-center align-middle">{{ number_format($cost['realization_cost'], 0, ',', '.') }}</td>
+                                <td class="text-center align-middle">{{ number_format($cost['remaining_cost'], 0, ',', '.') }}</td>               
                             </tr>
                         @endforeach
                     </tbody>
