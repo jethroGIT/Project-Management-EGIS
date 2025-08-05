@@ -59,20 +59,19 @@ class WorkPackageController extends Controller
 
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
-        })->with(['role']) // ambil relasi role
+        })->with(['role', 'humanResource']) // ambil relasi role
             ->withCount(['timesheets' => function ($query) use ($volume_id) {
                 // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
                 $query->where('volume_id', $volume_id);
             }])
             ->get()
             ->map(function ($user) {
-                $humanResource = HumanResource::where('role_id', $user->role_id)->first();
-                $user->jhk = $humanResource?->jhk ?? null;
+                // $humanResource = HumanResource::where('role_id', $user->role_id)->first();
                 return [
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'role_name' => $user->role->name ?? 'No Role',
-                    'jhk' => $user->jhk,
+                    'jhk' => $user->humanResource->jhk ?? null,
                     'timesheets_count' => $user->timesheets_count,
                 ];
         });
@@ -385,7 +384,9 @@ class WorkPackageController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'resources' => 'nullable|array',
-            'resources.*' => 'exists:user,user_id'
+            'resources.*' => 'exists:user,user_id',
+            'jhk' => 'nullable|array',
+            'jhk.*' => 'nullable|integer|min:0'
         ]);
 
         try {
@@ -410,12 +411,37 @@ class WorkPackageController extends Controller
                 ->sort()
                 ->values()
                 ->toArray();
+            $jhkChanged = false;
+            if (!empty($request->jhk) && !empty($request->resources)) {
+                foreach ($request->resources as $index => $userId) {
+                    $newJhk = (int) ($request->jhk[$index] ?? 0);
+
+                    $user = User::with('role')->find($userId);
+                    if (!$user || !$user->role) {
+                        continue; // skip jika user atau role tidak valid
+                    }
+
+                    $roleId = $user->role->role_id;
+
+                    // Cari jhk lama dari human_resource berdasarkan role_id dan wp_id
+                    $hr = HumanResource::where('role_id', $roleId)
+                        ->where('wp_id', $volume->wp_id)
+                        ->first();
+
+                    $originalJhk = $hr ? (int) $hr->jhk : 0;
+
+                    if ($newJhk !== $originalJhk) {
+                        $jhkChanged = true;
+                        break; // cukup satu perubahan untuk dianggap berubah
+                    }
+                }
+            }
 
             // Check for changes
             $startDateChanged = $originalStartDate !== $newStartDate;
             $endDateChanged = $originalEndDate !== $newEndDate;
             $resourcesChanged = $originalResources != $newResources;
-            $hasChanges = $startDateChanged || $endDateChanged || $resourcesChanged;
+            $hasChanges = $startDateChanged || $endDateChanged || $resourcesChanged || $jhkChanged;
 
             // Jika tidak ada perubahan
             if (!$hasChanges) {
@@ -426,7 +452,8 @@ class WorkPackageController extends Controller
                     'original_data' => [
                         'start_date' => $originalStartDate,
                         'end_date' => $originalEndDate,
-                        'resources_count' => count($originalResources)
+                        'resources_count' => count($originalResources),
+                        'jhk_changed' => $jhkChanged,
                     ]
                 ], 200);
             }
@@ -440,11 +467,30 @@ class WorkPackageController extends Controller
             Work::where('volume_id', $volume_id)->delete();
 
             // Tambah assignments baru berdasarkan user_id
-            foreach ($newResources as $userId) {
+            $wpId = $volume->wp_id;
+            foreach ($newResources as $index => $userId) {
                 Work::create([
                     'user_id' => (int) $userId,
                     'volume_id' => (int) $volume_id
                 ]);
+
+                // Update jhk jika tersedia
+                if (isset($request->jhk[$index]) && $request->jhk[$index] !== null) {
+                    $jhkValue = (int) $request->jhk[$index];
+
+                    // Cari role user terkait
+                    $user = User::with('role')->find($userId);
+                    if ($user && $user->role) {
+                        // Update jhk di HumanResource
+                        $hr = HumanResource::where('role_id', $user->role->role_id)
+                                            ->where('wp_id', $wpId)
+                                            ->first();
+                        if ($hr) {
+                            $hr->jhk = $jhkValue;
+                            $hr->save();
+                        }
+                    }
+                }
             }
 
             DB::commit();

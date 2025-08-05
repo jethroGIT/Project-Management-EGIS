@@ -48,6 +48,9 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id', 'role_id');
     }
 
+    public function humanResource() {
+        return $this->hasOne(HumanResource::class, 'role_id', 'role_id');
+    }
     /**
      * The attributes that should be cast to native types.
      *

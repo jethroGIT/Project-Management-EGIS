@@ -549,6 +549,7 @@ console.log('availableUsers:', availableUsers);
 // Mendapatkan user saat ini
 const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
 const currentlyAssignedUsersAllData = @json($assignedUsers);
+console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('role')->get()));
 
@@ -703,6 +704,7 @@ function submitEditData() {
     const startDate = formData.get('start_date');
     const endDate = formData.get('end_date');
     const resources = formData.getAll('resources[]');
+    const jhk = formData.getAll('jhk[]');
 
     if (!startDate || !endDate) {
         Swal.fire({
@@ -741,7 +743,8 @@ function submitEditData() {
         volumeId: volumeId,
         startDate: startDate,
         endDate: endDate,
-        resources: validResources
+        resources: validResources,
+        jhk: jhk
     });
     
     // Create clean FormData with filtered resources
@@ -754,6 +757,11 @@ function submitEditData() {
     // Add valid resources
     validResources.forEach(function(resource) {
         cleanFormData.append('resources[]', resource);
+    });
+
+    // Add JHK values
+    jhk.forEach(function(jhkValue) {
+        cleanFormData.append('jhk[]', jhkValue);
     });
     
     // Submit via AJAX
