@@ -33,6 +33,9 @@ Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->na
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
 Route::post('/performance-task/sub-task', [PerformanceTaskController::class, 'storeSubTask'])->name('performance-task.sub-task.store');
 Route::get('/performance-task/task/{taskId}/info', [PerformanceTaskController::class, 'getTaskForSubTask'])->name('performance-task.task.info');
+Route::get('/performance-task/sub-task/{subTaskId}/edit', [PerformanceTaskController::class, 'editSubTask'])->name('performance-task.sub-task.edit');
+Route::put('/performance-task/sub-task/{subTaskId}', [PerformanceTaskController::class, 'updateSubTask'])->name('performance-task.sub-task.update');
+Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::class, 'destroySubTask'])->name('performance-task.sub-task.destroy');
 
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
 Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');
