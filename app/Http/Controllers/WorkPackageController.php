@@ -57,16 +57,25 @@ class WorkPackageController extends Controller
             ->orderBy('hresource_id')
             ->get();
 
-        // Ambil users yang ter-assign langsung dari work
-        // $assignedRoleIds = Work::where('volume_id', $volume_id)->pluck('role_id');
-        
-        // $assignedUsers = User::whereIn('role_id', $assignedRoleIds)
-        //     ->with('role')
-        //     ->get();
-
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
-        })->with('role')->get();
+        })->with(['role']) // ambil relasi role
+            ->withCount(['timesheets' => function ($query) use ($volume_id) {
+                // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
+                $query->where('volume_id', $volume_id);
+            }])
+            ->get()
+            ->map(function ($user) {
+                $humanResource = HumanResource::where('role_id', $user->role_id)->first();
+                $user->jhk = $humanResource?->jhk ?? null;
+                return [
+                    'user_id' => $user->user_id,
+                    'name' => $user->name,
+                    'role_name' => $user->role->name ?? 'No Role',
+                    'jhk' => $user->jhk,
+                    'timesheets_count' => $user->timesheets_count,
+                ];
+        });
 
         // Hitung total completion dari task performance
         $tasks = $volume->task;

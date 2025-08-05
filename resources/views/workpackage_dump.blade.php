@@ -336,16 +336,20 @@
                                         </div>
                                     </div>
                                     <div class="form-group mb-4">
-                                        <div class="mb-1">
-                                            <div class="row g-2">
-                                                <div class="col-md-8">
-                                                    <label class="form-label fw-bold">Resource Names</label>
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <label class="form-label fw-bold">JHK</label>
-                                                </div>
+                                        <label class="form-label fw-bold">Resource Names</label>
+                                        <!-- <div id="resourceContainer">
+                                            <div class="input-group mb-2" id="resource-0">
+                                                <select class="form-select" name="resources[]">
+                                                    <option value="">Pilih Resource</option>
+                                                    <option value="pm">Project Manager (PM)</option>
+                                                    <option value="sc">Senior Consultant (SC)</option>
+                                                    <option value="asc">Associate Consultant (ASC)</option>
+                                                    <option value="jc">Junior Consultant (JC)</option>
+                                                    <option value="tw">Technical Writer (TW)</option>
+                                                    <option value="osc">On-Site Consultant (OSC)</option>
+                                                </select>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div id="editResourceContainer">
                                             <!-- Ditambahkan oleh JavaScript -->
                                         </div>
@@ -457,8 +461,8 @@
                                         <div class="col-md-4">
                                             <div class="card card-bordered h-100">
                                                 <div class="card-body text-center position-relative pb-3">
-                                                    <h5 class="card-title fs-6 fw-bold">{{ $user['name'] }}</h5>
-                                                    <span>{{ $user['role_name'] ?? 'N/A' }}</span>
+                                                    <h5 class="card-title fs-6 fw-bold">{{ $user->name }}</h5>
+                                                    <span>{{ $user->role->name ?? 'N/A' }}</span>
                                                     <!-- Toggle button -->
                                                     <div class="mb-0">
                                                         <button type="button" class="btn btn-sm btn-link"
@@ -477,15 +481,13 @@
                                                         <div class="col-md-6">
                                                             <span>Rencana</span>
                                                             <div>
-                                                                <span class="badge badge-square badge-light">{{$user['jhk'] ?? ''}}</span>
+                                                                <span class="badge badge-square badge-light">{{$user->jhk ?? ''}}</span>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <span>Realisasi</span>
                                                             <div>
-                                                                <span class="badge badge-square {{$user['timesheets_count'] > $user['jhk'] ? 'badge-danger text-light' : 'badge-light'}}">
-                                                                    {{$user['timesheets_count'] ?? ''}}
-                                                                </span>
+                                                                <span class="badge badge-square badge-light">{{$user->timesheets_count ?? ''}}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -526,11 +528,103 @@
                         </div>
                     </div>
                 </div>
+                <!-- Kebutuhan Tenaga Kerja -->
+                <div class="col-md-12 mb-4">
+                    <div class="card card-flush shadow-sm">
+                        <div class="card-header">
+                            <h3 class="card-title py-0">Kebutuhan Tenaga Kerja</h3>
+                        </div>
+                        <div class="card-body py-0">
+                            <div class="table-responsive">
+                                <table id="tabel_wp_tenaga_kerja" class="table table-striped border gy-4 gs-7 border rounded w-100">
+                                    <thead>
+                                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                                            <th class="align-middle border-bottom min-w-200px  mb-3">Personel</th>
+                                            <th class="align-middle border-bottom  mb-3">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Tenaga Kerja">JTK</span>                                                    
+                                            </th>                                                
+                                            <th class="align-middle border-bottom  mb-3">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Jumlah Hari Kerja">JHK</span>                                                    
+                                            </th>
+                                            <th class="align-middle border-bottom  mb-3 ">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($humanResources as $hResource)
+                                        <tr data-hresource-id="{{ $hResource->res_id }}" data-role-id="{{ $hResource->role_id }}" data-wp-id="{{ $hResource->wp_id }}">
+                                            <td class="fw-bold">{{$hResource->role->name}}</td>
+                                            <td>{{$hResource->jtk}}</td>
+                                            <td>{{$hResource->jhk}}</td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                            <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                        </svg>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center edit-resource-btn" href="#" data-bs-toggle="modal" data-bs-target="#jtkandjhkModal" 
+                                                                data-hresource-id="{{$hResource->hresource_id}}" 
+                                                                data-role-id="{{$hResource->role_id}}" 
+                                                                data-wp-id="{{$hResource->wp_id}}" 
+                                                                data-jtk="{{ $hResource->jtk }}" 
+                                                                data-jhk="{{ $hResource->jhk }}">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                                Edit
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforeach                                            
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+<div class="modal fade" tabindex="-1" id="jtkandjhkModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola JTK dan JHK Personel</h3>
+            </div>
+
+            <div class="modal-body">
+                <form method="POST" action="{{route('work-package.hResource.edit', $volume->volume_id)}}" id="jtkJhkForm">
+                    {{-- action="{{route('work-package.hResource.edit')}}"  --}}
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="hresource_id" id="form_hresource_id">
+                    <input type="hidden" name="role_id" id="form_role_id">
+
+                    <div class="row">
+                        {{-- <div class="col-md-6 mb-3">
+                            <label for="jumlahTenagaKerja" class="form-label">Jumlah Tenaga Kerja</label>
+                            <input type="number" class="form-control" name="jtk" id="jumlahTenagaKerja" placeholder="0">
+                        </div> --}}
+                        <div class="col mb-3">
+                            <label for="jumlahHariKerja" class="form-label">Jumlah Hari Kerja</label>                        
+                            <input type="number" class="form-control" name="jhk" id="jumlahHariKerja" placeholder="0">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="submitJtkJhkForm">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -548,7 +642,6 @@ console.log('availableUsers:', availableUsers);
 
 // Mendapatkan user saat ini
 const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
-const currentlyAssignedUsersAllData = @json($assignedUsers);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('role')->get()));
 
@@ -633,6 +726,22 @@ function setupTaskSearch(table) {
         }
     });
 }
+
+// const saveButton = document.getElementById('submitJtkJhkForm');
+
+// saveButton.addEventListener('click', e => {
+//     e.preventDefault();
+
+//     Swal.fire({
+//         text: "Data berhasil disimpan!",
+//         icon: "success",
+//         buttonsStyling: false,
+//         confirmButtonText: "Tutup",
+//         customClass: {
+//             confirmButton: "btn btn-secondary"
+//         }
+//     });
+// });
 
 /* WORK PACKAGE MANAGEMENT */
 /**
@@ -881,39 +990,23 @@ function addEditResource(selectedUserId = null) {
     }
 
     let optionsHtml = '<option value="">Pilih Resource</option>';
-    let defaultJhk = 0; 
     
     availableUsers.forEach(function(user) {
         const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
         optionsHtml += `<option value="${user.user_id}" ${selected}>${user.name} (${user.role_name})</option>`;
-        if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
-            const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
-            if (assigned) {
-                defaultJhk = assigned.jhk;
-            }
-            console.log('selected:', selected, 'assigned', assigned);
-        }
     });
     
     const resourceHtml = `
         <div class="input-group mb-2" id="edit-resource-${editResourceCounter}">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-8">
-                    <select class="form-select" name="resources[]" onchange="handleResourceChange(this)">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="number" class="form-control" name="jhk[]" placeholder="0" min="0" value="${defaultJhk}"/>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+            <select class="form-select" name="resources[]" onchange="handleResourceChange(this)">
+                ${optionsHtml}
+            </select>
+            
+            <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                </svg>
+            </button>
         </div>
     `;
     
@@ -959,6 +1052,45 @@ function handleResourceChange(selectElement) {
     }
 }
 
+/**
+ * RESOURCE MANAGEMENT
+ */
+/* ADD RESOURCE BUTTON FORM */
+// function addNewResource() {
+//     const resourceHtml = `
+//         <div class="input-group mb-2" id="resource-${resourceCounter}">
+//             <select class="form-select" name="resources[]">
+//                 <option value="">Pilih Resource</option>
+//                 <option value="pm">Project Manager (PM)</option>
+//                 <option value="sc">Senior Consultant (SC)</option>
+//                 <option value="asc">Associate Consultant (ASC)</option>
+//                 <option value="jc">Junior Consultant (JC)</option>
+//                 <option value="tw">Technical Writer (TW)</option>
+//                 <option value="osc">On-Site Consultant (OSC)</option>
+//             </select>
+//             <button type="button" class="btn btn-light-danger" onclick="removeResource(${resourceCounter})">
+//                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+//                     <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+//                 </svg>
+//             </button>
+//         </div>
+//     `;
+    
+//     $('#resourceContainer').append(resourceHtml);
+//     resourceCounter++;
+// }
+
+// function removeResource(index) {
+//     const resourceCount = $('#resourceContainer .input-group').length;
+    
+//     // Pastikan minimal ada 1 resource yang tersisa
+//     if (resourceCount > 1) {
+//         $(`#resource-${index}`).remove();
+//     } else {
+//         alert('Minimal harus ada 1 resource!');
+//     }
+// }
+
 // Function untuk toggle sub-rows
 function toggleSubRows(rowId) {
     const icon = document.getElementById('icon-' + rowId);
@@ -973,6 +1105,80 @@ function toggleSubRows(rowId) {
         icon.classList.remove('bi-chevron-right');
         icon.classList.add('bi-chevron-down');
     }
+}
+
+// modal untuk edit jhk
+const jtkJhkModal = new bootstrap.Modal(document.getElementById('jtkandjhkModal')); 
+const jtkJhkForm = document.getElementById('jtkJhkForm');
+const submitJtkJhkButton = document.getElementById('submitJtkJhkForm');
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('click', function(event){
+        if(event.target.classList.contains('edit-resource-btn')){
+            const button = event.target.closest('.edit-resource-btn');
+
+            // ini yang bakal diedit dan tidak ada di parameter url
+            document.getElementById('form_hresource_id').value = button.dataset.hresourceId;
+            document.getElementById('form_role_id').value = button.dataset.roleId;
+            // document.getElementById('jumlahTenagaKerja').value = button.dataset.jtk;
+            document.getElementById('jumlahHariKerja').value = button.dataset.jhk;
+        }
+    })
+});
+
+if (submitJtkJhkButton) {
+    submitJtkJhkButton.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(jtkJhkForm); // Ambil semua data dari form
+        const url = jtkJhkForm.action; // Ambil URL dari atribut action form
+        const method = 'POST';
+
+        // Kirim permintaan AJAX
+        fetch(url, {
+            method: method,
+            body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                });
+            }
+            return response.json(); // Parse respons JSON
+        })
+        .then(data => {
+            // Logika jika permintaan sukses
+            Swal.fire({
+                text: data.message || "Data berhasil diperbarui!",
+                icon: "success",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            }).then(() => {
+                jtkJhkModal.hide(); // Sembunyikan modal
+                location.reload(); // Reload halaman untuk melihat perubahan
+                // ATAU update UI tanpa reload:
+                // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
+            });
+        })
+        .catch(error => {
+            // Logika jika ada error (jaringan, validasi, server error)
+            console.error('Error updating resource:', error);
+            Swal.fire({
+                text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "OK",
+                customClass: { confirmButton: "btn btn-danger" }
+            });
+        });
+    });
 }
 
 /** TASK MANAGEMENT **/
