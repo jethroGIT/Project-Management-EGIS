@@ -89,9 +89,6 @@ class PerformanceFinanceController extends Controller
 
         // Persentase realisasi terhadap rencana (hindari pembagian nol)
         $realizationPercentage = $totalByYoy > 0 ? ($totalRealization / $totalByYoy) * 100 : 0;
-        if($realizationPercentage > 100){
-            $realizationPercentage = 100;
-        }
         
         return view('performance_finance', compact(
             'volume_id',

@@ -57,9 +57,9 @@ class TimesheetManagementController extends Controller
     public function add(Request $request){
         try {
             $request->validate([
-                'volume_id' => 'required|exists:work_package_volumes,volume_id',
+                'volume_id' => 'required|exists:work_package_volume,volume_id',
                 'execution_date' => 'required|date',
-                'activity' => 'required'
+                'activities' => 'required'
             ]);
 
             $personelIds = $request->input('personel_ids', []);

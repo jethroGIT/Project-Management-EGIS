@@ -118,9 +118,6 @@ class WorkPackageController extends Controller
 
         // Hitung persentase realisasi
         $realizationPercentage = $totalByYoy > 0 ? ($totalRealization / $totalByYoy) * 100 : 0;
-        if($realizationPercentage > 100){
-            $realizationPercentage = 100;
-        }
         
         return view('workpackage', compact(
             'humanResources',

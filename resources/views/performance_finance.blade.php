@@ -42,7 +42,7 @@
                             <th class="text-center">Sisa</th>
                         </tr>
                     </thead> 
-                    <tbody class="border-bottom border-1 border-secondary">
+                    <tbody class="border-bottom border-3 border-secondary">
                         @foreach($costsPerRole as $cost)
                             <tr>
                                 <td class="text-start align-middle">{{ $cost['role_name'] }}</td>
@@ -51,7 +51,11 @@
                                 <td class="text-center align-middle">{{ number_format($cost['resource_cost'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['by_yoy'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['realization_cost'], 0, ',', '.') }}</td>
-                                <td class="text-center align-middle">{{ number_format($cost['remaining_cost'], 0, ',', '.') }}</td>               
+                                <td class="text-center align-middle">
+                                    <span class="{{$cost['remaining_cost'] < 0 ? 'badge badge-danger' : ''}}">
+                                        {{ number_format($cost['remaining_cost'], 0, ',', '.') }}
+                                    </span>
+                                </td>               
                             </tr>
                         @endforeach
                     </tbody>
@@ -68,7 +72,11 @@
                         </tr>
                         <tr>
                             <td colspan="5" class="text-start">Persentase</td>
-                            <td class="text-center">{{ number_format($realizationPercentage, 2)}}%</td>
+                            <td class="text-center">
+                                <span class="{{$realizationPercentage > 100 ? 'badge badge-danger' : ''}}">
+                                    {{ number_format($realizationPercentage, 2)}}%
+                                </span>
+                            </td>
                             <td></td>
                         </tr>
                     </tfoot>
