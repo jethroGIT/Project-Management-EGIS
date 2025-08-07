@@ -385,13 +385,18 @@ class WorkPackageController extends Controller
             // Update tanggal periode work package volume
             $volume = WorkPackageVolume::findOrFail($volume_id);
 
+            // Update execution_year dari data start_date
+            $executionYear = Carbon::parse($request->start_date)->year;
+
             // Deteksi Perubahan
             $originalStartDate = Carbon::parse($volume->start_date)->format('Y-m-d');
             $originalEndDate = Carbon::parse($volume->end_date)->format('Y-m-d');
+            $originalExecutionYear = $volume->execution_year;
             $originalResources = Work::where('volume_id', $volume_id)->pluck('user_id')->sort()->values()->toArray();
 
             $newStartDate = $request->start_date;
             $newEndDate = $request->end_date;
+            $newExecutionYear = $executionYear;
             $newResources = collect($request->resources ?? [])
                 ->filter()
                 ->map(function($userId) {
@@ -405,8 +410,9 @@ class WorkPackageController extends Controller
             // Check for changes
             $startDateChanged = $originalStartDate !== $newStartDate;
             $endDateChanged = $originalEndDate !== $newEndDate;
+            $executionYearChanged = $originalExecutionYear !== $newExecutionYear;
             $resourcesChanged = $originalResources != $newResources;
-            $hasChanges = $startDateChanged || $endDateChanged || $resourcesChanged;
+            $hasChanges = $startDateChanged || $endDateChanged || $executionYearChanged || $resourcesChanged;
 
             // Jika tidak ada perubahan
             if (!$hasChanges) {
@@ -417,6 +423,7 @@ class WorkPackageController extends Controller
                     'original_data' => [
                         'start_date' => $originalStartDate,
                         'end_date' => $originalEndDate,
+                        'execution_year' => $originalExecutionYear,
                         'resources_count' => count($originalResources)
                     ]
                 ], 200);
@@ -424,7 +431,8 @@ class WorkPackageController extends Controller
 
             $volume->update([
                 'start_date' => $request->start_date,
-                'end_date' => $request->end_date
+                'end_date' => $request->end_date,
+                'execution_year' => $executionYear
             ]);
 
             // Menangani Resource dengan tabel Work
@@ -447,6 +455,7 @@ class WorkPackageController extends Controller
                 'volume_id' => $volume_id,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
+                'execution_year' => $executionYear,
                 'resources_count' => $resourcesCount,
                 'role_ids' => $newResources,
                 'has_resources' => $resourcesCount > 0
@@ -459,6 +468,7 @@ class WorkPackageController extends Controller
                     'volume_id' => $volume->volume_id,
                     'start_date' => $volume->start_date,
                     'end_date' => $volume->end_date,
+                    'execution_year' => $volume->execution_year,
                     'resources_count' => $resourcesCount,
                     'has_resources' => $resourcesCount > 0
                 ]
@@ -480,6 +490,7 @@ class WorkPackageController extends Controller
                 'volume_id' => $volume_id,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
+                'execution_year' => $executionYear ?? null,
                 'resources' => $request->resources,
                 'trace' => $e->getTraceAsString()
             ]);
