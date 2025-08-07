@@ -395,23 +395,32 @@ class WorkPackageManagementController extends Controller
             
             // STEP 3: Create Tasks and Sub Tasks
             if (!empty($validatedData['tasks'])) {
-                foreach ($validatedData['tasks'] as $taskData) {
+                foreach ($validatedData['tasks'] as $taskIndex => $taskData) {
                     // Create task for the first volume (you can modify this logic)
-                    $firstVolume = $workPackage->workPackageVolumes()->first();
-                    
-                    $task = Task::create([
-                        'volume_id' => $firstVolume->volume_id,
-                        'name' => $taskData['name'],
-                    ]);
+                    // $firstVolume = $workPackage->workPackageVolumes()->first();
 
-                    // Create sub tasks if provided
-                    if (!empty($taskData['sub_tasks'])) {
-                        foreach ($taskData['sub_tasks'] as $subTaskData) {
-                            SubTask::create([
-                                'task_id' => $task->task_id,
-                                'name' => $subTaskData['name'],
-                                'completeness' => 0.00, // Default to 0%
-                            ]);
+                    // Create task for all volumes
+                    foreach ($volumes as $volume) {
+                        // Calculate order index for proper ordering
+                        $maxOrderIndex = Task::where('volume_id', $volume->volume_id)
+                            ->max('order_index') ?? 0;
+
+                        $task = Task::create([
+                            'volume_id' => $volume->volume_id,
+                            'name' => $taskData['name'],
+                            'status' => 'open',
+                            'order_index' => $maxOrderIndex + 1
+                        ]);
+
+                        // Create sub tasks if provided
+                        if (!empty($taskData['sub_tasks'])) {
+                            foreach ($taskData['sub_tasks'] as $subTaskData) {
+                                SubTask::create([
+                                    'task_id' => $task->task_id,
+                                    'name' => $subTaskData['name'],
+                                    'completeness' => 0.00, // Default to 0%
+                                ]);
+                            }
                         }
                     }
                 }
@@ -431,7 +440,13 @@ class WorkPackageManagementController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Work Package berhasil dibuat dengan lengkap',
-                'work_package' => $workPackage->load(['wpCategory', 'workPackageVolumes'])
+                'work_package' => $workPackage->load(['wpCategory', 'workPackageVolumes']),
+                'summary' => [
+                    'volumes_created' => $volumeQty,
+                    'tasks_per_volume' => count($validatedData['tasks'] ?? []),
+                    'total_tasks_created' => (count($validatedData['tasks'] ?? []) * $volumeQty),
+                    'resources_assigned' => count($validatedData['resources'])
+                ]
             ]);
 
         } catch (ValidationException $e) {

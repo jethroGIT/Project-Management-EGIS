@@ -2,10 +2,10 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="my-10">Management Work Package</h1>
+    <h1 class="mt-0 mb-5">Management Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-6">
-        <div class="card-body py-5">
+        <div class="card-body">
             <!-- Filter Button -->
             <div class="d-flex justify-content-start mb-4">
                 <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
@@ -37,7 +37,12 @@
                                     <option value="">Pilih Kategori</option>
                                     @if(isset($categories) && $categories->count() > 0)
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->category_id }}">{{ $category->name }}</option>
+                                            <option value="{{ $category->category_id }}">
+                                                @if(isset($category->category_number))
+                                                    {{ $category->category_number }}.
+                                                @endif
+                                                {{ $category->name }}
+                                            </option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -83,7 +88,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="kt_datatable_example_2" class="table border table-row-dashed border-gray-300 table-row-gray-300 gy-5 gs-7 rounded w-100">
+                <table id="workpackage_table" class="table border table-row-dashed border-gray-300 table-row-gray-300 gy-5 gs-7 rounded w-100">
                     <thead class="align-middle text-center">
                         <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th>Kategori</th>
@@ -378,10 +383,19 @@ $(document).ready(function () {
 
     initMultiStepModal();
     loadUsersForResources();
+
+    // Filter event listener
+    $('#applyFilter').on('click', function() {
+        applyFilter();
+    });
+
+    $('#resetFilter').on('click', function() {
+        resetFilter();
+    });
 });
 
 function initTabelWPDetail() {
-    const table = $('#kt_datatable_example_2').DataTable({
+    const table = $('#workpackage_table').DataTable({
         'scrollY': '500px',
         "scrollX": true,
         "searching": true,
@@ -406,7 +420,8 @@ function initTabelWPDetail() {
         columnDefs: [
             {
                 targets: 0,
-                visible: false // Kolom kategori disembunyikan karena sudah ditampilkan sebagai grup
+                visible: false, // Kolom kategori disembunyikan karena sudah ditampilkan sebagai grup
+                searchable: true
             }
         ]
     });
@@ -447,9 +462,27 @@ function setupWPSearch(table) {
  */
 function applyFilter() {
     const categoryId = $('#kategoriFilter').val();
+    const table = $('#workpackage_table').DataTable();
 
     if (categoryId) {
+        // Filter berdasarkan kategori
+        const selectedCategory = $('#kategoriFilter option:selected').text().trim();
 
+        // Hapus prefix nomor kategori
+        let categoryName = selectedCategory;
+
+        if (categoryName.match(/^\d+\.\s*/)) {
+            categoryName = categoryName.replace(/^\d+\.\s*/, '');
+        }
+        
+        console.log('Filtering by category:', categoryName); // Debug log
+        
+        // Terapkan filter ke kategori spesifik
+        table.column(0).search(categoryName, false, true).draw();
+
+    } else {
+        // Hapus filter jika tidak ada kategori yang dipilih
+        table.column(0).search('').draw();
     }
 
     $('#filterCollapse').collapse('hide');
@@ -459,9 +492,13 @@ function applyFilter() {
  * Function untuk menghapus filter
  */
 function resetFilter() {
-    $('#kategoriFilter').val();
+    // Reset pilihan dropdown
+    $('#kategoriFilter').val('');
 
-    window.location.reload();
+    const table = $('#workpackage_table').DataTable();
+    table.columns().search('').draw();
+
+    $('#filterCollapse').collapse('hide');
 }
 
 
@@ -894,7 +931,7 @@ function addTask() {
                 <!-- Sub tasks will be added here -->
             </div>
             
-            <button type="button" class="btn btn-light-secondary btn-sm add-subtask" data-task-index="${taskCounter}">
+            <button type="button" class="btn btn-light-primary btn-sm add-subtask" data-task-index="${taskCounter}">
                 <i class="bi bi-plus"></i> Tambah Sub Task
             </button>
         </div>
@@ -995,7 +1032,7 @@ function submitMultiStepForm() {
                             <strong>Nama:</strong> ${response.work_package.name}<br>
                             <strong>Nomor:</strong> ${response.work_package.wp_number}<br>
                             <strong>Kategori:</strong> ${response.work_package.wp_category.name}<br>
-                            <strong>Volume:</strong> ${response.work_package.workPackageVolumes ? response.work_package.workPackageVolumes.length : 0}
+                            <strong>Volume:</strong> ${response.summary.volumes_created}
                         </div>
                     `,
                     icon: "success",
