@@ -14,6 +14,7 @@ use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
 use App\Http\Controllers\TimesheetManagementController;
 use App\Http\Controllers\WPCategoryManagementController;
+use App\Http\Controllers\WorkPackageManagementController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -85,3 +86,10 @@ Route::post('/roles-management', [RolesManagementController::class, 'store'])->n
 Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
 Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
 Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
+
+// Manajemen Work Package
+Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
+Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
+Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
+Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
+Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');

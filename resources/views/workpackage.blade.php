@@ -337,19 +337,6 @@
                                     </div>
                                     <div class="form-group mb-4">
                                         <label class="form-label fw-bold">Resource Names</label>
-                                        <!-- <div id="resourceContainer">
-                                            <div class="input-group mb-2" id="resource-0">
-                                                <select class="form-select" name="resources[]">
-                                                    <option value="">Pilih Resource</option>
-                                                    <option value="pm">Project Manager (PM)</option>
-                                                    <option value="sc">Senior Consultant (SC)</option>
-                                                    <option value="asc">Associate Consultant (ASC)</option>
-                                                    <option value="jc">Junior Consultant (JC)</option>
-                                                    <option value="tw">Technical Writer (TW)</option>
-                                                    <option value="osc">On-Site Consultant (OSC)</option>
-                                                </select>
-                                            </div>
-                                        </div> -->
                                         <div id="editResourceContainer">
                                             <!-- Ditambahkan oleh JavaScript -->
                                         </div>

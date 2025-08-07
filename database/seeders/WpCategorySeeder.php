@@ -15,9 +15,11 @@ class WpCategorySeeder extends Seeder
     {
         $categories = [
             [
+                'category_number' => '3',
                 'name' => 'Management of Human Security Risk Programs'
             ],
             [
+                'category_number' => '6',
                 'name' => 'Management of Information Security Management System (ISMS)'
             ],
         ];
