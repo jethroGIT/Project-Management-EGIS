@@ -25,10 +25,10 @@
                     </a>
                 </div>                
             </div>
-            <div class="mb-2">
+            {{-- <div class="mb-2">
                 <label class="form-label">Filter Berdasarkan Tanggal</label>
                 <input type="text" class="form-control form-control-solid" placeholder="Pilih rentang tanggal" id="kt_daterangepicker_1" style="width: 35%"/>
-            </div>
+            </div> --}}
             <form class="d-flex justify-content-end align-items-center mb-5">
                 <label class="me-5 mb-0" for="searchActivity">Cari: </label>
                 <div>
@@ -175,7 +175,7 @@
 
     function initTabelTimesheet() {
         const table = $('#kt_datatable_example_2').DataTable({
-            "scrollY": '500px',
+            "scrollY": '350px',
             "scrollX": true,
             "fixedHeader": {
                 "header": true,
@@ -216,44 +216,44 @@
     }
 
     // datepicker
-    let startDate = '';
-    let endDate = '';
+    // let startDate = '';
+    // let endDate = '';
 
-    moment.locale('id'); // Set locale to Indonesian
-    $(document).ready(function () {
-    $('#kt_daterangepicker_1').daterangepicker({
-            locale: {
-                format: 'D MMMM YYYY',
-                applyLabel: "Terapkan",
-                cancelLabel: "Batal",
-                weekLabel: "Minggu",
-                daysOfWeek: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
-                monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
-                firstDay: 1 // Set hari pertama minggu ke Senin
-            }
-        }, function(start, end) {
-            startDate = start.format('YYYY-MM-DD');
-            endDate = end.format('YYYY-MM-DD');
-        });
-         $('#applyFilter').on('click', function () {
-            if (!startDate || !endDate) {
-                Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
-                return;
-            }
+    // moment.locale('id'); // Set locale to Indonesian
+    // $(document).ready(function () {
+    // $('#kt_daterangepicker_1').daterangepicker({
+    //         locale: {
+    //             format: 'D MMMM YYYY',
+    //             applyLabel: "Terapkan",
+    //             cancelLabel: "Batal",
+    //             weekLabel: "Minggu",
+    //             daysOfWeek: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+    //             monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+    //             firstDay: 1 // Set hari pertama minggu ke Senin
+    //         }
+    //     }, function(start, end) {
+    //         startDate = start.format('YYYY-MM-DD');
+    //         endDate = end.format('YYYY-MM-DD');
+    //     });
+    //      $('#applyFilter').on('click', function () {
+    //         if (!startDate || !endDate) {
+    //             Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
+    //             return;
+    //         }
 
-            const url = new URL(window.location.href);
-            url.searchParams.set('start_date', startDate);
-            url.searchParams.set('end_date', endDate);
-            window.location.href = url.toString();
-        });
+    //         const url = new URL(window.location.href);
+    //         url.searchParams.set('start_date', startDate);
+    //         url.searchParams.set('end_date', endDate);
+    //         window.location.href = url.toString();
+    //     });
 
-        $('#resetFilter').on('click', function () {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('start_date');
-            url.searchParams.delete('end_date');
-            window.location.href = url.toString();
-        });
-    });
+    //     $('#resetFilter').on('click', function () {
+    //         const url = new URL(window.location.href);
+    //         url.searchParams.delete('start_date');
+    //         url.searchParams.delete('end_date');
+    //         window.location.href = url.toString();
+    //     });
+    // });
 
 
     // Saat tombol Terapkan diklik
@@ -282,15 +282,12 @@
 @php
     function mandaysLabel($plan, $realization) {
         if ($realization == $plan) {
-            $bg = '#f5b942';
-            $color = 'black';
+            $badge = 'badge badge-warning';
         }elseif ($realization < $plan) {
-            $bg = 'transparent';
-            $color = 'black';
+            $badge = '';
         } else {
-            $bg = '#dc3545';
-            $color = 'white';
+            $badge = 'badge badge-danger';
         }
-        return '<span class="d-inline-block px-3 py-1 text-center" style="border-radius:8px; background:' . $bg . '; color:' . $color . '; min-width:40px; min-height:24px;">' . $realization . '</span>';
+        return '<span class="'.$badge.'">'. $realization . '</span>';
     }
 @endphp

@@ -76,7 +76,14 @@
 
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit-activity" title="Edit Aktivitas Timesheet" data-bs-toggle="modal" data-bs-target="#editActivityModal">
+                                        <button type="button" class="btn btn-warning btn-sm btn-edit-activity" 
+                                                title="Edit Aktivitas Timesheet" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editActivityModal"
+                                                data-timesheet-id="{{$firstEntry->timesheet_id}}"
+                                                data-volume-id="{{$firstEntry->volume_id}}"
+                                                data-execution-date="{{$executionDate}}"
+                                        >
                                             <i class="bi bi-pencil-square fs-6"></i>
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm btn-delete-activity" title="Hapus Aktivitas Timesheet" data-timesheet-id="{{$firstEntry->timesheet_id}}">
@@ -137,7 +144,7 @@
                     <div id="personelActivityContainer">
                         <template id="personelActivityTemplate">
                             <div class="personel-activity-group card card-flush shadow-sm mb-6">
-                                <div class="card-header py-2"> {{-- Sesuaikan padding header --}}
+                                <div class="card-header py-2">{{--  Sesuaikan padding header --}}
                                     <h3 class="card-title fw-bold fs-5">Personel 1</h3>
                                     <div class="card-toolbar">
                                         <button type="button" class="btn btn-sm btn-light-danger remove-personel-btn">
@@ -179,7 +186,7 @@
 </div>
 
 {{-- edit dan/atau delete --}}
-<div class="modal fade" tabindex="-1" id="editActivityModal">
+<div class="modal fade" tabindex="-1" id="editActivityModal" aria-labelledby="editActivityModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header py-5">
@@ -188,12 +195,13 @@
             <div class="modal-body py-3">
                 <form id="editActivityForm" method="POST" action="{{route('timesheet.edit')}}">
                     @csrf
-                    @method('POST')
-
+                    @method('PUT')
+                    {{-- hidden input --}}
+                    <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value="">
                     <div class="form-group mb-6">
-                        <label for="work_package_select" class="form-label fw-bold">Work Package</label>
+                        <label for="edit_work_package_select" class="form-label fw-bold">Work Package</label>
                         <div class="input-group">
-                            <select class="form-select form-select-solid" name="wp_id" id="work_package_select" required>
+                            <select class="form-select form-select-solid" name="wp_id" id="edit_work_package_select" required>
                                 <option value="">Pilih Work Package</option>
                                 {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
                                 @foreach($workPackages as $wp)
@@ -205,49 +213,23 @@
                     <div class="form-group mb-6">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="volume_select" class="form-label fw-bold">Volume</label>
+                                <label for="edit_volume_select" class="form-label fw-bold">Volume</label>
                                 <div class="input-group">
-                                    <select class="form-select form-select-solid" name="volume_id" id="volume_select" required>
+                                    <select class="form-select form-select-solid" name="volume_id" id="edit_volume_select" required>
                                         <option value="">Pilih Volume</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Tanggal</label>
-                                <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31" required/>
+                            <div id="tanggal" class="col-md-6">
+                                <label for="edit_execution_date" class="form-label fw-bold">Tanggal</label>
+                                <input type="date" class="form-control" name="execution_date" id="edit_execution_date" required/>
                             </div>
                         </div>
                     </div>
-                    <div id="personelActivityContainer">
-                        <template id="personelActivityTemplate">
-                            <div class="personel-activity-group card card-flush shadow-sm mb-6">
-                                <div class="card-header py-2"> {{-- Sesuaikan padding header --}}
-                                    <h3 class="card-title fw-bold fs-5">Personel 1</h3>
-                                    <div class="card-toolbar">
-                                        <button type="button" class="btn btn-sm btn-light-danger remove-personel-btn">
-                                            <i class="bi bi-trash fs-5"></i> Hapus
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="form-group mb-6">
-                                        <label for="personel_select_0" class="form-label fw-bold">Personel</label>
-                                        <div class="input-group">
-                                            <select class="form-select form-select-solid personel-select" name="personel_ids[]" id="personel_select_0" required>
-                                                <option value="">Pilih Personel</option>
-                                            </select>
-                                        </div>
-                                    </div> 
-                                    <div class="form-group mb-6">
-                                        <label for="activity_0" class="form-label fw-bold">Aktivitas</label>
-                                        <textarea class="form-control activity-textarea"  name="activities[]" id="activity_0" rows="2" placeholder="Aktivitas" required></textarea>
-                                    </div>                    
-                                </div>
-                            </div>
-                        </template>
+                    <div id="editPersonelActivityContainer">
                     </div>
                     <div class="d-flex justify-content-start mb-0">
-                        <button type="button" class="btn btn-primary" id="addPersonelActivityBtn">
+                        <button type="button" class="btn btn-primary" id="editPersonelActivityBtn">
                             <i class="bi bi-plus-lg fs-2 me-1"></i>
                             Tambah Aktivitas Lain
                         </button>
@@ -261,6 +243,33 @@
         </div>
     </div>
 </div>
+
+<template id="editPersonelActivityTemplate">
+    <div class="personel-activity-group card card-flush shadow-sm mb-6">
+        <div class="card-header py-2"> {{-- Sesuaikan padding header --}}
+            <h3 class="card-title card-title-edit fw-bold fs-5">Personel 1</h3>
+            <div class="card-toolbar">
+                <button type="button" class="btn btn-sm btn-light-danger remove-edit-personel-btn">
+                    <i class="bi bi-trash fs-5"></i> Hapus
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="form-group mb-6">
+                <label class="form-label fw-bold">Personel</label>
+                <div class="input-group">
+                    <select class="form-select form-select-solid edit-personel-select" name="personel_ids[]" id="personel_select_0" required>
+                        <option value="">Pilih Personel</option>
+                    </select>
+                </div>
+            </div> 
+            <div class="form-group mb-6">
+                <label class="form-label fw-bold">Aktivitas</label>
+                <textarea class="form-control edit-activity-textarea"  name="activities[]" id="activity_0" rows="2" placeholder="Aktivitas" required></textarea>
+            </div>                    
+        </div>
+    </div>
+</template>
 
 @push('scripts')
 <script>
@@ -590,6 +599,210 @@
                 });
             });
         });
+    }
+
+    // edit and or delete activity
+    const editActivityModal = new bootstrap.Modal(document.getElementById('editActivityModal'));
+    const editActivityForm = document.getElementById('editActivityForm');
+    const submitEditActivityForm = document.getElementById('submitEditActivityForm');
+    const editPersonelActivityContainer = document.getElementById('editPersonelActivityContainer');
+    const editPersonelActivityBtn = document.getElementById('editPersonelActivityBtn');
+    
+    let editCurrentPersonelGroups = 0;
+    let editMaxPersonelGroups = {{ $users->count() }};
+
+
+    const allUsers = @json($users);
+    function editPersonelActivityGroup(activity, number){
+        // console.log('Adding/editing personel activity group:', activity, number);
+        const template = document.getElementById('editPersonelActivityTemplate');
+        if (!template) {
+            console.error('Template editPersonelActivityTemplate not found');
+            return;
+        }
+        const clone = template.content.cloneNode(true);
+        
+        const personelSelect = clone.querySelector('.edit-personel-select');
+        const textarea = clone.querySelector('.edit-activity-textarea');
+        const title = clone.querySelector('.card-title-edit');
+        
+        // Set title
+        title.textContent = `Personel ${number}`;
+        
+        // Populate select
+        allUsers.forEach(user => {
+            const userOption = document.createElement('option');
+            userOption.value = user.user_id;
+            userOption.textContent = `${user.name} - ${user.role.name}`;
+            personelSelect.appendChild(userOption);
+        });
+
+        textarea.value = activity.activity;
+        personelSelect.value = String(activity.user_id);
+        // Buat wrapper div untuk menyimpan clone dan memberi ID
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('wrapper-edit-personel');
+        wrapper.id = `edit-personel-activity-${editCurrentPersonelGroups}`;
+        wrapper.appendChild(clone);
+
+        // Pasang event listener pada tombol hapus
+        const removeBtn = wrapper.querySelector('.remove-edit-personel-btn');
+        if (!removeBtn) {
+            console.error('remove-edit-personel-btn not found in clone');
+        } else {
+            removeBtn.addEventListener('click', function () {
+                removeEditPersonelActivityGroup(wrapper.id);
+            });
+        }
+        editPersonelActivityContainer.appendChild(wrapper);
+        editCurrentPersonelGroups++;
+
+        wrapper.querySelector('.remove-edit-personel-btn').addEventListener('click', function() {
+            removeEditPersonelActivityGroup(wrapper.id);
+        });
+    }
+
+    function removeEditPersonelActivityGroup(groupId) {
+        const totalGroups = editPersonelActivityContainer.querySelectorAll('.personel-activity-group').length;
+        if (totalGroups <= 1) {
+            Swal.fire({
+                title: "Hapus Seluruh Aktivitas?",
+                text: `Apakah Anda yakin ingin menghapus seluruh aktivitas personel?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Hapus",
+                cancelButtonText: "Batal",
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: "btn btn-danger me-2",
+                    cancelButton: "btn btn-secondary"
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+            const timesheetId = document.getElementById('edit_timesheet_id').value; // atau ambil dari global variable
+
+            fetch(`/timesheet-management/${timesheetId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title:'Berhasil!', 
+                        text: data.message, 
+                        icon: 'success',
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-secondary" }
+                    }).then(() => {
+                        // Tutup modal dan update UI
+                        $('#editActivityModal').modal('hide');
+                        $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
+                        // console.log('Menghapus seluruh aktivitas personel');
+                        document.getElementById(groupId).remove();
+                        editCurrentPersonelGroups--;
+                        // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
+                        updateEditGroupNumbering();
+                    });
+                } else {
+                    Swal.fire('Gagal', data.message, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
+            });
+                }
+            });
+        }else {
+            Swal.fire({
+                title: "Hapus Aktivitas?",
+                text: `Apakah Anda yakin ingin menghapus aktivitas personel?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Hapus",
+                cancelButtonText: "Batal",
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: "btn btn-danger me-2",
+                    cancelButton: "btn btn-secondary"
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(groupId).remove();
+                    editCurrentPersonelGroups--;
+                    // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
+                    updateEditGroupNumbering();
+                }
+            });
+        }
+    }
+
+    function updateEditGroupNumbering() {
+        editPersonelActivityContainer.querySelectorAll('.personel-activity-group').forEach((group, index) => {
+            group.id = `edit-personel-activity-${index}`;
+            group.querySelector('.card-title').textContent = `Personel ${index + 1}`;
+        });
+    }
+
+    // Event listener for edit buttons
+    $(document).on('click', '.btn-edit-activity', function(e) {
+        e.preventDefault();
+        const timesheetId = $(this).data('timesheet-id');
+        const volumeId = $(this).data('volume-id');
+        const executionDate = $(this).data('execution-date');
+        populateEditModal(timesheetId, volumeId, executionDate);
+    });
+
+    function populateEditModal(timesheetId, volumeId, executionDate) {        
+        // Set hidden input value for timesheet id
+        document.getElementById('edit_timesheet_id').value = timesheetId;
+
+        // Fetch existing data
+        fetch(`/timesheet-management/${volumeId}/${executionDate}/edit-data`)
+            .then(response => response.json())
+            .then(data => {
+                const activities = data.data;
+                console.log('Edit data:', activities);
+                if (!activities.length || !activities[0].volume || !activities[0].volume.work_package) {
+                    Swal.fire('Error', 'Data work package tidak tersedia.', 'error');
+                    return;
+                }
+                const wpId = activities[0].volume.work_package.wp_id;
+
+                document.getElementById('edit_work_package_select').value = wpId;
+
+                const volumes = volumeData[wpId] || [];
+                const volumeSelect = document.getElementById('edit_volume_select');
+                volumeSelect.innerHTML = '<option value="">Pilih Volume</option>';
+                volumes.forEach(vol => {
+                    const option = document.createElement('option');
+                    option.value = vol.volume_id;
+                    option.textContent = vol.volume_number;
+                    volumeSelect.appendChild(option);
+                });
+
+                volumeSelect.value = volumeId;
+                document.getElementById('edit_execution_date').value = executionDate;
+
+                editPersonelActivityContainer.innerHTML = '';
+                editCurrentPersonelGroups = 0;
+
+                // Tambahkan isi template per aktivitas
+                activities.forEach((item, index) => {
+                    editPersonelActivityGroup(item, index + 1); // Fungsi ini kamu perlu buat
+                });
+
+                editActivityModal.show();
+            })
+            .catch(error => {
+                console.error('Error loading edit data:', error);
+                Swal.fire('Error', 'Gagal memuat data untuk edit', 'error');
+            });
     }
 
     // delete

@@ -31,6 +31,12 @@ class TimesheetManagementController extends Controller
             return $item->volume_id . '_' . $item->execution_date;
         });
 
+        // Buat array untuk menyimpan personel yang sudah ada di setiap group
+        $existingAssignments = [];
+        foreach ($groupedActivities as $key => $group) {
+            $existingAssignments[$key] = $group->pluck('user_id')->unique()->values();
+        }
+
         // ambil semua work package dari database, pastikan untuk menghindari duplikasi
         $workPackages = WorkPackage::with('workPackageVolumes.users')->get();
 
@@ -51,7 +57,7 @@ class TimesheetManagementController extends Controller
             }
         }
 
-        return view('timesheet_management', compact('activitiesForTable', 'groupedActivities', 'users', 'workPackages', 'personnelByVolume'));
+        return view('timesheet_management', compact('activitiesForTable', 'existingAssignments', 'groupedActivities', 'users', 'workPackages', 'personnelByVolume'));
     }
 
     public function add(Request $request){
@@ -85,6 +91,33 @@ class TimesheetManagementController extends Controller
                 'success' => true,
                 'message' => 'Data berhasil ditambahkan.',
                 'data' => $timesheets
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function editData($volumeId, $executionDate)
+    {
+        try {
+            $activities = Timesheet::where('volume_id', $volumeId)
+                ->where('execution_date', $executionDate)
+                ->with('user.role', 'volume.workPackage')
+                ->get();
+
+            if ($activities->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada aktivitas ditemukan untuk volume ini pada tanggal tersebut.'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $activities
             ]);
         } catch (\Exception $e) {
             return response()->json([
