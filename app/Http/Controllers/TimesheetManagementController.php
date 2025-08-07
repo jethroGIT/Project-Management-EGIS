@@ -6,6 +6,7 @@ use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TimesheetManagementController extends Controller
@@ -100,6 +101,7 @@ class TimesheetManagementController extends Controller
         }
     }
 
+    // to get data for edit modal
     public function editData($volumeId, $executionDate)
     {
         try {
@@ -130,20 +132,71 @@ class TimesheetManagementController extends Controller
     public function edit(Request $request){
         // edit and or delete activity
         try {
-             $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
-                                ->where('user_id', $request->user_id)
-                                ->where('volume_id', $request->volume_id)
-                                ->firstOrFail();
+            $request->validate([
+                'execution_date' => 'date',
+                'activity' => 'string|max:255'
+            ]);
 
-            if ($request->filled('execution_date')) {
-                $activity->execution_date = $request->execution_date;
+            $timesheetIds = $request->input('timesheet_ids', []);
+            $personelIds = $request->input('personel_ids', []);
+            $activities = $request->input('activities', []);
+            $executionDate = $request->input('execution_date');
+            $volumeId = $request->input('volume_id');
+
+            $hasChanges = false;
+            $updatedOrCreated = [];
+
+            // Cek apakah ada perubahan pada volume_id atau execution_date
+            // tidak sekedar cek apakah terisi, tapi apakah ada perubahan !!
+            foreach ($personelIds as $index => $userId) {
+                $activity = $activities[$index] ?? null;
+                $timesheetId = $timesheetIds[$index] ?? null;
+
+                if ($activity === null) continue;
+
+                // Update jika ada ID, Create jika tidak
+                if ($timesheetId) {
+                    $timesheet = Timesheet::findOrFail($timesheetId);
+
+                    $isUserChanged = $userId != $timesheet->user_id;
+                    $isVolumeChanged = $volumeId != $timesheet->volume_id;
+                    $isDateChanged = $executionDate != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
+                    $isActivityChanged = $activity != $timesheet->activity;
+
+                    if ($isUserChanged || $isVolumeChanged || $isDateChanged || $isActivityChanged) {
+                        $timesheet->update([
+                            'user_id' => $userId,
+                            'volume_id' => $volumeId,
+                            'execution_date' => $executionDate,
+                            'activity' => $activity,
+                        ]);
+                        $hasChanges = true;
+                        $updatedOrCreated[] = $timesheet;
+                    }
+                }
+                // Create
+                else {
+                    $new = Timesheet::create([
+                        'user_id' => $userId,
+                        'volume_id' => $volumeId,
+                        'execution_date' => $executionDate,
+                        'activity' => $activity,
+                    ]);
+                    $hasChanges = true;
+                    $updatedOrCreated[] = $new;
+                }
             }
-
-            if ($request->filled('activity')) {
-                $activity->activity = $request->activity;
+            if (!$hasChanges) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada perubahan yang dilakukan.'
+                ], 400);
             }
-
-            $activity->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diperbarui.',
+                'data' => $updatedOrCreated
+            ]);            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

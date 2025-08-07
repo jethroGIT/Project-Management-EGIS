@@ -195,9 +195,10 @@
             <div class="modal-body py-3">
                 <form id="editActivityForm" method="POST" action="{{route('timesheet.edit')}}">
                     @csrf
-                    @method('PUT')
+                    @method('POST')
                     {{-- hidden input --}}
-                    <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value="">
+                    <div id="edit_timesheet_ids_container"></div>
+                    {{-- <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value=""> --}}
                     <div class="form-group mb-6">
                         <label for="edit_work_package_select" class="form-label fw-bold">Work Package</label>
                         <div class="input-group">
@@ -333,37 +334,39 @@
     // menampilkan volume berdasarkan work package yang dipilih
     const volumeData = @json(
         $workPackages->mapWithKeys(function ($wp) {
-            return [$wp->wp_id => $wp->workPackageVolumes->map(function ($vol) {
-                return [
-                    'volume_id' => $vol->volume_id,
-                    'volume_number' => $vol->volume_number
-                ];
+            return [$wp->wp_id => $wp->workPackageVolumes
+                ->sortBy('volume_number')
+                ->map(function ($vol) {
+                    return [
+                        'volume_id' => $vol->volume_id,
+                        'volume_number' => $vol->volume_number
+                    ];
             })->values()];
         })->toArray()
     );
     const volumeSelect = document.getElementById('volume_select');
+    const editVolumeSelect = document.getElementById('edit_volume_select');
+
     document.addEventListener('DOMContentLoaded', function () {
         const wpSelect = document.getElementById('work_package_select');
+        const editWpSelect = document.getElementById('edit_work_package_select');
 
         wpSelect.addEventListener('change', function () {
-            const wpId = this.value;
-            const volumes = volumeData[wpId] || [];
-
-            // Kosongkan isi volume
-            volumeSelect.innerHTML = '<option value="">Pilih Volume</option>';
-
-            // Tambahkan opsi baru
-            volumes.forEach(vol => {
-                const option = document.createElement('option');
-                option.value = vol.volume_id;
-                option.textContent = vol.volume_number;
-                volumeSelect.appendChild(option);
-            });
+            updateVolumeOptions(this.value, volumeSelect);
             updateAllPersonelSelects('');
         });
+
         volumeSelect.addEventListener('change', function () {
-            const volumeId = this.value;
-            updateAllPersonelSelects(volumeId)
+            updateAllPersonelSelects(this.value);
+        });
+
+        editWpSelect.addEventListener('change', function () {
+            updateVolumeOptions(this.value, editVolumeSelect);
+            updateAllPersonelSelects('');
+        });
+
+        editVolumeSelect.addEventListener('change', function () {
+            updateAllPersonelSelects(this.value);
         });
     });
 
@@ -371,7 +374,7 @@
     const personnelData = @json($personnelByVolume);
 
     function updateAllPersonelSelects(volumeId) {
-        const selects = document.querySelectorAll('.personel-select');
+        const selects = document.querySelectorAll('.personel-select, .edit-personel-select');
         const personnelList = personnelData[volumeId] || [];
 
         selects.forEach((select) => {
@@ -393,6 +396,18 @@
             if (personnelList.find(p => p.user_id == selectedValue)) {
                 select.value = selectedValue;
             }
+        });
+    }
+
+    function updateVolumeOptions(wpId, volumeSelectElement) {
+        const volumes = volumeData[wpId] || [];
+        volumeSelectElement.innerHTML = '<option value="">Pilih Volume</option>';
+
+        volumes.forEach(vol => {
+            const option = document.createElement('option');
+            option.value = vol.volume_id;
+            option.textContent = vol.volume_number;
+            volumeSelectElement.appendChild(option);
         });
     }
 
@@ -611,6 +626,81 @@
     let editCurrentPersonelGroups = 0;
     let editMaxPersonelGroups = {{ $users->count() }};
 
+    function populateEditModal(timesheetId, volumeId, executionDate) {        
+        // Set hidden input value for timesheet id
+        const hiddenInputContainer = document.getElementById('edit_timesheet_ids_container');
+        hiddenInputContainer.innerHTML = '';
+
+        // Fetch existing data
+        fetch(`/timesheet-management/${volumeId}/${executionDate}/edit-data`)
+            .then(response => response.json())
+            .then(data => {
+                const activities = data.data;
+                console.log('Edit data:', activities);
+                if (!activities.length || !activities[0].volume || !activities[0].volume.work_package) {
+                    Swal.fire('Error', 'Data work package tidak tersedia.', 'error');
+                    return;
+                }
+                const wpId = activities[0].volume.work_package.wp_id;
+
+                document.getElementById('edit_work_package_select').value = wpId;
+
+                const volumes = volumeData[wpId] || [];
+                const volumeSelect = document.getElementById('edit_volume_select');
+                volumeSelect.innerHTML = '<option value="">Pilih Volume</option>';
+                volumes.forEach(vol => {
+                    const option = document.createElement('option');
+                    option.value = vol.volume_id;
+                    option.textContent = vol.volume_number;
+                    volumeSelect.appendChild(option);
+                });
+
+                volumeSelect.value = volumeId;
+                document.getElementById('edit_execution_date').value = executionDate;
+
+                // Kosongkan dulu container-nya
+                const hiddenInputContainer = document.getElementById('edit_timesheet_ids_container');
+                hiddenInputContainer.innerHTML = '';
+
+                // Tambahkan personel dan aktivitas yang sudah ada (dari database)
+                activities.forEach((item, index) => {
+                    if (item.timesheet_id) {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'timesheet_ids[]';
+                        hiddenInput.value = item.timesheet_id;
+                        hiddenInputContainer.appendChild(hiddenInput);
+                    }
+
+                    // Tetap panggil function untuk render field-nya
+                    editPersonelActivityGroup(item, index + 1);
+                });
+
+                // editPersonelActivityContainer.innerHTML = '';
+                editCurrentPersonelGroups = 0;
+
+                // Tambahkan isi template per aktivitas
+                // activities.forEach((item, index) => {
+                //     if (item.timesheet_id) {
+                //         const hiddenInput = document.createElement('input');
+                //         hiddenInput.type = 'hidden';
+                //         hiddenInput.name = 'timesheet_ids[]';
+                //         hiddenInput.value = item.timesheet_id;
+                //         hiddenInputContainer.appendChild(hiddenInput);
+                //     }
+                //     editPersonelActivityGroup(item, index + 1); // Fungsi ini kamu perlu buat
+                // });
+
+                // menggantikan updateEditPersonelSelects(volumeId);
+                updateAllPersonelSelects(volumeId);
+
+                editActivityModal.show();
+            })
+            .catch(error => {
+                console.error('Error loading edit data:', error);
+                Swal.fire('Error', 'Gagal memuat data untuk edit', 'error');
+            });
+    }
 
     const allUsers = @json($users);
     function editPersonelActivityGroup(activity, number){
@@ -758,51 +848,56 @@
         populateEditModal(timesheetId, volumeId, executionDate);
     });
 
-    function populateEditModal(timesheetId, volumeId, executionDate) {        
-        // Set hidden input value for timesheet id
-        document.getElementById('edit_timesheet_id').value = timesheetId;
+    if (editPersonelActivityBtn) {
+        editPersonelActivityBtn.addEventListener('click', () => editPersonelActivityGroup());
+    }
 
-        // Fetch existing data
-        fetch(`/timesheet-management/${volumeId}/${executionDate}/edit-data`)
-            .then(response => response.json())
-            .then(data => {
-                const activities = data.data;
-                console.log('Edit data:', activities);
-                if (!activities.length || !activities[0].volume || !activities[0].volume.work_package) {
-                    Swal.fire('Error', 'Data work package tidak tersedia.', 'error');
-                    return;
+    if (submitEditActivityForm) {
+        submitEditActivityForm.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(editActivityForm);
+            const url = editActivityForm.action;
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
-                const wpId = activities[0].volume.work_package.wp_id;
-
-                document.getElementById('edit_work_package_select').value = wpId;
-
-                const volumes = volumeData[wpId] || [];
-                const volumeSelect = document.getElementById('edit_volume_select');
-                volumeSelect.innerHTML = '<option value="">Pilih Volume</option>';
-                volumes.forEach(vol => {
-                    const option = document.createElement('option');
-                    option.value = vol.volume_id;
-                    option.textContent = vol.volume_number;
-                    volumeSelect.appendChild(option);
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                Swal.fire({
+                    text: data.message || "Data berhasil diperbarui!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                }).then(() => {
+                    editActivityModal.hide();
+                    location.reload();
                 });
-
-                volumeSelect.value = volumeId;
-                document.getElementById('edit_execution_date').value = executionDate;
-
-                editPersonelActivityContainer.innerHTML = '';
-                editCurrentPersonelGroups = 0;
-
-                // Tambahkan isi template per aktivitas
-                activities.forEach((item, index) => {
-                    editPersonelActivityGroup(item, index + 1); // Fungsi ini kamu perlu buat
-                });
-
-                editActivityModal.show();
             })
             .catch(error => {
-                console.error('Error loading edit data:', error);
-                Swal.fire('Error', 'Gagal memuat data untuk edit', 'error');
+                console.error('Error updating resource:', error);
+                Swal.fire({
+                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "OK",
+                    customClass: { confirmButton: "btn btn-danger" }
+                });
             });
+        });
     }
 
     // delete

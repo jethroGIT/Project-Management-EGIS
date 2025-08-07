@@ -66,7 +66,7 @@ Route::delete('/wpcategory-management/{id}/delete', [WPCategoryManagementControl
 Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');
 Route::post('/timesheet-management/add', [TimesheetManagementController::class, 'add'])->name('timesheet.add');
 Route::get('/timesheet-management/{volume_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
-Route::put('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
+Route::post('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
 Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
 
 // Manajemen Resource
