@@ -145,7 +145,7 @@
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center">
+                                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('wp-management.detail', ['wp_id' => $wp['wp_id']]) }}">
                                                         <i class="bi bi-eye me-3 fs-2 text-dark"></i>
                                                         Lihat Detail
                                                     </a>

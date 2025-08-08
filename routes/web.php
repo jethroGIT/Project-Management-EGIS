@@ -90,6 +90,7 @@ Route::delete('/roles-management/{id}', [RolesManagementController::class, 'dest
 // Manajemen Work Package
 Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
 Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
+Route::get('/wp-management/detail/{wp_id}', [WorkPackageManagementController::class, 'detail'])->name('wp-management.detail');
 Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
 Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
 Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');

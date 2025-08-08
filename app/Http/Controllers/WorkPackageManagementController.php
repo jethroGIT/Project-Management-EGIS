@@ -15,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Carbon\Carbon;
 use Exception;
 
 class WorkPackageManagementController extends Controller
@@ -93,6 +95,82 @@ class WorkPackageManagementController extends Controller
                 'workPackagesData' => collect(),
                 'categories' => collect()
             ]);
+        }
+    }
+
+    /**
+     * Display the detailed view of a specific work package
+     */
+    public function detail($wp_id) 
+    {
+        try {
+            // Ambil work package dengan semua relasi yang dibutuhkan
+            $workPackage = WorkPackage::with([
+                'wpCategory',
+                'workPackageVolumes' => function($query) {
+                    $query->orderBy('volume_number', 'asc');
+                },
+                'workPackageVolumes.work.user.role',
+                'humanResources.role'
+            ])->findOrFail($wp_id);
+
+            // Transform volume data untuk tampilan
+            $volumesData = $workPackage->workPackageVolumes->map(function ($volume) use($workPackage) {
+                // Ambil resource names untuk volume ini
+                $resourceNames = $volume->work->map(function ($work) {
+                    if ($work->user && $work->user->role) {
+                        return $work->user->name . ' (' . $work->user->role->name . ')';
+                    }
+                    return null;
+                })->filter()->unique()->values();
+
+                return [
+                    'volume_id' => $volume->volume_id,
+                    'volume_number' => $volume->volume_number,
+                    'start_date' => $volume->start_date,
+                    'end_date' => $volume->end_date,
+                    'execution_year' => $volume->execution_year,
+                    'period_formatted' => Carbon::parse($volume->start_date)->format('d M Y') . 
+                                        ' - ' .
+                                        Carbon::parse($volume->end_date)->format('d M Y'),
+                    'duration_days' => $workPackage->duration,
+                    'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada resource',
+                    'resource_count' => $resourceNames->count()
+                ];
+            });
+
+            // Transform human resources data
+            $humanResourcesData = $workPackage->humanResources->map(function ($hr) {
+                return [
+                    'role_name' => $hr->role->name ?? 'Unknown Role',
+                    'jtk' => $hr->jtk,
+                    'jhk' => $hr->jhk
+                ];
+            });
+
+            Log::info('Work Package detail loaded successfully', [
+                'wp_id' => $wp_id,
+                'wp_number' => $workPackage->wp_number,
+                'volumes_count' => $volumesData->count()
+            ]);
+
+            return view('workpackage_management_detail', compact('workPackage', 'volumesData', 'humanResourcesData'));
+
+        } catch (ModelNotFoundException $e) {
+            Log::error('Work Package not found', ['wp_id' => $wp_id]);
+
+            return redirect()->route('wp-management')
+                ->with('error', 'Work Package tidak ditemukan.');
+
+        } catch (Exception $e) {
+            Log::error('Error loading work package detail', [
+                'wp_id' => $wp_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('wp-management')
+                ->with('error', 'Terjadi kesalahan saat memuat detail work package.');
         }
     }
 
