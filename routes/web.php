@@ -14,6 +14,7 @@ use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
 use App\Http\Controllers\TimesheetManagementController;
 use App\Http\Controllers\WPCategoryManagementController;
+use App\Http\Controllers\WorkPackageManagementController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -31,6 +32,11 @@ Route::get('/task', [TaskController::class, 'index'])->name('task');
 
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
+Route::post('/performance-task/sub-task', [PerformanceTaskController::class, 'storeSubTask'])->name('performance-task.sub-task.store');
+Route::get('/performance-task/task/{taskId}/info', [PerformanceTaskController::class, 'getTaskForSubTask'])->name('performance-task.task.info');
+Route::get('/performance-task/sub-task/{subTaskId}/edit', [PerformanceTaskController::class, 'editSubTask'])->name('performance-task.sub-task.edit');
+Route::put('/performance-task/sub-task/{subTaskId}', [PerformanceTaskController::class, 'updateSubTask'])->name('performance-task.sub-task.update');
+Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::class, 'destroySubTask'])->name('performance-task.sub-task.destroy');
 
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
 Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');
@@ -77,3 +83,15 @@ Route::put('/resource-management/{id}', [ResourceManagementController::class, 'u
 
 // Manajemen Roles
 Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
+Route::post('/roles-management', [RolesManagementController::class, 'store'])->name('roles.store');
+Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
+Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
+Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
+
+// Manajemen Work Package
+Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
+Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
+Route::get('/wp-management/detail/{wp_id}', [WorkPackageManagementController::class, 'detail'])->name('wp-management.detail');
+Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
+Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
+Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');

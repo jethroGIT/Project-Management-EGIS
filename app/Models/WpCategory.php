@@ -11,6 +11,7 @@ class WpCategory extends Model
     protected $primaryKey = 'category_id';
 
     protected $fillable = [
+        'category_number',
         'name',
     ];
 

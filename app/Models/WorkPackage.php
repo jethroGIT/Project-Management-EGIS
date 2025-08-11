@@ -11,6 +11,7 @@ class WorkPackage extends Model
     protected $primaryKey = 'wp_id';
 
     protected $fillable = [
+        'category_id',
         'wp_number',
         'name',
         'volume_qty',
@@ -19,6 +20,11 @@ class WorkPackage extends Model
         'deliverable',
         // 'completeness',
     ];
+
+    public function wpCategory()
+    {
+        return $this->belongsTo(WpCategory::class, 'category_id', 'category_id');
+    }
 
     public function humanResources()
     {

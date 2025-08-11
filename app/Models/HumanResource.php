@@ -11,6 +11,8 @@ class HumanResource extends Model
     protected $primaryKey = 'hresource_id';
 
     protected $fillable = [
+        'wp_id',
+        'role_id',
         'jtk',
         'jhk',
     ];
@@ -18,5 +20,10 @@ class HumanResource extends Model
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id', 'role_id');
+    }
+
+    public function workPackage()
+    {
+        return $this->belongsTo(WorkPackage::class, 'wp_id', 'wp_id');
     }
 }

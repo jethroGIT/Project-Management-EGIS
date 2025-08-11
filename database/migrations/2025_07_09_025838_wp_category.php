@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('wp_category', function (Blueprint $table) {
             $table->id('category_id');
+            $table->string('category_number')->unique();
             $table->string('name', 100)->unique();
             $table->timestamps();
         });
