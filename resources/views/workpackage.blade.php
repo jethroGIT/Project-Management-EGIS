@@ -5,11 +5,21 @@
     <h1 class="mt-0 mb-5">Work Package</h1>
 
     <!-- Title Section -->
-    <div class="">
+    <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         @if(isset($workPackage) && isset($volume))
-            <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
-            <p>Periode {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}</p>
+            <div>
+                <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
+                <p>Periode {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}</p>
+            </div>
         @endif
+        <div class="">
+            <a href="{{ route('wp-management') }}" class="btn btn-light me-2">
+                <i class="bi bi-arrow-left"></i> Kembali
+            </a>
+            <button class="btn btn-primary" onclick="editWorkPackage({{ $workPackage->wp_id }})">
+                <i class="bi bi-pencil-square"></i> Edit Data
+            </button>
+        </div>
     </div>
 
     <!-- Card Kuantitas -->
@@ -275,9 +285,7 @@
         <div class="card-body py-5">
             <div class="d-flex justify-content-end mb-4">
                 <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-                    </svg>
+                    <i class="bi bi-pencil-square"></i>
                     Edit Data
                 </button>
 

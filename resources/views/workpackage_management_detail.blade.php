@@ -2,9 +2,10 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-5">
+    <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         <div>
-            <h1 class="mt-0 mb-2">Detail Work Package</h1>
+            <h1 class="mt-0 mb-5">Detail Work Package</h1>
+            <h4 class="">{{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
         </div>
         <div>
             <a href="{{ route('wp-management') }}" class="btn btn-light me-2">
@@ -17,19 +18,19 @@
     </div>
 
     <!-- Work Package Info Card -->
-    <div class="card card-flush shadow-sm mb-6">
-        <div class="card-header">
+    <div class="card card-flush shadow-sm mb-8">
+        <div class="card-header py-0">
             <h3 class="card-title">
                 <i class="bi bi-info-circle text-primary me-2"></i>
                 Informasi Work Package
             </h3>
         </div>
-        <div class="card-body">
+        <div class="card-body py-0">
             <div class="row">
-                <div class="col-md-6">
-                    <table class="table table-borderless">
+                <div class="col-md-12">
+                    <table class="table table-borderless mb-6">
                         <tbody>
-                            <tr>
+                            <!-- <tr>
                                 <td class="fw-bold text-muted" style="width: 140px;">Nomor WP:</td>
                                 <td>
                                     <span class="badge badge-light-primary fs-6">{{ $workPackage->wp_number }}</span>
@@ -38,37 +39,43 @@
                             <tr>
                                 <td class="fw-bold text-muted">Nama:</td>
                                 <td class="fw-bold">{{ $workPackage->name }}</td>
-                            </tr>
+                            </tr> -->
                             <tr>
                                 <td class="fw-bold text-muted">Kategori:</td>
+                                <td class="fw-bold text-muted">:</td>
                                 <td>{{ $workPackage->wpCategory->name ?? 'Tidak Berkategori' }}</td>
                             </tr>
                             <tr>
-                                <td class="fw-bold text-muted">Total Volume:</td>
+                                <td class="fw-bold text-muted">Total Volume</td>
+                                <td class="fw-bold text-muted">:</td>
                                 <td>
-                                    <span class="badge badge-light-info">{{ $workPackage->volume_qty }} Volume</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tbody>
-                            <tr>
-                                <td class="fw-bold text-muted" style="width: 140px;">Durasi:</td>
-                                <td>
-                                    <span class="badge badge-light-success">{{ $workPackage->duration }} Hari</span>
+                                    <span class="badge badge-light-info badge-lg">{{ $workPackage->volume_qty }} Volume</span>
                                 </td>
                             </tr>
                             <tr>
-                                <td class="fw-bold text-muted">Actual Scope:</td>
+                                <td class="fw-bold text-muted">Durasi</td>
+                                <td class="fw-bold text-muted">:</td>
+                                <td>
+                                    <span class="badge badge-light-success badge-lg">{{ $workPackage->duration }} Hari</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Actual Scope</td>
+                                <td class="fw-bold text-muted">:</td>
                                 <td>{{ $workPackage->actual_scope_contract ?: 'Belum ada actual scope' }}</td>
                             </tr>
                             <tr>
-                                <td class="fw-bold text-muted">Deliverable:</td>
-                                <td>{{ $workPackage->deliverable ?: 'Belum ada deliverable' }}</td>
+                                <td class="fw-bold text-muted">Deliverable</td>
+                                <td class="fw-bold text-muted">:</td>
+                                <td>
+                                    @if(isset($workPackage))
+                                        {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
+                                    @else
+                                        <p class="text-muted">
+                                            Belum ada Deliverables
+                                        </p>
+                                    @endif
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -78,60 +85,113 @@
     </div>
 
     <!-- Volumes Card -->
-    <div class="card card-flush shadow-sm mb-6">
-        <div class="card-header">
+    <div class="card card-flush shadow-sm mb-8">
+        <div class="card-header py-0">
             <h3 class="card-title">
                 <i class="bi bi-collection text-primary me-2"></i>
                 Work Package Volumes ({{ $volumesData->count() }})
             </h3>
         </div>
-        <div class="card-body">
+        <div class="card-body py-0">
             @if($volumesData->count() > 0)
-                <div class="row">
-                    @foreach($volumesData as $volume)
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card card-bordered h-100 shadow-sm hover-elevate-up">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <h5 class="card-title mb-0">
-                                            <i class="bi bi-folder-fill text-primary me-2"></i>
-                                            Volume {{ $volume['volume_number'] }}
-                                        </h5>
-                                        <span class="badge badge-light-warning">{{ $volume['execution_year'] }}</span>
-                                    </div>
-                                    
-                                    <div class="mb-4">
-                                        <div class="fw-bold mb-1">
-                                            <i class="bi bi-calendar-range me-1"></i>
-                                            Periode Pelaksanaan
+                <div class="volume-scroll-container">
+                    @if($volumesData->count() > 1)
+                        <!-- Scrollable Volume Cards -->
+                        <div class="volume-cards-wrapper" id="volumeCardsWrapper">
+                            @foreach($volumesData as $volume)
+                                <div class="volume-card-item col-md-6 col-lg-4 mb-2">
+                                    <div class="card card-bordered h-100 shadow hover-elevate-up">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <h4 class="card-title mb-0">
+                                                    <i class="bi bi-folder-fill text-primary me-2"></i>
+                                                    Volume {{ $volume['volume_number'] }}
+                                                </h4>
+                                                <span class="badge badge-light-info">{{ $volume['execution_year'] }}</span>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-calendar-range me-1"></i>
+                                                    Periode Pelaksanaan
+                                                </div>
+                                                <div class="fs-6">{{ $volume['period_formatted'] }}</div>
+                                            </div>
+        
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-people me-1"></i>
+                                                    Resources ({{ $volume['resource_count'] }})
+                                                </div>
+                                                <div class="fs-7 text-wrap">
+                                                    {{ $volume['resource_names'] }}
+                                                </div>
+                                            </div>
+        
+                                            <div class="mt-auto">
+                                                <!-- Link ke halaman manajemen volume -->
+                                                <button 
+                                                    class="btn btn-light-primary btn-sm w-100 fs-6" 
+                                                    onclick="manageVolume({{ $volume['volume_id'] }})" 
+                                                >
+                                                    <i class="bi bi-gear me-1"></i>
+                                                    Kelola Volume
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="fs-6">{{ $volume['period_formatted'] }}</div>
-                                        <!-- <small class="text-muted">({{ $volume['duration_days'] }} hari)</small> -->
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <div class="fw-bold mb-1">
-                                            <i class="bi bi-people me-1"></i>
-                                            Resources ({{ $volume['resource_count'] }})
-                                        </div>
-                                        <div class="fs-7 text-wrap">
-                                            {{ $volume['resource_names'] }}
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-auto">
-                                        <!-- Link ke halaman manajemen volume -->
-                                        <button class="btn btn-light-primary btn-sm w-100" 
-                                                onclick="manageVolume({{ $volume['volume_id'] }})" 
-                                                disabled>
-                                            <i class="bi bi-gear me-1"></i>
-                                            Kelola Volume
-                                        </button>
                                     </div>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
-                    @endforeach
+                        <div class="mb-3"></div>
+                    @else
+                        <div class="row justify-content-center">
+                            @foreach($volumesData as $volume)
+                                <div class="col-md-6 col-lg-4 mb-6">
+                                    <div class="card card-bordered h-100 shadow hover-elevate-up">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <h4 class="card-title mb-0">
+                                                    <i class="bi bi-folder-fill text-primary me-2"></i>
+                                                    Volume {{ $volume['volume_number'] }}
+                                                </h4>
+                                                <span class="badge badge-light-info">{{ $volume['execution_year'] }}</span>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-calendar-range me-1"></i>
+                                                    Periode Pelaksanaan
+                                                </div>
+                                                <div class="fs-6">{{ $volume['period_formatted'] }}</div>
+                                            </div>
+        
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-people me-1"></i>
+                                                    Resources ({{ $volume['resource_count'] }})
+                                                </div>
+                                                <div class="fs-7 text-wrap">
+                                                    {{ $volume['resource_names'] }}
+                                                </div>
+                                            </div>
+        
+                                            <div class="mt-auto">
+                                                <!-- Link ke halaman manajemen volume -->
+                                                <button 
+                                                    class="btn btn-light-primary btn-sm w-100 fs-6" 
+                                                    onclick="manageVolume({{ $volume['volume_id'] }})" 
+                                                >
+                                                    <i class="bi bi-gear me-1"></i>
+                                                    Lihat Detail Volume
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @else
                 <div class="text-center py-5">
@@ -144,20 +204,20 @@
     </div>
 
     <!-- Human Resources Summary -->
-    <div class="card card-flush shadow-sm mb-6">
-        <div class="card-header">
+    <div class="card card-flush shadow-sm mb-8">
+        <div class="card-header py-0">
             <h3 class="card-title">
                 <i class="bi bi-person-lines-fill text-primary me-2"></i>
                 Kebutuhan Tenaga Kerja
             </h3>
         </div>
-        <div class="card-body">
+        <div class="card-body py-0">
             @if($humanResourcesData->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                <div class="table-responsive mb-6">
+                    <table class="table table-striped table-hover border gy-4 gs-7 rounded">
                         <thead>
-                            <tr class="fw-bold fs-6 text-gray-800">
-                                <th>Role</th>
+                            <tr class="fw-bold text-gray-800">
+                                <th>Peran</th>
                                 <th class="text-center">JTK (Jumlah Tenaga Kerja)</th>
                                 <th class="text-center">JHK (Jumlah Hari Kerja)</th>
                             </tr>
@@ -167,15 +227,14 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <i class="bi bi-person-badge text-primary me-2"></i>
                                             {{ $hr['role_name'] }}
                                         </div>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge badge-light-primary">{{ $hr['jtk'] }} Orang</span>
+                                        <span class="badge badge-light-primary badge-lg">{{ $hr['jtk'] }} Orang</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge badge-light-success">{{ $hr['jhk'] }} Hari</span>
+                                        <span class="badge badge-light-success badge-lg">{{ $hr['jhk'] }} Hari</span>
                                     </td>
                                 </tr>
                             @endforeach
@@ -211,6 +270,135 @@
 .card-bordered:hover {
     border-color: #3f4254;
 }
+
+.volume-scroll-container {
+    position: relative;
+    width: 100%;
+}
+
+.volume-nav-buttons {
+    position: absolute;
+    top: -60px;
+    right: 0;
+    z-index: 10;
+}
+
+.volume-cards-wrapper {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    gap: 20px;
+    padding: 10px 0 20px 0;
+    margin: 0;
+    
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 #f8f9fa;
+}
+
+.volume-cards-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.volume-cards-wrapper::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.volume-cards-wrapper::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 4px;
+}
+
+.volume-cards-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+.volume-card-item {
+    flex: 0 0 320px; /* Fixed width, no shrink, no grow */
+    min-height: 320px;
+    max-height: 280px;
+}
+
+.volume-card-item .card {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+}
+
+.volume-card-item .card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Scroll Indicators */
+.volume-scroll-indicators {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.scroll-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.scroll-dot.active {
+    background-color: #0d6efd;
+    transform: scale(1.2);
+}
+
+.scroll-dot:hover {
+    background-color: #6c757d;
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .volume-card-item {
+        flex: 0 0 280px;
+        max-width: 280px;
+    }
+    
+    .volume-cards-wrapper {
+        gap: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .volume-card-item {
+        flex: 0 0 260px;
+        max-width: 260px;
+    }
+
+    .volume-cards-wrapper {
+        gap: 10px;
+        padding: 10px 0;
+    }
+}
+
+/* BUTTON STATES */
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* CARD HOVER EFFECTS */
+.volume-card-item .card:hover {
+    border-color: #0d6efd;
+}
+
+.volume-card-item .card:hover .card-title {
+    color: #0d6efd;
+}
 </style>
 
 @push('scripts')
@@ -236,17 +424,7 @@ function editWorkPackage(wpId) {
  * Function untuk manage volume (placeholder for future)
  */
 function manageVolume(volumeId) {
-    // TODO: Implement volume management
-    Swal.fire({
-        title: "Kelola Volume",
-        text: "Fitur kelola volume akan segera tersedia",
-        icon: "info",
-        buttonsStyling: false,
-        confirmButtonText: "OK",
-        customClass: {
-            confirmButton: "btn btn-primary"
-        }
-    });
+    window.location.href = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId);
 }
 
 // Toast notification if redirected with success/error message
@@ -277,5 +455,135 @@ function manageVolume(volumeId) {
         }
     });
 @endif
+
+/** 
+ * Volume Scroll Functionality 
+ */
+$(document).ready(function() {
+    const wrapper = document.getElementById('volumeCardsWrapper');
+    const scrollLeftBtn = document.getElementById('scrollLeft');
+    const scrollRightBtn = document.getElementById('scrollRight');
+    const scrollDots = document.querySelectorAll('.scroll-dot');
+
+    if (wrapper && scrollLeftBtn && scrollRightBtn) {
+        const cardWidth = 340;
+        // const visibleCards = Math.floor(wrapper.offsetWidth / cardWidth);
+
+        // Scroll Left Button
+        scrollLeftBtn.addEventListener('click', function() {
+            wrapper.scrollBy({
+                left: -cardWidth * 2,
+                behavior: 'smooth'
+            });
+            updateButtonStates();
+        });
+
+        // Scroll Right Button
+        scrollLeftBtn.addEventListener('click', function() {
+            wrapper.scrollBy({
+                left: cardWidth * 2,
+                behavior: 'smooth'
+            });
+            updateButtonStates();
+        });
+
+        // Scroll Indicators Click
+        scrollDots.forEach((dot, index) => {
+            dot.addEventListener('click', function() {
+                const scrollPosition = index * (cardWidth * 2);
+                wrapper.scrollTo({
+                    left: scrollPosition,
+                    behavior: 'smooth'
+                });
+                
+                updateActiveDot(index);
+                updateButtonStates();
+            });
+        });
+
+        // Update active dot on scroll
+        wrapper.addEventListener('scroll', function() {
+            const scrollLeft = wrapper.scrollLeft;
+            const activeIndex = Math.round(scrollLeft / (cardWidth * 2));
+            updateActiveDot(activeIndex);
+            
+            // Update button states
+            updateButtonStates();
+        });
+
+        // Update active dot
+        function updateActiveDot(activeIndex) {
+            scrollDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        // Update button states
+        function updateButtonStates() {
+            const maxScrollLeft = wrapper.scrollWidth - wrapper.clientWidth;
+            
+            // Update left button
+            if (wrapper.scrollLeft <= 0) {
+                scrollLeftBtn.disabled = true;
+                scrollLeftBtn.classList.add('opacity-50');
+            } else {
+                scrollLeftBtn.disabled = false;
+                scrollLeftBtn.classList.remove('opacity-50');
+            }
+            
+            // Update right button
+            if (wrapper.scrollLeft >= maxScrollLeft - 10) { // -10 for tolerance
+                scrollRightBtn.disabled = true;
+                scrollRightBtn.classList.add('opacity-50');
+            } else {
+                scrollRightBtn.disabled = false;
+                scrollRightBtn.classList.remove('opacity-50');
+            }
+        }
+
+        // Initial button state
+        updateButtonStates();
+
+        // Keyword navigation
+        wrapper.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                scrollLeftBtn.click();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                scrollRightBtn.click();
+            }
+        });
+
+        // Touch/swipe support for mobile
+        let startX = 0;
+        let scrollStart = 0;
+
+        wrapper.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            scrollStart = wrapper.scrollLeft;
+        }, { passive: true });
+        
+        wrapper.addEventListener('touchmove', function(e) {
+            if (!startX) return;
+            
+            const currentX = e.touches[0].clientX;
+            const diffX = startX - currentX;
+            
+            wrapper.scrollLeft = scrollStart + diffX;
+        }, { passive: true });
+
+        wrapper.addEventListener('touchend', function() {
+            startX = 0;
+            scrollStart = 0;
+            updateButtonStates();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            updateButtonStates();
+        });
+    }
+});
 </script>
 @endpush
