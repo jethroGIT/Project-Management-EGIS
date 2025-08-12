@@ -34,7 +34,7 @@
             <div class="table-responsive mb-2">
                 <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="tabel_aktivitas">
                     <thead>
-                        <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
+                        <tr class="fw-semibold fs-4 text-gray-1000">
                             <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping --}}
                             <th scope="col" style="width: 30px;">No</th>
                             <th scope="col" style="width: 30px;">Vol</th>
@@ -292,7 +292,7 @@
             dataSrc: 0,
             startRender: function (rows, group) {
                 return $('<tr/>')
-                    .append('<td colspan="' + rows.columns()[0].length + '" class="bg-light text-dark fw-bold">' + group + '</td>')
+                    .append('<td colspan="' + rows.columns()[0].length + '" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>')
                     .addClass('wp-group-header');
             }
         },

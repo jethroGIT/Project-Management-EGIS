@@ -10,10 +10,15 @@
                 </a>
                 <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
             </div>
-            <div class="row mt-4 align-items-center" style="height: 50px; padding: 0px 0px;">
+            <div class="row mt-8 align-items-center justify-content-between" style="height: 50px; padding: 0px 0px;">
                 <div class="col-md-4 d-flex align-items-center" style="height: 40px">
                     <div class="border bg-light h-100 d-flex align-items-center justify-content-center w-100">
-                            <span class="fw-bold">WP Value</span>
+                        <span class="fw-bold">WP Value</span>
+                        <i class="bi bi-info-circle text-primary ms-2"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="sum(Biaya by YoY)">
+                        </i>
                     </div>
                     <div class="border h-100 d-flex align-items-center justify-content-center w-100"
                         data-bs-toggle="tooltip" 
@@ -22,27 +27,53 @@
                     >
                         <span class="text">{{ number_format($totalByYoy, 0, ',', '.') }}</span>
                     </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center">
+                    <button type="button" class="btn btn-light-primary btn-edit-finance" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_financial">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                        </svg>
+                        Edit Data
+                    </button>
                 </div>                    
             </div> 
             <div class="table-responsive mt-5">
                 {{-- @if($activities->isNotEmpty()) --}}
                 <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
-                    <thead class="border border-1 border-secondary bg-light">
+                    <thead class="border border-1 border-secondary bg-light fs-5">
                         <tr class="border-bottom border-1 border-secondary">
-                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary py-0" style="width: 160px">Personel</th>
-                            <th scope="col" colspan="2" class="text-center align-middle border-end border-secondary py-1">Mandays</th>
-                            <th scope="col" colspan="4" class="text-center align-middle border-start border-secondary py-1">Biaya</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary fw-bold py-0" style="width: 160px">Personel</th>
+                            <th scope="col" colspan="2" class="text-center align-middle border-end border-secondary fw-bold py-2">Mandays</th>
+                            <th scope="col" colspan="4" class="text-center align-middle border-start border-secondary fw-bold py-2">Biaya</th>
                         </tr>
                         <tr>
-                            <th class="text-center">Realisasi</th>                            
-                            <th class="text-center">Rencana</th>
-                            <th class="text-center">Tenaga Kerja</th>                            
-                            <th class="text-center">By YoY</th>
-                            <th class="text-center">Realisasi</th>
-                            <th class="text-center">Sisa</th>
+                            <th class="text-center fw-bold">Realisasi</th>                            
+                            <th class="text-center fw-bold">Rencana</th>
+                            <th class="text-center fw-bold">Tenaga Kerja</th>                            
+                            <th class="text-center fw-bold">By YoY
+                                <i class="bi bi-info-circle text-primary ms-2"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Mandays Rencana x Biaya Tenaga Kerja">
+                                </i>
+                            </th>
+                            <th class="text-center fw-bold">Realisasi
+                                <i class="bi bi-info-circle text-primary ms-2"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Mandays Realisasi x Biaya Tenaga Kerja">
+                                </i>
+                            </th>
+                            <th class="text-center fw-bold">Sisa
+                                <i class="bi bi-info-circle text-primary ms-2"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Biaya by YoY - Realisasi">
+                                </i>
+                            </th>
                         </tr>
                     </thead> 
-                    <tbody class="border-bottom border-3 border-secondary">
+                    <tbody class="border-bottom border-3 border-secondary fs-5">
                         @foreach($costsPerRole as $cost)
                             <tr>
                                 <td class="text-start align-middle">{{ $cost['role_name'] }}</td>
@@ -59,7 +90,7 @@
                             </tr>
                         @endforeach
                     </tbody>
-                    <tfoot class="fw-bold">
+                    <tfoot class="fw-bold fs-6">
                         <tr>
                             <td colspan="5" class="text-start">Total Keuangan</td>
                             <td class="text-center">{{ number_format($totalRealization, 0, ',', '.') }}</td>
@@ -90,22 +121,169 @@
 </div>
 @endsection
 
+{{-- edit finance --}}
+<div class="modal fade" tabindex="-1" id="kt_modal_edit_financial">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Finansial</h3>
+            </div>
+            <div class="modal-body pb-2">
+                <form method="POST" action="{{route('performance-finance.edit', $volume_id)}}" id="editFinanceForm">
+                    @csrf
+                    @method('PUT') 
+                    <input type="hidden" name="category_id" id="form_category_id">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bolder">Personel</label>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label fw-bolder">Biaya Tenaga Kerja</label>
+                        </div>
+                    </div>
+                    <div class="row d-flex align-items-center">
+                        @foreach($costsPerRole as $cost)
+                            <div class="col-md-5 mb-5">
+                                <label class="form-label">{{$cost['role_name']}}</label>
+                            </div>
+                            <div class="col-md-7 mb-5">
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="text" 
+                                            name="resource_cost[{{ $cost['role_id'] }}]" 
+                                            id="editResCost_{{ $cost['role_id'] }}" 
+                                            class="form-control" placeholder="0" 
+                                            value="{{ number_format($cost['resource_cost'], 0, ',', '.') }}"
+                                            data-original="{{ number_format($cost['resource_cost'], 0, ',', '.') }}"
+                                            required
+                                    />
+                                    <input type="hidden"
+                                        name="resource_cost[{{ $cost['role_id'] }}]"
+                                        id="editResCostHidden_{{ $cost['role_id'] }}"
+                                        value="{{ number_format($cost['resource_cost'], 2, '.', '') }}"
+                                    />
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="submitEditFinanceForm">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // initTabelFinance();
+        $('[id^=editResCost_]').each(function() {
+            setupEditCurrencyFormatting($(this));
+        });
+
+        $('#kt_modal_edit_financial').on('show.bs.modal', function () {
+            $('[id^=editResCost_]').each(function() {
+                const original = $(this).data('original');
+                $(this).val(original);
+            });
+        });
     });
 
-    // function initTabelFinance() {
-    //     const table = $('#kt_datatable_example_2').DataTable({
-    //         // "scrollY": '500px',
-    //         "scrollX": true,
-    //         "fixedHeader": {
-    //             "header": true,
-    //             "headerOffset": 70
-    //         },
-    //         "ordering": false // Disable sorting
+    function setupEditCurrencyFormatting(costInput) {
+        costInput.on('input', function() {
+            let value = $(this).val().replace(/[^\d]/g, ''); // Hapus semua kecuali angka
+            let numericValue = value ? parseInt(value, 10) : 0;
+            $(this).val(numericValue ? numericValue.toLocaleString('id-ID') : '');
+
+            // Update hidden field with numeric value (as string, with 2 decimals)
+            let roleId = $(this).attr('id').replace('editResCost_', '');
+            $('#editResCostHidden_' + roleId).val(numericValue.toFixed(2));
+        });
+        
+        // Handle paste event
+        costInput.on('paste', function(e) {
+            const self = this;
+            setTimeout(() => {
+                let value = $(self).val().replace(/[^\d]/g, '');
+                let numericValue = value ? parseInt(value, 10) : 0;
+                $(self).val(numericValue ? numericValue.toLocaleString('id-ID') : '');
+
+                let roleId = $(self).attr('id').replace('editResCost_', '');
+                $('#editResCostHidden_' + roleId).val(numericValue.toFixed(2));
+            }, 10);
+        });
+    }
+
+    const submitEditFinanceForm = document.getElementById('submitEditFinanceForm');
+    const editFinanceForm = document.getElementById('editFinanceForm');
+    const editFinanceModal = new bootstrap.Modal(document.getElementById('kt_modal_edit_financial'));
+
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     document.body.addEventListener('click', function(event) {
+    //         // Pastikan elemen yang diklik adalah tombol edit aktivitas
+    //         if (event.target.closest('.btn-edit-finance')) {
+    //             const button = event.target.closest('.btn-edit-finance');
+    //             // Isi input tersembunyi timesheet_id
+    //             document.getElementById('form_category_id').value = button.dataset.categoryId;
+    //             document.getElementById('categoryName').value = button.dataset.categoryName;
+
+    //             console.log("Button Data:", {
+    //             id: button.dataset.categoryId,
+    //             name: button.dataset.categoryName,
+    //         });
+    //         }
     //     });
-    // }
+    // });
+
+    document.addEventListener('DOMContentLoaded', function(e) {
+        submitEditFinanceForm.addEventListener('click', function() {
+            e.preventDefault();
+
+            const formData = new FormData(editFinanceForm);
+            const url = editFinanceForm.action;
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                Swal.fire({
+                    text: data.message || "Data berhasil diubah!",
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                }).then(() => {
+                    editFinanceModal.hide();
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Error adding category:', error);
+                Swal.fire({
+                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "OK",
+                    customClass: { confirmButton: "btn btn-danger" }
+                });
+            });
+        });
+    });
 </script>
 @endpush
+

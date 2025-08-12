@@ -40,6 +40,7 @@ Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::cla
 
 Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
 Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');
+Route::put('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
 
 Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
 Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');

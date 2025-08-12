@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HumanResource;
+use App\Models\Role;
 use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Work;
@@ -129,9 +130,33 @@ class PerformanceFinanceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, $volume_id)
     {
-        //
+        // Validasi input
+        $validated = $request->validate([
+            'resource_cost' => 'required|array',
+            'resource_cost.*' => 'numeric|min:0',
+        ]);
+
+        $updated = [];
+
+        try {
+            foreach ($validated['resource_cost'] as $role_id => $resource_cost) {
+                $role = Role::findOrFail($role_id);
+                $role->update(['resource_cost' => $resource_cost]);
+                $updated[$role_id] = $role;
+            }
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diperbarui.',
+                'data' => $updated // Kirim data yang diperbarui jika perlu untuk update UI
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

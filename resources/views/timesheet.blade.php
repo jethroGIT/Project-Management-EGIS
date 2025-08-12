@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="my-10 mt-2">Timesheet Activity</h1>
+    <h1 class="my-5 mt-2">Timesheet Activity Summary</h1>
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
@@ -20,9 +20,6 @@
                         </li>
                         @endforeach
                     </ul>
-                    <a href="#" class="btn btn-light btn-sm border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; margin-bottom: 10px;">
-                        <i class="bi bi-plus fs-2 text-dark" style="margin-left: 5px"></i>
-                    </a>
                 </div>                
             </div>
             {{-- <div class="mb-2">
@@ -51,11 +48,16 @@
                             <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
                                 <thead>
                                     <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
-                                        <th scope="col" style="width: 40px;">No</th>
-                                        <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
+                                        <th scope="col" style="width: 20px;">No</th>
+                                        <th scope="col" style="width: 40px; min-width: 20px;">Tanggal</th>
                                         @foreach($usersInSelectedMonth as $user)
-                                            <th scope="col" style="width: 80px;">
-                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
+                                            <th scope="col" style="width: 100px;">
+                                                {{$user->name}}
+                                                <i class="bi bi-info-circle text-primary"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="{{$user->role->name}}">
+                                                </i>
                                             </th>     
                                         @endforeach                       
                                     </tr>

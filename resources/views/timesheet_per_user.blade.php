@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="my-10 mt-2">Timesheet Activity</h1>
+    <h1 class="my-5 mt-2">Timesheet Activity</h1>
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
@@ -11,14 +11,14 @@
                 </a>
                 <div>
                     <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
-                    <span class="mb-2 px-2 rounded-1" 
-                        data-bs-toggle="tooltip" 
-                        data-bs-placement="bottom" 
-                        title="{{$user->role->name}}"
-                        style="background-color: #a7d5f9; color: #212529; width: fit-content;"
-                    >
+                    <div class="mb-2 px-2 rounded-1"  style="background-color: #d7e7f5; color: #1c1f21; width: fit-content;">
                         {{$user->name}}
-                    </span>
+                        <i class="bi bi-info-circle text-primary ms-1"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="bottom"
+                            title="{{$user->role->name}}">
+                        </i>
+                    </div>
                 </div>
             </div>
             {{-- <div class="d-flex align-items-center justify-content-end">                
@@ -35,13 +35,13 @@
                     </a>
                 </div>                
             </div> --}}
-            <div class="d-flex justify-content-between mt-10">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
+            <div class="d-flex justify-content-end mt-10">
+                {{-- <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
                     </svg>
                     Filter Data
-                </button>
+                </button> --}}
                 <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#addActivityModal" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
                         class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">

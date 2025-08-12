@@ -227,7 +227,7 @@
 $(document).ready(function () {
     initTabelRole();
 
-    const addCostInput = $('#addRoleCost')
+    const addCostInput = $('#addRoleCost')c
     const editCostInput = $('#editRoleCost')
 
     setupEditCurrencyFormatting(addCostInput);
@@ -334,7 +334,7 @@ function submitAddRole() {
     if (!name) {
         Swal.fire({
             title: "Validasi Error",
-            text: "Field wajib harus diisi",
+            text: "Field harus diisi",
             icon: "error",
             buttonsStyling: false,
             confirmButtonText: "Tutup",
