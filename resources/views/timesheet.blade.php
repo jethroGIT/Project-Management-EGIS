@@ -141,38 +141,10 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-    // const button = document.getElementById('saveSuccessful');
-
-    // button.addEventListener('click', e => {
-    //     e.preventDefault();
-
-    //     Swal.fire({
-    //         text: "Data berhasil disimpan!",
-    //         icon: "success",
-    //         buttonsStyling: false,
-    //         confirmButtonText: "Tutup",
-    //         customClass: {
-    //             confirmButton: "btn btn-secondary"
-    //         }
-    //     });
-    // });
 
      // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
-
-        // // Add Personel Button Click Event
-        // $('#addPersonelBtn').on('click', function() {
-        //     addNewPersonel();
-        // });
-
-        // // Remove Personel Button Click Event
-        // $('#removePersonelBtn').on('click', function() {
-        //     removeLastPersonel();
-        // });
-
-        // // Update remove button visibility on page load
-        // updateRemoveButtonVisibility();
     });
 
     function initTabelTimesheet() {

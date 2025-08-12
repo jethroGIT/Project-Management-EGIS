@@ -21,20 +21,6 @@
                     </div>
                 </div>
             </div>
-            {{-- <div class="d-flex align-items-center justify-content-end">                
-                <div class="d-flex align-items-center">
-                    <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6 me-2">
-                        @foreach($months as $month)
-                        <li class="nav-item">
-                            <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
-                        </li>
-                        @endforeach
-                    </ul>
-                    <a href="#" class="btn btn-light btn-sm border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; margin-bottom: 10px;">
-                        <i class="bi bi-plus fs-2 text-dark" style="margin-left: 5px"></i>
-                    </a>
-                </div>                
-            </div> --}}
             <div class="d-flex justify-content-end mt-10">
                 {{-- <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
@@ -182,7 +168,6 @@
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('timesheet.user.add', [$volume->volume_id,1])}}" id="addActivityForm">
-                    {{-- <label class="form-label fw-bolder">{{\Carbon\Carbon::parse($activity->execution_date)->format('d M Y')}}</label> --}}
                     @csrf
                     @method('POST')
 
@@ -215,7 +200,6 @@
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id,1])}}" id="editActivityForm">
-                    {{-- <label class="form-label fw-bolder">{{\Carbon\Carbon::parse($activity->execution_date)->format('d M Y')}}</label> --}}
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="timesheet_id" id="form_timesheet_id">
@@ -247,19 +231,6 @@
      // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
-
-        // Add Personel Button Click Event
-        // $('#addPersonelBtn').on('click', function() {
-        //     addNewPersonel();
-        // });
-
-        // // Remove Personel Button Click Event
-        // $('#removePersonelBtn').on('click', function() {
-        //     removeLastPersonel();
-        // });
-
-        // // Update remove button visibility on page load
-        // updateRemoveButtonVisibility();
     });
 
     function initTabelTimesheet() {
@@ -484,96 +455,6 @@
             }
         });
     });
-
-
-    // /* ADD NEW PERSONEL */
-    // function addNewPersonel() {
-    //     const personelHtml = `
-    //         <div class="personel-activity-group mb-4" id="resource-${personelCounter}">
-    //             <div class="card card-flush shadow">
-    //                 <div class="card-header">
-    //                     <h3 class="card-title">Personel ${personelCounter + 1}</h3>
-    //                     <div class="card-toolbar">
-    //                         <button type="button" class="btn btn-sm btn-light-danger remove-personel-btn" onclick="removePersonel(${personelCounter})">
-    //                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-    //                                 <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-    //                             </svg>
-    //                             Hapus
-    //                         </button>
-    //                     </div>
-    //                 </div>
-    //                 <div class="card-body py-5 mb-2">
-    //                     <div class="form-group mb-4">
-    //                         <label class="form-label fw-bold">Personel</label>
-    //                         <select class="form-select" name="resources[]">
-    //                             <option value="">Pilih Resource</option>
-    //                             <option value="pm">Project Manager (PM)</option>
-    //                             <option value="sc">Senior Consultant (SC)</option>
-    //                             <option value="asc">Associate Consultant (ASC)</option>
-    //                             <option value="jc">Junior Consultant (JC)</option>
-    //                             <option value="tw">Technical Writer (TW)</option>
-    //                             <option value="osc">On-Site Consultant (OSC)</option>
-    //                         </select>
-    //                     </div>
-    //                     <div class="form-group">
-    //                         <label for="activity-${personelCounter}" class="form-label fw-bold">Aktivitas</label>
-    //                         <textarea class="form-control" id="activity-${personelCounter}" name="activities[]" rows="3" placeholder="Masukkan aktivitas yang dilakukan..."></textarea>
-    //                     </div>
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     `;
-        
-    //     $('#resourceContainer').append(personelHtml);
-    //     personelCounter++;
-    //     updateRemoveButtonVisibility();
-    // }
-
-    // function removePersonel(index) {
-    //     const personelCount = $('#resourceContainer .personel-activity-group').length;
-        
-    //     if (personelCount > 1) {
-    //         $(`#resource-${index}`).remove();
-    //         updateRemoveButtonVisibility();
-    //         updatePersonelNumbers();
-    //     } else {
-    //         Swal.fire({
-    //             text: "Minimal harus ada 1 personel!",
-    //             icon: "warning",
-    //             buttonsStyling: false,
-    //             confirmButtonText: "OK",
-    //             customClass: {
-    //                 confirmButton: "btn btn-warning"
-    //             }
-    //         });
-    //     }
-
-    //     personelCounter--;
-    // }
-
-    // function updateRemoveButtonVisibility() {
-    //     const personelCount = $('#resourceContainer .personel-activity-group').length;
-        
-    //     // Show/hide remove buttons
-    //     if (personelCount > 1) {
-    //         $('#removePersonelBtn').show();
-    //         $('.remove-personel-btn').show();
-    //     } else {
-    //         $('#removePersonelBtn').hide();
-    //         $('.remove-personel-btn').hide();
-    //     }
-    // }
-
-    // function updatePersonelNumbers() {
-    //     $('#resourceContainer .personel-activity-group').each(function(index) {
-    //         $(this).find('.card-title').text(`Personel ${index + 1}`);
-    //         $(this).find('.card-footer small').text(`Personel Activity #${index + 1}`);
-    //     });
-    // }
-
-    // $(function () {
-    //     $('[data-bs-toggle="tooltip"]').tooltip();
-    // });
 </script>
 @endpush
 
