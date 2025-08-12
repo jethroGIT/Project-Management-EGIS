@@ -7,12 +7,12 @@
             <h1 class="mt-0 mb-5">Detail Work Package</h1>
             <h4 class="">{{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
         </div>
-        <div>
+        <div class="text-end">
             <a href="{{ route('wp-management') }}" class="btn btn-light me-2">
                 <i class="bi bi-arrow-left"></i> Kembali
             </a>
             <button class="btn btn-primary" onclick="editWorkPackage({{ $workPackage->wp_id }})">
-                <i class="bi bi-pencil-square"></i> Edit Work Package
+                <i class="bi bi-pencil-square"></i> Edit Data
             </button>
         </div>
     </div>
@@ -147,7 +147,7 @@
                     @else
                         <div class="row justify-content-center">
                             @foreach($volumesData as $volume)
-                                <div class="col-md-6 col-lg-4 mb-6">
+                                <div class="volume-card-item-one col-md-6 col-lg-4 mb-8">
                                     <div class="card card-bordered h-100 shadow hover-elevate-up">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -183,7 +183,7 @@
                                                     onclick="manageVolume({{ $volume['volume_id'] }})" 
                                                 >
                                                     <i class="bi bi-gear me-1"></i>
-                                                    Lihat Detail Volume
+                                                    Kelola Volume
                                                 </button>
                                             </div>
                                         </div>
@@ -399,6 +399,15 @@
 .volume-card-item .card:hover .card-title {
     color: #0d6efd;
 }
+
+.volume-card-item-one .card:hover {
+    border-color: #0d6efd;
+}
+
+.volume-card-item-one .card:hover .card-title {
+    color: #0d6efd;
+}
+
 </style>
 
 @push('scripts')
@@ -407,17 +416,7 @@
  * Function untuk edit work package (placeholder)
  */
 function editWorkPackage(wpId) {
-    // TODO: Implement edit functionality
-    Swal.fire({
-        title: "Edit Work Package",
-        text: "Fitur edit work package akan segera tersedia",
-        icon: "info",
-        buttonsStyling: false,
-        confirmButtonText: "OK",
-        customClass: {
-            confirmButton: "btn btn-primary"
-        }
-    });
+    window.location.href = `{{ route('wp-management.edit', ['wp_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', wpId);
 }
 
 /**

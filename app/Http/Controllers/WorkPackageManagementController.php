@@ -586,17 +586,204 @@ class WorkPackageManagementController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($wp_id)
     {
-        //
+        try {
+            // Ambil work package dengan semua relasi yang dibutuhkan
+            $workPackage = WorkPackage::with([
+                'wpCategory',
+                'workPackageVolumes' => function($query) {
+                    $query->orderBy('volume_number', 'asc');
+                },
+                'workPackageVolumes.work.user.role',
+                'humanResources.role'
+            ])->findOrfail($wp_id);
+
+            // Ambil semua kategori untuk dropdown
+            $categories = WpCategory::orderBy('name', 'asc')->get();
+
+            // Ambil semua users dengan roles untuk resource management
+            $users = User::with('role')->orderBy('name', 'asc')->get();
+            $roles = Role::orderBy('name', 'asc')->get();
+
+            // Transform volume data untuk edit form
+            $volumesData = $workPackage->workPackageVolumes->map(function ($volume) {
+                // Ambil resource data untuk volume ini
+                $resources = $volume->work->map(function ($work) {
+                    if ($work->user && $work->user->role) {
+                        return [
+                            'work_id' => $work->work_id,
+                            'user_id' => $work->user->user_id,
+                            'user_name' => $work->user->name,
+                            'role_name' => $work->user->role->name,
+                        ];
+                    }
+                    return null;
+                })->filter()->values();
+
+                return [
+                    'volume_id' => $volume->volume_id,
+                    'volume_number' => $volume->volume_number,
+                    'start_date' => $volume->start_date,
+                    'end_date' => $volume->end_date,
+                    'execution_year' => $volume->execution_year,
+                    'resources' => $resources
+                ];
+            });
+
+            // Transform human resources data untuk edit form
+            $humanResourcesData = $workPackage->humanResources->map(function ($hr) {
+                return [
+                    'hr_id' => $hr->hresource_id,
+                    'role_id' => $hr->role_id,
+                    'role_name' => $hr->role->name ?? 'Unknown Role',
+                    'jtk' => $hr->jtk,
+                    'jhk' => $hr->jhk
+                ];
+            });
+
+            Log::info('Work Package edit form loaded', [
+                'wp_id' => $wp_id,
+                'wp_number' => $workPackage->wp_number
+            ]);
+
+            return view('workpackage_management_edit', compact(
+                'workPackage',
+                'volumesData',
+                'humanResourcesData',
+                'categories',
+                'users',
+                'roles'
+            ));
+
+        } catch (ModelNotFoundException $e) {
+            Log::error('Work Package not found for edit', ['wp_id' => $wp_id]);
+
+            return redirect()->route('wp-management')
+                ->with('error', 'Work Package tidak ditemukan.');
+
+        } catch (Exception $e) {
+            Log::error('Error loading work package edit form', [
+                'wp_id' => $wp_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('wp-management')
+                ->with('error', 'Terjadi kesalahan saat memuat form edit data work package.');
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $wp_id)
     {
-        //
+        try {
+            DB::beginTransaction();
+
+            Log::info('Updating work package', [
+                'wp_id' => $wp_id, 
+                'data' => $request->all()
+            ]);
+
+            // Temukan data work package
+            $workPackage = WorkPackage::findOrFail($wp_id);
+
+            // Validasi request
+            $validatedData = $request->validate([
+                // Informasi umum work package
+                'category_id' => 'required|exists:wp_category,category_id',
+                'name' => 'required|string|max:255',
+                'actual_scope_contract' => 'nullable|string',
+                'deliverable' => 'nullable|string',
+                'duration' => 'required|integer|min:1',
+
+                // Volume data
+                'volumes' => 'required|array|min:1',
+                'volumes.*.volume_id' => 'required|exists:work_package_volume,volume_id',
+                'volumes.*.start_date' => 'required|date',
+                'volumes.*.end_date' => 'required|date|after_or_equal:volumes.*.start_date',
+                'volumes.*.execution_year' => 'required|integer',
+
+                // Resource data
+                'resources' => 'required|array|min:1',
+                'resources.*.role_id' => 'required|exists:role,role_id',
+                'resources.*.jtk' => 'required|integer|min:1',
+                'resources.*.jhk' => 'required|integer|min:1',
+            ]);
+
+            // Step 1: Update informasi umum work package
+            $workPackage->update([
+                'category_id' => $validatedData['category_id'],
+                'name' => $validatedData['name'],
+                'duration' => $validatedData['duration'],
+                'actual_scope_contract' => $validatedData['actual_scope_contract'],
+                'deliverable' => $validatedData['deliverable'],
+            ]);
+
+            // Step 2: Update volume data
+            foreach ($validatedData['volumes'] as $volumeData) {
+                $volume = WorkPackageVolume::findOrFail($volumeData['volume_id']);
+
+                $volume->update([
+                    'start_date' => $volumeData['start_date'],
+                    'end_date' => $volumeData['end_date'],
+                    'execution_year' => $volumeData['execution_year'],
+                ]);
+            }
+
+            // Step 3: Update human resources
+            // Delete existing human resources
+            HumanResource::where('wp_id', $wp_id)->delete();
+
+            // Buat human resources baru
+            foreach ($validatedData['resources'] as $resourceData) {
+                HumanResource::create([
+                    'wp_id' => $wp_id,
+                    'role_id' => $resourceData['role_id'],
+                    'jtk' => $resourceData['jtk'],
+                    'jhk' => $resourceData['jhk'],
+                ]);
+            }
+
+            DB::commit();
+
+            Log::info('Work Package updated successfully', [
+                'wp_id' => $wp_id,
+                'wp_number' => $workPackage->wp_number,
+                'name' => $workPackage->name
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Work Package berhasil diperbarui',
+                'redirect_url' => route('wp-management.detail', $wp_id)
+            ]);
+
+        } catch (ValidationException $e) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi Gagal',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (Exception $e) {
+            DB::rollback();
+
+            Log::error('Error updating work package', [
+                'wp_id' => $wp_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui Work Package: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
