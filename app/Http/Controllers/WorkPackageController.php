@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HumanResource;
 use App\Models\Role;
+use App\Models\SubTask;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use App\Models\User;
@@ -80,14 +81,19 @@ class WorkPackageController extends Controller
         $tasks = $volume->task;
         $totalCompletion = 0;
 
-        if ($tasks->count() > 0) {
-            $taskCompletions = $tasks->map(function ($task) {
-                if ($task->subTask->count() > 0) {
-                    return $task->subTask->avg('completeness');
-                }
-                return 0;
-            });
-            $totalCompletion = round($taskCompletions->avg(), 2);
+        $tasksWithUtilization = $tasks->map(function ($task) {
+            $subTasks = $task->subTask;
+            if ($subTasks->count() > 0) {
+                $avgCompleteness = $subTasks->avg('completeness');
+                $task->utilization = round($avgCompleteness, 2);
+            } else {
+                $task->utilization = 0;
+            }
+            return $task;
+        });
+
+        if ($tasksWithUtilization->count() > 0) {
+            $totalCompletion = round($tasksWithUtilization->avg('utilization'), 2);
         }
 
         // hitung persentase finance performance
@@ -126,7 +132,9 @@ class WorkPackageController extends Controller
             'volume_id',
             'assignedUsers',
             'totalCompletion',
-            'realizationPercentage'
+            'realizationPercentage',
+            'tasks',
+            'tasksWithUtilization'
         ));
     }
 
@@ -368,6 +376,193 @@ class WorkPackageController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus task: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Store new sub task
+     */
+    public function storeSubTask(Request $request)
+    {
+        $request->validate([
+            'task_id' => 'required|exists:task,task_id',
+            'subtask_name' => 'required|string|max:255',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Pastikan parent task ada
+            $task = Task::findOrFail($request->task_id);
+
+            // Buat subtask baru
+            $subTask = $task->subTask()->create([
+                'name' => trim($request->subtask_name),
+                'completeness' => 0, // default value, bisa diubah sesuai kebutuhan
+                'status' => 'open'
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sub Task berhasil ditambahkan',
+                'subtask' => $subTask
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            Log::error('Error creating subtask', [
+                'message' => $e->getMessage(),
+                'task_id' => $request->task_id,
+                'subtask_name' => $request->subtask_name
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan sub task: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get sub task data by Id
+     */
+    public function getSubTask($subTaskId)
+    {
+        try {
+            $subTask = SubTask::findOrFail($subTaskId);
+
+            return response()->json([
+                'success' => true,
+                'subtask' => [
+                    'sub_task_id' => $subTask->sub_task_id,
+                    'task_id' => $subTask->task_id,
+                    'name' => $subTask->name,
+                ]
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Task tidak ditemukan'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Task tidak ditemukan'
+            ], 404);
+        }
+    }
+
+    /**
+     * Update existing sub task
+     */
+    public function updateSubTask(Request $request, $subTaskId)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'sub_task_id' => 'required|exists:sub_task,sub_task_id',
+            'task_id' => 'required|exists:task,task_id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $subTask = SubTask::where('sub_task_id', $subTaskId)
+                ->where('task_id', $request->task_id)
+                ->firstOrFail();
+            
+            $subTask->update([
+                'name' => trim($request->name)
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sub Task berhasil diperbarui',
+                'subtask' => [
+                    'sub_task_id' => $subTask->sub_task_id,
+                    'name' => $subTask->name,
+                    'task_id' => $subTask->task_id
+                ]
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            DB::rollback();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Sub Task tidak ditemukan'
+            ], 404);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            Log::error('Error updating sub task', [
+                'message' => $e->getMessage(),
+                'sub_task_id' => $subTaskId,
+                'task_id' => $request->task_id,
+                'subtask_name' => $request->subtask_name,
+                'trace' => $e->getTraceAsString()
+            ]);
+        
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui sub task: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete existing sub task
+     */
+    public function deleteSubTask($subTaskId)
+    {
+        try {
+            DB::beginTransaction();
+
+            $subTask = SubTask::findOrFail($subTaskId);
+
+            // Hapus sub task
+            $subTask->delete();
+
+            DB::commit();
+
+            Log::info('Sub Task deleted successfully', [
+                'sub_task_id' => $subTaskId,
+                'name' => $subTask->name,
+                'task_id' => $subTask->task_id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sub Task berhasil dihapus'
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Sub Task tidak ditemukan'
+            ], 404);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            Log::error('Error deleting sub task', [
+                'message' => $e->getMessage(),
+                'subtask_id' => $subTaskId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus sub task: ' . $e->getMessage()
             ], 500);
         }
     }

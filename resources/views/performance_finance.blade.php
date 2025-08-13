@@ -20,11 +20,7 @@
                             title="sum(Biaya by YoY)">
                         </i>
                     </div>
-                    <div class="border h-100 d-flex align-items-center justify-content-center w-100"
-                        data-bs-toggle="tooltip" 
-                        data-bs-placement="top" 
-                        title="Rencana"
-                    >
+                    <div class="border h-100 d-flex align-items-center justify-content-center w-100">
                         <span class="text">{{ number_format($totalByYoy, 0, ',', '.') }}</span>
                     </div>
                 </div>
@@ -220,23 +216,6 @@
     const editFinanceForm = document.getElementById('editFinanceForm');
     const editFinanceModal = new bootstrap.Modal(document.getElementById('kt_modal_edit_financial'));
 
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     document.body.addEventListener('click', function(event) {
-    //         // Pastikan elemen yang diklik adalah tombol edit aktivitas
-    //         if (event.target.closest('.btn-edit-finance')) {
-    //             const button = event.target.closest('.btn-edit-finance');
-    //             // Isi input tersembunyi timesheet_id
-    //             document.getElementById('form_category_id').value = button.dataset.categoryId;
-    //             document.getElementById('categoryName').value = button.dataset.categoryName;
-
-    //             console.log("Button Data:", {
-    //             id: button.dataset.categoryId,
-    //             name: button.dataset.categoryName,
-    //         });
-    //         }
-    //     });
-    // });
-
     document.addEventListener('DOMContentLoaded', function(e) {
         submitEditFinanceForm.addEventListener('click', function() {
             e.preventDefault();
@@ -262,14 +241,26 @@
             })
             .then(data => {
                 Swal.fire({
-                    text: data.message || "Data berhasil diubah!",
-                    icon: "success",
+                    text: "Perubahan biaya tenaga kerja akan diterapkan ke semua Work Package.",
+                    icon: "warning",
                     buttonsStyling: false,
-                    confirmButtonText: "Tutup",
-                    customClass: { confirmButton: "btn btn-secondary" }
-                }).then(() => {
-                    editFinanceModal.hide();
-                    location.reload();
+                    cancelButtonText: "Batal",
+                    confirmButtonText: "Lanjutkan",
+                    showCancelButton: true,
+                    customClass: { cancelButton: "btn btn-secondary", confirmButton: "btn btn-warning" }
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        Swal.fire({
+                            text: data.message || "Data berhasil diubah!",
+                            icon: "success",
+                            buttonsStyling: false,
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
+                        }).then(() => {
+                            editFinanceModal.hide();
+                            location.reload();
+                        });
+                    }
                 });
             })
             .catch(error => {

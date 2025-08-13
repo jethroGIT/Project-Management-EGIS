@@ -120,14 +120,6 @@
                                                             <a class="dropdown-item d-flex align-items-center text-danger" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
                                                             <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
                                                         </li>
-                                                        <!-- <li>
-                                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Atas</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#subtaskModal">
-                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>Tambah Baris di Bawah</a>
-                                                        </li> -->
                                                     </ul>
                                                 </div>
                                             </td>
@@ -170,16 +162,6 @@
                     </tbody>
                 </table>
             </div>                       
-            {{-- <ul class="pagination justify-content-end">
-                <li class="page-item previous"><a href="#" class="page-link"><i class="previous"></i></a></li>
-                <li class="page-item active"><a href="#" class="page-link">1</a></li>
-                <li class="page-item "><a href="#" class="page-link">2</a></li>
-                <li class="page-item "><a href="#" class="page-link">3</a></li>
-                <li class="page-item "><a href="#" class="page-link">...</a></li>
-                <li class="page-item "><a href="#" class="page-link">5</a></li>
-                <li class="page-item "><a href="#" class="page-link">6</a></li>
-                <li class="page-item next"><a href="#"  class="page-link"><i class="next"></i></a></li>
-            </ul> --}}
         </div>
     </div>
 </div>

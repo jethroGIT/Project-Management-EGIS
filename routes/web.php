@@ -60,6 +60,11 @@ Route::put('/work-package/task/{taskId}', [WorkPackageController::class, 'update
 Route::post('/work-package/task/store', [WorkPackageController::class, 'storeTask'])->name('work-package.task.store');
 Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'deleteTask'])->name('work-package.task.delete');
 
+Route::post('/work-package/subtask/store', [WorkPackageController::class, 'storeSubTask'])->name('work-package.subtask.store');
+Route::get('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'getSubTask'])->name('work-package.subtask.get');
+Route::delete('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'deleteSubTask'])->name('work-package.subtask.delete');
+Route::put('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'updateSubTask'])->name('work-package.subtask.update');
+
 // Work Package Volume Data Management
 Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
 
