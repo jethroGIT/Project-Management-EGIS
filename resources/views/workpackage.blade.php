@@ -9,7 +9,13 @@
         @if(isset($workPackage) && isset($volume))
             <div>
                 <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
-                <p>Periode {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}</p>
+                <p>Periode 
+                    @if(isset($volume->start_date) && ($volume->end_date))
+                        {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}
+                    @else
+                        Belum Tersedia
+                    @endif
+                </p>
             </div>
         @endif
         <div class="">
@@ -324,7 +330,7 @@
                                                     name="start_date"
                                                     id="editStartDate" 
                                                     class="form-control" 
-                                                    value="{{ isset($volume) ? \Carbon\Carbon::parse($volume->start_date)->format('Y-m-d') : '' }}"
+                                                    value="{{ isset($volume) && isset($volume->start_date) ? \Carbon\Carbon::parse($volume->start_date)->format('Y-m-d') : '' }}"
                                                     required 
                                                 />
                                             </div>
@@ -337,7 +343,7 @@
                                                     name="end_date" 
                                                     id="editEndDate" 
                                                     class="form-control" 
-                                                    value="{{ isset($volume) ? \Carbon\Carbon::parse($volume->end_date)->format('Y-m-d') : '' }}"
+                                                    value="{{ isset($volume) && isset($volume->end_date) ? \Carbon\Carbon::parse($volume->end_date)->format('Y-m-d') : '' }}"
                                                     required
                                                 />
                                             </div>

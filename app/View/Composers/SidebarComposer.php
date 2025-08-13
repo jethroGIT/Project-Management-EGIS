@@ -10,6 +10,9 @@ class SidebarComposer
     public function compose(View $view)
     {
         $workPackagesByYear = WorkPackageVolume::with('workPackage')
+            ->whereNotNull('start_date')
+            ->whereNotNull('end_date')
+            ->whereNotNull('execution_year')
             ->orderBy('execution_year')
             ->orderBy('volume_number')
             ->get()

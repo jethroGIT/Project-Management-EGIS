@@ -124,15 +124,21 @@ class WorkPackageManagementController extends Controller
                     return null;
                 })->filter()->unique()->values();
 
+                // Menangani tanggal null
+                $periodFormatted = "Belum tersedia";
+                if ($volume->start_date && $volume->end_date) {
+                    $periodFormatted = Carbon::parse($volume->start_date)->format('d M Y') . 
+                                        ' - ' .
+                                        Carbon::parse($volume->end_date)->format('d M Y');
+                }
+
                 return [
                     'volume_id' => $volume->volume_id,
                     'volume_number' => $volume->volume_number,
                     'start_date' => $volume->start_date,
                     'end_date' => $volume->end_date,
                     'execution_year' => $volume->execution_year,
-                    'period_formatted' => Carbon::parse($volume->start_date)->format('d M Y') . 
-                                        ' - ' .
-                                        Carbon::parse($volume->end_date)->format('d M Y'),
+                    'period_formatted' => $periodFormatted,
                     'duration_days' => $workPackage->duration,
                     'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada resource',
                     'resource_count' => $resourceNames->count()
@@ -393,9 +399,9 @@ class WorkPackageManagementController extends Controller
                 $volume = WorkPackageVolume::create([
                     'wp_id' => $workPackage->wp_id,
                     'volume_number' => $i,
-                    'start_date' => now(),
-                    'end_date' => now()->addDays($duration),
-                    'execution_year' => now()->year,
+                    'start_date' => null,
+                    'end_date' => null,
+                    'execution_year' => null,
                 ]);
 
                 $volumes[] = $volume;

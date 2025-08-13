@@ -107,7 +107,7 @@
                                                     <i class="bi bi-folder-fill text-primary me-2"></i>
                                                     Volume {{ $volume['volume_number'] }}
                                                 </h4>
-                                                <span class="badge badge-light-info">{{ $volume['execution_year'] }}</span>
+                                                <span class="badge badge-light-info">{{ $volume['execution_year'] ?? '-' }}</span>
                                             </div>
                                             
                                             <div class="mb-4">
@@ -115,7 +115,15 @@
                                                     <i class="bi bi-calendar-range me-1"></i>
                                                     Periode Pelaksanaan
                                                 </div>
-                                                <div class="fs-6">{{ $volume['period_formatted'] }}</div>
+                                                <div class="fs-7">
+                                                    @if($volume['start_date'] && $volume['end_date'])
+                                                        {{ $volume['period_formatted'] }}
+                                                    @else
+                                                        <span class="text-warning">
+                                                            Belum tersedia
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </div>
         
                                             <div class="mb-4">
@@ -124,7 +132,7 @@
                                                     Resources ({{ $volume['resource_count'] }})
                                                 </div>
                                                 <div class="fs-7 text-wrap">
-                                                    {{ $volume['resource_names'] }}
+                                                    {{ Str::limit($volume['resource_names'], 70, '...') }}
                                                 </div>
                                             </div>
         
