@@ -347,7 +347,7 @@
                         <div class="menu-item px-5">
                             <a
                                 class="menu-link px-5"
-                                href="../../demo14/dist/account/overview.html"
+                                href="{{route('profile')}}"
                                 >My Profile</a
                             >
                         </div>

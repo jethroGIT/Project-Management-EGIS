@@ -7,6 +7,7 @@ use App\Http\Controllers\RealisasiController;
 use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\PerformanceTaskController;
 use App\Http\Controllers\PerformanceFinanceController;
+use App\Http\Controllers\ProfileUserController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\WorkPackageController;
@@ -32,6 +33,7 @@ Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
 Route::get('/task', [TaskController::class, 'index'])->name('task');
 
 Route::get('/login', [SignInController::class, 'index'])->name('login');
+Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
 
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');

@@ -43,6 +43,7 @@ class User extends Authenticatable
         return $this->hasMany(Work::class, 'user_id', 'user_id');
     }
 
+    // untuk menerapkan spatie permission, tidak boleh ada relasi role
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id', 'role_id');
