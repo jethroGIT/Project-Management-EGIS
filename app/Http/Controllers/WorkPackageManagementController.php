@@ -11,6 +11,7 @@ use App\Models\HumanResource;
 use App\Models\Task;
 use App\Models\SubTask;
 use App\Models\Work;
+use App\Models\Timesheet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -625,7 +626,15 @@ class WorkPackageManagementController extends Controller
                         ];
                     }
                     return null;
-                })->filter()->values();
+                })->filter()->unique('user_id')->values();
+
+                // Menangani period_formatted
+                $periodFormatted = 'Belum tersedia';
+                if ($volume->start_date && $volume->end_date) {
+                    $periodFormatted = Carbon::parse($volume->start_date)->format('d M Y') . 
+                                    ' - ' .
+                                    Carbon::parse($volume->end_date)->format('d M Y');
+                }
 
                 return [
                     'volume_id' => $volume->volume_id,
@@ -633,6 +642,7 @@ class WorkPackageManagementController extends Controller
                     'start_date' => $volume->start_date,
                     'end_date' => $volume->end_date,
                     'execution_year' => $volume->execution_year,
+                    'period_formatted' => $periodFormatted,
                     'resources' => $resources
                 ];
             });
@@ -700,6 +710,7 @@ class WorkPackageManagementController extends Controller
             $validatedData = $request->validate([
                 // Informasi umum work package
                 'category_id' => 'required|exists:wp_category,category_id',
+                'wp_sequence' => 'required|integer|min:1',
                 'name' => 'required|string|max:255',
                 'actual_scope_contract' => 'nullable|string',
                 'deliverable' => 'nullable|string',
@@ -707,10 +718,12 @@ class WorkPackageManagementController extends Controller
 
                 // Volume data
                 'volumes' => 'required|array|min:1',
-                'volumes.*.volume_id' => 'required|exists:work_package_volume,volume_id',
-                'volumes.*.start_date' => 'required|date',
-                'volumes.*.end_date' => 'required|date|after_or_equal:volumes.*.start_date',
-                'volumes.*.execution_year' => 'required|integer',
+                'volumes.*.volume_id' => 'required',
+                'volumes.*.volume_number' => 'required|integer|min:1',
+
+                // Deleted volumes
+                'deleted_volumes' => 'nullable|array',
+                'deleted_volumes.*' => 'exists:work_package_volume,volume_id',
 
                 // Resource data
                 'resources' => 'required|array|min:1',
@@ -719,24 +732,82 @@ class WorkPackageManagementController extends Controller
                 'resources.*.jhk' => 'required|integer|min:1',
             ]);
 
+            // Step 0: Update WP Number if category or sequence changed
+            $category = WpCategory::findOrFail($validatedData['category_id']);
+            $newWpNumber = $category->category_number . '.' . $validatedData['wp_sequence'];
+
+            // Cek jika nomor WP berubah dan nomor baru tersedia
+            if ($newWpNumber !== $workPackage->wp_number) {
+                if (WorkPackage::where('wp_number', $newWpNumber)->where('wp_id', '!=', $wp_id)->exists()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Nomor Work Package {$newWpNumber} sudah digunakan. Silahkan pilih nomor lain."
+                    ], 422);
+                }
+
+                Log::info('WP Number changed', [
+                    'old_wp_number' => $workPackage->wp_number,
+                    'new_wp_number' => $newWpNumber
+                ]);
+            }
+
             // Step 1: Update informasi umum work package
             $workPackage->update([
                 'category_id' => $validatedData['category_id'],
+                'wp_number' => $newWpNumber,
                 'name' => $validatedData['name'],
                 'duration' => $validatedData['duration'],
                 'actual_scope_contract' => $validatedData['actual_scope_contract'],
                 'deliverable' => $validatedData['deliverable'],
+                'volume_qty' => count($validatedData['volumes'])
             ]);
 
             // Step 2: Update volume data
-            foreach ($validatedData['volumes'] as $volumeData) {
-                $volume = WorkPackageVolume::findOrFail($volumeData['volume_id']);
+            if (!empty($validatedData['deleted_volumes'])) {
+                foreach ($validatedData['deleted_volumes'] as $volumeId) {
+                    $volume = WorkPackageVolume::find($volumeId);
+                    if ($volume) {
+                        // Double check associations before deletion
+                        $hasAssociations = Task::where('volume_id', $volumeId)->exists() ||
+                                        Work::where('volume_id', $volumeId)->exists() ||
+                                        Timesheet::where('volume_id', $volumeId)->exists();
 
-                $volume->update([
-                    'start_date' => $volumeData['start_date'],
-                    'end_date' => $volumeData['end_date'],
-                    'execution_year' => $volumeData['execution_year'],
-                ]);
+                        if (!$hasAssociations) {
+                            $volume->delete();
+                            Log::info('Volume deleted', ['volume_id' => $volumeId]);
+                        } else {
+                            Log::warning('Attempted to delete volume with associations', ['volume_id' => $volumeId]);
+                        }
+                    }
+                }
+            }
+
+            // Create new volumes and update exisitng ones
+            foreach ($validatedData['volumes'] as $volumeData) {
+                if ($volumeData['volume_id'] === 'new') {
+                    // Create new volume
+                    WorkPackageVolume::create([
+                        'wp_id' => $wp_id,
+                        'volume_number' => $volumeData['volume_number'],
+                        'start_date' => null,
+                        'end_date' => null,
+                        'execution_year' => null,
+                    ]);
+                    Log::info('New volume created', ['volume_number' => $volumeData['volume_number']]);
+
+                } else {
+                    // Update existing volume number if changed
+                    $volume = WorkPackageVolume::find($volumeData['volume_id']);
+                    
+                    if ($volume && $volume->volume_number != $volumeData['volume_number']) {
+                        $volume->update(['volume_number' => $volumeData['volume_number']]);
+                        
+                        Log::info('Volume number updated', [
+                            'volume_id' => $volumeData['volume_id'],
+                            'new_number' => $volumeData['volume_number']
+                        ]);
+                    }
+                }
             }
 
             // Step 3: Update human resources
@@ -788,6 +859,54 @@ class WorkPackageManagementController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memperbarui Work Package: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check volume associations before deletion
+     */
+    public function checkVolumeAssociations($volume_id) 
+    {
+        try {
+            $volume = WorkPackageVolume::findOrFail($volume_id);
+
+            // Check for associated data
+            $tasksCount = Task::where('volume_id', $volume_id)->count();
+            $subtasksCount = SubTask::whereHas('task', function($query) use ($volume_id) {
+                $query->where('volume_id', $volume_id);
+            })->count();
+            $resourcesCount = Work::where('volume_id', $volume_id)->count();
+            $timesheetsCount = Timesheet::where('volume_id', $volume_id)->count();
+
+            $hasAssociations = $tasksCount > 0 || $subtasksCount > 0 || $resourcesCount > 0 || $timesheetsCount > 0;
+
+            return response()->json([
+                'success' => true,
+                'has_associations' => $hasAssociations,
+                'associations' => [
+                    'tasks_count' => $tasksCount,
+                    'subtasks_count' => $subtasksCount,
+                    'resources_count' => $resourcesCount,
+                    'timesheets_count' => $timesheetsCount
+                ] 
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Volume tidak ditemukan'
+            ], 404);
+
+        } catch (Exception $e) {
+            Log::error('Error checking volume associations', [
+                'volume_id' => $volume_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memeriksa data volume'
             ], 500);
         }
     }

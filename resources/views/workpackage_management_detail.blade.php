@@ -109,6 +109,16 @@
                                                 </h4>
                                                 <span class="badge badge-light-info">{{ $volume['execution_year'] ?? '-' }}</span>
                                             </div>
+
+                                            <!-- Volume Status Badge -->
+                                            <div class="mb-3">
+                                                @if(!$volume['start_date'] && !$volume['end_date'] && !$volume['execution_year'])
+                                                    <span class="badge badge-light-info">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                                        Belum Konfigurasi
+                                                    </span>
+                                                @endif
+                                            </div>
                                             
                                             <div class="mb-4">
                                                 <div class="fw-bold mb-1">
@@ -119,7 +129,7 @@
                                                     @if($volume['start_date'] && $volume['end_date'])
                                                         {{ $volume['period_formatted'] }}
                                                     @else
-                                                        <span class="text-warning">
+                                                        <span>
                                                             Belum tersedia
                                                         </span>
                                                     @endif
@@ -348,27 +358,6 @@
     margin-top: 15px;
 }
 
-.scroll-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #dee2e6;
-    margin: 0 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.scroll-dot.active {
-    background-color: #0d6efd;
-    transform: scale(1.2);
-}
-
-.scroll-dot:hover {
-    background-color: #6c757d;
-    transform: scale(1.1);
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .volume-card-item {
@@ -415,7 +404,6 @@
 .volume-card-item-one .card:hover .card-title {
     color: #0d6efd;
 }
-
 </style>
 
 @push('scripts')
