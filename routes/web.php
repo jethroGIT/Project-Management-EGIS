@@ -12,6 +12,7 @@ use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\WorkPackageController;
 use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
+use App\Http\Controllers\SignInController;
 use App\Http\Controllers\TimesheetManagementController;
 use App\Http\Controllers\WPCategoryManagementController;
 use App\Http\Controllers\WorkPackageManagementController;
@@ -29,6 +30,8 @@ Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('peren
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
 Route::get('/task', [TaskController::class, 'index'])->name('task');
+
+Route::get('/login', [SignInController::class, 'index'])->name('login');
 
 Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
 Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
@@ -59,6 +62,7 @@ Route::get('/work-package/task/{taskId}', [WorkPackageController::class, 'getTas
 Route::put('/work-package/task/{taskId}', [WorkPackageController::class, 'updateTask'])->name('work-package.task.update');
 Route::post('/work-package/task/store', [WorkPackageController::class, 'storeTask'])->name('work-package.task.store');
 Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'deleteTask'])->name('work-package.task.delete');
+Route::get('/work-package/task/{taskId}/subtask-count', [WorkPackageController::class, 'getSubTaskCount'])->name('work-package.task.subtask.count');
 
 Route::post('/work-package/subtask/store', [WorkPackageController::class, 'storeSubTask'])->name('work-package.subtask.store');
 Route::get('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'getSubTask'])->name('work-package.subtask.get');

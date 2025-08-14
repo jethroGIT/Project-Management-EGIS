@@ -152,8 +152,55 @@ class TimesheetController extends Controller
         //
     }
 
+    
     /**
-     * Show the form for editing the specified resource.
+     * adding the user activity.
+     */
+    public function addperUser(Request $request, $volume_id, $user_id){
+        try {
+            // validate
+            // save
+            $request->validate([
+                'execution_date' => 'required|date',
+                'activity' => 'required'
+            ]);
+
+            // Cek apakah sudah ada aktivitas di volume & tanggal yang sama untuk user ini
+            $exists = Timesheet::where('user_id', $user_id)
+                ->where('volume_id', $volume_id)
+                ->whereDate('execution_date', $request->execution_date)
+                ->exists();
+
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda sudah mengisi aktivitas untuk WP volume dan tanggal ini.'
+                ], 422);
+            }
+
+            // Simpan aktivitas baru
+            $activity = Timesheet::create([
+                'user_id' => $user_id,
+                'volume_id' => $volume_id,
+                'execution_date' => $request->execution_date,
+                'activity' => $request->activity,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil ditambahkan.',
+                'data' => $activity // Kirim data yang diperbarui jika perlu untuk update UI
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * editing the user activity.
      */
     public function editperUser(Request $request, $volume_id, $user_id)
     {
@@ -178,35 +225,6 @@ class TimesheetController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui.',
-                'data' => $activity // Kirim data yang diperbarui jika perlu untuk update UI
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function addperUser(Request $request, $volume_id, $user_id){
-        try {
-            // validate
-            // save
-            $request->validate([
-                'execution_date' => 'required|date',
-                'activity' => 'required'
-            ]);
-
-            $activity = new Timesheet();
-            $activity->user_id = $user_id;
-            $activity->volume_id = $volume_id;
-            $activity->execution_date = $request->execution_date;
-            $activity->activity = $request->activity;
-            $activity->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Data berhasil ditambahkan.',
                 'data' => $activity // Kirim data yang diperbarui jika perlu untuk update UI
             ]);
         } catch (\Exception $e) {

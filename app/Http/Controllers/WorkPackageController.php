@@ -146,52 +146,56 @@ class WorkPackageController extends Controller
         $request->validate([
             'volume_id' => 'required|exists:work_package_volume,volume_id',
             'task_name' => 'required|string|max:255',
-            'reference_task_id' => 'nullable|exists:task,task_id',
-            'insert_position' => 'nullable|in:above,below'
+            // 'reference_task_id' => 'nullable|exists:task,task_id',
+            // 'insert_position' => 'nullable|in:above,below'
         ]);
 
         try {
             DB::beginTransaction();
 
             $volumeId = (int) $request->volume_id;
-            $referenceTaskId = $request->reference_task_id ? (int) $request->reference_task_id : null;
+            // Find the max order for this volume
+            $maxOrder = Task::where('volume_id', $request->volume_id)->max('order_index');
+            $order = $maxOrder ? $maxOrder + 1 : 1;
 
-            // Jika ada reference task, perlu mengatur ulang order
-            if ($referenceTaskId && $request->insert_position) {
-                $referenceTask = Task::where('task_id', $referenceTaskId)
-                    ->where('volume_id', $volumeId)
-                    ->firstOrFail();
+            // $referenceTaskId = $request->reference_task_id ? (int) $request->reference_task_id : null;
+
+            // // Jika ada reference task, perlu mengatur ulang order
+            // if ($referenceTaskId && $request->insert_position) {
+            //     $referenceTask = Task::where('task_id', $referenceTaskId)
+            //         ->where('volume_id', $volumeId)
+            //         ->firstOrFail();
                 
-                if ($request->insert_position === 'above') {
-                    // Task baru akan menempati order_index yang sama dengan reference task
-                    $newOrderIndex = $referenceTask->order_index;
+            //     if ($request->insert_position === 'above') {
+            //         // Task baru akan menempati order_index yang sama dengan reference task
+            //         $newOrderIndex = $referenceTask->order_index;
                     
-                    // Geser semua task yang memiliki order_index >= reference task
-                    Task::where('volume_id', $volumeId)
-                        ->where('order_index', '>=', $referenceTask->order_index)
-                        ->increment('order_index');
-                } else { // below
-                    // Task baru akan menempati order_index = reference task + 1
-                    $newOrderIndex = $referenceTask->order_index + 1;
+            //         // Geser semua task yang memiliki order_index >= reference task
+            //         Task::where('volume_id', $volumeId)
+            //             ->where('order_index', '>=', $referenceTask->order_index)
+            //             ->increment('order_index');
+            //     } else { // below
+            //         // Task baru akan menempati order_index = reference task + 1
+            //         $newOrderIndex = $referenceTask->order_index + 1;
                     
-                    // Geser semua task yang memiliki order_index > reference task
-                    Task::where('volume_id', $volumeId)
-                        ->where('order_index', '>', $referenceTask->order_index)
-                        ->increment('order_index');
-                }
-            } else {
-                // Jika tidak ada reference task, tambahkan di akhir
-                $maxOrder = Task::where('volume_id',  $volumeId)
-                    ->max('order_index') ?? 0;
-                $newOrderIndex = $maxOrder + 1;
-            }
+            //         // Geser semua task yang memiliki order_index > reference task
+            //         Task::where('volume_id', $volumeId)
+            //             ->where('order_index', '>', $referenceTask->order_index)
+            //             ->increment('order_index');
+            //     }
+            // } else {
+            //     // Jika tidak ada reference task, tambahkan di akhir
+            //     $maxOrder = Task::where('volume_id',  $volumeId)
+            //         ->max('order_index') ?? 0;
+            //     $newOrderIndex = $maxOrder + 1;
+            // }
 
             // Create task baru
             $task = Task::create([
                 'volume_id' => $volumeId,
                 'name' => trim($request->task_name),
                 'status' => 'open',
-                'order_index' => $newOrderIndex
+                'order_index' => $order
             ]);
 
             DB::commit();
@@ -209,7 +213,7 @@ class WorkPackageController extends Controller
                 'message' => $e->getMessage(),
                 'volume_id' => $request->volume_id,
                 'task_name' => $request->task_name,
-                'reference_task_id' => $request->reference_task_id
+                // 'reference_task_id' => $request->reference_task_id
             ]);
         
             return response()->json([
@@ -321,15 +325,21 @@ class WorkPackageController extends Controller
 
             $task = Task::with('subTask')->findOrFail($taskId);
 
-            // Cek apakah task masih memiliki sub task
-            if ($task->subTask->count() > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Task tidak dapat dihapus karena masih memiliki ' . $task->subTask->count() . ' sub task. Hapus sub task terlebih dahulu.',
-                    'has_subtasks' => true,
-                    'subtask_count' => $task->subTask->count()
-                ], 400);
+            $subTaskCount = $task->subTask->count();
+
+            if( $subTaskCount > 0) {
+                SubTask::where('task_id', $taskId)->delete();
             }
+
+            // Cek apakah task masih memiliki sub task
+            // if ($task->subTask->count() > 0) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Task tidak dapat dihapus karena masih memiliki ' . $task->subTask->count() . ' sub task. Hapus sub task terlebih dahulu.',
+            //         'has_subtasks' => true,
+            //         'subtask_count' => $task->subTask->count()
+            //     ], 400);
+            // }
 
             // Menangani order_index dan volume_id sebelum penghapusan
             $deleteOrderIndex = $task->order_index;
@@ -345,15 +355,18 @@ class WorkPackageController extends Controller
 
             DB::commit();
 
-            Log::info('Task deleted successfully', [
+            Log::info('Task and related subtasks deleted successfully', [
                 'task_id' => $taskId,
                 'task_name' => $task->name,
-                'volume_id' => $volumeId
+                'volume_id' => $volumeId,
+                'deleted_subtask_count' => $subTaskCount
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Task berhasil dihapus'
+                'message' => $subTaskCount > 0
+                    ? "Task dan $subTaskCount sub task berhasil dihapus"
+                    : "Task berhasil dihapus"
             ]);
 
         } catch (ModelNotFoundException $e) {
@@ -378,6 +391,15 @@ class WorkPackageController extends Controller
                 'message' => 'Gagal menghapus task: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getSubTaskCount($taskId)
+    {
+        $task = Task::withCount('subTask')->find($taskId);
+        if (!$task) {
+            return response()->json(['success' => false, 'subtask_count' => 0]);
+        }
+        return response()->json(['success' => true, 'subtask_count' => $task->sub_task_count]);
     }
 
     /**

@@ -72,6 +72,19 @@ class TimesheetManagementController extends Controller
             $personelIds = $request->input('personel_ids', []);
             $activities = $request->input('activities', []);
 
+            // Cek apakah sudah ada aktivitas di volume & tanggal yang sama untuk user ini
+            $exists = Timesheet::whereIn('user_id', $personelIds)
+                ->where('volume_id', $request->volume_id)
+                ->whereDate('execution_date', $request->execution_date)
+                ->exists();
+
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda sudah mengisi aktivitas untuk WP volume dan tanggal ini.'
+                ], 422);
+            }
+
             // dd($request->all());
             $timesheets =[];
             foreach ($personelIds as $index => $userId) {

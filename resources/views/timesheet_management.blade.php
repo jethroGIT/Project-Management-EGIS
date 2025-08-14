@@ -434,6 +434,35 @@
         }
     }
 
+    function updatePersonelSelectOptions() {
+        // Ambil semua select personel di form tambah aktivitas
+        const selects = personelActivityContainer.querySelectorAll('.personel-select');
+        // Ambil semua user_id yang sudah dipilih
+        const selectedIds = Array.from(selects).map(select => select.value).filter(val => val);
+
+        selects.forEach(select => {
+            const currentValue = select.value;
+            // Simpan value yang sudah dipilih di select lain
+            select.querySelectorAll('option').forEach(option => {
+                // Jika option bukan yang sedang dipilih di select ini, dan sudah dipilih di select lain, disable
+                if (option.value && option.value !== currentValue && selectedIds.includes(option.value)) {
+                    option.disabled = true;
+                    option.setAttribute('data-disabled', 'true');
+                } else {
+                    option.disabled = false;
+                    option.removeAttribute('data-disabled');
+                }
+            });
+        });
+    }
+
+    // Event listener agar update otomatis saat ada perubahan
+    personelActivityContainer.addEventListener('change', function(e) {
+        if (e.target.classList.contains('personel-select')) {
+            updatePersonelSelectOptions();
+        }
+    });
+
     // menambah personel activity
     function addPersonelActivityGroup() {
         if (currentPersonelGroups >= maxPersonelGroups) {
@@ -474,6 +503,7 @@
         updatePersonelActivityButtons(); // Perbarui status tombol
 
         updateAllPersonelSelects(volumeSelect.value);
+        updatePersonelSelectOptions(); // Tambahkan ini
     }
 
     // menghapus personel activity
@@ -492,6 +522,7 @@
         
         document.getElementById(groupId).remove();
         updatePersonelActivityButtons();
+        updatePersonelSelectOptions(); // Tambahkan ini
         // Update nomor personel setelah penghapusan (Personel 1, Personel 2, dst)
         personelActivityContainer.querySelectorAll('.personel-activity-group').forEach((group, index) => {
             group.id = `personel-activity-${index}`;
@@ -676,23 +707,11 @@
                     editPersonelActivityGroup(item, index + 1);
                 });
 
-                // editPersonelActivityContainer.innerHTML = '';
                 editCurrentPersonelGroups = 0;
-
-                // Tambahkan isi template per aktivitas
-                // activities.forEach((item, index) => {
-                //     if (item.timesheet_id) {
-                //         const hiddenInput = document.createElement('input');
-                //         hiddenInput.type = 'hidden';
-                //         hiddenInput.name = 'timesheet_ids[]';
-                //         hiddenInput.value = item.timesheet_id;
-                //         hiddenInputContainer.appendChild(hiddenInput);
-                //     }
-                //     editPersonelActivityGroup(item, index + 1); // Fungsi ini kamu perlu buat
-                // });
 
                 // menggantikan updateEditPersonelSelects(volumeId);
                 updateAllPersonelSelects(volumeId);
+                updateEditPersonelSelectOptions();
 
                 editActivityModal.show();
             })
@@ -848,8 +867,54 @@
         populateEditModal(timesheetId, volumeId, executionDate);
     });
 
+    function updateEditPersonelSelectOptions() {
+        // Ambil semua select personel di modal edit
+        const selects = editPersonelActivityContainer.querySelectorAll('.edit-personel-select');
+        // Ambil semua user_id yang sudah dipilih
+        const selectedIds = Array.from(selects).map(select => select.value).filter(val => val);
+
+        selects.forEach(select => {
+            const currentValue = select.value;
+            select.querySelectorAll('option').forEach(option => {
+                // Disable jika sudah dipilih di select lain dan bukan yang sedang aktif
+                if (option.value && option.value !== currentValue && selectedIds.includes(option.value)) {
+                    option.disabled = true;
+                    option.setAttribute('data-disabled', 'true');
+                } else {
+                    option.disabled = false;
+                    option.removeAttribute('data-disabled');
+                }
+            });
+        });
+    }
+
+    // Event listener agar update otomatis saat ada perubahan di modal edit
+    editPersonelActivityContainer.addEventListener('change', function(e) {
+        if (e.target.classList.contains('edit-personel-select')) {
+            updateEditPersonelSelectOptions();
+        }
+    });
+
     if (editPersonelActivityBtn) {
-        editPersonelActivityBtn.addEventListener('click', () => editPersonelActivityGroup());
+        editPersonelActivityBtn.addEventListener('click', function() {
+            // Hitung jumlah group saat ini
+            const totalGroups = editPersonelActivityContainer.querySelectorAll('.personel-activity-group').length;
+            if (totalGroups >= editMaxPersonelGroups) {
+                Swal.fire({
+                    text: "Anda telah mencapai batas maksimal personel (" + editMaxPersonelGroups + ").",
+                    icon: "warning",
+                    buttonsStyling: false,
+                    confirmButtonText: "OK",
+                    customClass: { confirmButton: "btn btn-warning" }
+                });
+                return;
+            }
+            // Tambahkan group kosong baru
+            editPersonelActivityGroup({ activity: '', user_id: '' }, totalGroups + 1);
+            updateAllPersonelSelects(editVolumeSelect.value);
+            updateEditGroupNumbering();
+            updateEditPersonelSelectOptions();
+        });
     }
 
     if (submitEditActivityForm) {
@@ -952,3 +1017,17 @@
     });
 </script>
 @endpush
+
+<style>
+    select.personel-select option[disabled] {
+        color: #bbb !important;
+        background-color: #f5f5f5 !important;
+        cursor: not-allowed;
+    }
+    
+    select.edit-personel-select option[disabled] {
+        color: #bbb !important;
+        background-color: #f5f5f5 !important;
+        cursor: not-allowed;
+    }
+</style>

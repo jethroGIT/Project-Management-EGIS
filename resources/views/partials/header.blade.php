@@ -384,7 +384,7 @@
                         <div class="menu-item px-5">
                             <a
                                 class="menu-link px-5"
-                                href="../../demo14/dist/authentication/flows/basic/sign-in.html"
+                                href={{ route('login') }}
                                 >Sign Out</a
                             >
                         </div>

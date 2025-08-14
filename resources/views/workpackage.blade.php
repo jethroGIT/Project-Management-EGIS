@@ -99,7 +99,7 @@
         </div>
         <div class="card-body py-0">
             <div class="d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#addActivityModal" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
+                <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
                         class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
                         <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
@@ -164,7 +164,7 @@
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
-                                                <li>
+                                                {{-- <li>
                                                     <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
                                                     <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
@@ -176,11 +176,11 @@
                                                         <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
                                                         Masukkan di Bawah
                                                     </a>
-                                                </li>
+                                                </li> --}}
                                                 <li>
                                                     <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
                                                         <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                        <span>Tambah Sub Baris</span>
+                                                        <span>Tambah Sub Task</span>
                                                     </a>
                                                 </li>
                                             </ul>
@@ -205,7 +205,7 @@
                                                             <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
                                                         </li>
                                                         <li>
-                                                            <a class="dropdown-item d-flex align-items-center text-danger" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
                                                             <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
                                                         </li>
                                                     </ul>
@@ -219,30 +219,16 @@
                                         <th scope="row"></th>
                                         <td></td>
                                         <td class="text-muted">Tidak ada sub task</td>
-                                        <td>0%</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>Tambah Sub Task
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
+                                        <td></td>
                                     </tr>
                                 @endif
                             @endforeach
-                        @else
+                        {{-- @else
                             <!-- Fallback jika tidak ada data -->
                             <tr>
                                 <td></td>
                                 <td></td>
-                                <td class="text-center text-muted py-4">
+                                <td class="text-center text-muted">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <h6 class="text-muted">Belum Ada Task</h6>
                                         <p class="text-muted">
@@ -255,7 +241,9 @@
                                     </div>
                                 </td>
                                 <td></td>
+                                <td></td>
                             </tr>
+                        @endif --}}
                         @endif
                     </tbody>
                 </table>
@@ -268,20 +256,13 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="insertTaskModalTitle">Tambah Task</h3>
-
-                    <!--begin::Close-->
-                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                    </div>
-                    <!--end::Close-->
                 </div>
-
                 <div class="modal-body">
                     <form id="insertTaskForm" method="POST" action="{{ route('work-package.task.store') }}">
                         @csrf
                         <input type="hidden" name="volume_id" value="{{ $volume_id }}" id="modalVolumeId">
-                        <input type="hidden" name="reference_task_id" id="referenceTaskId" value="">
-                        <input type="hidden" name="insert_position" id="insertPosition" value="">
+                        {{-- <input type="hidden" name="reference_task_id" id="referenceTaskId" value="">
+                        <input type="hidden" name="insert_position" id="insertPosition" value=""> --}}
                         
                         <div class="form-group mb-4">
                             <label class="form-label fw-bold">Nama Task</label>
@@ -305,9 +286,6 @@
                 <div class="modal-header flex-column align-items-start pb-1">
                     <h3 class="modal-title" id="insertSubTaskModalTitle">Tambah Sub Task</h3>
                     <p id="insertSubTaskModalSubTitle">Task</p>
-                    {{-- <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="ki-duotone ki-cross fs-1"></i>
-                    </div> --}}
                 </div>
                 <div class="modal-body">
                     <form id="insertSubTaskForm" method="POST" action="{{ route('work-package.subtask.store') }}">
@@ -335,9 +313,6 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="editTaskModalTitle">Edit Task</h3>
-                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                    </div>
                 </div>
 
                 <div class="modal-body">
@@ -376,9 +351,6 @@
                 <div class="modal-header flex-column align-items-start pb-1">
                     <h3 class="modal-title" id="editSubTaskModalTitle">Edit Sub Task</h3>
                     <p id="editSubTaskModalSubTitle" class="mb-0 mt-1 text-muted">Task</p>
-                    {{-- <div class="btn btn-icon btn-sm btn-active-light-primary ms-auto" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="ki-duotone ki-cross fs-1"></i>
-                    </div> --}}
                 </div>
                 <div class="modal-body">
                     <form id="editSubTaskForm" method="POST">
@@ -1118,86 +1090,86 @@ function toggleSubRows(rowId) {
 /**
  * Function untuk menambah task pertama (jika belum ada task di tabel)
  */
-function insertFirstTask() {
-    // Reset semua field reference
-    $('#referenceTaskId').val('');
-    $('#insertPosition').val('');
-    $('#insertTaskModalTitle').text('Tambah Task');
+// function insertFirstTask() {
+//     // Reset semua field reference
+//     $('#referenceTaskId').val('');
+//     $('#insertPosition').val('');
+//     $('#insertTaskModalTitle').text('Tambah Task');
 
-    // Pastikan volume_id tersedia
-    const volumeId = {{ $volume_id ?? 'null' }};
-    if (volumeId) {
-        $('#modalVolumeId').val(volumeId);
-    } else {
-        Swal.fire({
-            text: "Volume ID tidak ditemukan. Tidak dapat menambahkan task.",
-            icon: "error",
-            buttonsStyling: false,
-            confirmButtonText: "Tutup",
-            customClass: {
-                confirmButton: "btn btn-secondary"
-            }
-        });
-        return;
-    }
+//     // Pastikan volume_id tersedia
+//     const volumeId = {{ $volume_id ?? 'null' }};
+//     if (volumeId) {
+//         $('#modalVolumeId').val(volumeId);
+//     } else {
+//         Swal.fire({
+//             text: "Volume ID tidak ditemukan. Tidak dapat menambahkan task.",
+//             icon: "error",
+//             buttonsStyling: false,
+//             confirmButtonText: "Tutup",
+//             customClass: {
+//                 confirmButton: "btn btn-secondary"
+//             }
+//         });
+//         return;
+//     }
 
-    // Reset form
-    $('#insertTaskForm')[0].reset();
-    $('#modalVolumeId').val(volumeId);
-    $('#referenceTaskId').val('');
-    $('#insertPosition').val('');
+//     // Reset form
+//     $('#insertTaskForm')[0].reset();
+//     $('#modalVolumeId').val(volumeId);
+//     $('#referenceTaskId').val('');
+//     $('#insertPosition').val('');
 
-    // Show modal
-    $('#kt_modal_insert_task').modal('show');
-}
+//     // Show modal
+//     $('#kt_modal_insert_task').modal('show');
+// }
 
 /**
  * Function untuk insert task di atas
  */
-function insertTaskAbove(taskId, taskName) {
-    $('#referenceTaskId').val(taskId);
-    $('#insertPosition').val('above');
-    $('#insertTaskModalTitle').text('Masukkan Task di Atas');
+// function insertTaskAbove(taskId, taskName) {
+//     $('#referenceTaskId').val(taskId);
+//     $('#insertPosition').val('above');
+//     $('#insertTaskModalTitle').text('Masukkan Task di Atas');
 
-    // Pastikan volume_id tersedia
-    const volumeId = {{ $volume_id ?? 'null' }};
-    if (volumeId) {
-        $('#modalVolumeId').val(volumeId);
-    }
+//     // Pastikan volume_id tersedia
+//     const volumeId = {{ $volume_id ?? 'null' }};
+//     if (volumeId) {
+//         $('#modalVolumeId').val(volumeId);
+//     }
 
-    // Reset form
-    $('#insertTaskForm')[0].reset();
-    $('#referenceTaskId').val(taskId);
-    $('#insertPosition').val('above');
-    $('#modalVolumeId').val(volumeId);
+//     // Reset form
+//     $('#insertTaskForm')[0].reset();
+//     $('#referenceTaskId').val(taskId);
+//     $('#insertPosition').val('above');
+//     $('#modalVolumeId').val(volumeId);
 
-    // Show modal
-    $('#kt_modal_insert_task').modal('show');
-}
+//     // Show modal
+//     $('#kt_modal_insert_task').modal('show');
+// }
 
 /**
  * Function untuk insert task di bawah
  */
-function insertTaskBelow(taskId, taskName) {
-    $('#referenceTaskId').val(taskId);
-    $('#insertPosition').val('below');
-    $('#insertTaskModalTitle').text('Masukkan Task di Bawah');
+// function insertTaskBelow(taskId, taskName) {
+//     $('#referenceTaskId').val(taskId);
+//     $('#insertPosition').val('below');
+//     $('#insertTaskModalTitle').text('Masukkan Task di Bawah');
 
-    // Pastikan volume_id tersedia
-    const volumeId = {{ $volume_id ?? 'null' }};
-    if (volumeId) {
-        $('#modalVolumeId').val(volumeId);
-    }
+//     // Pastikan volume_id tersedia
+//     const volumeId = {{ $volume_id ?? 'null' }};
+//     if (volumeId) {
+//         $('#modalVolumeId').val(volumeId);
+//     }
 
-    // Reset form
-    $('#insertTaskForm')[0].reset();
-    $('#referenceTaskId').val(taskId);
-    $('#insertPosition').val('below');
-    $('#modalVolumeId').val(volumeId);
+//     // Reset form
+//     $('#insertTaskForm')[0].reset();
+//     $('#referenceTaskId').val(taskId);
+//     $('#insertPosition').val('below');
+//     $('#modalVolumeId').val(volumeId);
 
-    // Show modal
-    $('#kt_modal_insert_task').modal('show');
-}
+//     // Show modal
+//     $('#kt_modal_insert_task').modal('show');
+// }
 
 /**
  * Function untuk insert sub task
@@ -1283,8 +1255,8 @@ function submitInsertTask() {
     // Validasi manual untuk field wajib
     const volumeId = formData.get('volume_id');
     const taskName = formData.get('task_name');
-    const insertPosition = formData.get('insert_position');
-    const referenceTaskId = formData.get('reference_task_id');
+    // const insertPosition = formData.get('insert_position');
+    // const referenceTaskId = formData.get('reference_task_id');
     
     if (!volumeId || !taskName) {
         Swal.fire({
@@ -1300,18 +1272,18 @@ function submitInsertTask() {
     }
 
     // Jika ada reference task, maka insert_position wajib diisi
-    if (referenceTaskId && !insertPosition) {
-        Swal.fire({
-            text: "Posisi insert harus dipilih (above/below).",
-            icon: "error",
-            buttonsStyling: false,
-            confirmButtonText: "Tutup",
-            customClass: {
-                confirmButton: "btn btn-secondary"
-            }
-        });
-        return;
-    }
+    // if (referenceTaskId && !insertPosition) {
+    //     Swal.fire({
+    //         text: "Posisi insert harus dipilih (above/below).",
+    //         icon: "error",
+    //         buttonsStyling: false,
+    //         confirmButtonText: "Tutup",
+    //         customClass: {
+    //             confirmButton: "btn btn-secondary"
+    //         }
+    //     });
+    //     return;
+    // }
 
     // Disable form dan button saat loading
     const submitButton = $('button[onclick="submitInsertTask()"]');
@@ -1644,22 +1616,55 @@ function deleteTask(taskId) {
         return;
     }
 
-    // Konfirmasi delete
-    Swal.fire({
-        title: "Konfirmasi Hapus",
-        text: "Apakah Anda yakin ingin menghapus task ini?",
-        icon: "warning",
-        buttonsStyling: false,
-        showCancelButton: true,
-        cancelButtonText: 'Batal',
-        confirmButtonText: "Ya, Hapus",
-        customClass: {
-            confirmButton: "btn btn-danger",
-            cancelButton: 'btn btn-secondary'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            performDeleteTask(taskId);
+    // cek jumlah sub task
+    $.ajax({
+        url: `/work-package/task/${taskId}/subtask-count`,
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            let warningText = "Apakah Anda yakin ingin menghapus task ini?";
+            if (response.success && response.subtask_count > 0) {
+                warningText = `Task ini memiliki ${response.subtask_count} sub task. Menghapus task akan menghapus semua sub task terkait. Lanjutkan?`;
+            }
+            Swal.fire({
+                title: "Konfirmasi Hapus Task",
+                text: warningText,
+                icon: "warning",
+                buttonsStyling: false,
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                confirmButtonText: "Ya, Hapus",
+                customClass: {
+                    confirmButton: "btn btn-danger",
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    performDeleteTask(taskId);
+                }
+            });
+        },
+        error: function() {
+            // Jika gagal cek subtask (tidak ada sub task), tetap tampilkan konfirmasi standar
+            Swal.fire({
+                title: "Konfirmasi Hapus Task",
+                text: "Apakah Anda yakin ingin menghapus task ini?",
+                icon: "warning",
+                buttonsStyling: false,
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                confirmButtonText: "Ya, Hapus",
+                customClass: {
+                    confirmButton: "btn btn-danger",
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    performDeleteTask(taskId);
+                }
+            });
         }
     });
 }
@@ -1724,27 +1729,10 @@ function performDeleteTask(taskId) {
             let errorMessage = "Terjadi kesalahan saat menghapus task";
             let iconType = "error";
             
-            if (xhr.responseJSON) {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
                 console.log('Response JSON:', xhr.responseJSON);
                 
-                if (xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                
-                // Handle specific case for subtask validation
-                if (xhr.responseJSON.has_subtasks) {
-                    errorTitle = "Task Memiliki Sub Task";
-                    iconType = "warning";
-                }
-                
-                // Handle validation errors
-                if (xhr.responseJSON.errors) {
-                    console.log('Validation Errors:', xhr.responseJSON.errors);
-                    const errorDetails = Object.entries(xhr.responseJSON.errors)
-                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-                        .join('\n');
-                    errorMessage += '\n\nDetail errors:\n' + errorDetails;
-                }
+                errorMessage = xhr.responseJSON.message;
             }
             
             Swal.fire({
@@ -1776,7 +1764,7 @@ function submitInsertSubTask() {
 
     // Validasi manual
     const taskId = formData.get('task_id');
-    const subtaskName = formData.get('name');
+    const subtaskName = formData.get('subtask_name');
 
     if (!taskId || !subtaskName) {
         Swal.fire({
