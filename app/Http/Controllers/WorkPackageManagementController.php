@@ -912,6 +912,111 @@ class WorkPackageManagementController extends Controller
     }
 
     /**
+     * Force delete volume with all associated data
+     */
+    public function forceDeleteVolume(Request $request, $volume_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $volume = WorkPackageVolume::findOrFail($volume_id);
+            
+            // Count association before deletion for logging
+            $tasksCount = Task::where('volume_id', $volume_id)->count();
+            $subtasksCount = SubTask::whereHas('task', function($query) use ($volume_id) {
+                $query->where('volume_id', $volume_id);
+            })->count();
+            $resourcesCount = Work::where('volume_id', $volume_id)->count();
+            $timesheetsCount = Timesheet::where('volume_id', $volume_id)->count();
+
+            // Delete all sub tasks for task in this volume
+            if ($subtasksCount > 0) {
+                $taskIds = Task::where('volume_id', $volume_id)->pluck('task_id');
+                SubTask::whereIn('task_id', $taskIds)->delete();
+            }
+
+            // Delete all tasks in this volume
+            if ($tasksCount > 0) {
+                Task::where('volume_id', $volume_id)->delete();
+            }
+
+            // Delete all timesheets for this volume
+            if ($timesheetsCount > 0) {
+                Timesheet::where('volume_id', $volume_id)->delete();
+            }
+
+            // Delete all work assignment (resources) for this volume
+            if ($resourcesCount > 0) {
+                Work::where('volume_id', $volume_id)->delete();
+            }
+
+            // Delete the volume
+            $volumeData = [
+                'volume_id' => $volume->volume_id,
+                'volume_number' => $volume->volume_number,
+                'wp_id' => $volume->wp_id,
+                'start_date' => $volume->start_date,
+                'end_date' => $volume->end_date,
+                'execution_year' => $volume->execution_year
+            ];
+
+            $volume->delete();
+
+            DB::commit();
+
+            Log::info('Volume force deleted successfully', [
+                'deleted_volume' => $volumeData,
+                'associated_data_deleted' => [
+                    'tasks' => $tasksCount,
+                    'subtasks' => $subtasksCount,
+                    'work_assignments' => $resourcesCount,
+                    'timesheets' => $timesheetsCount
+                ],
+                'deleted_by' => auth()->id() ?? 'system',
+                'deleted_at' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Volume dan semua data terkait berhasil dihapus',
+                'deleted_data' => [
+                    'volume' => $volumeData,
+                    'tasks_deleted' => $tasksCount,
+                    'subtasks_deleted' => $subtasksCount,
+                    'resources_deleted' => $resourcesCount,
+                    'timesheets_deleted' => $timesheetsCount,
+                ]
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            DB::rollback();
+
+            Log::warning('Volume not found for force deletion', [
+                'volume_id' => $volume_id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Volume tidak ditemukan',
+            ], 404);
+
+        } catch (Exception $e) {
+            DB::rollback();
+
+            Log::error('Error force deleting volume', [
+                'volume_id' => $volume_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus volume: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)

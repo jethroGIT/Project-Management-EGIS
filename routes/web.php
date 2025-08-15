@@ -97,3 +97,4 @@ Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::
 Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
 Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
 Route::get('/wp-management/volume/{volume_id}/check-associations', [WorkPackageManagementController::class, 'checkVolumeAssociations'])->name('wp-management.check-volume-associations');
+Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');

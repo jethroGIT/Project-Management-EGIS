@@ -139,14 +139,14 @@
                             <div class="volume-card-item col-md-6 col-lg-4 mb-4" style="min-width: 300px;">
                                 <div class="card card-bordered h-100 shadow hover-elevate-up volume-item" data-volume-id="{{ $volume['volume_id'] }}" data-volume-index="{{ $index }}">
                                     <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="card-title mb-0">
                                                 <i class="bi bi-folder-fill text-primary me-2"></i>
                                                 Volume {{ $volume['volume_number'] }}
                                             </h5>
                                             @if($volumesData->count() > 1)
-                                                <button type="button" class="btn btn-light-danger btn-sm" onclick="removeVolume(this, '{{ $volume['volume_id'] }}')">
-                                                    <i class="bi bi-trash"></i>
+                                                <button type="button" class="btn btn-light-danger btn-lg" onclick="removeVolume(this, '{{ $volume['volume_id'] }}')">
+                                                    <i class="bi bi-trash fs-5"></i>
                                                 </button>
                                             @endif
                                         </div>
@@ -871,7 +871,7 @@ function checkVolumeAssociations(volumeId, volumeCard, volumeNumber) {
             if (response.success) {
                 if (response.has_associations) {
                     // Volume has associations, show warning
-                    showVolumeAssociationWarning(response.associations, volumeCard, volumeNumber);
+                    showVolumeAssociationWarning(response.associations, volumeCard, volumeNumber, volumeId);
                 } else {
                     // Safe to delete
                     confirmRemoveVolume(volumeCard, volumeId, volumeNumber);
@@ -912,44 +912,224 @@ function checkVolumeAssociations(volumeId, volumeCard, volumeNumber) {
 }
 
 /**
- * Show volume association warning
+ * Show volume association warning with force deletion
  */
-function showVolumeAssociationWarning(associations, volumeCard, volumeNumber) {
-    let warningText = 'Volume ini tidak dapat dihapus karena masih memiliki data terkait:\n\n';
+function showVolumeAssociationWarning(associations, volumeCard, volumeNumber, volumeId) {
+    let warningText = `Volume ${volumeNumber} memiliki data terkait yang akan ikut terhapus:\n\n`;
     
+    let associationsList = [];
     if (associations.tasks_count > 0) {
-        warningText += `• ${associations.tasks_count} Task(s)\n`;
+        associationsList.push(`• ${associations.tasks_count} Task(s)`);
+        // warningText += `• ${associations.tasks_count} Task(s)\n`;
     }
     if (associations.subtasks_count > 0) {
-        warningText += `• ${associations.subtasks_count} Sub Task(s)\n`;
+        associationsList.push(`• ${associations.subtasks_count} Sub Task(s)`);
+        // warningText += `• ${associations.subtasks_count} Sub Task(s)\n`;
     }
     if (associations.resources_count > 0) {
-        warningText += `• ${associations.resources_count} Resource Assignment(s)\n`;
+        associationsList.push(`• ${associations.resources_count} Resource Assignment(s)`);
+        // warningText += `• ${associations.resources_count} Resource Assignment(s)\n`;
     }
     if (associations.timesheets_count > 0) {
-        warningText += `• ${associations.timesheets_count} Timesheet Record(s)\n`;
+        associationsList.push(`• ${associations.timesheets_count} Timesheet Record(s)`);
+        // warningText += `• ${associations.timesheets_count} Timesheet Record(s)\n`;
     }
 
-    warningText += '\nSilakan hapus atau pindahkan data terkait terlebih dahulu di halaman detail volume.';
+    const associationsText = associationsList.join('\n');
+
+    // warningText += '\nSilakan hapus atau pindahkan data terkait terlebih dahulu di halaman detail volume.';
 
     Swal.fire({
-        title: 'Volume Tidak Dapat Dihapus',
-        text: warningText,
+        title: 'Konfirmasi Hapus Volume',
+        html: `
+            <div class="text-start">
+                <p class="mb-3">Volume <strong>${volumeNumber}</strong> memiliki data terkait yang akan ikut terhapus:</p>
+                <div class="alert alert-warning py-2 mb-3">
+                    <div class="fw-bold mb-2">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Data yang akan dihapus:
+                    </div>
+                    <div style="white-space: pre-line;">${associationsText}</div>
+                </div>
+                <div class="py-2">
+                    <div class="fw-bolder text-danger">
+                        Peringatan
+                    </div>
+                    <div class="small">
+                        Tindakan ini tidak dapat dibatalkan. Semua data di atas akan dihapus secara permanen.
+                    </div>
+                </div>
+            </div>
+        `,
+        // text: warningText,
         icon: 'warning',
         buttonsStyling: false,
-        confirmButtonText: 'Kelola Volume',
+        confirmButtonText: 'Ya, Hapus',
         showCancelButton: true,
-        cancelButtonText: 'Tutup',
+        cancelButtonText: 'Batal',
         customClass: {
-            confirmButton: 'btn btn-primary',
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        },
+        width: '500px'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Redirect to volume detail page
+            // const volumeElement = volumeCard.querySelector('.volume-item');
+            // const volumeId = volumeElement.getAttribute('data-volume-id');
+            // editVolumeDetails(volumeId);
+
+            // Procees with force delete
+            confirmForceRemoveVolume(volumeCard, volumeId, volumeNumber, associations);
+        }
+    });
+}
+
+/**
+ * Confirm volume removal with all associated data 
+ */
+function confirmForceRemoveVolume(volumeCard, volumeId, volumeNumber, associations) {
+    // Show final confirmation
+    Swal.fire({
+        title: 'Konfirmasi Hapus Volume',
+        html: `
+            <div class="text-center">
+                <p class="mb-2">Anda yakin ingin menghapus <strong>Volume ${volumeNumber}</strong>?</p>
+            </div>
+        `,
+        icon: 'warning',
+        buttonsStyling: false,
+        showCancelButton: true,
+        cancelButtonText: 'Batal',
+        confirmButtonText: 'Ya, Hapus',
+        customClass: {
+            confirmButton: 'btn btn-danger',
             cancelButton: 'btn btn-secondary'
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Redirect to volume detail page
-            const volumeElement = volumeCard.querySelector('.volume-item');
-            const volumeId = volumeElement.getAttribute('data-volume-id');
-            editVolumeDetails(volumeId);
+            // Execute force delete
+            executeVolumeForceDelete(volumeCard, volumeId, volumeNumber, associations);
+        }
+    });
+}
+
+/**
+ * Execute volume force delete via AJAX
+ */
+function executeVolumeForceDelete(volumeCard, volumeId, volumeNumber, associations) {
+    // Show loading
+    Swal.fire({
+        title: "Menghapus Volume...",
+        html: `
+            <div class="text-center">
+                <p>Sedang menghapus Volume ${volumeNumber}...</p>
+                <div class="mt-3">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false
+    });
+
+    // AJAX call to force delete volume
+    $.ajax({
+        url: `{{ route('wp-management.force-delete-volume', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId),
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            force: true,
+            associations: associations
+        }),
+        success: function(response) {
+            if (response.success) {
+                // Remove from DOM
+                volumeCard.remove();
+
+                // Update numbering and UI
+                updateVolumeNumbering();
+                updateVolumeCount();
+
+                // Show success message with summary
+                let deletedSummary = [];
+                if (associations.tasks_count > 0) {
+                    deletedSummary.push(`${associations.tasks_count} Task(s)`);
+                }
+                if (associations.subtasks_count > 0) {
+                    deletedSummary.push(`${associations.subtasks_count} Sub Task(s)`);
+                }
+                if (associations.resources_count > 0) {
+                    deletedSummary.push(`${associations.resources_count} Resource Assignment(s)`);
+                }
+                if (associations.timesheets_count > 0) {
+                    deletedSummary.push(`${associations.timesheets_count} Timesheet Record(s)`);
+                }
+
+                Swal.fire({
+                    title: 'Volume Berhasil Dihapus',
+                    html: `
+                        <div class="text-center">
+                            <p class="mb-2">Volume ${volumeNumber} berhasil dihapus.</p>
+                            ${deletedSummary.length > 0 ? `
+                                <div class="alert alert-info py-2 mt-3">
+                                    <div class="fw-bold mb-1">Data yang ikut terhapus:</div>
+                                    <div class="small">${deletedSummary.join(', ')}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `,
+                    icon: 'success',
+                    timer: 4000,
+                    timerProgressBar: true,
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    }
+                });
+
+                // Show no volumes message if no volumes left
+                const remainingVolumes = document.querySelectorAll('.volume-item').length;
+                const noVolumesMessage = document.getElementById('noVolumesMessage');
+                if (remainingVolumes === 0 && noVolumesMessage) {
+                    noVolumesMessage.style.display = 'block';
+                }
+            } else {
+                Swal.fire({
+                    title: 'Gagal Menghapus Volume',
+                    text: response.message || 'Terjadi kesalahan saat menghapus volume',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-secondary'
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'Terjadi kesalahan saat menghapus volume';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
         }
     });
 }
@@ -958,8 +1138,6 @@ function showVolumeAssociationWarning(associations, volumeCard, volumeNumber) {
  * Confirm volume removal
  */
 function confirmRemoveVolume(volumeCard, volumeId, volumeNumber) {
-    // const volumeNumber = volumeElement.querySelector('h5').textContent.match(/Volume (\d+)/)[1];
-
     Swal.fire({
         title: 'Konfirmasi Hapus Volume',
         text: `Apakah Anda yakin ingin menghapus Volume ${volumeNumber}?`,
