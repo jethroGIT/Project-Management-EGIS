@@ -41,7 +41,7 @@ class WorkPackageController extends Controller
 
     }
 
-    public function detail($volume_id)
+    public function detail($volume_id, Request $request)
     {
         $volume = WorkPackageVolume::with([
             'workPackage', 
@@ -124,6 +124,25 @@ class WorkPackageController extends Controller
 
         // Hitung persentase realisasi
         $realizationPercentage = $totalByYoy > 0 ? ($totalRealization / $totalByYoy) * 100 : 0;
+        if($realizationPercentage > 100){
+            $realizationPercentage = 100;
+        }
+
+        // Mendapatkan informasi referrer dari query parameter
+        $referrer = $request->get('referrer');
+        $wpId = $request->get('wp_id');
+
+        // Menentukan URL kembali berdasarkan referrer
+        $backUrl = route('wp-management');
+        $backText = 'Kembali ke Manajemen';
+
+        if ($referrer === 'detail' && $wpId) {
+            $backUrl = route('wp-management.detail', ['wp_id' => $wpId]);
+            $backText = 'Kembali ke Detail WP';
+        } else if ($referrer === 'edit' && $wpId) {
+            $backUrl = route('wp-management.edit', ['wp_id' => $wpId]);
+            $backText = 'Kembali ke Edit WP';
+        }
         
         return view('workpackage', compact(
             'humanResources',
@@ -134,7 +153,9 @@ class WorkPackageController extends Controller
             'totalCompletion',
             'realizationPercentage',
             'tasks',
-            'tasksWithUtilization'
+            'tasksWithUtilization',
+            'backUrl',
+            'backText'
         ));
     }
 
