@@ -46,7 +46,7 @@ class WorkPackageController extends Controller
         $volume = WorkPackageVolume::with([
             'workPackage', 
             'task' => function($query) {
-                $query->orderBy('order_index')->orderBy('task_id');
+                $query->orderBy('task_id');
             },
             'work.user.role'
         ])->findOrFail($volume_id);
@@ -172,48 +172,12 @@ class WorkPackageController extends Controller
             DB::beginTransaction();
 
             $volumeId = (int) $request->volume_id;
-            // Find the max order for this volume
-            $maxOrder = Task::where('volume_id', $request->volume_id)->max('order_index');
-            $order = $maxOrder ? $maxOrder + 1 : 1;
-
-            // $referenceTaskId = $request->reference_task_id ? (int) $request->reference_task_id : null;
-
-            // // Jika ada reference task, perlu mengatur ulang order
-            // if ($referenceTaskId && $request->insert_position) {
-            //     $referenceTask = Task::where('task_id', $referenceTaskId)
-            //         ->where('volume_id', $volumeId)
-            //         ->firstOrFail();
-                
-            //     if ($request->insert_position === 'above') {
-            //         // Task baru akan menempati order_index yang sama dengan reference task
-            //         $newOrderIndex = $referenceTask->order_index;
-                    
-            //         // Geser semua task yang memiliki order_index >= reference task
-            //         Task::where('volume_id', $volumeId)
-            //             ->where('order_index', '>=', $referenceTask->order_index)
-            //             ->increment('order_index');
-            //     } else { // below
-            //         // Task baru akan menempati order_index = reference task + 1
-            //         $newOrderIndex = $referenceTask->order_index + 1;
-                    
-            //         // Geser semua task yang memiliki order_index > reference task
-            //         Task::where('volume_id', $volumeId)
-            //             ->where('order_index', '>', $referenceTask->order_index)
-            //             ->increment('order_index');
-            //     }
-            // } else {
-            //     // Jika tidak ada reference task, tambahkan di akhir
-            //     $maxOrder = Task::where('volume_id',  $volumeId)
-            //         ->max('order_index') ?? 0;
-            //     $newOrderIndex = $maxOrder + 1;
-            // }
 
             // Create task baru
             $task = Task::create([
                 'volume_id' => $volumeId,
                 'name' => trim($request->task_name),
-                'status' => 'open',
-                'order_index' => $order
+                'status' => 'open'
             ]);
 
             DB::commit();
@@ -349,27 +313,10 @@ class WorkPackageController extends Controller
                 SubTask::where('task_id', $taskId)->delete();
             }
 
-            // Cek apakah task masih memiliki sub task
-            // if ($task->subTask->count() > 0) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Task tidak dapat dihapus karena masih memiliki ' . $task->subTask->count() . ' sub task. Hapus sub task terlebih dahulu.',
-            //         'has_subtasks' => true,
-            //         'subtask_count' => $task->subTask->count()
-            //     ], 400);
-            // }
-
-            // Menangani order_index dan volume_id sebelum penghapusan
-            $deleteOrderIndex = $task->order_index;
             $volumeId = $task->volume_id;
 
             // Hapus task
             $task->delete();
-
-            // Melakukan pengurutan kembali order_index dengan menggeser task order_index > deleted task turun - 1
-            Task::where('volume_id', $volumeId)
-                ->where('order_index', '>', $deleteOrderIndex)
-                ->decrement('order_index');
 
             DB::commit();
 

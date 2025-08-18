@@ -14,19 +14,8 @@ class Task extends Model
         'volume_id',
         'name',
         // 'completeness',
-        'status',
-        'order_index'
+        'status'
     ];
-
-    // Default ordering by order_index
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::addGlobalScope('ordered', function ($builder) {
-            $builder->orderBy('order_index')->orderBy('task_id');
-        });
-    }
 
     public function subTask()
     {

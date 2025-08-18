@@ -487,14 +487,14 @@ class WorkPackageManagementController extends Controller
                     // Create task for all volumes
                     foreach ($volumes as $volume) {
                         // Calculate order index for proper ordering
-                        $maxOrderIndex = Task::where('volume_id', $volume->volume_id)
-                            ->max('order_index') ?? 0;
+                        // $maxOrderIndex = Task::where('volume_id', $volume->volume_id)
+                        //     ->max('order_index') ?? 0;
 
                         $task = Task::create([
                             'volume_id' => $volume->volume_id,
                             'name' => $taskData['name'],
                             'status' => 'open',
-                            'order_index' => $maxOrderIndex + 1
+                            // 'order_index' => $maxOrderIndex + 1
                         ]);
 
                         // Create sub tasks if provided

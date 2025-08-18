@@ -41,7 +41,7 @@
                                 <td class="fw-bold">{{ $workPackage->name }}</td>
                             </tr> -->
                             <tr>
-                                <td class="fw-bold text-muted">Kategori:</td>
+                                <td class="fw-bold text-muted">Kategori</td>
                                 <td class="fw-bold text-muted">:</td>
                                 <td>{{ $workPackage->wpCategory->name ?? 'Tidak Berkategori' }}</td>
                             </tr>
