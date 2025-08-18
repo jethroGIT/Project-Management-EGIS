@@ -732,6 +732,181 @@ class WorkPackageManagementController extends Controller
                 'resources.*.jhk' => 'required|integer|min:1',
             ]);
 
+            // CHECK DATA UPDATE CHANGES
+            // Ambil original data untuk perbandingan
+            $originalCategoryId = $workPackage->category_id;
+            $originalWpNumber = $workPackage->wp_number;
+            $originalName = trim($workPackage->name);
+            $originalActualScope = trim($workPackage->actual_scope_contract ?? '');
+            $originalDeliverable = trim($workPackage->deliverable ?? '');
+            $originalDuration = (int)$workPackage->duration;
+
+            // Mendapatkan data original volumes
+            $originalVolumes = $workPackage->workPackageVolumes()
+                ->orderBy('volume_number', 'asc')
+                ->get()
+                ->map(function($volume) {
+                    return [
+                        'volume_id' => $volume->volume_id,
+                        'volume_number' => $volume->volume_number
+                    ];
+                })
+                ->toArray();
+            
+            // Mendapatkan data original human resources
+            $originalHumanResources = $workPackage->humanResources()
+                ->orderBy('role_id', 'asc')
+                ->get()
+                ->map(function($hr) {
+                    return [
+                        'role_id' => $hr->role_id,
+                        'jtk' => $hr->jtk,
+                        'jhk' => $hr->jhk
+                    ];
+                })
+                ->toArray();
+
+            $category = WpCategory::findOrFail($validatedData['category_id']);
+            $newWpNumber = $category->category_number . '.' . $validatedData['wp_sequence'];
+
+            $newCategoryId = (int)$validatedData['category_id'];
+            $newName = trim($validatedData['name']);
+            $newActualScope = trim($validatedData['actual_scope_contract'] ?? '');
+            $newDeliverable = trim($validatedData['deliverable'] ?? '');
+            $newDuration = (int)$validatedData['duration'];
+
+            // Cek perubahan informasi umum
+            $categoryChanged = $originalCategoryId != $newCategoryId;
+            $wpNumberChanged = $originalWpNumber !== $newWpNumber;
+            $nameChanged = $originalName !== $newName;
+            $actualScopeChanged = $originalActualScope !== $newActualScope;
+            $deliverableChanged = $originalDeliverable !== $newDeliverable;
+            $durationChanged = $originalDuration !== $newDuration;
+
+            // Cek perubahan volume
+            $newVolumes = collect($validatedData['volumes'])
+                ->filter(function($volume) {
+                    return $volume['volume_id'] !== 'new';
+                })
+                ->map(function($volume) {
+                    return [
+                        'volume_id' => (int)$volume['volume_id'],
+                        'volume_number' => (int)$volume['volume_number']
+                    ];
+                })
+                ->sortBy('volume_number')
+                ->values()
+                ->toArray();
+            
+            $hasNewVolumes = collect($validatedData['volumes'])->contains(function($volume) {
+                return $volume['volume_id'] === 'new';
+            });
+
+            $hasDeletedVolumes = !empty($validatedData['deleted_volumes']);
+
+            $volumesChanged = $hasNewVolumes ||
+                            $hasDeletedVolumes ||
+                            count($originalVolumes) !== count($newVolumes) ||
+                            $originalVolumes !== $newVolumes;
+
+            // Cek perubahan human resources
+            $newHumanResources = collect($validatedData['resources'])
+                ->map(function($resource) {
+                    return [
+                        'role_id' => (int)$resource['role_id'],
+                        'jtk' => (int)$resource['jtk'],
+                        'jhk' => (int)$resource['jhk']
+                    ];
+                })
+                ->sortBy('role_id')
+                ->values()
+                ->toArray();
+            
+            $humanResourcesChanged = $originalHumanResources !== $newHumanResources;
+
+            // Perbandingan untuk menentukan adanya perubahan
+            $hasChanges = $categoryChanged ||
+                        $wpNumberChanged || 
+                        $nameChanged || 
+                        $actualScopeChanged || 
+                        $deliverableChanged || 
+                        $durationChanged || 
+                        $volumesChanged || 
+                        $humanResourcesChanged;
+
+            // Log Perbandingan Perubahan
+            Log::info('Final change detection result', [
+                'wp_id' => $wp_id,
+                'has_changes' => $hasChanges,
+                'detailed_changes' => [
+                    'category_changed' => $categoryChanged,
+                    'wp_number_changed' => $wpNumberChanged,
+                    'name_changed' => $nameChanged,
+                    'actual_scope_changed' => $actualScopeChanged,
+                    'deliverable_changed' => $deliverableChanged,
+                    'duration_changed' => $durationChanged,
+                    'volumes_changed' => $volumesChanged,
+                    'human_resources_changed' => $humanResourcesChanged
+                ],
+                'comparisons' => [
+                    'category' => ['old' => $originalCategoryId, 'new' => $newCategoryId],
+                    'wp_number' => ['old' => $originalWpNumber, 'new' => $newWpNumber],
+                    'name' => ['old' => $originalName, 'new' => $newName],
+                    'duration' => ['old' => $originalDuration, 'new' => $newDuration],
+                    'volumes' => ['old' => $originalVolumes, 'new' => $newVolumes],
+                    'human_resources' => ['old' => $originalHumanResources, 'new' => $newHumanResources]
+                ]
+            ]);
+            
+            if (!$hasChanges) {
+                DB::rollback();
+
+                Log::info('No changes detected in work package update', [
+                    'wp_id' => $wp_id,
+                    'wp_number' => $workPackage->wp_number,
+                    'validation_details' => [
+                        'category_changed' => $categoryChanged,
+                        'wp_number_changed' => $wpNumberChanged,
+                        'name_changed' => $nameChanged,
+                        'actual_scope_changed' => $actualScopeChanged,
+                        'deliverable_changed' => $deliverableChanged,
+                        'duration_changed' => $durationChanged,
+                        'volumes_changed' => $volumesChanged,
+                        'human_resources_changed' => $humanResourcesChanged
+                    ]
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'no_changes' => true,
+                    'message' => 'Tidak ada perubahan data yang terdeteksi.',
+                    'current_data' => [
+                        'wp_number' => $workPackage->wp_number,
+                        'name' => $workPackage->name,
+                        'category' => $workPackage->wpCategory->name ?? 'Unknown',
+                        'duration' => $workPackage->duration . ' hari',
+                        'volumes_count' => count($originalVolumes),
+                        'resources_count' => count($originalHumanResources)
+                    ]
+                ], 200);
+            }
+
+            // Log detected changes
+            Log::info('Changes detected, proceeding with update', [
+                'wp_id' => $wp_id,
+                'changes' => [
+                    'category_changed' => $categoryChanged,
+                    'wp_number_changed' => $wpNumberChanged,
+                    'name_changed' => $nameChanged,
+                    'actual_scope_changed' => $actualScopeChanged,
+                    'deliverable_changed' => $deliverableChanged,
+                    'duration_changed' => $durationChanged,
+                    'volumes_changed' => $volumesChanged,
+                    'human_resources_changed' => $humanResourcesChanged
+                ]
+            ]);
+
+            // UPDATE OPERATION
             // Step 0: Update WP Number if category or sequence changed
             $category = WpCategory::findOrFail($validatedData['category_id']);
             $newWpNumber = $category->category_number . '.' . $validatedData['wp_sequence'];
@@ -835,7 +1010,15 @@ class WorkPackageManagementController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Work Package berhasil diperbarui',
-                'redirect_url' => route('wp-management.detail', $wp_id)
+                'redirect_url' => route('wp-management.detail', $wp_id),
+                'updated_data' => [
+                    'wp_number' => $workPackage->wp_number,
+                    'name' => $workPackage->name,
+                    'category' => $category->name,
+                    'duration' => $workPackage->duration,
+                    'volumes_count' => count($validatedData['volumes']),
+                    'resources_count' => count($validatedData['resources'])
+                ]
             ]);
 
         } catch (ValidationException $e) {

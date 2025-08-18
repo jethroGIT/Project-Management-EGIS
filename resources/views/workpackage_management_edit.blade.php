@@ -621,6 +621,21 @@ function saveWorkPackage() {
                     window.location.href = data.redirect_url;
                 }
             });
+
+        } else if (data.no_changes) {
+            // No changes detected response
+            Swal.fire({
+                title: 'Tidak Ada Perubahan',
+                text: 'Silakan lakukan perubahan terlebih dahulu atau klik Batal untuk kembali.',
+                icon: 'info',
+                buttonsStyling: false,
+                showCancelButton: false,
+                confirmButtonText: 'Tutup',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
+
         } else {
             let errorMessage = data.message;
             
