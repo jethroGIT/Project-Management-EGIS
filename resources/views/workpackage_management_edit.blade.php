@@ -232,10 +232,10 @@
                                             >
                                                     @if($volume['start_date'] && $volume['end_date'])
                                                         <i class="bi bi-pencil-square me-1"></i>
-                                                        Edit Detail
+                                                        Edit Volume
                                                     @else
                                                         <i class="bi bi-exclamation-triangle me-1"></i>
-                                                        Konfigurasi Volume
+                                                        Edit Volume
                                                     @endif
                                             </button>
                                         </div>
@@ -256,6 +256,7 @@
                 @endif
             </div>
         </div>
+        
 
         {{-- Human Resources Management Card --}}
         <div class="card card-flush shadow-sm mb-6">
@@ -1023,7 +1024,7 @@ function executeVolumeForceDelete(volumeCard, volumeId, volumeNumber, associatio
         title: "Menghapus Volume...",
         html: `
             <div class="text-center">
-                <p>Sedang menghapus Volume ${volumeNumber}...</p>
+                <p>Sedang menghapus volume...</p>
                 <div class="mt-3">
                     <div class="spinner-border text-danger" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -1233,7 +1234,9 @@ function updateVolumeCount() {
  */
 function editVolumeDetails(volumeId) {
     if (volumeId && !volumeId.toString().startsWith('new_')) {
-        window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId);
+        const referrerUrl = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId) + '?referrer=edit&wp_id={{ $workPackage->wp_id }}';
+        // window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId);
+        window.location.href = referrerUrl;
     } else {
         Swal.fire({
             title: 'Volume Belum Tersimpan',

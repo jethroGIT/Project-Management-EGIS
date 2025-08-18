@@ -19,10 +19,10 @@
             </div>
         @endif
         <div class="">
-            <a href="{{ route('wp-management') }}" class="btn btn-light me-2">
-                <i class="bi bi-arrow-left"></i> Kembali
+            <a href="{{ $backUrl ?? route('wp-management') }}" class="btn btn-light me-2">
+                <i class="bi bi-arrow-left"></i> {{ $backText ?? 'Kembali' }}
             </a>
-            <button class="btn btn-primary" onclick="editWorkPackage({{ $workPackage->wp_id }})">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
                 <i class="bi bi-pencil-square"></i> Edit Data
             </button>
         </div>

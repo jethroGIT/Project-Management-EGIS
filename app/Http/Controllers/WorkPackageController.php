@@ -40,7 +40,7 @@ class WorkPackageController extends Controller
 
     }
 
-    public function detail($volume_id)
+    public function detail($volume_id, Request $request)
     {
         $volume = WorkPackageVolume::with([
             'workPackage', 
@@ -57,13 +57,7 @@ class WorkPackageController extends Controller
             ->orderBy('hresource_id')
             ->get();
 
-        // Ambil users yang ter-assign langsung dari work
-        // $assignedRoleIds = Work::where('volume_id', $volume_id)->pluck('role_id');
-        
-        // $assignedUsers = User::whereIn('role_id', $assignedRoleIds)
-        //     ->with('role')
-        //     ->get();
-
+        // Ambil users yang ter-assign
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
         })->with('role')->get();
@@ -113,6 +107,22 @@ class WorkPackageController extends Controller
         if($realizationPercentage > 100){
             $realizationPercentage = 100;
         }
+
+        // Mendapatkan informasi referrer dari query parameter
+        $referrer = $request->get('referrer');
+        $wpId = $request->get('wp_id');
+
+        // Menentukan URL kembali berdasarkan referrer
+        $backUrl = route('wp-management');
+        $backText = 'Kembali ke Manajemen';
+
+        if ($referrer === 'detail' && $wpId) {
+            $backUrl = route('wp-management.detail', ['wp_id' => $wpId]);
+            $backText = 'Kembali ke Detail WP';
+        } else if ($referrer === 'edit' && $wpId) {
+            $backUrl = route('wp-management.edit', ['wp_id' => $wpId]);
+            $backText = 'Kembali ke Edit WP';
+        }
         
         return view('workpackage', compact(
             'humanResources',
@@ -121,7 +131,9 @@ class WorkPackageController extends Controller
             'volume_id',
             'assignedUsers',
             'totalCompletion',
-            'realizationPercentage'
+            'realizationPercentage',
+            'backUrl',
+            'backText'
         ));
     }
 

@@ -419,7 +419,9 @@ function editWorkPackage(wpId) {
  * Function untuk manage volume (placeholder for future)
  */
 function manageVolume(volumeId) {
-    window.location.href = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId);
+    const referrerUrl = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId) + '?referrer=detail&wp_id={{ $workPackage->wp_id }}';
+    // window.location.href = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId);
+    window.location.href = referrerUrl;
 }
 
 // Toast notification if redirected with success/error message
@@ -456,9 +458,8 @@ function manageVolume(volumeId) {
  */
 $(document).ready(function() {
     const wrapper = document.getElementById('volumeCardsWrapper');
-    const scrollLeftBtn = document.getElementById('scrollLeft');
-    const scrollRightBtn = document.getElementById('scrollRight');
-    const scrollDots = document.querySelectorAll('.scroll-dot');
+    // const scrollLeftBtn = document.getElementById('scrollLeft');
+    // const scrollRightBtn = document.getElementById('scrollRight');
 
     if (wrapper && scrollLeftBtn && scrollRightBtn) {
         const cardWidth = 340;
@@ -483,35 +484,35 @@ $(document).ready(function() {
         });
 
         // Scroll Indicators Click
-        scrollDots.forEach((dot, index) => {
-            dot.addEventListener('click', function() {
-                const scrollPosition = index * (cardWidth * 2);
-                wrapper.scrollTo({
-                    left: scrollPosition,
-                    behavior: 'smooth'
-                });
+        // scrollDots.forEach((dot, index) => {
+        //     dot.addEventListener('click', function() {
+        //         const scrollPosition = index * (cardWidth * 2);
+        //         wrapper.scrollTo({
+        //             left: scrollPosition,
+        //             behavior: 'smooth'
+        //         });
                 
-                updateActiveDot(index);
-                updateButtonStates();
-            });
-        });
+        //         updateActiveDot(index);
+        //         updateButtonStates();
+        //     });
+        // });
 
         // Update active dot on scroll
         wrapper.addEventListener('scroll', function() {
             const scrollLeft = wrapper.scrollLeft;
             const activeIndex = Math.round(scrollLeft / (cardWidth * 2));
-            updateActiveDot(activeIndex);
+            // updateActiveDot(activeIndex);
             
             // Update button states
             updateButtonStates();
         });
 
         // Update active dot
-        function updateActiveDot(activeIndex) {
-            scrollDots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === activeIndex);
-            });
-        }
+        // function updateActiveDot(activeIndex) {
+        //     scrollDots.forEach((dot, index) => {
+        //         dot.classList.toggle('active', index === activeIndex);
+        //     });
+        // }
 
         // Update button states
         function updateButtonStates() {
