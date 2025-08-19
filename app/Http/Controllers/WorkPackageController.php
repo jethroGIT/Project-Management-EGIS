@@ -48,7 +48,7 @@ class WorkPackageController extends Controller
             'task' => function($query) {
                 $query->orderBy('task_id');
             },
-            'work.user.role'
+            'work.user.roles'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -60,7 +60,7 @@ class WorkPackageController extends Controller
 
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
-        })->with(['role', 'humanResource']) // ambil relasi role
+        })->with(['roles', 'humanResource']) // ambil relasi role
             ->withCount(['timesheets' => function ($query) use ($volume_id) {
                 // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
                 $query->where('volume_id', $volume_id);
@@ -71,7 +71,7 @@ class WorkPackageController extends Controller
                 return [
                     'user_id' => $user->user_id,
                     'name' => $user->name,
-                    'role_name' => $user->role->name ?? 'No Role',
+                    'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role',
                     'jhk' => $user->humanResource->jhk ?? null,
                     'timesheets_count' => $user->timesheets_count,
                 ];
@@ -98,16 +98,16 @@ class WorkPackageController extends Controller
 
         // hitung persentase finance performance
         // Ambil semua work dan timesheet berdasarkan volume
-        $works = Work::with('user.role')->where('volume_id', $volume_id)->get();
-        $timesheets = Timesheet::with('user.role')->where('volume_id', $volume_id)->get();
+        $works = Work::with('user.roles')->where('volume_id', $volume_id)->get();
+        $timesheets = Timesheet::with('user.roles')->where('volume_id', $volume_id)->get();
 
-        // Group dan jumlahkan resource cost per role
-        $resourceCostPerRole = $works->groupBy(fn($w) => optional($w->user->role)->role_id)
-            ->map(fn($group) => $group->first()->user->role->resource_cost ?? 0);
+        $resourceCostPerRole = $works->groupBy(fn($w) => $w->user->roles->get(1)?->id ?? $w->user->roles->first()?->id)
+            ->map(fn($group) => $group->first()->user->roles->get(1)?->resource_cost ?? $group->first()->user->roles->first()?->resource_cost ?? 0);
 
         // Hitung aktivitas per role dari timesheet
-        $timesheetCountPerRole = $timesheets->groupBy(fn($t) => optional($t->user->role)->role_id)
+        $timesheetCountPerRole = $timesheets->groupBy(fn($t) => $t->user->roles->get(1)?->id ?? $t->user->roles->first()?->id)
             ->map(fn($group) => $group->count());
+
         
         $totalByYoy = 0;
         $totalRealization = 0;
@@ -600,12 +600,12 @@ class WorkPackageController extends Controller
                 foreach ($request->resources as $index => $userId) {
                     $newJhk = (int) ($request->jhk[$index] ?? 0);
 
-                    $user = User::with('role')->find($userId);
-                    if (!$user || !$user->role) {
+                    $user = User::with('roles')->find($userId);
+                    if (!$user || $user->roles->isEmpty()) {
                         continue; // skip jika user atau role tidak valid
                     }
 
-                    $roleId = $user->role->role_id;
+                    $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
 
                     // Cari jhk lama dari human_resource berdasarkan role_id dan wp_id
                     $hr = HumanResource::where('role_id', $roleId)
@@ -666,10 +666,11 @@ class WorkPackageController extends Controller
                     $jhkValue = (int) $request->jhk[$index];
 
                     // Cari role user terkait
-                    $user = User::with('role')->find($userId);
-                    if ($user && $user->role) {
+                    $user = User::with('roles')->find($userId);
+                    if ($user && $user->roles->isNotEmpty()) {
                         // Update jhk di HumanResource
-                        $hr = HumanResource::where('role_id', $user->role->role_id)
+                        $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+                        $hr = HumanResource::where('role_id', $roleId)
                                             ->where('wp_id', $wpId)
                                             ->first();
                         if ($hr) {
@@ -763,41 +764,41 @@ class WorkPackageController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function editHResource(Request $request, $volume_id)
-    {
-        $volume = WorkPackageVolume::with([
-            'workPackage', 
-            'task',
-            'work.role'
-        ])->findOrFail($volume_id);
+    // public function editHResource(Request $request, $volume_id)
+    // {
+    //     $volume = WorkPackageVolume::with([
+    //         'workPackage', 
+    //         'task',
+    //         'work.role'
+    //     ])->findOrFail($volume_id);
 
-        $workPackage = $volume->workPackage;
-        try {
-            $request->validate([
-                'hresource_id' => 'required|exists:human_resource,hresource_id', 
-                'role_id' => 'required|exists:role,role_id', 
-                'jhk' => 'integer|min:0', 
-            ]);
+    //     $workPackage = $volume->workPackage;
+    //     try {
+    //         $request->validate([
+    //             'hresource_id' => 'required|exists:human_resource,hresource_id', 
+    //             'role_id' => 'required|exists:role,role_id', 
+    //             'jhk' => 'integer|min:0', 
+    //         ]);
 
-            $resource = HumanResource::where('hresource_id', $request->hresource_id)
-                                ->where('wp_id', $workPackage->wp_id)
-                                ->where('role_id', $request->role_id)
-                                ->firstOrFail();
-            $resource->jhk = $request->jhk;
-            $resource->save();
+    //         $resource = HumanResource::where('hresource_id', $request->hresource_id)
+    //                             ->where('wp_id', $workPackage->wp_id)
+    //                             ->where('role_id', $request->role_id)
+    //                             ->firstOrFail();
+    //         $resource->jhk = $request->jhk;
+    //         $resource->save();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data berhasil diperbarui.',
-                'data' => $resource // Kirim data yang diperbarui jika perlu untuk update UI
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Data berhasil diperbarui.',
+    //             'data' => $resource // Kirim data yang diperbarui jika perlu untuk update UI
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Update the specified resource in storage.

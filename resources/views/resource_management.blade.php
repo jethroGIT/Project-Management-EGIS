@@ -49,9 +49,13 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                @if($user->role)
+                                @php
+                                    // Menggunakan first() untuk mendapatkan role pertama jika ada
+                                    $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
+                                @endphp
+                                @if($roleName)
                                     <span class="badge badge-light badge-lg">
-                                        {{ $user->role->name }}
+                                        {{$roleName}}
                                     </span>
                                 @else
                                     Belum memiliki peran
@@ -127,7 +131,7 @@
                                     <select name="role_id" class="form-select" required>
                                         <option value="">Pilih Role</option>
                                         @foreach($roles as $role)
-                                            <option value="{{ $role->role_id }}">{{ $role->name }}</option>
+                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -174,7 +178,7 @@
 
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Peran</label>
-                                    <select name="role_id" id="editUserRole" class="form-select" required>
+                                    <select name="id" id="editUserRole" class="form-select" required>
                                         <option value="">Pilih Role</option>
                                         <!-- Akan diisi via JavaScript -->
                                     </select>
@@ -307,8 +311,8 @@ function editUser(userId) {
                 roleSelect.append('<option value="">Pilih Role</option>');
                 
                 response.roles.forEach(function(role) {
-                    const selected = role.role_id == response.user.role_id ? 'selected' : '';
-                    roleSelect.append(`<option value="${role.role_id}" ${selected}>${role.name}</option>`);
+                    const selected = role.id == response.user.role_id ? 'selected' : '';
+                    roleSelect.append(`<option value="${role.id}" ${selected}>${role.name}</option>`);
                 });
                 
                 // Clear password fields

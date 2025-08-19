@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Models\WorkPackageVolume;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use PhpParser\Node\Stmt\TryCatch;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class TimesheetController extends Controller
@@ -43,7 +42,7 @@ class TimesheetController extends Controller
             ->get();
 
         // timesheets
-        $timesheets = Timesheet::with('user.role')
+        $timesheets = Timesheet::with('user.roles')
             ->where('volume_id', $volume->volume_id)
             ->orderBy('execution_date', 'asc')
             ->get();
@@ -72,10 +71,19 @@ class TimesheetController extends Controller
         $monthDates = $monthTimesheets->groupBy('execution_date')->sortKeys();
 
         // daftar unique timesheet dari bulan yang dipilih
-        $usersInSelectedMonth = $timesheets->pluck('user')->unique('user_id')->sortBy('role_id')->values();
+        $usersInSelectedMonth = $timesheets->pluck('user')->unique('user_id')
+                                            ->sortBy(function($user) {
+                                                return $user->roles->first()?->id ?? 0;
+                                })->values();
 
         // menghitung jumlah aktivitas untuk setiap role
-        $timesheetCountPerRole = $timesheets->groupBy('user.role_id')->map(function ($entriesPerRole) {
+        $timesheetCountPerRole = $timesheets->groupBy(function ($entry) {
+            $user = $entry->user;
+            if (!$user || !$user->roles || $user->roles->isEmpty()) {
+                return null;
+            }
+            return $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+        })->map(function ($entriesPerRole) {
             return $entriesPerRole->count();
         });
 
@@ -107,19 +115,20 @@ class TimesheetController extends Controller
         $workPackage = $volume->workPackage;
         
         // timesheet activity
-        $activities= Timesheet::with('user.role')
+        $activities= Timesheet::with('user.roles')
             ->where('user_id', $user_id)
             ->where('volume_id', $volume_id)
             ->orderBy('execution_date', 'asc')
             ->get();
 
         // user info
-        $user = User::with('role')
-            ->where('user_id', $user_id)->first();
+        $user = User::with('roles')->findOrFail($user_id);
+
+        $role_id = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
         
         // ambil jhk
         $humanResources = HumanResource::where('wp_id', $workPackage->wp_id)
-            ->where('role_id', $user->role->role_id)
+            ->where('role_id', $role_id)
             ->first();
 
         // menghitung jumlah aktivitas dari role tertentu

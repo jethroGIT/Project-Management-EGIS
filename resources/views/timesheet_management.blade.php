@@ -41,7 +41,11 @@
                             <th scope="col" style="width: 75px; min-width: 40px;">Tanggal</th>
                             @foreach($users as $user)
                                 <th scope="col" style="width: 80px;">
-                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$user->role->name}}">{{$user->name}}</span>
+                                    @php
+                                        // Menggunakan first() untuk mendapatkan role pertama jika ada
+                                        $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
+                                    @endphp
+                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$roleName}}">{{$user->name}}</span>
                                 </th>     
                             @endforeach
                             <th scope="col" style="width: 100px;">Action</th>
@@ -388,7 +392,7 @@
             personnelList.forEach(person => {
                 const option = document.createElement('option');
                 option.value = person.user_id;
-                option.textContent = `${person.name} - ${person.role}`;
+                option.textContent = `${person.name} - ${(person.roles && person.roles.length) ? person.roles[0].name : ''}`;
                 select.appendChild(option);
             });
 
@@ -742,7 +746,7 @@
         allUsers.forEach(user => {
             const userOption = document.createElement('option');
             userOption.value = user.user_id;
-            userOption.textContent = `${user.name} - ${user.role.name}`;
+            userOption.textContent = `${user.name} - ${user.roles && user.roles.length ? user.roles[0].name : ''}`;
             personelSelect.appendChild(userOption);
         });
 

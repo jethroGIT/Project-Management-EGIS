@@ -26,88 +26,104 @@ Route::get('/', function () {
 //     return view('test');
 // });
 
+// Route::middleware(['role:admin'])->group(function(){
+    // Manajemen Work Package
+    Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
+    Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
+    Route::get('/wp-management/detail/{wp_id}', [WorkPackageManagementController::class, 'detail'])->name('wp-management.detail');
+    Route::get('/wp-management/{wp_id}/edit', [WorkPackageManagementController::class, 'edit'])->name('wp-management.edit');
+    Route::put('/wp-management/{wp_id}', [WorkPackageManagementController::class, 'update'])->name('wp-management.update');
+    Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
+    Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
+    Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
+    Route::get('/wp-management/volume/{volume_id}/check-associations', [WorkPackageManagementController::class, 'checkVolumeAssociations'])->name('wp-management.check-volume-associations');
+    Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');
+
+    // manajemen kategori work package
+    Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
+    Route::post('/wpcategory-management/add', [WPCategoryManagementController::class, 'add'])->name('wpcategory.add');
+    Route::put('/wpcategory-management/edit', [WPCategoryManagementController::class, 'edit'])->name('wpcategory.edit');
+    Route::delete('/wpcategory-management/{id}/delete', [WPCategoryManagementController::class, 'delete'])->name('wpcategory.delete');
+
+    // Manajemen Resource
+    Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
+    Route::post('/resource-management', [ResourceManagementController::class, 'store'])->name('resource.store');
+    Route::get('/resource-management/{id}/edit', [ResourceManagementController::class, 'edit'])->name('resource.edit');
+    Route::put('/resource-management/{id}', [ResourceManagementController::class, 'update'])->name('resource.update');
+
+    // Manajemen Roles
+    Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
+    Route::post('/roles-management', [RolesManagementController::class, 'store'])->name('roles.store');
+    Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
+    Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
+
+    // Manajemen Timesheet
+    Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');
+    Route::post('/timesheet-management/add', [TimesheetManagementController::class, 'add'])->name('timesheet.add');
+    Route::get('/timesheet-management/{volume_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
+    Route::post('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
+    Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
+
+    // performance task
+    Route::post('/performance-task/sub-task', [PerformanceTaskController::class, 'storeSubTask'])->name('performance-task.sub-task.store');
+    Route::get('/performance-task/task/{taskId}/info', [PerformanceTaskController::class, 'getTaskForSubTask'])->name('performance-task.task.info');
+    Route::get('/performance-task/sub-task/{subTaskId}/edit', [PerformanceTaskController::class, 'editSubTask'])->name('performance-task.sub-task.edit');
+    Route::put('/performance-task/sub-task/{subTaskId}', [PerformanceTaskController::class, 'updateSubTask'])->name('performance-task.sub-task.update');
+    Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::class, 'destroySubTask'])->name('performance-task.sub-task.destroy');
+
+    // performance finance
+    Route::put('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
+
+    // work package volume page
+    Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
+
+    Route::get('/work-package/task/{taskId}', [WorkPackageController::class, 'getTask'])->name('work-package.task.get');
+    Route::put('/work-package/task/{taskId}', [WorkPackageController::class, 'updateTask'])->name('work-package.task.update');
+    Route::post('/work-package/task/store', [WorkPackageController::class, 'storeTask'])->name('work-package.task.store');
+    Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'deleteTask'])->name('work-package.task.delete');
+    Route::get('/work-package/task/{taskId}/subtask-count', [WorkPackageController::class, 'getSubTaskCount'])->name('work-package.task.subtask.count');
+
+    Route::get('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'getSubTask'])->name('work-package.subtask.get');
+    Route::post('/work-package/subtask/store', [WorkPackageController::class, 'storeSubTask'])->name('work-package.subtask.store');
+    Route::delete('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'deleteSubTask'])->name('work-package.subtask.delete');
+    Route::put('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'updateSubTask'])->name('work-package.subtask.update');
+
+// });
+
+// Route::middleware(['role:admin|karyawan'])->group(function(){
+    // general
+    Route::get('/login', [SignInController::class, 'index'])->name('login');
+    Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
+
+    // performance task
+    Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
+    Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
+
+    // performance finance
+    Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
+    Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');
+
+    // timesheet summary
+    Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
+    Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');
+
+    // work package volume page
+    Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
+    Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
+// });
+
+// Route::middleware(['role:karyawan'])->group(function(){
+    // timesheet activity per user
+    Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
+    Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
+    Route::put('/timesheet-user/{volume_id}/{user_id}/edit', [TimesheetController::class, 'editperUser'])->name('timesheet.user.edit');
+    Route::delete('/timesheet-user/{timesheet_id}/delete', [TimesheetController::class, 'deleteperUser'])->name('timesheet.user.delete');
+
+// });
+
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('perencanaan');
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
 Route::get('/task', [TaskController::class, 'index'])->name('task');
-
-Route::get('/login', [SignInController::class, 'index'])->name('login');
-Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
-
-Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
-Route::get('/performance-task/{volume_id}', [PerformanceTaskController::class, 'detail'])->name('performance-task.detail');
-Route::post('/performance-task/sub-task', [PerformanceTaskController::class, 'storeSubTask'])->name('performance-task.sub-task.store');
-Route::get('/performance-task/task/{taskId}/info', [PerformanceTaskController::class, 'getTaskForSubTask'])->name('performance-task.task.info');
-Route::get('/performance-task/sub-task/{subTaskId}/edit', [PerformanceTaskController::class, 'editSubTask'])->name('performance-task.sub-task.edit');
-Route::put('/performance-task/sub-task/{subTaskId}', [PerformanceTaskController::class, 'updateSubTask'])->name('performance-task.sub-task.update');
-Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::class, 'destroySubTask'])->name('performance-task.sub-task.destroy');
-
-Route::get('/performance-finance', [PerformanceFinanceController::class, 'index'])->name('performance-finance');
-Route::get('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'detail'])->name('performance-finance.detail');
-Route::put('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
-
-Route::get('/timesheet', [TimesheetController::class, 'index'])->name('timesheet');
-Route::get('/timesheet/{volume_id?}', [TimesheetController::class, 'detail'])->name('timesheet.detail');
-// Route::put('/timesheet/{volume_id?}/edit', [TimesheetController::class, 'edit'])->name('timesheet.edit');
-
-Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
-Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
-Route::put('/timesheet-user/{volume_id}/{user_id}/edit', [TimesheetController::class, 'editperUser'])->name('timesheet.user.edit');
-Route::delete('/timesheet-user/{timesheet_id}/delete', [TimesheetController::class, 'deleteperUser'])->name('timesheet.user.delete');
-
-Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
-Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
-Route::put('/work-package/{volume_id}/hresource-edit', [WorkPackageController::class, 'editHResource'])->name('work-package.hResource.edit');
-
-Route::get('/work-package/task/{taskId}', [WorkPackageController::class, 'getTask'])->name('work-package.task.get');
-Route::put('/work-package/task/{taskId}', [WorkPackageController::class, 'updateTask'])->name('work-package.task.update');
-Route::post('/work-package/task/store', [WorkPackageController::class, 'storeTask'])->name('work-package.task.store');
-Route::delete('/work-package/task/{taskId}', [WorkPackageController::class, 'deleteTask'])->name('work-package.task.delete');
-Route::get('/work-package/task/{taskId}/subtask-count', [WorkPackageController::class, 'getSubTaskCount'])->name('work-package.task.subtask.count');
-
-Route::post('/work-package/subtask/store', [WorkPackageController::class, 'storeSubTask'])->name('work-package.subtask.store');
-Route::get('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'getSubTask'])->name('work-package.subtask.get');
-Route::delete('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'deleteSubTask'])->name('work-package.subtask.delete');
-Route::put('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'updateSubTask'])->name('work-package.subtask.update');
-
-// Work Package Volume Data Management
-Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
-
-// manajemen kategori work package
-Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
-Route::post('/wpcategory-management/add', [WPCategoryManagementController::class, 'add'])->name('wpcategory.add');
-Route::put('/wpcategory-management/edit', [WPCategoryManagementController::class, 'edit'])->name('wpcategory.edit');
-Route::delete('/wpcategory-management/{id}/delete', [WPCategoryManagementController::class, 'delete'])->name('wpcategory.delete');
-
-// Manajemen Timesheet
-Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');
-Route::post('/timesheet-management/add', [TimesheetManagementController::class, 'add'])->name('timesheet.add');
-Route::get('/timesheet-management/{volume_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
-Route::post('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
-Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
-
-// Manajemen Resource
-Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
-Route::post('/resource-management', [ResourceManagementController::class, 'store'])->name('resource.store');
-Route::get('/resource-management/{id}/edit', [ResourceManagementController::class, 'edit'])->name('resource.edit');
-Route::put('/resource-management/{id}', [ResourceManagementController::class, 'update'])->name('resource.update');
-
-// Manajemen Roles
-Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
-Route::post('/roles-management', [RolesManagementController::class, 'store'])->name('roles.store');
-Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
-Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
-Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
-
-// Manajemen Work Package
-Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
-Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
-Route::get('/wp-management/detail/{wp_id}', [WorkPackageManagementController::class, 'detail'])->name('wp-management.detail');
-Route::get('/wp-management/{wp_id}/edit', [WorkPackageManagementController::class, 'edit'])->name('wp-management.edit');
-Route::put('/wp-management/{wp_id}', [WorkPackageManagementController::class, 'update'])->name('wp-management.update');
-Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
-Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
-Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
-Route::get('/wp-management/volume/{volume_id}/check-associations', [WorkPackageManagementController::class, 'checkVolumeAssociations'])->name('wp-management.check-volume-associations');
-Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');
