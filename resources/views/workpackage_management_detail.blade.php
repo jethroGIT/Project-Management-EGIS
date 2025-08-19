@@ -352,12 +352,6 @@
     height: 100%;
 }
 
-/* Scroll Indicators */
-.volume-scroll-indicators {
-    text-align: center;
-    margin-top: 15px;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .volume-card-item {
@@ -380,12 +374,6 @@
         gap: 10px;
         padding: 10px 0;
     }
-}
-
-/* BUTTON STATES */
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 /* CARD HOVER EFFECTS */
@@ -451,134 +439,5 @@ function manageVolume(volumeId) {
         }
     });
 @endif
-
-/** 
- * Volume Scroll Functionality 
- */
-$(document).ready(function() {
-    const wrapper = document.getElementById('volumeCardsWrapper');
-    // const scrollLeftBtn = document.getElementById('scrollLeft');
-    // const scrollRightBtn = document.getElementById('scrollRight');
-
-    if (wrapper && scrollLeftBtn && scrollRightBtn) {
-        const cardWidth = 340;
-        // const visibleCards = Math.floor(wrapper.offsetWidth / cardWidth);
-
-        // Scroll Left Button
-        scrollLeftBtn.addEventListener('click', function() {
-            wrapper.scrollBy({
-                left: -cardWidth * 2,
-                behavior: 'smooth'
-            });
-            updateButtonStates();
-        });
-
-        // Scroll Right Button
-        scrollLeftBtn.addEventListener('click', function() {
-            wrapper.scrollBy({
-                left: cardWidth * 2,
-                behavior: 'smooth'
-            });
-            updateButtonStates();
-        });
-
-        // Scroll Indicators Click
-        // scrollDots.forEach((dot, index) => {
-        //     dot.addEventListener('click', function() {
-        //         const scrollPosition = index * (cardWidth * 2);
-        //         wrapper.scrollTo({
-        //             left: scrollPosition,
-        //             behavior: 'smooth'
-        //         });
-                
-        //         updateActiveDot(index);
-        //         updateButtonStates();
-        //     });
-        // });
-
-        // Update active dot on scroll
-        wrapper.addEventListener('scroll', function() {
-            const scrollLeft = wrapper.scrollLeft;
-            const activeIndex = Math.round(scrollLeft / (cardWidth * 2));
-            // updateActiveDot(activeIndex);
-            
-            // Update button states
-            updateButtonStates();
-        });
-
-        // Update active dot
-        // function updateActiveDot(activeIndex) {
-        //     scrollDots.forEach((dot, index) => {
-        //         dot.classList.toggle('active', index === activeIndex);
-        //     });
-        // }
-
-        // Update button states
-        function updateButtonStates() {
-            const maxScrollLeft = wrapper.scrollWidth - wrapper.clientWidth;
-            
-            // Update left button
-            if (wrapper.scrollLeft <= 0) {
-                scrollLeftBtn.disabled = true;
-                scrollLeftBtn.classList.add('opacity-50');
-            } else {
-                scrollLeftBtn.disabled = false;
-                scrollLeftBtn.classList.remove('opacity-50');
-            }
-            
-            // Update right button
-            if (wrapper.scrollLeft >= maxScrollLeft - 10) { // -10 for tolerance
-                scrollRightBtn.disabled = true;
-                scrollRightBtn.classList.add('opacity-50');
-            } else {
-                scrollRightBtn.disabled = false;
-                scrollRightBtn.classList.remove('opacity-50');
-            }
-        }
-
-        // Initial button state
-        updateButtonStates();
-
-        // Keyword navigation
-        wrapper.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                scrollLeftBtn.click();
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                scrollRightBtn.click();
-            }
-        });
-
-        // Touch/swipe support for mobile
-        let startX = 0;
-        let scrollStart = 0;
-
-        wrapper.addEventListener('touchstart', function(e) {
-            startX = e.touches[0].clientX;
-            scrollStart = wrapper.scrollLeft;
-        }, { passive: true });
-        
-        wrapper.addEventListener('touchmove', function(e) {
-            if (!startX) return;
-            
-            const currentX = e.touches[0].clientX;
-            const diffX = startX - currentX;
-            
-            wrapper.scrollLeft = scrollStart + diffX;
-        }, { passive: true });
-
-        wrapper.addEventListener('touchend', function() {
-            startX = 0;
-            scrollStart = 0;
-            updateButtonStates();
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            updateButtonStates();
-        });
-    }
-});
 </script>
 @endpush
