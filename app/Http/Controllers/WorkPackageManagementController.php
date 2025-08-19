@@ -214,14 +214,6 @@ class WorkPackageManagementController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Get next available work package number for a category
      */
     public function getNextWpNumber(Request $request)
@@ -580,14 +572,6 @@ class WorkPackageManagementController extends Controller
                 'message' => 'Gagal mengambil data users'
             ], 500);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
     }
 
     /**
@@ -1200,10 +1184,224 @@ class WorkPackageManagementController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Check work package associations before deletion
      */
-    public function destroy(string $id)
+    public function checkWorkPackageAssociations($wp_id) 
     {
-        //
+        try {
+            $workPackage = WorkPackage::findOrFail($wp_id);
+
+            // Mendapatkan semua volumes untuk work package ini
+            $volumes = WorkPackageVolume::where('wp_id', $wp_id)->get();
+            $volumeIds = $volumes->pluck('volume_id');
+
+            // Cek data asosiasi di seluruh volume
+            $volumesCount = $volumes->count();
+            $tasksCount = Task::whereIn('volume_id', $volumeIds)->count();
+            $subtasksCount = SubTask::whereHas('task', function($query) use ($volumeIds) {
+                $query->whereIn('volume_id', $volumeIds);
+            })->count();
+            $workAssignmentsCount = Work::whereIn('volume_id', $volumeIds)->count();
+            $timesheetsCount = Timesheet::whereIn('volume_id', $volumeIds)->count();
+            $humanResourcesCount = HumanResource::where('wp_id', $wp_id)->count();
+
+            $hasAssociations = $volumesCount > 0 || $tasksCount > 0 || $subtasksCount > 0 ||
+                                $workAssignmentsCount > 0 || $timesheetsCount > 0 || $humanResourcesCount > 0;
+            
+            return response()->json([
+                'success' => true,
+                'has_associations' => $hasAssociations,
+                'associations' => [
+                    'volumes_count' => $volumesCount,
+                    'tasks_count' => $tasksCount,
+                    'subtasks_count' => $subtasksCount,
+                    'work_assignments_count' => $workAssignmentsCount,
+                    'timesheets_count' => $timesheetsCount,
+                    'human_resources_count' => $humanResourcesCount
+                ]
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Work Package tidak ditemukan'
+            ], 404);
+
+        } catch (Exception $e) {
+            Log::error('Error checking work package associations', [
+                'wp_id' => $wp_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memeriksa data work package'
+            ], 500);
+        }
+    }
+
+    /**
+     * Force delete the specified work package with all associated data
+     */
+    public function forceDeleteWorkPackage(Request $request, $wp_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $workPackage = WorkPackage::with(['wpCategory'])->findOrFail($wp_id);
+
+            Log::info('Force deleting work package with associations', [
+                'wp_id' => $wp_id,
+                'wp_number' => $workPackage->wp_number,
+                'wp_name' => $workPackage->name,
+                'force' => $request->input('force', false)
+            ]);
+
+            // Mendapatkan seluruh volume dari work package ini
+            $volumes = WorkPackageVolume::where('wp_id', $wp_id)->get();
+            $volumeIds = $volumes->pluck('volume_id');
+
+            // Hitung asosiasi sebelum melakukan penghapusan
+            $volumesCount = $volumes->count();
+            $tasksCount = Task::whereIn('volume_id', $volumeIds)->count();
+            $subtasksCount = SubTask::whereHas('task', function($query) use ($volumeIds) {
+                $query->whereIn('volume_id', $volumeIds);
+            })->count();
+            $workAssignmentsCount = Work::whereIn('volume_id', $volumeIds)->count();
+            $timesheetsCount = Timesheet::whereIn('volume_id', $volumeIds)->count();
+            $humanResourcesCount = HumanResource::where('wp_id', $wp_id)->count();
+
+            // Hapus semua sub tasks dari suatu task pada semua volume
+            if ($subtasksCount > 0) {
+                $taskIds = Task::whereIn('volume_id', $volumeIds)->pluck('task_id');
+                SubTask::whereIn('task_id', $taskIds)->delete();
+
+                Log::info('Deleted sub tasks', [
+                    'wp_id' => $wp_id,
+                    'subtasks_deleted' => $subtasksCount
+                ]);
+            }
+
+            // Hapus semua task pada semua volume
+            if ($tasksCount > 0) {
+                Task::whereIn('volume_id', $volumeIds)->delete();
+
+                Log::info('Deleted tasks', [
+                    'wp_id' => $wp_id,
+                    'tasks_deleted' => $tasksCount
+                ]);
+            }
+
+            // Hapus semua timesheet pada semua volume
+            if ($timesheetsCount > 0) {
+                Timesheet::whereIn('volume_id', $volumeIds)->delete();
+
+                Log::info('Deleted timesheets', [
+                    'wp_id' => $wp_id,
+                    'timesheets_deleted' => $timesheetsCount
+                ]);
+            }
+
+            // Hapus semua work assignment (resources) pada semua volume
+            if ($workAssignmentsCount > 0) {
+                Work::whereIn('volume_id', $volumeIds)->delete();
+
+                Log::info('Deleted work assignments', [
+                    'wp_id' => $wp_id,
+                    'work_assignments_deleted' => $workAssignmentsCount
+                ]);
+            }
+
+            // Hapus semua human resources untuk work package ini
+            if ($humanResourcesCount > 0) {
+                HumanResource::where('wp_id', $wp_id)->delete();
+
+                Log::info('Deleted human resources', [
+                    'wp_id' => $wp_id,
+                    'human_resources_deleted' => $humanResourcesCount
+                ]);
+            }
+
+            // Hapus semua volume untuk work package ini
+            if ($volumesCount > 0) {
+                WorkPackageVolume::where('wp_id', $wp_id)->delete();
+
+                Log::info('Deleted volumes', [
+                    'wp_id' => $wp_id,
+                    'volumes_deleted' => $volumesCount
+                ]);
+            }
+
+            // Hapus work package itu sendiri
+            $workPackageData = [
+                'wp_id' => $workPackage->wp_id,
+                'wp_number' => $workPackage->wp_number,
+                'name' => $workPackage->name,
+                'category_id' => $workPackage->category_id,
+                'category_name' => $workPackage->wpCategory->name ?? 'Unknown',
+                'duration' => $workPackage->duration,
+                'volume_qty' => $workPackage->volume_qty,
+                'actual_scope_contract' => $workPackage->actual_scope_contract,
+                'deliverable' => $workPackage->deliverable
+            ];
+
+            $workPackage->delete();
+
+            DB::commit();
+
+            Log::info('Work Package force deleted successfully', [
+                'deleted_work_package' => $workPackageData,
+                'associated_data_deleted' => [
+                    'volumes' => $volumesCount,
+                    'tasks' => $tasksCount,
+                    'subtasks' => $subtasksCount,
+                    'work_assignments' => $workAssignmentsCount,
+                    'timesheets' => $timesheetsCount,
+                    'human_resources' => $humanResourcesCount
+                ],
+                'deleted_by' => auth()->id() ?? 'system',
+                'deleted_at' => now()->format('Y-m-d H:i:s')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Work Package dan semua data terkait berhasil dihapus',
+                'deleted_data' => [
+                    'work_package' => $workPackageData,
+                    'volumes_deleted' => $volumesCount,
+                    'tasks_deleted' => $tasksCount,
+                    'subtasks_deleted' => $subtasksCount,
+                    'work_assignments_deleted' => $workAssignmentsCount,
+                    'timesheets_deleted' => $timesheetsCount,
+                    'human_resources_deleted' => $humanResourcesCount
+                ]
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            DB::rollback();
+
+            Log::warning('Work Package not found for deletion', [
+                'wp_id' => $wp_id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Work Package tidak ditemukan'
+            ], 404);
+
+        } catch (Exception $e) {
+            DB::rollback();
+
+            Log::error('Error force deleting work package', [
+                'wp_id' => $wp_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus Work Package: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

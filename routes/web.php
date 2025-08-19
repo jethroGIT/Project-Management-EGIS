@@ -111,3 +111,5 @@ Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::cl
 Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
 Route::get('/wp-management/volume/{volume_id}/check-associations', [WorkPackageManagementController::class, 'checkVolumeAssociations'])->name('wp-management.check-volume-associations');
 Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');
+Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
+Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');

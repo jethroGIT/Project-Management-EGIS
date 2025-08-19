@@ -100,7 +100,7 @@
                         <div class="volume-cards-wrapper" id="volumeCardsWrapper">
                             @foreach($volumesData as $volume)
                                 <div class="volume-card-item col-md-6 col-lg-4 mb-2">
-                                    <div class="card card-bordered h-100 shadow hover-elevate-up">
+                                    <div class="card card-bordered h-100 shadow-sm hover-elevate-up">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <h4 class="card-title mb-0">
@@ -152,8 +152,8 @@
                                                     class="btn btn-light-primary btn-sm w-100 fs-6" 
                                                     onclick="manageVolume({{ $volume['volume_id'] }})" 
                                                 >
-                                                    <i class="bi bi-gear me-1"></i>
-                                                    Kelola Volume
+                                                    <i class="bi bi-pencil-square me-1"></i>
+                                                    Edit Volume
                                                 </button>
                                             </div>
                                         </div>
@@ -420,7 +420,6 @@ function editWorkPackage(wpId) {
  */
 function manageVolume(volumeId) {
     const referrerUrl = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId) + '?referrer=detail&wp_id={{ $workPackage->wp_id }}';
-    // window.location.href = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId);
     window.location.href = referrerUrl;
 }
 
