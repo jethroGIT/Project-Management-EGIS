@@ -132,13 +132,13 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editWorkPackage({{ $wp['wp_id'] }})">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask(1.1)">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteWorkPackage({{ $wp['wp_id'] }})">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
@@ -1075,6 +1075,289 @@ function submitMultiStepForm() {
         },
         complete: function() {
             $('#submitBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Buat Work Package');
+        }
+    });
+}
+
+/**
+ * Function untuk edit work package (placeholder)
+ */
+function editWorkPackage(wpId) {
+    window.location.href = `{{ route('wp-management.edit', ['wp_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', wpId);
+}
+
+/**
+ * Function untuk delete work package dengan konfirmasi
+ */
+function deleteWorkPackage(wpId) {
+    if (!wpId) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Work Package ID tidak ditemukan.',
+            icon: 'error',
+            buttonsStyling: false,
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'btn btn-secondary'
+            }
+        });
+        return;
+    }
+
+    // Cek jika work package memiliki data asosiasi
+    checkWorkPackageAssociations(wpId);
+}
+
+/**
+ * Cek asosiasi work pakcage sebelum penghapusan
+ */
+function checkWorkPackageAssociations(wpId) {
+    Swal.fire({
+        title: 'Memeriksa data terkait...',
+        text: 'Sedang memeriksa data yang terhubung dengan Work Package',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Pengecekan asosiasi dengan AJAX call
+    $.ajax({
+        url: `{{ route('wp-management.check-wp-associations', ['wp_id' => ':wp_id']) }}`.replace(':wp_id', wpId),
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN' : $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            Swal.close();
+
+            if (response.success) {
+                if (response.has_associations) {
+                    // Work package memiliki asosiasi
+                    showWorkPackageAssociationWarning(response.associations, wpId);
+                } else {
+                    // Jika tidak ada asosiasi
+                    confirmDeleteWorkPackage(wpId, false);
+                }
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: response.message || 'Gagal memeriksa data Work Package',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-secondary'
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            Swal.close();
+
+            let errorMessage = 'Terjadi kesalahan saat memeriksa data Work Package';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Tampilkan peringatan asosiasi pada work package dengan opsi delete 
+ */
+function showWorkPackageAssociationWarning(associations, wpId) {
+    let associationsList = [];
+
+    if (associations.volumes_count > 0) {
+        associationsList.push(`• ${associations.volumes_count} Volume(s)`);
+    }
+    if (associations.tasks_count > 0) {
+        associationsList.push(`• ${associations.tasks_count} Task(s)`);
+    }
+    if (associations.subtasks_count > 0) {
+        associationsList.push(`• ${associations.subtasks_count} Sub Task(s)`);
+    }
+    if (associations.work_assignments_count > 0) {
+        associationsList.push(`• ${associations.work_assignments_count} Work Assignment(s)`);
+    }
+    if (associations.timesheets_count > 0) {
+        associationsList.push(`• ${associations.timesheets_count} Timesheet Record(s)`);
+    }
+    if (associations.human_resources_count > 0) {
+        associationsList.push(`• ${associations.human_resources_count} Human Resource(s)`);
+    }
+
+    const associationsText = associationsList.join('\n');
+
+    Swal.fire({
+        title: 'Konfirmasi Hapus Work Package',
+        html: `
+            <div class="text-start">
+                <p class="mb-3">Work Package ini memiliki data terkait yang akan ikut terhapus:</p>
+                <div class="alert alert-warning py-2 mb-3">
+                    <div class="fw-bold mb-2">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Data yang akan dihapus:
+                    </div>
+                    <div style="white-space: pre-line;">${associationsText}</div>
+                </div>
+                <div class="py-2">
+                    <div class="fw-bolder text-danger">
+                        Peringatan
+                    </div>
+                    <div class="small">
+                        Tindakan ini tidak dapat dibatalkan. Semua data di atas akan dihapus secara permanen.
+                    </div>
+                </div>
+                <p class="text-muted small mt-3">
+                    <strong>Note:</strong> Relasi dengan user akan diputuskan (data user tidak akan terhapus).
+                </p>
+            </div>
+        `,
+        icon: 'warning',
+        buttonsStyling: false,
+        showCancelButton: true,
+        cancelButtonText: 'Batal',
+        confirmButtonText: 'Ya, Hapus',
+        customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        },
+        width: '600px'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with force delete
+            confirmDeleteWorkPackage(wpId, true, associations);
+        }
+    });
+}
+
+/**
+ * Konfirmasi penghapusan work package
+ */
+function confirmDeleteWorkPackage(wpId, isForceDelete = false, associations = null) {
+    const title = isForceDelete ? 'Konfirmasi Hapus Paksa' : 'Konfirmasi Hapus Work Package';
+    const text = isForceDelete ?
+        'Anda yakin ingin menghapus Work Package ini beserta semua data terkait?' :
+        'Apakah Anda yakin ingin menghapus Work Package ini?';
+    
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        buttonsStyling: false,
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        customClass: {
+            confirmButton : 'btn btn-danger',
+            cancelButton : 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            executeWorkPackageDelete(wpId, isForceDelete, associations);
+        }
+    });
+}
+
+/**
+ * Eksekusi penghapusan work package
+ */
+function executeWorkPackageDelete(wpId, isForceDelete, associations) {
+    // Show loading
+    Swal.fire({
+        title: 'Menghapus Work Package...',
+        html: `
+            <div class="text-center">
+                <p>Sedang menghapus Work Package dan semua data terkait...</p>
+                <div class="mt-3">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false
+    });
+
+    // Prepare AJAX data
+    let ajaxData = {
+        force: isForceDelete
+    };
+
+    if (associations) {
+        ajaxData.associations = associations;
+    }
+
+    // AJAX call
+    $.ajax({
+        url: `{{ route('wp-management.force-delete-wp', ['wp_id' => ':wp_id']) }}`.replace(':wp_id', wpId),
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(ajaxData),
+        success: function(response) {
+            if (response.success) {
+                const deletedData = response.deleted_data;
+
+                Swal.fire({
+                    title: 'Work Package Berhasil Dihapus',
+                    text: `Work Package ${deletedData.work_package.wp_number} berhasil dihapus.`,
+                    icon: 'success',
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+
+            } else {
+                Swal.fire({
+                    title: 'Gagal menghapus Work Package',
+                    text: response.message || 'Terjadi kesalahan saat menghapus Work Package',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-secondary'
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'Terjadi kesalahan saat menghapus Work Package';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
         }
     });
 }

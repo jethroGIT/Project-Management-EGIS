@@ -389,12 +389,17 @@
     </div>
 
     <div class="card card-flush shadow mb-6">
-        <div class="card-body py-5">
+        <div class="card-header py-0">
+            <h3 class="card-title">
+                Detail Informasi
+            </h3>
+        </div>
+        <div class="card-body py-0">
             <div class="d-flex justify-content-end mb-4">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                <!-- <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
                     <i class="bi bi-pencil-square"></i>
                     Edit Data
-                </button>
+                </button> -->
 
                 <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
                     <div class="modal-dialog modal-dialog-centered">
@@ -555,7 +560,7 @@
 
                 <!-- Resource Names -->
                 <div class="col-md-12 mb-4">
-                    <div class="card card-flush shadow-sm">
+                    <div class="card card-flush shadow-sm mb-6">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="symbol symbol-50px me-3">

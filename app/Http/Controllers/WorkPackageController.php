@@ -60,21 +60,24 @@ class WorkPackageController extends Controller
 
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
-        })->with(['roles', 'humanResource']) // ambil relasi role
-            ->withCount(['timesheets' => function ($query) use ($volume_id) {
-                // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
-                $query->where('volume_id', $volume_id);
-            }])
-            ->get()
-            ->map(function ($user) {
-                // $humanResource = HumanResource::where('role_id', $user->role_id)->first();
-                return [
-                    'user_id' => $user->user_id,
-                    'name' => $user->name,
-                    'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role',
-                    'jhk' => $user->humanResource->jhk ?? null,
-                    'timesheets_count' => $user->timesheets_count,
-                ];
+        })->with(['role']) // ambil relasi role
+        ->withCount(['timesheets' => function ($query) use ($volume_id) {
+            // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
+            $query->where('volume_id', $volume_id);
+        }])
+        ->get()
+        ->map(function ($user) use ($workPackage) {
+            $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+                                            ->where('role_id', $user->role_id)
+                                            ->first();
+
+            return [
+                'user_id' => $user->user_id,
+                'name' => $user->name,
+                'role_name' => $user->role->name ?? 'No Role',
+                'jhk' => $humanResource ? $humanResource->jhk : null,
+                'timesheets_count' => $user->timesheets_count,
+            ];
         });
 
         // Hitung total completion dari task performance

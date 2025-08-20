@@ -137,7 +137,7 @@
                     <div class="row flex-nowrap" id="volumeContainer" style="overflow-x: auto; padding-bottom: 10px;">
                         @foreach($volumesData as $index => $volume)
                             <div class="volume-card-item col-md-6 col-lg-4 mb-4" style="min-width: 300px;">
-                                <div class="card card-bordered h-100 shadow hover-elevate-up volume-item" data-volume-id="{{ $volume['volume_id'] }}" data-volume-index="{{ $index }}">
+                                <div class="card card-bordered h-100 shadow-sm hover-elevate-up volume-item" data-volume-id="{{ $volume['volume_id'] }}" data-volume-index="{{ $index }}">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="card-title mb-0">
@@ -416,7 +416,7 @@
 #volumeContainer {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e0 #f7fafc;
-    padding-bottom: 15px;
+    padding: 10px 0 20px 0;
 }
 
 #volumeContainer::-webkit-scrollbar {
