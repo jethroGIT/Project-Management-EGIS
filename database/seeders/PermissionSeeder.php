@@ -20,11 +20,11 @@ class PermissionSeeder extends Seeder
             'manage users',
             'manage roles',
             'manage timesheets',
-            // General
-            'view wpv details',
-            'edit wpv details',
             'manage tasks',
             'edit financial data',
+            'edit wpv details',
+            // General
+            'view wpv details',
             'view timesheet summary',
             'manage timesheet activity',
             'view user profile',
