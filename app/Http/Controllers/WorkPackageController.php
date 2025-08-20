@@ -60,7 +60,7 @@ class WorkPackageController extends Controller
 
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
-        })->with(['role']) // ambil relasi role
+        })->with(['roles']) // ambil relasi role
         ->withCount(['timesheets' => function ($query) use ($volume_id) {
             // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
             $query->where('volume_id', $volume_id);

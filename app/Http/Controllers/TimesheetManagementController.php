@@ -71,7 +71,8 @@ class TimesheetManagementController extends Controller
         return view('timesheet_management', compact('activitiesForTable', 'existingAssignments', 'groupedActivities', 'users', 'workPackages', 'personnelByVolume'));
     }
 
-    public function add(Request $request){
+    public function add(Request $request)
+    {
         try {
             $request->validate([
                 'volume_id' => 'required|exists:work_package_volume,volume_id',
@@ -152,7 +153,8 @@ class TimesheetManagementController extends Controller
         }
     }
 
-    public function edit(Request $request){
+    public function edit(Request $request)
+    {
         // edit and or delete activity
         try {
             $request->validate([
@@ -228,7 +230,8 @@ class TimesheetManagementController extends Controller
         }
     }
 
-    public function delete($id){
+    public function delete($id)
+    {
         try {
             $activity = Timesheet::findOrFail($id);
 

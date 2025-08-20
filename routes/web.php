@@ -27,7 +27,7 @@ Route::get('/', function () {
 //     return view('test');
 // });
 
-// Route::middleware(['auth', 'role:admin'])->group(function(){
+Route::middleware(['auth', 'role:admin'])->group(function(){
     // Manajemen Work Package
     Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
     Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
@@ -94,7 +94,7 @@ Route::get('/', function () {
     Route::delete('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'deleteSubTask'])->name('work-package.subtask.delete');
     Route::put('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'updateSubTask'])->name('work-package.subtask.update');
 
-// });
+});
 
 Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     // general
@@ -123,14 +123,14 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
 });
 
-// Route::middleware(['auth', 'role:karyawan'])->group(function(){
+Route::middleware(['auth', 'role:karyawan'])->group(function(){
     // timesheet activity per user
     Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
     Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
     Route::put('/timesheet-user/{volume_id}/{user_id}/edit', [TimesheetController::class, 'editperUser'])->name('timesheet.user.edit');
     Route::delete('/timesheet-user/{timesheet_id}/delete', [TimesheetController::class, 'deleteperUser'])->name('timesheet.user.delete');
 
-// });
+});
 
 // login routes
 Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
