@@ -67,14 +67,15 @@ class WorkPackageController extends Controller
         }])
         ->get()
         ->map(function ($user) use ($workPackage) {
+            $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
             $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
-                                            ->where('role_id', $user->role_id)
+                                            ->where('role_id', $roleId)
                                             ->first();
 
             return [
                 'user_id' => $user->user_id,
                 'name' => $user->name,
-                'role_name' => $user->role->name ?? 'No Role',
+                'role_name' => $user->roles->get(1)?->name ?? $user->roles->first()?->name ?? 'No Role',
                 'jhk' => $humanResource ? $humanResource->jhk : null,
                 'timesheets_count' => $user->timesheets_count,
             ];
