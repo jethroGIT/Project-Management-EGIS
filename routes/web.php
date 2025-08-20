@@ -55,13 +55,11 @@ Route::get('/', function () {
     Route::put('/resource-management/{id}', [ResourceManagementController::class, 'update'])->name('resource.update');
 
     // Manajemen Roles
-    // Route::middleware('permission:manage roles')->group(function () {
-        Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
-        Route::post('/roles-management', [RolesManagementController::class, 'store'])->name('roles.store');
-        Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
-        Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
-        Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
-    // });
+    Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
+    Route::post('/roles-management', [RolesManagementController::class, 'store'])->name('roles.store');
+    Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
+    Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
 
     // Manajemen Timesheet
     Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');

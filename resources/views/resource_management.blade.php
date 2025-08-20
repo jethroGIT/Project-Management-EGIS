@@ -51,11 +51,19 @@
                             <td>
                                 @php
                                     // Menggunakan first() untuk mendapatkan role pertama jika ada
-                                    $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
+                                    $userRoles = $user->getRoleNames();
+
+                                    if ($userRoles->contains('admin')) {
+                                        $displayRole = 'admin';
+                                    } else {
+                                        $displayRole = $userRoles->filter(function($roleName) {
+                                            return $roleName !== 'karyawan';
+                                        })->first();
+                                    }
                                 @endphp
-                                @if($roleName)
+                                @if($displayRole)
                                     <span class="badge badge-light badge-lg">
-                                        {{$roleName}}
+                                        {{$displayRole}}
                                     </span>
                                 @else
                                     Belum memiliki peran
@@ -178,7 +186,7 @@
 
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Peran</label>
-                                    <select name="id" id="editUserRole" class="form-select" required>
+                                    <select name="role_id" id="editUserRole" class="form-select" required>
                                         <option value="">Pilih Role</option>
                                         <!-- Akan diisi via JavaScript -->
                                     </select>

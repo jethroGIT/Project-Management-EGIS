@@ -19,11 +19,6 @@ class RolesManagementController extends Controller
      */
     public function index()
     {
-        // Check Permission
-        // if (!Auth::user()->can('manage roles')) {
-        //     abort(403, 'Anda tidak memiliki izin pada halaman ini.');
-        // }
-
         try {
             $roles = Role::whereNotIn('name', ['karyawan', 'admin'])
                             ->get();
@@ -40,14 +35,6 @@ class RolesManagementController extends Controller
      */
     public function store(Request $request)
     {
-        // Check Permission
-        // if (!Auth::user()->can('manage roles')) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Anda tidak memiliki izin untuk membuat peran baru.'
-        //     ], 403);
-        // }
-
         $request->validate([
             'name' => 'required|string|max:30|unique:roles,name',
             'alt_name' => 'nullable|string|max:30',
@@ -121,14 +108,6 @@ class RolesManagementController extends Controller
      */
     public function edit(string $id)
     {
-        // Check Permission
-        // if (!Auth::user()->can('manage roles')) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Anda tidak memiliki izin untuk mengedit peran.'
-        //     ], 403);
-        // }
-
         try {
             $role = Role::findOrFail($id);
 
@@ -170,14 +149,6 @@ class RolesManagementController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Check Permission
-        if (!Auth::user()->can('manage roles')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki izin untuk update peran.'
-            ], 403);
-        }
-
         $request->validate([
             'name' => 'required|string|max:30|unique:roles,name,' . $id . ',id',
             'alt_name' => 'nullable|string|max:30',
@@ -333,14 +304,6 @@ class RolesManagementController extends Controller
      */
     public function destroy(string $id)
     {
-        // Check Permission
-        // if (!Auth::user()->can('manage roles')) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Anda tidak memiliki izin untuk menghapus peran.'
-        //     ], 403);
-        // }
-
         try {
             DB::beginTransaction();
 
