@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PerencanaanController;
@@ -95,7 +96,7 @@ Route::get('/', function () {
 
 // Route::middleware(['role:admin|karyawan'])->group(function(){
     // general
-    Route::get('/login', [SignInController::class, 'index'])->name('login');
+    Route::get('/login', [AuthController::class, 'index'])->name('login');
     Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
 
     // performance task

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class SignInController extends Controller
+class AuthController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -12,7 +12,7 @@ class SignInController extends Controller
     public function index()
     {
         //
-        return view('sign-in');
+        return view('login');
     }
 
     /**
