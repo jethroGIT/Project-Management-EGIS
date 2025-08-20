@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
 
@@ -18,19 +19,20 @@ class RolesManagementController extends Controller
      */
     public function index()
     {
-        //
-        $roles = Role::get();
-        // $roles = collect();
+        // Check Permission
+        // if (!Auth::user()->can('manage roles')) {
+        //     abort(403, 'Anda tidak memiliki izin pada halaman ini.');
+        // }
 
-        return view('roles_management', compact('roles'));
-    }
+        try {
+            $roles = Role::whereNotIn('name', ['karyawan', 'admin'])
+                            ->get();
+    
+            return view('roles_management', compact('roles'));
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data peran.');
+        }
     }
 
     /**
@@ -38,8 +40,16 @@ class RolesManagementController extends Controller
      */
     public function store(Request $request)
     {
+        // Check Permission
+        // if (!Auth::user()->can('manage roles')) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Anda tidak memiliki izin untuk membuat peran baru.'
+        //     ], 403);
+        // }
+
         $request->validate([
-            'name' => 'required|string|max:30|unique:role,name',
+            'name' => 'required|string|max:30|unique:roles,name',
             'alt_name' => 'nullable|string|max:30',
             'desc' => 'nullable|string|max:10',
             'resource_cost' => 'numeric|min:0'
@@ -63,14 +73,15 @@ class RolesManagementController extends Controller
                 'name' => trim($request->name),
                 'alt_name' => $request->alt_name ? trim($request->alt_name) : null,
                 'desc' => $request->desc ? trim($request->desc) : null,
-                'resource_cost' => $cost
+                'resource_cost' => $cost,
+                'guard_name' => 'web'
             ]);
 
             DB::commit();
 
             // Log success
             Log::info('Role created successfully', [
-                'role_id' => $role->role_id,
+                'role_id' => $role->id,
                 'name' => $role->name,
                 'description' => $role->desc,
                 'resource_cost' => $role->resource_cost
@@ -80,7 +91,7 @@ class RolesManagementController extends Controller
                 'success' => true,
                 'message' => 'Peran berhasil ditambahkan',
                 'role' => [
-                    'role_id' => $role->role_id,
+                    'role_id' => $role->id,
                     'name' => $role->name,
                     'alt_name' => $role->alt_name,
                     'desc' => $role->desc,
@@ -106,25 +117,25 @@ class RolesManagementController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
+        // Check Permission
+        // if (!Auth::user()->can('manage roles')) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Anda tidak memiliki izin untuk mengedit peran.'
+        //     ], 403);
+        // }
+
         try {
             $role = Role::findOrFail($id);
 
             return response()->json([
                 'success' => true,
                 'role' => [
-                    'role_id' => $role->role_id,
+                    'role_id' => $role->id,
                     'name' => $role->name,
                     'alt_name' => $role->alt_name,
                     'desc' => $role->desc,
@@ -159,8 +170,16 @@ class RolesManagementController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Check Permission
+        if (!Auth::user()->can('manage roles')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk update peran.'
+            ], 403);
+        }
+
         $request->validate([
-            'name' => 'required|string|max:30|unique:role,name,' . $id . ',role_id',
+            'name' => 'required|string|max:30|unique:roles,name,' . $id . ',id',
             'alt_name' => 'nullable|string|max:30',
             'desc' => 'nullable|string|max:10',
             'resource_cost' => 'numeric|min:0'
@@ -236,7 +255,7 @@ class RolesManagementController extends Controller
 
             // Log success
             Log::info('Role updated successfully', [
-                'role_id' => $role->role_id,
+                'role_id' => $role->id,
                 'old_data' => [
                     'name' => $originalName,
                     'alt_name' => $originalAltName,
@@ -256,7 +275,7 @@ class RolesManagementController extends Controller
                 'success' => true,
                 'message' => 'Peran berhasil diperbarui',
                 'role' => [
-                    'role_id' => $role->role_id,
+                    'role_id' => $role->id,
                     'name' => $role->name,
                     'alt_name' => $role->alt_name,
                     'desc' => $role->desc,
@@ -314,13 +333,21 @@ class RolesManagementController extends Controller
      */
     public function destroy(string $id)
     {
+        // Check Permission
+        // if (!Auth::user()->can('manage roles')) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Anda tidak memiliki izin untuk menghapus peran.'
+        //     ], 403);
+        // }
+
         try {
             DB::beginTransaction();
 
             $role = Role::findOrFail($id);
 
             // Cek apakah role masih digunakan oleh user
-            $usersCount = User::where('role_id', $id)->count();
+            $usersCount = User::role($role->name)->count();
 
             if ($usersCount > 0) {
                 return response()->json([
@@ -334,7 +361,7 @@ class RolesManagementController extends Controller
 
             // Simpan data untuk log
             $roleData = [
-                'role_id' => $role->role_id,
+                'role_id' => $role->id,
                 'name' => $role->name,
                 'alt_name' => $role->alt_name,
                 'desc' => $role->desc,
