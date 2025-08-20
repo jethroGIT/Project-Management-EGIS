@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id('task_id');
             $table->unsignedBigInteger('volume_id');
             $table->string('name');
-            $table->decimal('completeness', 5, 2)->default(0.00);
+            // $table->decimal('completeness', 5, 2)->default(0.00);
+            $table->enum('status', ['open', 'closed'])->default('open'); // status of the task
             $table->timestamps();
 
             $table->foreign('volume_id')->references('volume_id')->on('work_package_volume')->onDelete('cascade');

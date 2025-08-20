@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role', function(Blueprint $table){
-            $table->id('role_id');
-            $table->string('name',30)->unique();
-            $table->string('alt_name', 30)->nullable();
-            $table->text('desc')->nullable();
+        Schema::create('wp_category', function (Blueprint $table) {
+            $table->id('category_id');
+            $table->string('category_number')->unique();
+            $table->string('name', 100)->unique();
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role');
+        Schema::dropIfExists('wp_category');
     }
 };

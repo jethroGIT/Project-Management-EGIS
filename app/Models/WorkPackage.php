@@ -11,17 +11,24 @@ class WorkPackage extends Model
     protected $primaryKey = 'wp_id';
 
     protected $fillable = [
+        'category_id',
+        'wp_number',
         'name',
         'volume_qty',
         'duration',
         'actual_scope_contract',
         'deliverable',
-        'completeness',
+        // 'completeness',
     ];
 
-    public function resources()
+    public function wpCategory()
     {
-        return $this->hasMany(Resource::class, 'wp_id', 'wp_id');
+        return $this->belongsTo(WpCategory::class, 'category_id', 'category_id');
+    }
+
+    public function humanResources()
+    {
+        return $this->hasMany(HumanResource::class, 'wp_id', 'wp_id');
     }
 
     public function workPackageVolumes()

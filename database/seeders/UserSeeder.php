@@ -14,41 +14,51 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $users =[
+        $workers =[
             [
-                'role_id' => 1,
                 'name' => 'Oki Jamhur',
                 'email' => 'oki123@gmail.com',
                 'password' => bcrypt('oki123!'),
+                'role' => 'Project Manager',
             ],
             [
-                'role_id' => 2,
                 'name' => 'Restia',
                 'email' => 'restia123@gmail.com',
                 'password' => bcrypt('res123!'),
+                'role' => 'Senior Consultant',
             ],
             [
-                'role_id' => 3,
                 'name' => 'Yudis',
                 'email' => 'yudis123@gmail.com',
                 'password' => bcrypt('yud123!'),
+                'role' => 'Associate Consultant',
             ],
             [
-                'role_id' => 4,
                 'name' => 'Annisa Y',
                 'email' => 'annisay123@gmail.com',
                 'password' => bcrypt('any123!'),
+                'role' => 'Junior Consultant',
             ],
             [
-                'role_id' => 5,
                 'name' => 'Vanika',
                 'email' => 'vanika123@gmail.com',
                 'password' => bcrypt('van123!'),
+                'role' => 'Technical Writer',
             ],
         ];
 
-        foreach ($users as $user) {
-            User::create($user);
+        foreach ($workers as $worker) {
+            $role = $worker['role'];
+            unset($worker['role']);
+            $worker = User::create($worker);
+            $worker->assignRole(['karyawan',$role]);
         };
+
+        $admin= User::create([
+            'name' => 'Aiman',
+            'email' => 'aiman@gmail.com',
+            'password' => bcrypt('aim123!'),
+        ]);
+        $admin->assignRole('admin');
     }
 }

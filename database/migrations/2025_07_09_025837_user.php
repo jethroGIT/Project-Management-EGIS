@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('user', function (Blueprint $table){
             $table->id('user_id');
-            $table->unsignedBigInteger('role_id')->nullable();
+            // $table->unsignedBigInteger('role_id')->nullable();
             $table->string('name',100);
             $table->string('email')->unique();
             $table->string('password');
             $table->timestamps();
             
-            $table->foreign('role_id')->references('role_id')->on('role')->onDelete('set null');
+            // $table->foreign('role_id')->references('role_id')->on('role')->onDelete('set null');
         });
     }
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExist('user');
+        Schema::dropIfExists('user');
     }
 };

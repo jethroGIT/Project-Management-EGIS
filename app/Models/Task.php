@@ -11,8 +11,10 @@ class Task extends Model
     protected $primaryKey = 'task_id';
 
     protected $fillable = [
+        'volume_id',
         'name',
-        'completeness',
+        // 'completeness',
+        'status'
     ];
 
     public function subTask()

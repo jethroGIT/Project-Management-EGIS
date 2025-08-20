@@ -16,6 +16,7 @@ class WorkPackageSeeder extends Seeder
     {
         $workpackages = [
             [
+                'category_id' => 1,
                 'wp_number' => '3.1',
                 'name' => 'Human Security Risk Awareness Program Planning',
                 'volume_qty' => 1,
@@ -31,9 +32,10 @@ class WorkPackageSeeder extends Seeder
                                     5. Dokumentasi workshop pengembangan awareness keamanan informasi
                                     (apabila dilaksanakan), termasuk di dalamnya materi workshop dan daftar
                                     hadir',
-                'completeness' => 100.00,
+                // 'completeness' => 100.00,
             ],
             [
+                'category_id' => 2,
                 'wp_number' => '6.2',
                 'name' => 'Revisit Advisory & Consultancy - Information Security Management System (ISMS)',
                 'volume_qty' => 2,
@@ -43,7 +45,7 @@ class WorkPackageSeeder extends Seeder
                                     2. Desain penyesuaian proses 
                                     3. Hasil desain proses 
                                     4. Laporan pendampingan Audit ',
-                'completeness' => 23.44,
+                // 'completeness' => 23.44,
             ],
         ];
 
