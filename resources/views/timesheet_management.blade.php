@@ -392,7 +392,11 @@
             personnelList.forEach(person => {
                 const option = document.createElement('option');
                 option.value = person.user_id;
-                option.textContent = `${person.name} - ${(person.roles && person.roles.length) ? person.roles[0].name : ''}`;
+                let roleName = (person.roles && person.roles.length > 1)
+                    ? person.roles[1].name
+                    : (person.roles && person.roles.length ? person.roles[0].name : '');
+                console.log('User:', person.name, 'Role:', roleName);
+                option.textContent = `${person.name} - ${roleName}`;
                 select.appendChild(option);
             });
 
@@ -726,6 +730,7 @@
     }
 
     const allUsers = @json($users);
+    console.log('All users:', allUsers);
     function editPersonelActivityGroup(activity, number){
         // console.log('Adding/editing personel activity group:', activity, number);
         const template = document.getElementById('editPersonelActivityTemplate');
@@ -746,7 +751,11 @@
         allUsers.forEach(user => {
             const userOption = document.createElement('option');
             userOption.value = user.user_id;
-            userOption.textContent = `${user.name} - ${user.roles && user.roles.length ? user.roles[0].name : ''}`;
+            let roleName = (user.roles && user.roles.length > 1)
+                ? user.roles[1].name
+                : (user.roles && user.roles.length ? user.roles[0].name : '');
+            console.log('User:', user.name, 'Role:', roleName);
+            userOption.textContent = `${user.name} - ${roleName}`;
             personelSelect.appendChild(userOption);
         });
 

@@ -27,7 +27,7 @@ Route::get('/', function () {
 //     return view('test');
 // });
 
-// Route::middleware(['role:admin'])->group(function(){
+// Route::middleware(['auth', 'role:admin'])->group(function(){
     // Manajemen Work Package
     Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
     Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
@@ -92,10 +92,15 @@ Route::get('/', function () {
 
 // });
 
-// Route::middleware(['role:admin|karyawan'])->group(function(){
+Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     // general
-    Route::get('/login', [AuthController::class, 'index'])->name('login');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/logout', function () {
+        // Redirect ke halaman sebelumnya jika akses via GET
+        return redirect()->back();
+    });
     Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // performance task
     Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
@@ -112,9 +117,9 @@ Route::get('/', function () {
     // work package volume page
     Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
     Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
-// });
+});
 
-// Route::middleware(['role:karyawan'])->group(function(){
+// Route::middleware(['auth', 'role:karyawan'])->group(function(){
     // timesheet activity per user
     Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
     Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
@@ -123,7 +128,12 @@ Route::get('/', function () {
 
 // });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// login routes
+Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.confirm');
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
 Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('perencanaan');
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');

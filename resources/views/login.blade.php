@@ -51,11 +51,12 @@ License: For each use you must have a valid license purchased only from above li
 					<!--begin::Wrapper-->
 					<div class="w-lg-500px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
 						<!--begin::Form-->
-						<form method="POST" class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ route('login') }}">
+						<form method="POST" class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ route('login.confirm') }}">
+							@csrf
 							<!--begin::Heading-->
 							<div class="text-center mb-10">
 								<!--begin::Title-->
-								<h1 class="text-dark mb-3">Sign In to Metronic</h1>
+								<h1 class="text-dark mb-3">Masuk ke Project Management</h1>
 								<!--end::Title-->
 								<!--begin::Link-->
 								{{-- <div class="text-gray-400 fw-bold fs-4">New Here? --}}
@@ -94,17 +95,19 @@ License: For each use you must have a valid license purchased only from above li
 							<div class="text-center">
 								<!--begin::Submit button-->
 								<button type="submit" id="kt_sign_in_submit" class="btn btn-lg btn-primary w-100 mb-5">
-									<span class="indicator-label">Continue</span>
-									<span class="indicator-progress">Please wait...
+									<span class="indicator-label">Masuk</span>
+									<span class="indicator-progress">Mohon tunggu...
 									<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
 								</button>
 								<!--end::Submit button-->
 								<!--begin::Separator-->
-								<div class="text-center text-muted text-uppercase fw-bolder mb-5">or</div>
+								<div class="text-center text-muted text-uppercase fw-bolder mb-5">atau</div>
 								<!--end::Separator-->
 								<!--begin::Google link-->
-								<a href="#" class="btn btn-flex flex-center btn-light btn-lg w-100 mb-5">
-								<img alt="Logo" src="assets/media/svg/brand-logos/google-icon.svg" class="h-20px me-3" />Continue with Google</a>
+								<a href="{{route('google.login')}}" class="btn btn-flex flex-center btn-light btn-lg w-100 mb-5">
+									<img alt="Logo" src="assets/media/svg/brand-logos/google-icon.svg" class="h-20px me-3" />
+									Masuk dengan Google
+								</a>
 								<!--end::Google link-->
 								<!--begin::Google link-->
 								{{-- <a href="#" class="btn btn-flex flex-center btn-light btn-lg w-100 mb-5"> --}}
@@ -126,7 +129,7 @@ License: For each use you must have a valid license purchased only from above li
 				<div class="d-flex flex-center flex-column-auto p-10">
 					<!--begin::Links-->
 					<div class="d-flex align-items-center fw-bold fs-6">
-						<a href="https://divusi.co.id/" class="text-muted text-hover-primary px-2">About Divusi</a>
+						<a href="https://divusi.co.id/" class="text-muted text-hover-primary px-2">Tentang Divusi</a>
 						{{-- <a href="mailto:support@keenthemes.com" class="text-muted text-hover-primary px-2">Contact</a> --}}
 						{{-- <a href="https://1.envato.market/EA4JP" class="text-muted text-hover-primary px-2">Contact Us</a> --}}
 					</div>
@@ -148,6 +151,48 @@ License: For each use you must have a valid license purchased only from above li
 		<script src="{{asset('assets/js/custom/authentication/sign-in/general.js')}}"></script>
 		<!--end::Page Custom Javascript-->
 		<!--end::Javascript-->
+		<script>
+			document.getElementById('kt_sign_in_form').addEventListener('submit', function(e) {
+				e.preventDefault();
+				const form = this;
+				const submitBtn = document.getElementById('kt_sign_in_submit');
+				submitBtn.disabled = true;
+
+				fetch(form.action, {
+					method: 'POST',
+					headers: {
+						'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						email: form.email.value,
+						password: form.password.value
+					})
+				})
+				.then(response => response.json())
+				.then(data => {
+					submitBtn.disabled = false;
+					if (data.success) {
+						window.location.href = data.redirect ?? '/dashboard';
+					} else {
+						Swal.fire({
+							icon: 'error',
+							title: 'Login Gagal',
+							text: data.message ?? 'Email atau password salah'
+						});
+					}
+				})
+				.catch(() => {
+					submitBtn.disabled = false;
+					Swal.fire({
+						icon: 'error',
+						title: 'Terjadi Kesalahan',
+						text: 'Silakan coba lagi.'
+					});
+				});				
+			});
+		</script>
 	</body>
 	<!--end::Body-->
 </html>
