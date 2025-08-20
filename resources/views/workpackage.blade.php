@@ -657,11 +657,11 @@
 let editResourceCounter = 1;
 
 // Mendapatkan semua user yang tersedia untuk dropdown
-const availableUsers = @json(\App\Models\User::with('role')->get()->map(function($user) {
+const availableUsers = @json(\App\Models\User::with('roles')->get()->map(function($user) {
     return [
         'user_id' => $user->user_id,
         'name' => $user->name,
-        'role_name' => $user->role->name ?? 'No Role'
+        'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role'
     ];
 }));
 console.log('availableUsers:', availableUsers);
@@ -671,7 +671,7 @@ const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('use
 const currentlyAssignedUsersAllData = @json($assignedUsers);
 console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
-console.log('Available users from Blade:', @json(\App\Models\User::with('role')->get()));
+console.log('Available users from Blade:', @json(\App\Models\User::with('roles')->get()));
 
 
 $(document).ready(function () {

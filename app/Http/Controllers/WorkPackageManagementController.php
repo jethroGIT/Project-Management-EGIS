@@ -31,7 +31,7 @@ class WorkPackageManagementController extends Controller
             // Ambil semua work packages dengan relasi yang dibutuhkan
             $workPackages = WorkPackage::with([
                 'wpCategory',
-                'workPackageVolumes.work.user.role',
+                'workPackageVolumes.work.user.roles',
                 'workPackageVolumes' => function($query) {
                     $query->orderBy('volume_number', 'asc');
                 }
@@ -46,10 +46,10 @@ class WorkPackageManagementController extends Controller
                 $resourceNames = collect();
                 foreach ($wp->workPackageVolumes as $volume) {
                     foreach ($volume->work as $work) {
-                        if ($work->user && $work->user->role) {
+                        if ($work->user && $work->user->roles->isNotEmpty()) {
                             $resourceNames->push([
                                 'name' => $work->user->name,
-                                'role' => $work->user->role->name
+                                'role' => $work->user->getRoleNames()->get(1) ?? $work->user->getRoleNames()->first() ?? 'No Role'
                             ]);
                         }
                     }
@@ -111,7 +111,7 @@ class WorkPackageManagementController extends Controller
                 'workPackageVolumes' => function($query) {
                     $query->orderBy('volume_number', 'asc');
                 },
-                'workPackageVolumes.work.user.role',
+                'workPackageVolumes.work.user.roles',
                 'humanResources.role'
             ])->findOrFail($wp_id);
 
@@ -119,8 +119,9 @@ class WorkPackageManagementController extends Controller
             $volumesData = $workPackage->workPackageVolumes->map(function ($volume) use($workPackage) {
                 // Ambil resource names untuk volume ini
                 $resourceNames = $volume->work->map(function ($work) {
-                    if ($work->user && $work->user->role) {
-                        return $work->user->name . ' (' . $work->user->role->name . ')';
+                    if ($work->user && $work->user->roles->isNotEmpty()) {
+                        $roleName = $work->user->getRoleNames()->get(1) ?? $work->user->getRoleNames()->first() ?? 'No Role';
+                        return $work->user->name . ' (' . $roleName . ')';
                     }
                     return null;
                 })->filter()->unique()->values();
@@ -191,7 +192,7 @@ class WorkPackageManagementController extends Controller
 
             $query = WorkPackage::with([
                 'wpCategory',
-                'workPackageVolume.work.user.role'
+                'workPackageVolume.work.user.roles'
             ]);
 
             if ($categoryId) {
@@ -402,9 +403,9 @@ class WorkPackageManagementController extends Controller
             
             foreach ($volumes as $volume) {
                 foreach ($validatedData['resources'] as $resourceData) {
-                    $user = User::with('role')->find($resourceData['user_id']);
+                    $user = User::with('roles')->find($resourceData['user_id']);
 
-                    if (!$user || !$user->role) {
+                    if (!$user || $user->roles->isEmpty()) {
                         throw new Exception("User dengan ID {$resourceData['user_id']} tidak ditemukan atau belum memiliki role");
                     }
 
@@ -419,7 +420,7 @@ class WorkPackageManagementController extends Controller
                         'volume_number' => $volume->volume_number,
                         'user_id' => $resourceData['user_id'],
                         'user_name' => $user->name,
-                        'role_name' => $user->role->name
+                        'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role',
                     ]);
                 }
             }
@@ -428,19 +429,20 @@ class WorkPackageManagementController extends Controller
             $resourcesByRole = [];
 
             foreach ($validatedData['resources'] as $resourceData) {
-                $user = User::with('role')->find($resourceData['user_id']);
+                $user = User::with('roles')->find($resourceData['user_id']);
 
-                if (!$user || !$user->role) {
+                if (!$user || $user->roles->isEmpty()) {
                     throw new Exception("User dengan ID {$resourceData['user_id']} tidak ditemukan atau belum memiliki role");
                 }
                 
-                $roleId = $user->role_id;
+                $roleId = $user->roles->first()?->id ?? null;
+                $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role';
 
                 // Group by role_id and count JTK
                 if (!isset($resourcesByRole[$roleId])) {
                     $resourcesByRole[$roleId] = [
                         'role_id' => $roleId,
-                        'role_name' => $user->role->name,
+                        'role_name' => $roleName,
                         'jtk' => 0,
                         'total_jhk' => 0,
                         'users' => []
@@ -557,7 +559,7 @@ class WorkPackageManagementController extends Controller
     public function getUsersWithRoles()
     {
         try {
-            $users = User::with('role')->orderBy('name', 'asc')->get();
+            $users = User::with('roles')->orderBy('name', 'asc')->get();
             $roles = Role::orderBy('name', 'asc')->get();
 
             return response()->json([
@@ -586,7 +588,7 @@ class WorkPackageManagementController extends Controller
                 'workPackageVolumes' => function($query) {
                     $query->orderBy('volume_number', 'asc');
                 },
-                'workPackageVolumes.work.user.role',
+                'workPackageVolumes.work.user.roles',
                 'humanResources.role'
             ])->findOrfail($wp_id);
 
@@ -594,19 +596,19 @@ class WorkPackageManagementController extends Controller
             $categories = WpCategory::orderBy('name', 'asc')->get();
 
             // Ambil semua users dengan roles untuk resource management
-            $users = User::with('role')->orderBy('name', 'asc')->get();
+            $users = User::with('roles')->orderBy('name', 'asc')->get();
             $roles = Role::orderBy('name', 'asc')->get();
 
             // Transform volume data untuk edit form
             $volumesData = $workPackage->workPackageVolumes->map(function ($volume) {
                 // Ambil resource data untuk volume ini
                 $resources = $volume->work->map(function ($work) {
-                    if ($work->user && $work->user->role) {
+                    if ($work->user && $work->user->roles->isNotEmpty()) {
                         return [
                             'work_id' => $work->work_id,
                             'user_id' => $work->user->user_id,
                             'user_name' => $work->user->name,
-                            'role_name' => $work->user->role->name,
+                            'role_name' => $work->user->getRoleNames()->get(1) ?? $work->user->getRoleNames()->first() ?? 'No Role',
                         ];
                     }
                     return null;
@@ -711,7 +713,7 @@ class WorkPackageManagementController extends Controller
 
                 // Resource data
                 'resources' => 'required|array|min:1',
-                'resources.*.role_id' => 'required|exists:role,role_id',
+                'resources.*.role_id' => 'required|exists:roles,id',
                 'resources.*.jtk' => 'required|integer|min:1',
                 'resources.*.jhk' => 'required|integer|min:1',
             ]);

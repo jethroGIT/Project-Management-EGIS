@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('jhk'); // Jumlah Hari Kerja/mandays
             $table->timestamps();
 
-            $table->foreign('role_id')->references('role_id')->on('role')->onDelete('cascade');
+            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
             $table->foreign('wp_id')->references('wp_id')->on('work_package')->onDelete('cascade');
             $table->unique(['wp_id', 'role_id']);
         });

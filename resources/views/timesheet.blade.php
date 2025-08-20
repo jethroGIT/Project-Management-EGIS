@@ -53,10 +53,14 @@
                                         @foreach($usersInSelectedMonth as $user)
                                             <th scope="col" style="width: 100px;">
                                                 {{$user->name}}
+                                                @php
+                                                    // Menggunakan first() untuk mendapatkan role pertama jika ada
+                                                    $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
+                                                @endphp
                                                 <i class="bi bi-info-circle text-primary"
                                                     data-bs-toggle="tooltip"
                                                     data-bs-placement="top"
-                                                    title="{{$user->role->name}}">
+                                                    title="{{$roleName}}">
                                                 </i>
                                             </th>     
                                         @endforeach                       

@@ -14,7 +14,7 @@ class TimesheetManagementController extends Controller
     public function index()
     {
         // Ambil semua timesheet
-        $timesheets = Timesheet::with(['user.role', 'volume.workPackage'])
+        $timesheets = Timesheet::with(['user.roles', 'volume.workPackage'])
             ->orderByRaw('volume_id ASC, execution_date ASC')
             ->get();
         
@@ -42,7 +42,10 @@ class TimesheetManagementController extends Controller
         $workPackages = WorkPackage::with('workPackageVolumes.users')->get();
 
         // Ambil semua user unique di timesheet untuk semua bulan
-        $users = $timesheets->pluck('user')->unique('user_id')->sortBy('role_id')->values();
+        $users = $timesheets->pluck('user')->unique('user_id')
+                            ->sortBy(function($user) {
+                                    return $user->roles->first()?->id ?? 0;
+                })->values();
 
         $personnelByVolume = [];
 
@@ -52,7 +55,7 @@ class TimesheetManagementController extends Controller
                     return [
                         'user_id' => $user->user_id,
                         'name' => $user->name,
-                        'role' => $user->role->name ?? '-',
+                        'role' => $user->getRoleNames()->first() ?? '-',
                     ];
                 })->values();
             }
@@ -120,7 +123,7 @@ class TimesheetManagementController extends Controller
         try {
             $activities = Timesheet::where('volume_id', $volumeId)
                 ->where('execution_date', $executionDate)
-                ->with('user.role', 'volume.workPackage')
+                ->with('user.roles', 'volume.workPackage')
                 ->get();
 
             if ($activities->isEmpty()) {

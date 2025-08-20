@@ -20,7 +20,7 @@ class ResourceManagementController extends Controller
     {
         try {
             // Fetch users dengan role
-            $users = User::with('role')->get();
+            $users = User::with('roles')->get();
     
             // Fetch all roles
             $roles = Role::orderBy('name')->get();
@@ -52,7 +52,7 @@ class ResourceManagementController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:user,email',
-            'role_id' => 'required|exists:role,role_id',
+            'role_id' => 'required|exists:roles,id',
             'password' => 'nullable|string|min:6|confirmed'
         ]);
 
@@ -64,9 +64,15 @@ class ResourceManagementController extends Controller
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'role_id' => $request->role_id,
+                // 'role_id' => $request->role_id,
                 'password' => Hash::make($generatedPassword)
             ]);
+
+            // Assign role ke user
+            $role = Role::find($request->role_id);
+            if ($role) {
+                $user->assignRole($role->name);
+            }
 
             DB::commit();
 
@@ -77,7 +83,7 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_name' => $user->role->name ?? 'Belum ada peran'
+                    'role_name' => $user->getRoleNames()->first() ?? 'Belum ada peran'
                 ],
                 'password_info' => $generatedPassword
             ]);
@@ -131,7 +137,7 @@ class ResourceManagementController extends Controller
     public function edit(string $id)
     {
         try {
-            $user = User::with('role')->findOrFail($id);
+            $user = User::with('roles')->findOrFail($id);
             $roles = Role::orderBy('name')->get();
 
             return response()->json([
@@ -140,8 +146,8 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_id' => $user->role_id,
-                    'role_name' => $user->role->name ?? 'No Role'
+                    'role_id' => $user->roles->first()?->id,
+                    'role_name' => $user->getRoleNames()->first() ?? 'No Role'
                 ],
                 'roles' => $roles
             ]);
@@ -172,7 +178,7 @@ class ResourceManagementController extends Controller
                 'max:255',
                 Rule::unique('user', 'email')->ignore($id, 'user_id')
             ],
-            'role_id' => 'required|exists:role,role_id',
+            'role_id' => 'required|exists:roles,id',
             'password' => 'nullable|string|min:6|confirmed'
         ]);
 
@@ -184,7 +190,7 @@ class ResourceManagementController extends Controller
             // Deteksi perubahan data
             $originalName = $user->name;
             $originalEmail = $user->email;
-            $originalRoleId = $user->role_id;
+            $originalRoleId = $user->roles->first()?->id;
             
             $newName = trim($request->name);
             $newEmail = trim($request->email);
@@ -209,7 +215,7 @@ class ResourceManagementController extends Controller
                     'current_data' => [
                         'name' => $originalName,
                         'email' => $originalEmail,
-                        'role_name' => $user->role->name ?? 'No Role',
+                        'role_name' => $user->getRoleNames()->first() ?? 'No Role',
                         'last_updated' => $user->updated_at ? $user->updated_at->format('d M Y H:i') : 'Tidak diketahui'
                     ]
                 ], 200);
@@ -218,7 +224,6 @@ class ResourceManagementController extends Controller
             // Update info dasar
             $user->name = $newName;
             $user->email = $newEmail;
-            $user->role_id = $newRoleId;
 
             // Update password jika diisi
             if ($passwordChanged) {
@@ -226,6 +231,14 @@ class ResourceManagementController extends Controller
             }
 
             $user->save();
+
+            // Update role jika berubah
+            if ($roleChanged) {
+                $role = Role::find($newRoleId);
+                if ($role) {
+                    $user->syncRoles([$role->name]);
+                }
+            }
 
             DB::commit();
 
@@ -236,7 +249,7 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_name' => $user->role->name ?? 'No Role',
+                    'role_name' => $user->getRoleNames()->first() ?? 'No Role',
                     'updated_at' => $user->updated_at->format('d M Y H:i')
                 ]
             ]);
@@ -252,7 +265,7 @@ class ResourceManagementController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui user: ' . $e.getMessage()
+                'message' => 'Gagal memperbarui user: ' . $e->getMessage()
             ], 500);
         }
     }
