@@ -38,6 +38,8 @@ Route::get('/', function () {
     Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
     Route::get('/wp-management/volume/{volume_id}/check-associations', [WorkPackageManagementController::class, 'checkVolumeAssociations'])->name('wp-management.check-volume-associations');
     Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');
+    Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
+    Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
 
     // manajemen kategori work package
     Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
@@ -127,6 +129,3 @@ Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('peren
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');
 Route::get('/task', [TaskController::class, 'index'])->name('task');
-
-Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
-Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
