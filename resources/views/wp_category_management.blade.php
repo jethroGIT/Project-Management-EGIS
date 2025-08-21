@@ -92,10 +92,16 @@
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.add')}}" id="addCategoryForm">
                     @csrf
-                    @method('POST')                   
-                    <div class="mb-6">
-                        <label class="form-label fw-bolder">Kategori WP</label>
-                        <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                    @method('POST')   
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bolder">No. Kategori</label>
+                            <input type="number" class="form-control" id="category_number" name="category_number" min="1"></input>
+                        </div>                
+                        <div class="col-md-9">
+                            <label class="form-label fw-bolder">Kategori WP</label>
+                            <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -186,10 +192,28 @@
     const submitAddCategoryForm = document.getElementById('submitAddCategoryForm');
     const addCategoryForm = document.getElementById('addCategoryForm');
 
+    function validateCategoryName(name) {
+        // Cek field utama
+        const formCategoryName = document.getElementById('name').value.trim();
+
+        if (!formCategoryName) {
+            Swal.fire({
+                title: "Data Belum Lengkap",
+                text: "Kategori Work Package wajib diisi.",
+                icon: "info",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-primary" }
+            });
+            return false;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         if (submitAddCategoryForm) {
             submitAddCategoryForm.addEventListener('click', function (e) {
                 e.preventDefault();
+                if( !validateCategoryName()) {return;}
 
                 const formData = new FormData(addCategoryForm);
                 const url = addCategoryForm.action;

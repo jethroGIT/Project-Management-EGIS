@@ -117,7 +117,7 @@
                                                             <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
                                                         </li>
                                                         <li>
-                                                            <a class="dropdown-item d-flex align-items-center text-danger" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
                                                             <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
                                                         </li>
                                                     </ul>

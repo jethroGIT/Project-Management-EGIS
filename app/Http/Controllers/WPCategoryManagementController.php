@@ -18,11 +18,13 @@ class WPCategoryManagementController extends Controller
         try {
             $request->validate([
                 'name' => 'required|string|max:255',
+                'category_number' => 'required|integer|min:1|unique:wp_category,category_number'
             ]);
 
-            $category = new WpCategory();
-            $category->name = $request->input('name');
-            $category->save();
+            $category = WpCategory::create([
+                'name' => $request->name,
+                'category_number' => (string) $request->category_number
+            ]);
             
             return response()->json([
                 'success' => true,

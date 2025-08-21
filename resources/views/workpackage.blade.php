@@ -375,7 +375,6 @@
             <div class="modal-content">
                 <div class="modal-header flex-column align-items-start pb-1">
                     <h3 class="modal-title" id="editSubTaskModalTitle">Edit Sub Task</h3>
-                    <p id="editSubTaskModalSubTitle" class="mb-0 mt-1 text-muted">Task</p>
                 </div>
                 <div class="modal-body">
                     <form id="editSubTaskForm" method="POST">
@@ -384,8 +383,14 @@
                         <input type="hidden" name="sub_task_id" id="editSubTaskId" value="">
                         <input type="hidden" name="task_id" id="editSubTaskParentTaskId" value="">
                         <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Task</label>
+                            <input type="text" id="editSubTaskTaskName" class="form-control bg-light" readonly>
+                            <div class="form-text text-muted">Task induk untuk sub task ini</div>
+                        </div>
+                        <div class="form-group mb-4">
                             <label class="form-label fw-bold">Nama Sub Task</label>
                             <textarea name="name" id="editSubTaskName" class="form-control" placeholder="Masukkan Nama Sub Task" rows="3" required maxlength="255"></textarea>
+                            <div class="form-text text-muted">Deskripsi detail dari sub task (maksimal 255 karakter)</div>
                         </div>
                     </form>
                 </div>
@@ -1234,7 +1239,7 @@ function editSubTask(subTaskId) {
                 // if (response.subtask.completeness !== undefined) {
                 //     $('#editSubTaskCompleteness').val(response.subtask.completeness);
                 // }
-                $('#editSubTaskModalSubTitle').text(response.subtask.task_name || 'Task');
+                $('#editSubTaskTaskName').val(response.subtask.task_name || 'Task');
 
                 // Set form action jika perlu
                 // $('#editSubTaskForm').attr('action', `/work-package/subtask/${subTaskId}`);

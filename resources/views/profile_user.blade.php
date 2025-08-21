@@ -7,7 +7,7 @@
             <!--begin::Toolbar-->
             <div class="toolbar mb-5 mb-lg-5" id="kt_toolbar">
                 <div class="page-title d-flex flex-column me-3">
-                    <h1 class="d-flex text-dark fw-bolder my-1 fs-3">Account Overview</h1>
+                    <h1 class="d-flex text-dark fw-bolder my-1 fs-3">User Profile</h1>
                 </div>
             </div>
             <!--end::Toolbar-->

@@ -125,7 +125,7 @@
                 <h3 class="modal-title">Kelola Finansial</h3>
             </div>
             <div class="modal-body pb-2">
-                <form method="POST" action="{{route('performance-finance.edit', $volume_id)}}" id="editFinanceForm">
+                <form method="POST" action="{{route('performance-finance.edit')}}" id="editFinanceForm">
                     @csrf
                     @method('PUT') 
                     <input type="hidden" name="category_id" id="form_category_id">

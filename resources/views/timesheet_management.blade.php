@@ -600,10 +600,48 @@
         currentPersonelGroups = 1;
     });
 
+    function validateAddActivityForm() {
+        // Cek field utama
+        const wp = document.getElementById('work_package_select').value.trim();
+        const vol = document.getElementById('volume_select').value.trim();
+        const date = document.getElementById('execution_date').value.trim();
+
+        if (!wp || !vol || !date) {
+            Swal.fire({
+                title: "Data Belum Lengkap",
+                text: "Work Package, Volume, Tanggal, Personel, dan aktivitas wajib diisi.",
+                icon: "info",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-primary" }
+            });
+            return false;
+        }
+
+        // Cek setiap grup personel
+        const personelSelects = document.querySelectorAll('.personel-select');
+        const activityTextareas = document.querySelectorAll('.activity-textarea');
+        for (let i = 0; i < personelSelects.length; i++) {
+            if (!personelSelects[i].value.trim() || !activityTextareas[i].value.trim()) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Personel dan aktivitas wajib diisi untuk setiap grup.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-primary" }
+                });
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Submit form untuk tambah aktivitas
     if (submitAddActivityForm) {
         submitAddActivityForm.addEventListener('click', function(e) {
             e.preventDefault();
+            if (!validateAddActivityForm()) return;
 
             const formData = new FormData(addActivityForm);
             const url = addActivityForm.action;
@@ -664,6 +702,12 @@
     
     let editCurrentPersonelGroups = 0;
     let editMaxPersonelGroups = {{ $users->count() }};
+
+    document.getElementById('editActivityModal').addEventListener('hidden.bs.modal', function () {
+        // Reset seluruh isi container personel activity di modal edit
+        editPersonelActivityContainer.innerHTML = '';
+        editCurrentPersonelGroups = 0;
+    });
 
     function populateEditModal(timesheetId, volumeId, executionDate) {        
         // Set hidden input value for timesheet id
@@ -823,6 +867,7 @@
                     }).then(() => {
                         // Tutup modal dan update UI
                         $('#editActivityModal').modal('hide');
+                        // location.reload();
                         $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
                         // console.log('Menghapus seluruh aktivitas personel');
                         document.getElementById(groupId).remove();
@@ -855,6 +900,7 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
+                    // location.reload();
                     document.getElementById(groupId).remove();
                     editCurrentPersonelGroups--;
                     // Tetap update numbering (meskipun 0, jaga konsistensi DOM)

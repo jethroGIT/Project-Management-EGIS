@@ -258,6 +258,13 @@ class WorkPackageController extends Controller
                 ->where('volume_id', $request->volume_id)
                 ->firstOrFail();
             
+            if($request->task_name === $task->name){
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tidak ada perubahan pada nama task',
+                ], 400);
+            };
+            
             $task->update([
                 'name' => trim($request->task_name)
             ]);
@@ -394,6 +401,16 @@ class WorkPackageController extends Controller
                 'status' => 'open'
             ]);
 
+            // Cek status semua subtask pada task ini
+            $allSubTasks = SubTask::where('task_id', $task->task_id)->get();
+            $allComplete = $allSubTasks->count() > 0 && $allSubTasks->every(function($st) {
+                return $st->completeness >= 100;
+            });
+
+            // Update status task
+            $task->status = $allComplete ? 'closed' : 'open';
+            $task->save();
+
             DB::commit();
 
             return response()->json([
@@ -424,6 +441,7 @@ class WorkPackageController extends Controller
     {
         try {
             $subTask = SubTask::findOrFail($subTaskId);
+            $task = Task::findOrFail($subTask->task_id);
 
             return response()->json([
                 'success' => true,
@@ -431,6 +449,7 @@ class WorkPackageController extends Controller
                     'sub_task_id' => $subTask->sub_task_id,
                     'task_id' => $subTask->task_id,
                     'name' => $subTask->name,
+                    'task_name' => $task->name ?? null,
                 ]
             ]);
 
@@ -465,6 +484,16 @@ class WorkPackageController extends Controller
             $subTask = SubTask::where('sub_task_id', $subTaskId)
                 ->where('task_id', $request->task_id)
                 ->firstOrFail();
+
+            // Ambil task terkait
+            $task = Task::findOrFail($request->task_id);
+
+            if($request->name === $subTask->name){
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tidak ada perubahan pada nama sub task',
+                ], 400);
+            };
             
             $subTask->update([
                 'name' => trim($request->name)
@@ -478,7 +507,8 @@ class WorkPackageController extends Controller
                 'subtask' => [
                     'sub_task_id' => $subTask->sub_task_id,
                     'name' => $subTask->name,
-                    'task_id' => $subTask->task_id
+                    'task_id' => $subTask->task_id,
+                    'task_name' => $task->name,
                 ]
             ]);
 
@@ -518,8 +548,20 @@ class WorkPackageController extends Controller
 
             $subTask = SubTask::findOrFail($subTaskId);
 
+            $task = $subTask->task;
+
             // Hapus sub task
             $subTask->delete();
+
+            // Cek status semua subtask pada task ini
+            $allSubTasks = SubTask::where('task_id', $task->task_id)->get();
+            $allComplete = $allSubTasks->count() > 0 && $allSubTasks->every(function($st) {
+                return $st->completeness >= 100;
+            });
+
+            // Update status task
+            $task->status = $allComplete ? 'closed' : 'open';
+            $task->save();
 
             DB::commit();
 

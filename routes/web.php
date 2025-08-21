@@ -78,7 +78,7 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::class, 'destroySubTask'])->name('performance-task.sub-task.destroy');
 
     // performance finance
-    Route::put('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
+    Route::put('/performance-finance', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
 
     // work package volume page
     Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
