@@ -42,29 +42,37 @@ class TimesheetManagementController extends Controller
         $workPackages = WorkPackage::with('workPackageVolumes.users')->get();
 
         // Ambil semua user unique di timesheet untuk semua bulan
-        $users = $timesheets->pluck('user')->unique('user_id')
+        $users = $timesheets->pluck('user')
+                            ->filter() // pastikan user tidak null
+                            ->unique('user_id')
                             ->sortBy(function($user) {
-                                    return $user->roles->first()?->id ?? 0;
-                })->values();
+                                return $user->roles->get(1)?->id ?? $user->roles->first()?->id ?? 0;
+                            })->values();
 
         $personnelByVolume = [];
 
         foreach ($workPackages as $wp) {
-            foreach ($wp->workPackageVolumes as $volume) {
-                $personnelByVolume[$volume->volume_id] = $volume->users->map(function ($user) {
+            foreach ($wp->workPackageVolumes as $vol) {
+                $personnelByVolume[$vol->volume_id] = $vol->users->map(function($user) {
                     return [
                         'user_id' => $user->user_id,
                         'name' => $user->name,
-                        'role' => $user->getRoleNames()->first() ?? '-',
+                        'roles' => $user->roles->map(function($role) {
+                            return [
+                                'id' => $role->id,
+                                'name' => $role->name
+                            ];
+                        })->values()
                     ];
-                })->values();
+                });
             }
         }
 
         return view('timesheet_management', compact('activitiesForTable', 'existingAssignments', 'groupedActivities', 'users', 'workPackages', 'personnelByVolume'));
     }
 
-    public function add(Request $request){
+    public function add(Request $request)
+    {
         try {
             $request->validate([
                 'volume_id' => 'required|exists:work_package_volume,volume_id',
@@ -145,7 +153,8 @@ class TimesheetManagementController extends Controller
         }
     }
 
-    public function edit(Request $request){
+    public function edit(Request $request)
+    {
         // edit and or delete activity
         try {
             $request->validate([
@@ -221,7 +230,8 @@ class TimesheetManagementController extends Controller
         }
     }
 
-    public function delete($id){
+    public function delete($id)
+    {
         try {
             $activity = Timesheet::findOrFail($id);
 

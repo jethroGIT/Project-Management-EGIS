@@ -11,8 +11,19 @@ class ProfileUserController extends Controller
      */
     public function index()
     {
-        //
-        return view('profile_user');
+        //ambil resource cost dan hitung user terlibat di berapa work package
+        $user = auth()->user();
+        $resourceCost = $user->roles->get(1)->resource_cost ?? 0;
+        $workPackagesCount = $user->work()
+            ->with('volume')
+            ->get()
+            ->map(function($work) {
+                return $work->volume->volume_id ?? null;
+            })
+            ->filter()
+            ->unique()
+            ->count();
+        return view('profile_user', compact('resourceCost', 'workPackagesCount'));
     }
 
     /**

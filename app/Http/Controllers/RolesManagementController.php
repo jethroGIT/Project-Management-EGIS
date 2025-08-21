@@ -14,6 +14,7 @@ use Exception;
 
 class RolesManagementController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */

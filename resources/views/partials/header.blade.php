@@ -287,11 +287,14 @@
                         <div
                             class="d-none d-md-flex flex-column align-items-end justify-content-center me-2 me-md-4"
                         >
-                            <span class="text-muted fs-8 fw-bold lh-1 mb-1"
-                                >Max</span
+                            <span class="text-white fs-8 fw-bolder lh-1 mb-1"
+                                >{{auth()->user()->name ?? '-'}}</span
                             >
-                            <span class="text-white fs-8 fw-bolder lh-1"
-                                >Admin</span
+                            <span class="text-muted fs-8 fw-bold lh-1">
+                                @php
+                                    $roles = auth()->user()->getRoleNames();
+                                @endphp
+                                {{ $roles->get(1) ? '' : ($roles->first() ?? '-') }}</span
                             >
                         </div>
                         <!--end::Name-->
@@ -307,8 +310,9 @@
                     <!--end::User info-->
                     <!--begin::Menu-->
                     <div
-                        class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px"
+                        class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6"
                         data-kt-menu="true"
+                        style="width:auto; min-width:275px;"
                     >
                         <!--begin::Menu item-->
                         <div class="menu-item px-3">
@@ -328,12 +332,12 @@
                                     <div
                                         class="fw-bolder d-flex align-items-center fs-5"
                                     >
-                                        Max Smith
+                                        {{auth()->user()->name ?? '-'}}
                                     </div>
                                     <a
                                         class="fw-bold text-muted text-hover-primary fs-7"
                                         href="#"
-                                        >max@gmail.com</a
+                                        >{{auth()->user()->email ?? '-'}}</a
                                     >
                                 </div>
                                 <!--end::Username-->
@@ -382,11 +386,16 @@
                         <!--end::Menu item-->
                         <!--begin::Menu item-->
                         <div class="menu-item px-5">
-                            <a
-                                class="menu-link px-5"
-                                href={{ route('login') }}
-                                >Sign Out</a
-                            >
+                            <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="menu-link px-5 bg-transparent border-0"
+                                    style="background:none;border:none;padding:0;font-weight:500;"
+                                >
+                                    Sign Out
+                                </button>
+                            </form>
                         </div>
                         <!--end::Menu item-->
                     </div>
