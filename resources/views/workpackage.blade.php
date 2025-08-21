@@ -7,7 +7,7 @@
     <!-- Title Section -->
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         @if(isset($workPackage) && isset($volume))
-            <div>
+            <div class="col-8">
                 <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
                 <p>Periode 
                     @if(isset($volume->start_date) && ($volume->end_date))
@@ -18,14 +18,20 @@
                 </p>
             </div>
         @endif
-        <div class="">
-            <a href="{{ $backUrl ?? route('wp-management') }}" class="btn btn-light me-2">
-                <i class="bi bi-arrow-left"></i> {{ $backText ?? 'Kembali' }}
-            </a>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                <i class="bi bi-pencil-square"></i> Edit Data
-            </button>
-        </div>
+
+        @if(auth()->user() && auth()->user()->hasRole('admin'))
+            <div class="d-flex flex-column justify-content-end">
+                @if(isset($showBackButton) && $showBackButton && isset($backUrl) && isset($backText))
+                    <a href="{{ $backUrl ?? route('wp-management') }}" class="btn btn-light me-2">
+                        <i class="bi bi-arrow-left"></i> {{ $backText }}
+                    </a>
+                @endif
+
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                    <i class="bi bi-pencil-square"></i> Edit Volume
+                </button>
+            </div>
+        @endif
     </div>
 
     <!-- Card Kuantitas -->
@@ -115,13 +121,17 @@
         </div>
         <div class="card-body py-0">
             <div class="d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                        class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
-                        <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
-                    </svg>
-                    Tambah Task
-                </button>
+                @if(auth()->user() && auth()->user()->hasRole('admin'))
+                    <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
+                            class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
+                            <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                        Tambah Task
+                    </button>
+                @else
+                    <div></div>
+                @endif
                 <form class="d-flex justify-content-end" onsubmit="return false;">
                     <label class="me-5 mt-3" for="searchTaskInput">Cari: </label>
                     <input 
@@ -144,7 +154,9 @@
                             <th class="align-middle border-bottom" style="width: 20px;">No</th>
                             <th class="align-middle border-bottom" style="width: 300px;">Task</th>
                             <th class="align-middle border-bottom" style="width: 300px;">Sub Task</th>
-                            <th class="align-middle border-bottom">Action</th>
+                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                <th class="align-middle border-bottom">Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.92rem;">
@@ -159,49 +171,51 @@
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $task->name }}</td>
                                     <td></td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                    <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                </svg>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
-                                                        <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                        Edit
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
-                                                        <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                        Hapus
-                                                    </a>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                {{-- <li>
-                                                    <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
-                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                        Masukkan di Atas
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
-                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                        Masukkan di Bawah
-                                                    </a>
-                                                </li> --}}
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                        <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                        <span>Tambah Sub Task</span>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
+                                    @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
+                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
+                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                            Hapus
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    {{-- <li>
+                                                        <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Atas
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Bawah
+                                                        </a>
+                                                    </li> --}}
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            <span>Tambah Sub Task</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    @endif
                                 </tr>
                                 @if($task->subTask->count() > 0)
                                     @foreach($task->subTask as $subTask)
@@ -210,23 +224,25 @@
                                             <th scope="row"></th>
                                             <td></td>
                                             <td>{{ $subTask->name }}</td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
+                                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                                <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            @endif
                                         </tr>                                              
                                     @endforeach
                                 @else
@@ -266,6 +282,7 @@
             </div>
         </div>
     </div>
+
     <!-- Modal for Adding Task -->
     <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
         <div class="modal-dialog modal-dialog-centered">
@@ -396,11 +413,7 @@
         </div>
         <div class="card-body py-0">
             <div class="d-flex justify-content-end mb-4">
-                <!-- <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                    <i class="bi bi-pencil-square"></i>
-                    Edit Data
-                </button> -->
-
+                <!-- Modal for Editing Volume Data -->
                 <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -635,10 +648,12 @@
                                                 Resource belum ditugaskan untuk work package ini.<br>
                                                 Silakan assign resource terlebih dahulu.
                                             </p>
-                                            <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                                                <i class="bi bi-plus-circle me-2"></i>
-                                                Assign Resource
-                                            </button>
+                                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                                <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                                                    <i class="bi bi-plus-circle me-2"></i>
+                                                    Assign Resource
+                                                </button>
+                                            @endif
                                         </div>
                                     </div>
                                 @endif
@@ -657,21 +672,16 @@
 let editResourceCounter = 1;
 
 // Mendapatkan semua user yang tersedia untuk dropdown
-const availableUsers = @json(\App\Models\User::with('roles')->get()->map(function($user) {
-    return [
-        'user_id' => $user->user_id,
-        'name' => $user->name,
-        'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role'
-    ];
-}));
+const availableUsers = @json($availableUsersDropdown ?? []);
 console.log('availableUsers:', availableUsers);
 
 // Mendapatkan user saat ini
-const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
-const currentlyAssignedUsersAllData = @json($assignedUsers);
+const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin'))->pluck('user_id') : []);
+const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin')) : []);
 console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('roles')->get()));
+
 
 
 $(document).ready(function () {
@@ -768,10 +778,17 @@ function initializeEditModal() {
     // Debug log
     console.log('availableUsers:', availableUsers);
     console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+
+    // Filter untuk exclude admin
+    const filteredAssignedUsers = currentlyAssignedUsers.filter(function(userId) {
+        return availableUsers.some(function(user) {
+            return user.user_id == userId;
+        });
+    });
     
     // Menambahkan assigned user saat ini
-    if (currentlyAssignedUsers && currentlyAssignedUsers.length > 0) {
-        currentlyAssignedUsers.forEach(function(userId) {
+    if (filteredAssignedUsers && filteredAssignedUsers.length > 0) {
+        filteredAssignedUsers.forEach(function(userId) {
             addEditResource(userId);
         });
     } else {

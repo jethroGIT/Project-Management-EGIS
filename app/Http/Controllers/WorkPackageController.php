@@ -81,6 +81,20 @@ class WorkPackageController extends Controller
             ];
         });
 
+        // Filter users untuk dropdown (kecuali admin)
+        $availableUsersDropdown = User::with('roles')
+            ->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })
+            ->get()
+            ->map(function($user) {
+                return [
+                    'user_id' => $user->user_id,
+                    'name' => $user->name,
+                    'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first ?? 'No Role'
+                ];
+            });
+
         // Hitung total completion dari task performance
         $tasks = $volume->task;
         $totalCompletion = 0;
@@ -134,15 +148,18 @@ class WorkPackageController extends Controller
         $wpId = $request->get('wp_id');
 
         // Menentukan URL kembali berdasarkan referrer
-        $backUrl = route('wp-management');
-        $backText = 'Kembali ke Manajemen';
+        $backUrl = null;
+        $backText = null;
+        $showBackButton = false;
 
         if ($referrer === 'detail' && $wpId) {
             $backUrl = route('wp-management.detail', ['wp_id' => $wpId]);
             $backText = 'Kembali ke Detail WP';
+            $showBackButton = true;
         } else if ($referrer === 'edit' && $wpId) {
             $backUrl = route('wp-management.edit', ['wp_id' => $wpId]);
             $backText = 'Kembali ke Edit WP';
+            $showBackButton = true;
         }
         
         return view('workpackage', compact(
@@ -156,7 +173,9 @@ class WorkPackageController extends Controller
             'tasks',
             'tasksWithUtilization',
             'backUrl',
-            'backText'
+            'backText',
+            'showBackButton',
+            'availableUsersDropdown'
         ));
     }
 
