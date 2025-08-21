@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\WorkPackage;
 use Illuminate\Http\Request;
 
 class ProfileUserController extends Controller
@@ -14,7 +16,7 @@ class ProfileUserController extends Controller
         //ambil resource cost dan hitung user terlibat di berapa work package
         $user = auth()->user();
         $resourceCost = $user->roles->get(1)->resource_cost ?? 0;
-        $workPackagesCount = $user->work()
+        $workPackagesUserCount = $user->work()
             ->with('volume')
             ->get()
             ->map(function($work) {
@@ -23,7 +25,8 @@ class ProfileUserController extends Controller
             ->filter()
             ->unique()
             ->count();
-        return view('profile_user', compact('resourceCost', 'workPackagesCount'));
+        $workPackagesCount = WorkPackage::count();
+        return view('profile_user', compact('resourceCost', 'workPackagesUserCount', 'workPackagesCount'));
     }
 
     /**
@@ -53,9 +56,45 @@ class ProfileUserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $userId)
     {
-        //
+        try {
+            // validation
+            // save
+            $user = User::where('user_id', $userId)
+                                ->firstOrFail();
+            if($user->name === $request->name && $user->email === $request->email && !$request->filled('password')){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada perubahan yang dilakukan.'
+                ], 400);
+            };
+
+            $data = [];
+            if ($request->filled('name')) {
+                $data['name'] = $request->name;
+            }
+            if ($request->filled('email')) {
+                $data['email'] = $request->email;
+            }
+            if ($request->filled('password')) {
+                $data['password'] = bcrypt($request->password);
+            }
+            if (!empty($data)) {
+                $user->update($data);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diperbarui.',
+                'data' => $user // Kirim data yang diperbarui jika perlu untuk update UI
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

@@ -18,31 +18,31 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Oki Jamhur',
                 'email' => 'oki123@gmail.com',
-                'password' => bcrypt('oki123!'),
+                'password' => bcrypt('okij123!'),
                 'role' => 'Project Manager',
             ],
             [
                 'name' => 'Restia',
                 'email' => 'restia123@gmail.com',
-                'password' => bcrypt('res123!'),
+                'password' => bcrypt('rest123!'),
                 'role' => 'Senior Consultant',
             ],
             [
                 'name' => 'Yudis',
                 'email' => 'yudis123@gmail.com',
-                'password' => bcrypt('yud123!'),
+                'password' => bcrypt('yudi123!'),
                 'role' => 'Associate Consultant',
             ],
             [
                 'name' => 'Annisa Y',
                 'email' => 'annisay123@gmail.com',
-                'password' => bcrypt('any123!'),
+                'password' => bcrypt('anny123!'),
                 'role' => 'Junior Consultant',
             ],
             [
                 'name' => 'Vanika',
                 'email' => 'vanika123@gmail.com',
-                'password' => bcrypt('van123!'),
+                'password' => bcrypt('vani123!'),
                 'role' => 'Technical Writer',
             ],
         ];
@@ -56,8 +56,8 @@ class UserSeeder extends Seeder
 
         $admin= User::create([
             'name' => 'Aiman',
-            'email' => 'aiman@gmail.com',
-            'password' => bcrypt('aim123!'),
+            'email' => 'aiman123@gmail.com',
+            'password' => bcrypt('aima123!'),
         ]);
         $admin->assignRole('admin');
     }

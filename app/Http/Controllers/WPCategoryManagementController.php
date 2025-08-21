@@ -44,6 +44,12 @@ class WPCategoryManagementController extends Controller
             // save
             $category = WpCategory::where('category_id', $request->category_id)
                                 ->firstOrFail();
+            if($category->name === $request->name){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada perubahan yang dilakukan.'
+                ], 400);
+            }
             $category->name = $request->name;
             $category->save();
 
