@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="my-5 mt-2">Timesheet Activity Summary</h1>
+    <h1 class="my-5 mt-2">Timesheet Summary</h1>
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
