@@ -292,12 +292,14 @@
                                     <select name="resources[{{ $index }}][role_id]" class="form-select" required>
                                         <option value="">Pilih Role</option>
                                         @foreach($roles as $role)
-                                            <option 
-                                                value="{{ $role->role_id }}" 
-                                                {{ $hr['role_id'] == $role->role_id ? 'selected' : '' }}
-                                            >
-                                                {{ $role->name }}
-                                            </option>
+                                            @if($role->name !== 'admin' && $role->name !== 'karyawan')
+                                                <option 
+                                                    value="{{ $role->id }}" 
+                                                    {{ $hr['role_id'] == $role->id ? 'selected' : '' }}
+                                                >
+                                                    {{ $role->name }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>
@@ -699,20 +701,22 @@ function addHumanResource() {
                     <select name="resources[${humanResourceIndex}][role_id]" class="form-select" required>
                         <option value="">Pilih Role</option>
                         @foreach($roles as $role)
-                            <option value="{{ $role->role_id }}">{{ $role->name }}</option>
+                            @if ($role->name !== 'admin' && $role->name !== 'karyawan')
+                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jtk]" 
-                           class="form-control" min="1" placeholder="1" required>
+                           class="form-control" min="1" placeholder="Contoh: 1" required>
                     <div class="form-text">Jumlah orang dengan role ini</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jhk]" 
-                           class="form-control" min="1" placeholder="20" required>
+                           class="form-control" min="1" placeholder="Contoh: 20" required>
                     <div class="form-text">Total hari kerja untuk role ini</div>
                 </div>
             </div>
@@ -952,8 +956,6 @@ function showVolumeAssociationWarning(associations, volumeCard, volumeNumber, vo
     }
 
     const associationsText = associationsList.join('\n');
-
-    // warningText += '\nSilakan hapus atau pindahkan data terkait terlebih dahulu di halaman detail volume.';
 
     Swal.fire({
         title: 'Konfirmasi Hapus Volume',

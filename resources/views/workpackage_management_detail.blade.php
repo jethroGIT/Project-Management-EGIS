@@ -152,8 +152,9 @@
                                                     class="btn btn-light-primary btn-sm w-100 fs-6" 
                                                     onclick="manageVolume({{ $volume['volume_id'] }})" 
                                                 >
-                                                    <i class="bi bi-pencil-square me-1"></i>
-                                                    Edit Volume
+                                                    <!-- <i class="bi bi-pencil-square me-1"></i> -->
+                                                    <i class="bi bi-eye me-1"></i>
+                                                    Lihat Detail
                                                 </button>
                                             </div>
                                         </div>
@@ -200,8 +201,9 @@
                                                     class="btn btn-light-primary btn-sm w-100 fs-6" 
                                                     onclick="manageVolume({{ $volume['volume_id'] }})" 
                                                 >
-                                                    <i class="bi bi-gear me-1"></i>
-                                                    Kelola Volume
+                                                    <!-- <i class="bi bi-gear me-1"></i> -->
+                                                    <i class="bi bi-eye me-1"></i>
+                                                    Lihat Detail
                                                 </button>
                                             </div>
                                         </div>

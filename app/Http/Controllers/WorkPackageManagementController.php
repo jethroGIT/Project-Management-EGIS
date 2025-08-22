@@ -435,8 +435,27 @@ class WorkPackageManagementController extends Controller
                     throw new Exception("User dengan ID {$resourceData['user_id']} tidak ditemukan atau belum memiliki role");
                 }
                 
-                $roleId = $user->roles->first()?->id ?? null;
-                $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role';
+                // $roleId = $user->roles->first()?->id ?? null;
+                // $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role';
+                $userRoles = $user->getRoleNames();
+                $roleId = null;
+                $roleName = 'No Role';
+
+                // Get role using filter
+                $karyawanRoles = $userRoles->filter(function($roleName) {
+                    return $roleName !== 'karyawan' && $roleName !== 'admin';
+                });
+
+                if ($karyawanRoles->isNotEmpty()) {
+                    $roleName = $karyawanRoles->first();
+                    $roleId = $user->roles->where('name', $roleName)->first()?->id;
+                } else if ($userRoles->contains('karyawan')) {
+                    $roleName = 'karyawan';
+                    $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                } else {
+                    $roleName = $userRoles->first() ?? 'No Role';
+                    $roleId = $user->roles->first()?->id;
+                }
 
                 // Group by role_id and count JTK
                 if (!isset($resourcesByRole[$roleId])) {
@@ -559,7 +578,39 @@ class WorkPackageManagementController extends Controller
     public function getUsersWithRoles()
     {
         try {
-            $users = User::with('roles')->orderBy('name', 'asc')->get();
+            $users = User::with('roles')
+                    ->whereDoesntHave('roles', function($query) {
+                        $query->where('name', 'admin');
+                    })
+                    ->orderBy('name', 'asc')
+                    ->get()
+                    ->map(function($user) {
+                        $userRoles = $user->getRoleNames();
+                        $displayRole = 'No Role';
+
+                        if ($userRoles->contains('admin')) {
+                            $displayRole = 'admin';
+                        } else {
+                            $karyawanRoles = $userRoles->filter(function($roleName) {
+                                return $roleName !== 'karyawan';
+                            });
+
+                            if ($karyawanRoles->isNotEmpty()) {
+                                $displayRole = $karyawanRoles->first();
+                            }
+                        }
+
+                        return [
+                            'user_id' => $user->user_id,
+                            'name' => $user->name,
+                            'role' => [
+                                'name' => $displayRole
+                            ]
+                            ];
+                    })
+                    ->filter()
+                    ->values();
+            
             $roles = Role::orderBy('name', 'asc')->get();
 
             return response()->json([
@@ -590,7 +641,7 @@ class WorkPackageManagementController extends Controller
                 },
                 'workPackageVolumes.work.user.roles',
                 'humanResources.role'
-            ])->findOrfail($wp_id);
+            ])->findOrFail($wp_id);
 
             // Ambil semua kategori untuk dropdown
             $categories = WpCategory::orderBy('name', 'asc')->get();
@@ -604,11 +655,26 @@ class WorkPackageManagementController extends Controller
                 // Ambil resource data untuk volume ini
                 $resources = $volume->work->map(function ($work) {
                     if ($work->user && $work->user->roles->isNotEmpty()) {
+                        $userRoles = $work->user->getRoleNames();
+                        $roleName = 'No Role';
+
+                        $karyawanRoles = $userRoles->filter(function($roleName) {
+                            return $roleName !== 'karyawan' && $roleName !== 'admin';
+                        });
+
+                        if ($karyawanRoles->isNotEmpty()) {
+                            $roleName = $karyawanRoles->first();
+                        } else if ($userRoles->contains('karyawan')) {
+                            $roleName = 'karyawan';
+                        } else {
+                            $roleName = $userRoles->first() ?? 'No Role';
+                        }
+
                         return [
                             'work_id' => $work->work_id,
                             'user_id' => $work->user->user_id,
                             'user_name' => $work->user->name,
-                            'role_name' => $work->user->getRoleNames()->get(1) ?? $work->user->getRoleNames()->first() ?? 'No Role',
+                            'role_name' => $roleName
                         ];
                     }
                     return null;
@@ -634,15 +700,7 @@ class WorkPackageManagementController extends Controller
             });
 
             // Transform human resources data untuk edit form
-            $humanResourcesData = $workPackage->humanResources->map(function ($hr) {
-                return [
-                    'hr_id' => $hr->hresource_id,
-                    'role_id' => $hr->role_id,
-                    'role_name' => $hr->role->name ?? 'Unknown Role',
-                    'jtk' => $hr->jtk,
-                    'jhk' => $hr->jhk
-                ];
-            });
+            $humanResourcesData = $this->calculateHumanResourcesFromWork($workPackage);
 
             Log::info('Work Package edit form loaded', [
                 'wp_id' => $wp_id,
@@ -674,6 +732,45 @@ class WorkPackageManagementController extends Controller
             return redirect()->route('wp-management')
                 ->with('error', 'Terjadi kesalahan saat memuat form edit data work package.');
         }
+    }
+
+    /**
+     * Calculate human resources based on actual work assignments
+     */
+    private function calculateHumanResourcesFromWork($workPackage)
+    {
+        // Collect all users from all volumes with their roles
+        $humanResourcesData = $workPackage->humanResources->map(function ($hr) {
+            $roleName = $hr->role->name ?? 'No Role';
+
+            // Filter untuk mendapatkan role
+            if ($roleName === 'karyawan') {
+                $sampleUser = User::whereHas('roles', function($query) use ($hr) {
+                    $query->where('id', $hr->role_id);
+                })->with('roles')->first();
+
+                if ($sampleUser) {
+                    $userRoles = $sampleUser->getRoleNames();
+                    $karyawanRoles = $userRoles->filter(function($roleName) {
+                        return $roleName !== 'karyawan' && $roleName !== 'admin';
+                    });
+
+                    if ($karyawanRoles->isNotEmpty()) {
+                        $roleName = $karyawanRoles->first();
+                    }
+                }
+            }
+
+            return [
+                'hr_id' => $hr->hresource_id,
+                'role_id' => $hr->role_id,
+                'role_name' => $roleName,
+                'jtk' => $hr->jtk,
+                'jhk' => $hr->jhk,
+            ];
+        });
+
+        return $humanResourcesData;
     }
 
     /**
