@@ -671,6 +671,10 @@
 <script>
 let editResourceCounter = 1;
 
+// Mendapatkan data human resource berdasarkan role
+const humanResourcesByRole = @json($humanResourcesByRole ?? []);
+console.log('Human Resources by Role:', humanResourcesByRole);
+
 // Mendapatkan semua user yang tersedia untuk dropdown
 const availableUsers = @json($availableUsersDropdown ?? []);
 console.log('availableUsers:', availableUsers);
@@ -681,7 +685,6 @@ const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->fil
 console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('roles')->get()));
-
 
 
 $(document).ready(function () {
@@ -778,6 +781,7 @@ function initializeEditModal() {
     // Debug log
     console.log('availableUsers:', availableUsers);
     console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+    console.log('humanResourcesByRole:', humanResourcesByRole);
 
     // Filter untuk exclude admin
     const filteredAssignedUsers = currentlyAssignedUsers.filter(function(userId) {
@@ -1031,11 +1035,14 @@ function addEditResource(selectedUserId = null) {
     
     availableUsers.forEach(function(user) {
         const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
-        optionsHtml += `<option value="${user.user_id}" ${selected}>${user.name} (${user.role_name})</option>`;
+        optionsHtml += `<option value="${user.user_id}" data-role-id="${user.role_id}" data-default-jhk="${user.default_jhk}" ${selected}>${user.name} (${user.role_name})</option>`;
+
         if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
             const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
-            if (assigned) {
+            if (assigned && assigned.jhk) {
                 defaultJhk = assigned.jhk;
+            } else {
+                defaultJhk = user.default_jhk || 0;
             }
             console.log('selected:', selected, 'assigned', assigned);
         }
@@ -1045,12 +1052,12 @@ function addEditResource(selectedUserId = null) {
         <div class="input-group mb-2" id="edit-resource-${editResourceCounter}">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
-                    <select class="form-select" name="resources[]" onchange="handleResourceChange(this)">
+                    <select class="form-select resource-select" name="resources[]" onchange="handleResourceChange(this)" data-resource-index="${editResourceCounter}">
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="number" class="form-control" name="jhk[]" placeholder="0" min="0" value="${defaultJhk}"/>
+                    <input type="number" class="form-control jhk-input" name="jhk[]" placeholder="0" min="0" value="${defaultJhk}" data-resource-index="${editResourceCounter}"/>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
@@ -1081,6 +1088,9 @@ function removeEditResource(index) {
  */
 function handleResourceChange(selectElement) {
     const selectedValue = selectElement.value;
+    const resourceIndex = selectElement.getAttribute('data-resource-index');
+    const jhkInput = document.querySelector(`input[data-resource-index="${resourceIndex}"]`);
+
     const allSelects = document.querySelectorAll('#editResourceContainer select');
     
     // Check for duplicates
@@ -1102,6 +1112,49 @@ function handleResourceChange(selectElement) {
             }
         });
         selectElement.value = ''; // Reset selection
+        jhkInput.value = 0; // Reset JHK
+        return;
+    }
+
+    // Auto populate JHK based on user roles
+    if (selectedValue !== '') {
+        const selectedOption = selectElement.querySelector(`option[value="${selectedValue}"]`);
+        const roleId = selectedOption.getAttribute('data-role-id');
+        const defaultJhk = selectedOption.getAttribute('data-default-jhk');
+        
+        // Check if this role already exists in Human Resources
+        let jhkValue = 0;
+        if (roleId && humanResourcesByRole[roleId]) {
+            jhkValue = humanResourcesByRole[roleId].jhk;
+            console.log(`Found existing role ${roleId} with JHK: ${jhkValue}`);
+        } else if (defaultJhk && defaultJhk > 0) {
+            jhkValue = parseInt(defaultJhk);
+            console.log(`Using default JHK: ${jhkValue}`);
+        }
+
+        // ✅ Set JHK value in input
+        if (jhkInput) {
+            jhkInput.value = jhkValue;
+            
+            // ✅ Show visual feedback if auto-populated
+            if (jhkValue > 0) {
+                jhkInput.style.backgroundColor = '#e8f5e8';
+                jhkInput.setAttribute('title', `Auto-populated from existing role data (${jhkValue} days)`);
+                
+                // Remove highlight after 3 seconds
+                setTimeout(() => {
+                    jhkInput.style.backgroundColor = '';
+                    jhkInput.removeAttribute('title');
+                }, 3000);
+            }
+        }
+    } else {
+        // Reset JHK jika tidak ada user yang dipilih
+        if (jhkInput) {
+            jhkInput.value = 0;
+            jhkInput.style.backgroundColor = '';
+            jhkInput.removeAttribute('title');
+        }
     }
 }
 

@@ -76,6 +76,7 @@ class WorkPackageController extends Controller
                 'user_id' => $user->user_id,
                 'name' => $user->name,
                 'role_name' => $user->roles->get(1)?->name ?? $user->roles->first()?->name ?? 'No Role',
+                'role_id' => $roleId,
                 'jhk' => $humanResource ? $humanResource->jhk : null,
                 'timesheets_count' => $user->timesheets_count,
             ];
@@ -87,13 +88,52 @@ class WorkPackageController extends Controller
                 $query->where('name', 'admin');
             })
             ->get()
-            ->map(function($user) {
+            ->map(function($user) use ($workPackage) {
+                $userRoles = $user->getRoleNames();
+                $roleId = null;
+                $roleName = 'No Role';
+
+                $karyawanRoles = $userRoles->filter(function($roleName) {
+                    return $roleName !== 'karyawan' && $roleName !== 'admin';
+                });
+
+                if ($karyawanRoles->isNotEmpty()) {
+                    $roleName = $karyawanRoles->first();
+                    $roleId = $user->roles->where('name', $roleName)->first()?->id;
+                } else if ($userRoles->contains('karyawan')) {
+                    $roleName = 'karyawan';
+                    $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                } else {
+                    $roleName = $userRoles->first() ?? 'No Role';
+                    $roleId = $user->roles->first()?->id;
+                }
+
+                // Ambil JHK dari Human Resource untuk role ini
+                $humanResource = null;
+                if ($roleId) {
+                    $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+                        ->where('role_id', $roleId)
+                        ->first();
+                }
+
                 return [
                     'user_id' => $user->user_id,
                     'name' => $user->name,
-                    'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first ?? 'No Role'
+                    'role_name' => $roleName,
+                    'role_id' => $roleId,
+                    'default_jhk' => $humanResource ? $humanResource->jhk : 0
                 ];
             });
+
+        // Data Humman Resources berdasarkan role
+        $humanResourcesByRole = $humanResources->keyBy('role_id')->map(function($hr) {
+            return [
+                'role_id' => $hr->role_id,
+                'role_name' => $hr->role->name ?? 'Unknown Role',
+                'jtk' => $hr->jtk,
+                'jhk' => $hr->jhk
+            ];
+        });
 
         // Hitung total completion dari task performance
         $tasks = $volume->task;
@@ -175,7 +215,8 @@ class WorkPackageController extends Controller
             'backUrl',
             'backText',
             'showBackButton',
-            'availableUsersDropdown'
+            'availableUsersDropdown',
+            'humanResourcesByRole'
         ));
     }
 
