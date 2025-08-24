@@ -36,6 +36,7 @@
                     <thead>
                         <tr class="fw-bolder fs-4 text-gray-1000 px-7">
                             <th class="align-middle border-bottom">No</th>
+                            <th class="align-middle border-bottom" style="min-width: 110px">No. Kategori</th>
                             <th class="align-middle border-bottom">Kategori</th>
                             <th class="align-middle border-bottom" style="width: 140px">Action</th>
                         </tr>
@@ -43,7 +44,8 @@
                      <tbody style="font-size: 0.92rem;">
                         @forelse($wpCategories as $wpCategory)
                         <tr>
-                            <th scope="row" class="align-middle">{{$loop->index+1}}</th>
+                            <th scope="row" class="align-middle text-center">{{$loop->index+1}}</th>
+                            <td class="align-middle text-center">{{$wpCategory->category_number}}</td>
                             <td class="align-middle">{{$wpCategory->name}}</td>
                             <td>
                                 <div class="d-flex gap-2">
@@ -51,6 +53,7 @@
                                     <button type="button" class="btn btn-warning btn-sm btn-edit-category" title="Edit Kategori WP" 
                                             data-bs-toggle="modal" data-bs-target="#kt_modal_edit_category"
                                             data-category-id="{{$wpCategory->category_id}}" 
+                                            data-category-number="{{$wpCategory->category_number}}"
                                             data-category-name="{{$wpCategory->name}}"
                                     >
                                         <i class="bi bi-pencil-square fs-6"></i>
@@ -125,9 +128,15 @@
                     @csrf
                     @method('PUT') 
                     <input type="hidden" name="category_id" id="form_category_id">
-                    <div class="mb-6">
-                        <label class="form-label fw-bolder">Kategori WP</label>
-                        <input class="form-control" id="categoryName" name="name" placeholder="Kategori"></input>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bolder">No. Kategori</label>
+                            <input type="number" class="form-control" id="categoryNumber" name="category_number" min="1"></input>
+                        </div>                
+                        <div class="col-md-9">
+                            <label class="form-label fw-bolder">Kategori WP</label>
+                            <input class="form-control" id="categoryName" name="name" placeholder="Kategori"></input>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -192,14 +201,15 @@
     const submitAddCategoryForm = document.getElementById('submitAddCategoryForm');
     const addCategoryForm = document.getElementById('addCategoryForm');
 
-    function validateCategoryName(name) {
+    function validateCategoryName() {
         // Cek field utama
         const formCategoryName = document.getElementById('name').value.trim();
+        const formCategoryNumber = document.getElementById('category_number').value.trim();
 
-        if (!formCategoryName) {
+        if (!formCategoryName || !formCategoryNumber) {
             Swal.fire({
                 title: "Data Belum Lengkap",
-                text: "Kategori Work Package wajib diisi.",
+                text: "Nomor Kategori & Kategori Work Package wajib diisi.",
                 icon: "info",
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
@@ -207,6 +217,18 @@
             });
             return false;
         }
+        if(formCategoryNumber <=0){
+            Swal.fire({
+                title: "Nomor Kategori Tidak Valid",
+                text: "Nomor Kategori harus berupa angka positif.",
+                icon: "info",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-primary" }
+            });
+            return false;
+        }
+        return true;
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -272,12 +294,13 @@
                 const button = event.target.closest('.btn-edit-category');
                 // Isi input tersembunyi timesheet_id
                 document.getElementById('form_category_id').value = button.dataset.categoryId;
+                document.getElementById('categoryNumber').value = button.dataset.categoryNumber;
                 document.getElementById('categoryName').value = button.dataset.categoryName;
 
                 console.log("Button Data:", {
                 id: button.dataset.categoryId,
                 name: button.dataset.categoryName,
-            });
+                });
             }
         });
     });
