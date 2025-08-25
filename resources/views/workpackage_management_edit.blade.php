@@ -875,49 +875,6 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
             }
         }
     });
-    // .then((result) => {
-    //     if (result.isConfirmed) {
-    //         resourceItem.remove();
-
-    //         // Update resource numbering
-    //         updateResourceNumbering();
-
-    //         // Show no resources message if no resources left
-    //         const container = document.getElementById('humanResourceContainer');
-    //         const noResourcesMessage = document.getElementById('noResourcesMessage');
-            
-    //         if (container.children.length === 0 && noResourcesMessage) {
-    //             noResourcesMessage.style.display = 'block';
-    //         }
-
-    //         // Show appropriate success message
-    //         let successMessage = `Resource <strong>${selectedRoleText}</strong> berhasil dihapus.`;
-    //         let successDetail = '';
-
-    //         if (hasAssignments) {
-    //             successDetail = 'User dengan role ini akan dibersihkan saat Work Package disimpan.';
-    //         }
-
-    //         Swal.fire({
-    //             title: 'Resource Dihapus',
-    //             html: `
-    //                 <div class="text-center">
-    //                     <p class="mb-2">${successMessage}</p>
-
-    //                     <div class="small text-muted">
-    //                         ${successDetail}
-    //                     </div>
-    //                 </div>
-    //             `,
-    //             icon: 'success',
-    //             buttonsStyling: false,
-    //             confirmButtonText: 'OK',
-    //             customClass: {
-    //                 confirmButton: 'btn btn-primary'
-    //             }
-    //         });
-    //     }
-    // });
 }
 
 /**
