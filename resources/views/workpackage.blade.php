@@ -183,7 +183,7 @@
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
@@ -1634,7 +1634,7 @@ function submitEditTask() {
 /**
  * Function untuk delete task
  */
-function deleteTask(taskId) {
+function deleteTask(taskId, taskName) {
     // Validasi taskId
     if (!taskId) {
         Swal.fire({
@@ -1657,13 +1657,14 @@ function deleteTask(taskId) {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
-            let warningText = "Apakah Anda yakin ingin menghapus task ini?";
+            let warningText = ``;
             if (response.success && response.subtask_count > 0) {
-                warningText = `Task ini memiliki ${response.subtask_count} sub task. Menghapus task akan menghapus semua sub task terkait. Lanjutkan?`;
+                warningText = `<span style="font-size:0.95em">Task "<b>${taskName}</b>" ini memiliki ${response.subtask_count} sub task.<br>Menghapus task akan menghapus semua sub task terkait.<br></span>`;
             }
+            warningText += `<br><span class="text-muted" style="font-size:0.85em;">Tindakan ini tidak dapat dibatalkan.</span>`;
             Swal.fire({
                 title: "Konfirmasi Hapus Task",
-                text: warningText,
+                html: warningText,
                 icon: "warning",
                 buttonsStyling: false,
                 showCancelButton: true,
@@ -1683,7 +1684,7 @@ function deleteTask(taskId) {
             // Jika gagal cek subtask (tidak ada sub task), tetap tampilkan konfirmasi standar
             Swal.fire({
                 title: "Konfirmasi Hapus Task",
-                text: "Apakah Anda yakin ingin menghapus task ini?",
+                html: `Apakah Anda yakin ingin menghapus task ${taskName}?`,
                 icon: "warning",
                 buttonsStyling: false,
                 showCancelButton: true,
@@ -1999,7 +2000,11 @@ function submitEditSubTask() {
 function deleteSubTaskConfirmation(subTaskId, subTaskName) {
     Swal.fire({
         title: "Konfirmasi Hapus Sub Task",
-        text: `Apakah Anda yakin ingin menghapus sub task "${subTaskName}"?`,
+        html: `
+            <span>Apakah Anda yakin ingin menghapus sub task:</span>
+            <p>${subTaskName}?</p>
+            <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+        `,
         icon: "warning",
         buttonsStyling: false,
         showCancelButton: true,

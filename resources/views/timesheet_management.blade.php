@@ -81,7 +81,7 @@
                                 <td>
                                     <div class="d-flex gap-2">
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-activity" 
-                                                title="Edit Aktivitas Timesheet" 
+                                                title="Edit Aktivitas" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#editActivityModal"
                                                 data-timesheet-id="{{$firstEntry->timesheet_id}}"
@@ -90,7 +90,7 @@
                                         >
                                             <i class="bi bi-pencil-square fs-6"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm btn-delete-activity" title="Hapus Aktivitas Timesheet" data-timesheet-id="{{$firstEntry->timesheet_id}}">
+                                        <button type="button" data-execution-date="{{$executionDate}}" class="btn btn-danger btn-sm btn-delete-activity" title="Hapus Aktivitas" data-timesheet-id="{{$firstEntry->timesheet_id}}">
                                             <i class="bi bi-trash fs-6"></i>
                                         </button>
                                     </div>                                  
@@ -110,7 +110,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header py-5">
-                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
+                <h3 class="modal-title">Tambah Aktivitas</h3>
             </div>
             <div class="modal-body py-3">
                 <form id="addActivityForm" method="POST" action="{{route('timesheet.add')}}">
@@ -194,7 +194,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header py-5">
-                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
+                <h3 class="modal-title">Edit Aktivitas</h3>
             </div>
             <div class="modal-body py-3">
                 <form id="editActivityForm" method="POST" action="{{route('timesheet.edit')}}">
@@ -1028,18 +1028,29 @@
     $(document).on('click', '.btn-delete-activity', function(e) {
         e.preventDefault();
         const timesheetId = $(this).data('timesheet-id');
-
+        const executionDate = $(this).data('execution-date');
+        let formattedDate = executionDate;
+        if (executionDate) {
+            const dateObj = new Date(executionDate);
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            formattedDate = dateObj.toLocaleDateString('id-ID', options);
+        }
         Swal.fire({
-            title: 'Yakin ingin menghapus seluruh aktivitas personel pada tanggal ini?',
-            icon: 'warning',
+            title: "Konfirmasi Hapus Aktivitas",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus seluruh aktivitas personel pada tanggal</span>
+                <p>${formattedDate}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
+            icon: "warning",
+            buttonsStyling: false,
             showCancelButton: true,
-            confirmButtonText: 'Hapus',
             cancelButtonText: 'Batal',
+            confirmButtonText: "Ya, Hapus",
             customClass: {
-                confirmButton: 'btn btn-danger',
+                confirmButton: "btn btn-danger",
                 cancelButton: 'btn btn-secondary'
-            },
-            buttonsStyling: false
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`/timesheet-management/${timesheetId}/delete`, {

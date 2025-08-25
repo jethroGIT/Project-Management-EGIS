@@ -742,7 +742,7 @@ function deleteRoleConfirmation(roleId, roleName) {
         buttonsStyling: false,
         showCancelButton: true,
         cancelButtonText: 'Batal',
-        confirmButtonText: "Ya, Hapus Peran",
+        confirmButtonText: "Ya, Hapus",
         customClass: {
             confirmButton: "btn btn-danger",
             cancelButton: 'btn btn-secondary'

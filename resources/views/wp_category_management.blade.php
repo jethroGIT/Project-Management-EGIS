@@ -35,7 +35,7 @@
                 <table id="tabel_category" class="table table-striped table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="fw-bolder fs-4 text-gray-1000 px-7">
-                            <th class="align-middle border-bottom">No</th>
+                            <th class="align-middle border-bottom text-center">No</th>
                             <th class="align-middle border-bottom" style="min-width: 110px">No. Kategori</th>
                             <th class="align-middle border-bottom">Kategori</th>
                             <th class="align-middle border-bottom" style="width: 140px">Action</th>
@@ -60,7 +60,10 @@
                                     </button>
 
                                     <!-- Delete Button -->
-                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Hapus Kategori WP" data-category-id="{{$wpCategory->category_id}}">
+                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Hapus Kategori WP" 
+                                            data-category-id="{{$wpCategory->category_id}}"
+                                            data-category-name="{{$wpCategory->name}}"
+                                    >
                                         <i class="bi bi-trash fs-6"></i>
                                     </button>
                                 </div>                                    
@@ -90,7 +93,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+                <h3 class="modal-title">Tambah Kategori WP</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.add')}}" id="addCategoryForm">
@@ -121,7 +124,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+                <h3 class="modal-title">Edit Kategori WP</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.edit')}}" id="editCategoryForm">
@@ -359,18 +362,24 @@
     $(document).on('click', '.btn-delete-category', function(e) {
         e.preventDefault();
         const categoryId = $(this).data('category-id');
+        const categoryName = $(this).data('category-name');
 
         Swal.fire({
-            title: 'Yakin ingin menghapus kategori?',
-            icon: 'warning',
+            title: "Konfirmasi Hapus Kategori WP",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus kategori:</span>
+                <p>${categoryName}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
+            icon: "warning",
+            buttonsStyling: false,
             showCancelButton: true,
-            confirmButtonText: 'Hapus',
             cancelButtonText: 'Batal',
+            confirmButtonText: "Ya, Hapus",
             customClass: {
-                confirmButton: 'btn btn-danger',
+                confirmButton: "btn btn-danger",
                 cancelButton: 'btn btn-secondary'
-            },
-            buttonsStyling: false
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`/wpcategory-management/${categoryId}/delete`, {

@@ -738,25 +738,17 @@
 
         // Show confirmation dialog
         Swal.fire({
-            title: "Konfirmasi Hapus",
-            // html: `
-            //     <p>Apakah Anda yakin ingin menghapus sub task ini?</p>
-            //     <div class="mt-3 p-3 bg-light rounded">
-            //         <strong>Sub Task:</strong> ${subTaskName}
-            //     </div>
-            //     <div class="mt-2">
-            //         <small class="text-danger">
-            //             <i class="bi bi-exclamation-triangle me-1"></i>
-            //             Tindakan ini tidak dapat dibatalkan
-            //         </small>
-            //     </div>
-            // `,
-            text: "Apakah yakin ingin menghapus sub task ini?",
+            title: "Konfirmasi Hapus Sub Task",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus sub task:</span>
+                <p>${subTaskName}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
             icon: "warning",
             buttonsStyling: false,
             showCancelButton: true,
             cancelButtonText: 'Batal',
-            confirmButtonText: "Hapus",
+            confirmButtonText: "Ya, Hapus",
             customClass: {
                 confirmButton: "btn btn-danger",
                 cancelButton: 'btn btn-secondary'
