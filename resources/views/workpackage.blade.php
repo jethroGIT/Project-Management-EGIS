@@ -704,6 +704,12 @@ $(document).ready(function () {
         initializeEditModal();
     });
 
+    // ✅ FIX: Bersihkan alert ketika modal ditutup
+    $('#kt_modal_edit_data').on('hidden.bs.modal', function () {
+        // Hapus semua alert info yang mungkin tertinggal
+        $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
+    });
+
     @if(isset($tasksWithUtilization) && $tasksWithUtilization->count() > 0)
         @foreach($tasksWithUtilization as $task)
             $('#task{{ $task->task_id }}-details').on('show.bs.collapse', function () {
@@ -778,10 +784,41 @@ function initializeEditModal() {
     $('#editResourceContainer').empty();
     editResourceCounter = 1;
 
+    $('.modal-info-alert').remove();
+
     // Debug log
     console.log('availableUsers:', availableUsers);
     console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
     console.log('humanResourcesByRole:', humanResourcesByRole);
+
+    if (availableUsers && availableUsers.length > 0) {
+        const uniqueRoles = [...new Set(availableUsers.map(user => user.role_name))];
+        console.log('Available roles in dropdown:', uniqueRoles);
+        
+        // Add info alert about role filtering
+        const infoHtml = `
+            <div class="alert alert-light-info d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
+                <i class="bi bi-info-circle me-2 text-info"></i>
+                <div>
+                    Hanya menampilkan user dengan role: <strong>${uniqueRoles.join(', ')}</strong> 
+                    (sesuai Human Resources pada Work Package ini)
+                </div>
+            </div>
+        `;
+        $('#addEditResourceBtn').after(infoHtml);
+    } else {
+        // Show warning if no users available
+        const warningHtml = `
+            <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
+                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                <div>
+                    <strong>Tidak ada user tersedia:</strong> 
+                    Tidak ada user dengan role yang sesuai dengan Human Resources pada Work Package ini.
+                </div>
+            </div>
+        `;
+        $('#addEditResourceBtn').after(warningHtml);
+    }
 
     // Filter untuk exclude admin
     const filteredAssignedUsers = currentlyAssignedUsers.filter(function(userId) {
@@ -1018,8 +1055,24 @@ function addEditResource(selectedUserId = null) {
     // Validasi availableUsers
     if (!availableUsers || availableUsers.length === 0) {
         console.error('No available users found in addEditResource');
+
+        // Hapus semua alert
+        $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
+
+        const alertHtml = `
+            <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="noUsersAlert">
+                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                <div>
+                    Tidak ada user dengan role yang sesuai dengan Human Resources pada Work Package ini.<br>
+                    <small class="text-muted">Pastikan ada user dengan role yang sudah di-assign di work package ini.</small>
+                </div>
+            </div>
+        `;
+        $('#addEditResourceBtn').after(alertHtml);
+
         Swal.fire({
-            text: "Tidak ada data user yang tersedia. Pastikan ada user dalam sistem.",
+            text: "Tidak Ada User Tersedia.",
+            text: "Tidak ada data user dengan role yang sesuai. Pastikan ada user dengan role yang sudah di-assign pada Work Package ini.",
             icon: "warning",
             buttonsStyling: false,
             confirmButtonText: "OK",
@@ -1030,21 +1083,34 @@ function addEditResource(selectedUserId = null) {
         return;
     }
 
+    const currentlySelectedUsers = [];
+    $('#editResourceContainer select[name="resources[]"]').each(function() {
+        const selectedValue = $(this).val();
+        if (selectedValue && selectedValue !== '') {
+            currentlySelectedUsers.push(parseInt(selectedValue));
+        }
+    });
+
     let optionsHtml = '<option value="">Pilih Resource</option>';
     let defaultJhk = 0; 
     
     availableUsers.forEach(function(user) {
-        const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
-        optionsHtml += `<option value="${user.user_id}" data-role-id="${user.role_id}" data-default-jhk="${user.default_jhk}" ${selected}>${user.name} (${user.role_name})</option>`;
+        const isAlreadySelected = currentlySelectedUsers.includes(user.user_id) &&
+                                    selectedUserId !== user.user_id;
 
-        if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
-            const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
-            if (assigned && assigned.jhk) {
-                defaultJhk = assigned.jhk;
-            } else {
-                defaultJhk = user.default_jhk || 0;
+        if (!isAlreadySelected) {
+            const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
+            optionsHtml += `<option value="${user.user_id}" data-role-id="${user.role_id}" data-default-jhk="${user.default_jhk}" ${selected}>${user.name} (${user.role_name})</option>`;
+    
+            if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
+                const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
+                if (assigned && assigned.jhk) {
+                    defaultJhk = assigned.jhk;
+                } else {
+                    defaultJhk = user.default_jhk || 0;
+                }
+                console.log('selected:', selected, 'assigned', assigned);
             }
-            console.log('selected:', selected, 'assigned', assigned);
         }
     });
     
@@ -1132,11 +1198,11 @@ function handleResourceChange(selectElement) {
             console.log(`Using default JHK: ${jhkValue}`);
         }
 
-        // ✅ Set JHK value in input
+        // Set JHK value in input
         if (jhkInput) {
             jhkInput.value = jhkValue;
             
-            // ✅ Show visual feedback if auto-populated
+            // Show visual feedback if auto-populated
             if (jhkValue > 0) {
                 jhkInput.style.backgroundColor = '#e8f5e8';
                 jhkInput.setAttribute('title', `Auto-populated from existing role data (${jhkValue} days)`);

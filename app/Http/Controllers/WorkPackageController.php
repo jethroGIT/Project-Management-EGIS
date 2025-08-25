@@ -82,31 +82,67 @@ class WorkPackageController extends Controller
             ];
         });
 
+        // Ambil assigned role ID dari Human Resources untuk work package ini
+        $assignedRoleIds = $humanResources->pluck('role_id')->unique()->values()->toArray();
+
         // Filter users untuk dropdown (kecuali admin)
         $availableUsersDropdown = User::with('roles')
             ->whereDoesntHave('roles', function($query) {
                 $query->where('name', 'admin');
             })
+            ->whereHas('roles', function($query) use ($assignedRoleIds) {
+                $query->whereIn('id', $assignedRoleIds);
+            })
             ->get()
-            ->map(function($user) use ($workPackage) {
+            ->map(function($user) use ($workPackage, $assignedRoleIds) {
                 $userRoles = $user->getRoleNames();
                 $roleId = null;
                 $roleName = 'No Role';
 
-                $karyawanRoles = $userRoles->filter(function($roleName) {
-                    return $roleName !== 'karyawan' && $roleName !== 'admin';
-                });
+                // Ambil role yang sesuai dengan assigned roles di work package
+                $userRoleIds = $user->roles->pluck('id')->toArray();
+                $matchingRoleIds = array_intersect($userRoleIds, $assignedRoleIds);
 
-                if ($karyawanRoles->isNotEmpty()) {
-                    $roleName = $karyawanRoles->first();
-                    $roleId = $user->roles->where('name', $roleName)->first()?->id;
-                } else if ($userRoles->contains('karyawan')) {
-                    $roleName = 'karyawan';
-                    $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                if (!empty($matchingRoleIds)) {
+                    // Ambil role pertama yang match dengan assigned roles
+                    // $matchingRoleIds = array_values($matchingRoleIds);
+                    // $matchingRoleId = $matchingRoleIds[0];
+                    $matchingRoleId = collect($matchingRoleIds)->first();
+                    $matchingRole = $user->roles->where('id', $matchingRoleId)->first();
+                    
+                    if ($matchingRole) {
+                        $roleId = $matchingRole->id;
+                        $roleName = $matchingRole->name;
+                    }
                 } else {
-                    $roleName = $userRoles->first() ?? 'No Role';
-                    $roleId = $user->roles->first()?->id;
+                    // Fallback jika tidak ada matching role (seharusnya tidak terjadi karena sudah di-filter)
+                    $karyawanRoles = $userRoles->filter(function($roleName) {
+                        return $roleName !== 'karyawan' && $roleName !== 'admin';
+                    });
+
+                    if ($karyawanRoles->isNotEmpty()) {
+                        $roleName = $karyawanRoles->first();
+                        $roleId = $user->roles->where('name', $roleName)->first()?->id;
+                    } else if ($userRoles->contains('karyawan')) {
+                        $roleName = 'karyawan';
+                        $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                    }
                 }
+
+                // $karyawanRoles = $userRoles->filter(function($roleName) {
+                //     return $roleName !== 'karyawan' && $roleName !== 'admin';
+                // });
+
+                // if ($karyawanRoles->isNotEmpty()) {
+                //     $roleName = $karyawanRoles->first();
+                //     $roleId = $user->roles->where('name', $roleName)->first()?->id;
+                // } else if ($userRoles->contains('karyawan')) {
+                //     $roleName = 'karyawan';
+                //     $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                // } else {
+                //     $roleName = $userRoles->first() ?? 'No Role';
+                //     $roleId = $user->roles->first()?->id;
+                // }
 
                 // Ambil JHK dari Human Resource untuk role ini
                 $humanResource = null;
@@ -123,7 +159,12 @@ class WorkPackageController extends Controller
                     'role_id' => $roleId,
                     'default_jhk' => $humanResource ? $humanResource->jhk : 0
                 ];
-            });
+            })
+            ->filter(function($user) {
+                $isValid = $user['role_id'] !== null && $user['role_name'] !== 'No Role';
+                return $isValid;
+            })
+            ->values();
 
         // Data Humman Resources berdasarkan role
         $humanResourcesByRole = $humanResources->keyBy('role_id')->map(function($hr) {
