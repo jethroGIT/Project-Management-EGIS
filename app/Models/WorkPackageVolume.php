@@ -14,6 +14,7 @@ class WorkPackageVolume extends Model
         'wp_id',
         'volume_number',
         'execution_year',
+        'work_order_number',
         // 'completeness',
         'start_date',
         'end_date',

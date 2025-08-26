@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('wp_id');
             $table->integer('volume_number');
             $table->integer('execution_year')->nullable();
+            $table->integer('work_order_number')->nullable();
             // $table->decimal('completeness', 5, 2)->default(0.00);
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();

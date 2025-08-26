@@ -184,11 +184,18 @@
                         @if(isset($workPackagesByYear))
                             @foreach($workPackagesByYear as $year => $volumes)
                                 @php
+                                    // Urutkan volumes berdasarkan work order
+                                    $sortedVolumes = $volumes->sortBy(function($volume) {
+                                        // Ekstrak numeric dari work_order_number
+                                        preg_match('/(\d+)/', $volume->work_order_number ?? '0', $matches);
+                                        return (int) ($matches[1] ?? 0);
+                                    });
+
                                     // Cek jika tahun tersebut memiliki volume yang aktif
                                     $isYearActive = false;
                                     $hasActiveVolume = false;
                                     if (isset($currentVolumeId)) {
-                                        foreach ($volumes as $volume) {
+                                        foreach ($sortedVolumes as $volume) {
                                             if ($volume->volume_id == $currentVolumeId) {
                                                 $isYearActive = true;
                                                 $hasActiveVolume = true;
@@ -210,23 +217,35 @@
                                         <span class="menu-arrow"></span>
                                     </span>
                                     <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveVolume ? 'show' : '' }}">
-                                        @foreach($volumes as $volume)
+                                        @foreach($sortedVolumes as $volume)
                                             @php
                                                 $isVolumeActive = isset($currentVolumeId) && $currentVolumeId == $volume->volume_id;
+
+                                                $fullTitle = "WO {$volume->work_order_number} -  WP {$volume->workPackage->wp_number} {$volume->workPackage->name}";
+                                                $maxLength = 40;
+                                                $truncatedTitle = strlen($fullTitle) > $maxLength ?
+                                                    substr($fullTitle, 0, $maxLength) . "..." :
+                                                    $fullTitle;
                                             @endphp
                                             <div class="menu-item">
                                                 <a 
                                                     class="menu-link {{ $isVolumeActive ? 'active' : '' }}" 
                                                     href="{{ route('work-package.detail', ['volume_id' => $volume->volume_id]) }}"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="right" 
+                                                    data-bs-custom-class="sidebar-tooltip" 
+                                                    title="{{ $fullTitle }}"
                                                 >
                                                     <span class="menu-bullet">
                                                         <span class="bullet bullet-dot"></span>
                                                     </span>
                                                     <span class="menu-title">
-                                                        {{ $volume->workPackage->wp_number }} {{ $volume->workPackage->name }}
-                                                        @if($volume->volume_number > 1)
+                                                        <!-- WO {{ $volume->work_order_number }} - WP {{ $volume->workPackage->wp_number }} 
+                                                        {{ $volume->workPackage->name }} -->
+                                                        <!-- @if($volume->volume_number > 1)
                                                             (Vol. {{ $volume->volume_number }})
-                                                        @endif
+                                                        @endif -->
+                                                        {{ $truncatedTitle }}
                                                     </span>
                                                 </a>
                                             </div>
