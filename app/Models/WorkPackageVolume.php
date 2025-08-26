@@ -14,7 +14,7 @@ class WorkPackageVolume extends Model
         'wp_id',
         'volume_number',
         'execution_year',
-        'work_order_number',
+        'wo_id',
         // 'completeness',
         'start_date',
         'end_date',
@@ -40,5 +40,10 @@ class WorkPackageVolume extends Model
     public function users()
     {
         return $this->hasManyThrough(User::class, Work::class, 'volume_id', 'user_id', 'volume_id', 'user_id');
+    }
+    
+    public function workOrder()
+    {
+        return $this->belongsTo(WorkOrder::class, 'wo_id', 'wo_id');
     }
 }

@@ -105,8 +105,6 @@ class WorkPackageController extends Controller
 
                 if (!empty($matchingRoleIds)) {
                     // Ambil role pertama yang match dengan assigned roles
-                    // $matchingRoleIds = array_values($matchingRoleIds);
-                    // $matchingRoleId = $matchingRoleIds[0];
                     $matchingRoleId = collect($matchingRoleIds)->first();
                     $matchingRole = $user->roles->where('id', $matchingRoleId)->first();
                     
@@ -128,21 +126,6 @@ class WorkPackageController extends Controller
                         $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
                     }
                 }
-
-                // $karyawanRoles = $userRoles->filter(function($roleName) {
-                //     return $roleName !== 'karyawan' && $roleName !== 'admin';
-                // });
-
-                // if ($karyawanRoles->isNotEmpty()) {
-                //     $roleName = $karyawanRoles->first();
-                //     $roleId = $user->roles->where('name', $roleName)->first()?->id;
-                // } else if ($userRoles->contains('karyawan')) {
-                //     $roleName = 'karyawan';
-                //     $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
-                // } else {
-                //     $roleName = $userRoles->first() ?? 'No Role';
-                //     $roleId = $user->roles->first()?->id;
-                // }
 
                 // Ambil JHK dari Human Resource untuk role ini
                 $humanResource = null;
@@ -665,6 +648,7 @@ class WorkPackageController extends Controller
     public function updateVolumeData(Request $request, $volume_id)
     {
         $request->validate([
+            // 'work_order_number' => 'required|integer|min:1|max:999',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'resources' => 'nullable|array',
@@ -840,7 +824,103 @@ class WorkPackageController extends Controller
                 'message' => 'Gagal memperbarui data: ' . $e->getMessage()
             ], 500);
         }
-    }    
+    }
+
+    /**
+     * Validate work order number
+     */
+    // public function validateWorkOrderNumber(Request $request)
+    // {
+    //     try {
+    //         $workOrderInput = $request->input('work_order_number');
+    //         $volumeId = $request->input('volume_id');
+    //         $executionYear = $request->input('execution_year', date('Y'));
+
+    //         if (!$workOrderInput) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Nomor work order diperlukan'
+    //             ], 400);
+    //         }
+
+    //         // Format work order number dengan tahun
+    //         $fullWorkOrderNumber = $executionYear . '-' . str_pad($workOrderInput, 3, '0', STR_PAD_LEFT);
+
+    //         // Check dalam tahun yang sama
+    //         $existingInYear = WorkPackageVolume::where('work_order_number', $fullWorkOrderNumber)
+    //             ->where('execution_year', $executionYear);
+
+    //         if ($volumeId) {
+    //             $existingInYear->where('volume_id', '!=', $volumeId);
+    //         }
+
+    //         $conflictInYear = $existingInYear->first();
+
+    //         if ($conflictInYear) {
+    //             $conflictWorkPackage = $conflictInYear->workPackage;
+
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'available' => false,
+    //                 'work_order_number' => $fullWorkOrderNumber,
+    //                 'message' => "Nomor WO {$fullWorkOrderNumber} sudah digunakan di tahun {$executionYear}",
+    //                 'conflict_details' => [
+    //                     'wp_number' => $conflictWorkPackage->wp_number ?? 'Unknown',
+    //                     'wp_name' => $conflictWorkPackage->name ?? 'Unknown',
+    //                     'volume_number' => $conflictInYear->volume_number ?? 'Unknown'
+    //                 ]
+    //             ]);
+    //         }
+
+    //         // Check dalam work package yang sama
+    //         if ($volumeId) {
+    //             $currentVolume = WorkPackageVolume::findOrFail($volumeId);
+    //             $sameWorkPackageConflict = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
+    //                 ->where('work_order_number', $fullWorkOrderNumber)
+    //                 ->where('volume_id', '!=', $volumeId)
+    //                 ->first();
+                
+    //             if ($sameWorkPackageConflict) {
+    //                 return response()->json([
+    //                     'success' => false,
+    //                     'available' => false,
+    //                     'work_order_number' => $fullWorkOrderNumber,
+    //                     'message' => "Nomor WO {$fullWorkOrderNumber} sudah digunakan di volume lain dalam work package yang sama",
+    //                     'conflict_details' => [
+    //                         'volume_number' => $sameWorkPackageConflict->volume_number ?? 'Unknown',
+    //                         'same_work_package' => true
+    //                     ]
+    //                 ]);
+    //             }
+    //         }
+
+    //         Log::info('Work order number validation passed', [
+    //             'work_order_number' => $fullWorkOrderNumber,
+    //             'execution_year' => $executionYear,
+    //             'volume_id' => $volumeId
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'available' => true,
+    //             'work_order_number' => $fullWorkOrderNumber,
+    //             'message' => 'Nomor work order tersedia'
+    //         ]);
+
+    //     } catch (Exception $e) {
+    //         Log::error('Error validating work order number', [
+    //             'work_order_input' => $request->input('work_order_number'),
+    //             'volume_id' => $request->input('volume_id'),
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
+            
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Terjadi kesalahan saat validasi nomor work order: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Show the form for creating a new resource.

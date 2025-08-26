@@ -221,7 +221,8 @@
                                             @php
                                                 $isVolumeActive = isset($currentVolumeId) && $currentVolumeId == $volume->volume_id;
 
-                                                $fullTitle = "WO {$volume->work_order_number} -  WP {$volume->workPackage->wp_number} {$volume->workPackage->name}";
+                                                $woNumber = $volume->workOrder ? $volume->workOrder->wo_number : '';
+                                                $fullTitle = "WO {$woNumber} -  WP {$volume->workPackage->wp_number} {$volume->workPackage->name}";
                                                 $maxLength = 40;
                                                 $truncatedTitle = strlen($fullTitle) > $maxLength ?
                                                     substr($fullTitle, 0, $maxLength) . "..." :
