@@ -10,29 +10,47 @@
                 </a>
                 <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
             </div>
-            <div class="row mt-8 align-items-center justify-content-between" style="height: 50px; padding: 0px 0px;">
-                <div class="col-md-4 d-flex align-items-center" style="height: 40px">
-                    <div class="border bg-light h-100 d-flex align-items-center justify-content-center w-100">
-                        <span class="fw-bold">WP Value</span>
-                        <i class="bi bi-info-circle text-primary ms-2"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="sum(Biaya by YoY)">
-                        </i>
+            @if(auth()->user()->hasRole('admin'))
+                <div class="row mt-8 align-items-center justify-content-between" style="height: 50px; padding: 0px 0px;">
+                    <div class="col-md-4 d-flex align-items-center" style="height: 40px">
+                        <div class="border bg-light h-100 d-flex align-items-center justify-content-center w-100">
+                            <span class="fw-bold">WP Value</span>
+                            <i class="bi bi-info-circle text-primary ms-2"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="sum(Biaya by YoY)">
+                            </i>
+                        </div>
+                        <div class="border h-100 d-flex align-items-center justify-content-center w-100">
+                            <span class="text">{{ number_format($totalByYoy, 0, ',', '.') }}</span>
+                        </div>
                     </div>
-                    <div class="border h-100 d-flex align-items-center justify-content-center w-100">
-                        <span class="text">{{ number_format($totalByYoy, 0, ',', '.') }}</span>
-                    </div>
+                    <div class="col-md-2 d-flex align-items-center">
+                        <button type="button" class="btn btn-light-primary btn-edit-finance" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_financial">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                            </svg>
+                            Edit Data
+                        </button>
+                    </div>                    
+                </div> 
+            @else
+                <div class="row mt-8 align-items-center justify-content-start" style="height: 50px; padding: 0px 0px;">
+                    <div class="col-md-4 d-flex align-items-center" style="height: 40px">
+                        <div class="border bg-light h-100 d-flex align-items-center justify-content-center w-100">
+                            <span class="fw-bold">WP Value</span>
+                            <i class="bi bi-info-circle text-primary ms-2"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="sum(Biaya by YoY)">
+                            </i>
+                        </div>
+                        <div class="border h-100 d-flex align-items-center justify-content-center w-100">
+                            <span class="text">{{ number_format($totalByYoy, 0, ',', '.') }}</span>
+                        </div>
+                    </div>                  
                 </div>
-                <div class="col-md-2 d-flex align-items-center">
-                    <button type="button" class="btn btn-light-primary btn-edit-finance" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_financial">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-                        </svg>
-                        Edit Data
-                    </button>
-                </div>                    
-            </div> 
+            @endif
             <div class="table-responsive mt-5">
                 {{-- @if($activities->isNotEmpty()) --}}
                 <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">

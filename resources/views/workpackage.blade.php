@@ -159,10 +159,10 @@
                 <table id="tabel_wp_task" class="table gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="fw-bolder fs-4 text-gray-1000 px-7">
-                            <th></th>
+                            <th style="width: 20px"></th>
                             <th class="align-middle border-bottom" style="width: 20px;">No</th>
-                            <th class="align-middle border-bottom" style="width: 300px;">Task</th>
-                            <th class="align-middle border-bottom" style="width: 300px;">Sub Task</th>
+                            <th class="align-middle border-bottom" style="min-width: 300px;">Task</th>
+                            <th class="align-middle border-bottom" style="min-width: 300px;">Sub Task</th>
                             @if(auth()->user() && auth()->user()->hasRole('admin'))
                                 <th class="align-middle border-bottom">Action</th>
                             @endif

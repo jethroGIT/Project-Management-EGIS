@@ -50,8 +50,10 @@
                             <th scope="col" style="width: 70px;">Status</th>
                             <th scope="col" style="width: 170px;">Task</th>
                             <th scope="col" style="width: 170px;">Sub Task</th>
-                            <th scope="col" style="width: 90px;">% Utilisasi</th>
-                            <th scope="col" style="width: 50px;">Action</th>
+                            <th scope="col" style="min-width: 50px;">% Utilisasi</th>
+                            @if(auth()->user()->hasRole('admin'))
+                                <th scope="col" style="width: 50px;">Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.92rem;">
@@ -80,21 +82,23 @@
                                     <td>{{ $task->name }}</td>
                                     <td></td>
                                     <td>{{ $task->utilization }}%</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                            </a>
-                                            <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                        <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                        <span>Tambah Sub Baris</span>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
+                                    @if(auth()->user()->hasRole('admin'))
+                                        <td>
+                                            <div class="dropdown">
+                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                </a>
+                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            <span>Tambah Sub Baris</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    @endif
                                 </tr>
                                 
                                 <!-- Sub Tasks -->
@@ -106,23 +110,25 @@
                                             <td></td>
                                             <td>{{ $subTask->name }}</td>
                                             <td>{{ $subTask->completeness }}%</td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
+                                            @if(auth()->user()->hasRole('admin'))
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                                <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            @endif
                                         </tr>                                              
                                     @endforeach
                                 @else
@@ -132,20 +138,22 @@
                                         <td></td>
                                         <td class="text-muted">Tidak ada sub task</td>
                                         <td>0%</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>Tambah Sub Task
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
+                                        @if(auth()->user()->hasRole('admin'))
+                                            <td>
+                                                <div class="dropdown">
+                                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                    </a>
+                                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="#" onclick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                                <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>Tambah Sub Task
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endif
                             @endforeach
