@@ -356,7 +356,8 @@
                     })
                     .then(data => {
                         Swal.fire({
-                            text: data.message || "Data berhasil diubah!",
+                            title: "Berhasil",
+                            text: data.message || "Data berhasil diperbarui!",
                             icon: "success",
                             buttonsStyling: false,
                             confirmButtonText: "Tutup",

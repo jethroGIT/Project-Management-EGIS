@@ -446,7 +446,7 @@ function submitEditUser() {
         },
         success: function(response) {
             if (response.success) {
-                let successMessage = response.message || "User berhasil diperbarui!";
+                let successMessage = response.message || "Data berhasil diperbarui!";
 
                 Swal.fire({
                     title: "Berhasil",

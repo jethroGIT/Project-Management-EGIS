@@ -634,7 +634,7 @@ function submitEditRole() {
         },
         success: function(response) {
             if (response.success) {
-                let successMessage = response.message || "Peran berhasil diperbarui!";
+                let successMessage = response.message || "Data berhasil diperbarui!";
 
                 Swal.fire({
                     title: "Berhasil",

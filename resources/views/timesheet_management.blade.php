@@ -807,7 +807,7 @@
             let roleName = (user.roles && user.roles.length > 1)
                 ? user.roles[1].name
                 : (user.roles && user.roles.length ? user.roles[0].name : '');
-            console.log('User:', user.name, 'Role:', roleName);
+            // console.log('User:', user.name, 'Role:', roleName);
             userOption.textContent = `${user.name} - ${roleName}`;
             personelSelect.appendChild(userOption);
         });
@@ -817,6 +817,7 @@
         // Buat wrapper div untuk menyimpan clone dan memberi ID
         const wrapper = document.createElement('div');
         wrapper.classList.add('wrapper-edit-personel');
+        wrapper.classList.add('personel-activity-group');
         wrapper.id = `edit-personel-activity-${editCurrentPersonelGroups}`;
         wrapper.appendChild(clone);
 
@@ -1010,7 +1011,8 @@
             })
             .then(data => {
                 Swal.fire({
-                    text: data.message || "Data berhasil diperbarui!",
+                    title: "Berhasil",
+                    text: "Data berhasil diperbarui!",
                     icon: "success",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
