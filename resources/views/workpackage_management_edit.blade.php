@@ -292,12 +292,14 @@
                                     <select name="resources[{{ $index }}][role_id]" class="form-select" required>
                                         <option value="">Pilih Role</option>
                                         @foreach($roles as $role)
-                                            <option 
-                                                value="{{ $role->role_id }}" 
-                                                {{ $hr['role_id'] == $role->role_id ? 'selected' : '' }}
-                                            >
-                                                {{ $role->name }}
-                                            </option>
+                                            @if($role->name !== 'admin' && $role->name !== 'karyawan')
+                                                <option 
+                                                    value="{{ $role->id }}" 
+                                                    {{ $hr['role_id'] == $role->id ? 'selected' : '' }}
+                                                >
+                                                    {{ $role->name }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>
@@ -699,20 +701,22 @@ function addHumanResource() {
                     <select name="resources[${humanResourceIndex}][role_id]" class="form-select" required>
                         <option value="">Pilih Role</option>
                         @foreach($roles as $role)
-                            <option value="{{ $role->role_id }}">{{ $role->name }}</option>
+                            @if ($role->name !== 'admin' && $role->name !== 'karyawan')
+                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jtk]" 
-                           class="form-control" min="1" placeholder="1" required>
+                           class="form-control" min="1" placeholder="Contoh: 1" required>
                     <div class="form-text">Jumlah orang dengan role ini</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jhk]" 
-                           class="form-control" min="1" placeholder="20" required>
+                           class="form-control" min="1" placeholder="Contoh: 20" required>
                     <div class="form-text">Total hari kerja untuk role ini</div>
                 </div>
             </div>
@@ -728,11 +732,125 @@ function addHumanResource() {
  */
 function removeHumanResource(button) {
     const resourceItem = button.closest('.human-resource-item');
+    const roleSelect = resourceItem.querySelector('select[name*="[role_id]"]');
+    const selectedRoleId = roleSelect.value;
+    const selectedRoleText = roleSelect.options[roleSelect.selectedIndex]?.text || 'Unknown Role';
     
+    if (!selectedRoleId) {
+        confirmRemoveResource(resourceItem, selectedRoleText, false, null);
+        return;
+    }
+
+    // Show loading while checking
     Swal.fire({
-        title: 'Konfirmasi Hapus',
-        text: 'Apakah Anda yakin ingin menghapus resource ini?',
-        icon: 'warning',
+        title: 'Memeriksa penggunaan peran...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // AJAX call for checking user assignments
+    $.ajax({
+        url: `{{ route('wp-management.check-role-assignments') }}`,
+        method: 'GET',
+        data: {
+            wp_id: {{ $workPackage->wp_id }},
+            role_id: selectedRoleId
+        },
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            Swal.close();
+
+            if (response.success) {
+                confirmRemoveResource(
+                    resourceItem, 
+                    selectedRoleText, 
+                    response.has_assignments, 
+                    response.assignment_details
+                );
+            } else {
+                // Fallback jika gagal cek
+                confirmRemoveResource(resourceItem, selectedRoleText, true, null);
+            }
+        },
+        error: function(xhr) {
+            Swal.close();
+            console.error('Error checking role assignments:', xhr);
+
+            // Fallback pada error
+            confirmRemoveResource(resourceItem, selectedRoleText, true, null);
+        }
+    });
+}
+
+/**
+ * Confirm remove resource with different conditions
+ */
+function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, assignmentDetails) {
+    let confirmTitle = 'Konfirmasi Hapus Resource';
+    let confirmHtml = '';
+
+    if (hasAssignments && assignmentDetails) {
+        confirmHtml = `
+            <div class="text-center">
+                <p class="mb-3">Apakah Anda yakin ingin menghapus resource <strong>${selectedRoleText}</strong>?</p>
+            </div>
+            <div class="text-start">
+                <div class="alert alert-warning py-2 mb-3">
+                    <div class="fw-bold mb-1">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Peringatan:
+                    </div>
+                    <div class="text-center small">
+                        User dengan role ini akan dihapus dari semua Volume di Work Package
+                    </div>
+                </div>
+                
+                <div class="alert alert-light-info py-2 mb-3">
+                    <div class="fw-bold mb-1">
+                        <i class="bi bi-info-circle me-2"></i>
+                        User yang akan terpengaruh:
+                    </div>
+                    <div class="small">
+                        ${assignmentDetails.affected_users.map(user => 
+                            `• ${user.name}`
+                        ).join('<br>')}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (hasAssignments && !assignmentDetails) {
+        confirmHtml = `
+            <div class="text-center">
+                <p class="mb-3">Apakah Anda yakin ingin menghapus resource <strong>${selectedRoleText}</strong>?</p>
+            </div>
+            <div class="text-start">
+                <div class="alert alert-warning py-2 mb-3">
+                    <div class="fw-bold mb-1">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Peringatan:
+                    </div>
+                    <div class="text-center small">
+                        User dengan role ini akan dihapus dari semua Volume di Work Package
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        confirmHtml = `
+            <div class="text-center">
+                <p class="mb-3">Apakah Anda yakin ingin menghapus resource <strong>${selectedRoleText}</strong>?</p>
+            </div>
+        `;
+    }
+
+    Swal.fire({
+        title: confirmTitle,
+        html: confirmHtml,
+        icon: hasAssignments ? 'warning' : 'question',
         showCancelButton: true,
         buttonsStyling: false,
         confirmButtonText: 'Ya, Hapus',
@@ -740,14 +858,14 @@ function removeHumanResource(button) {
         customClass: {
             confirmButton: 'btn btn-danger',
             cancelButton: 'btn btn-secondary'
-        }
+        },
     }).then((result) => {
         if (result.isConfirmed) {
             resourceItem.remove();
-            
+    
             // Update resource numbering
             updateResourceNumbering();
-            
+    
             // Show no resources message if no resources left
             const container = document.getElementById('humanResourceContainer');
             const noResourcesMessage = document.getElementById('noResourcesMessage');
@@ -952,8 +1070,6 @@ function showVolumeAssociationWarning(associations, volumeCard, volumeNumber, vo
     }
 
     const associationsText = associationsList.join('\n');
-
-    // warningText += '\nSilakan hapus atau pindahkan data terkait terlebih dahulu di halaman detail volume.';
 
     Swal.fire({
         title: 'Konfirmasi Hapus Volume',

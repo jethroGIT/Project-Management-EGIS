@@ -7,7 +7,7 @@
     <!-- Title Section -->
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         @if(isset($workPackage) && isset($volume))
-            <div>
+            <div class="col-8">
                 <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
                 <p>Periode 
                     @if(isset($volume->start_date) && ($volume->end_date))
@@ -18,14 +18,20 @@
                 </p>
             </div>
         @endif
-        <div class="">
-            <a href="{{ $backUrl ?? route('wp-management') }}" class="btn btn-light me-2">
-                <i class="bi bi-arrow-left"></i> {{ $backText ?? 'Kembali' }}
-            </a>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                <i class="bi bi-pencil-square"></i> Edit Data
-            </button>
-        </div>
+
+        @if(auth()->user() && auth()->user()->hasRole('admin'))
+            <div class="d-flex flex-column justify-content-end">
+                @if(isset($showBackButton) && $showBackButton && isset($backUrl) && isset($backText))
+                    <a href="{{ $backUrl ?? route('wp-management') }}" class="btn btn-light me-2">
+                        <i class="bi bi-arrow-left"></i> {{ $backText }}
+                    </a>
+                @endif
+
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                    <i class="bi bi-pencil-square"></i> Edit Volume
+                </button>
+            </div>
+        @endif
     </div>
 
     <!-- Card Kuantitas -->
@@ -124,13 +130,17 @@
         </div>
         <div class="card-body py-0">
             <div class="d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                        class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
-                        <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
-                    </svg>
-                    Tambah Task
-                </button>
+                @if(auth()->user() && auth()->user()->hasRole('admin'))
+                    <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
+                            class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
+                            <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                        Tambah Task
+                    </button>
+                @else
+                    <div></div>
+                @endif
                 <form class="d-flex justify-content-end" onsubmit="return false;">
                     <label class="me-5 mt-3" for="searchTaskInput">Cari: </label>
                     <input 
@@ -153,7 +163,9 @@
                             <th class="align-middle border-bottom" style="width: 20px;">No</th>
                             <th class="align-middle border-bottom" style="width: 300px;">Task</th>
                             <th class="align-middle border-bottom" style="width: 300px;">Sub Task</th>
-                            <th class="align-middle border-bottom">Action</th>
+                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                <th class="align-middle border-bottom">Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.92rem;">
@@ -168,49 +180,51 @@
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $task->name }}</td>
                                     <td></td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                    <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                </svg>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
-                                                        <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                        Edit
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                        <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                        Hapus
-                                                    </a>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                {{-- <li>
-                                                    <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
-                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                        Masukkan di Atas
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
-                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                        Masukkan di Bawah
-                                                    </a>
-                                                </li> --}}
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                        <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                        <span>Tambah Sub Task</span>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
+                                    @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
+                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
+                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                            Hapus
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    {{-- <li>
+                                                        <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Atas
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Bawah
+                                                        </a>
+                                                    </li> --}}
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            <span>Tambah Sub Task</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    @endif
                                 </tr>
                                 @if($task->subTask->count() > 0)
                                     @foreach($task->subTask as $subTask)
@@ -219,23 +233,25 @@
                                             <th scope="row"></th>
                                             <td></td>
                                             <td>{{ $subTask->name }}</td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
+                                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                                <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            @endif
                                         </tr>                                              
                                     @endforeach
                                 @else
@@ -275,6 +291,7 @@
             </div>
         </div>
     </div>
+
     <!-- Modal for Adding Task -->
     <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
         <div class="modal-dialog modal-dialog-centered">
@@ -410,22 +427,12 @@
         </div>
         <div class="card-body py-0">
             <div class="d-flex justify-content-end mb-4">
-                <!-- <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                    <i class="bi bi-pencil-square"></i>
-                    Edit Data
-                </button> -->
-
+                <!-- Modal for Editing Volume Data -->
                 <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">Edit Data</h3>
-
-                                <!--begin::Close-->
-                                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                                </div>
-                                <!--end::Close-->
+                                <h3 class="modal-title">Edit Volume Data</h3>
                             </div>
 
                             <div class="modal-body">
@@ -649,10 +656,12 @@
                                                 Resource belum ditugaskan untuk work package ini.<br>
                                                 Silakan assign resource terlebih dahulu.
                                             </p>
-                                            <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                                                <i class="bi bi-plus-circle me-2"></i>
-                                                Assign Resource
-                                            </button>
+                                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                                <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                                                    <i class="bi bi-plus-circle me-2"></i>
+                                                    Assign Resource
+                                                </button>
+                                            @endif
                                         </div>
                                     </div>
                                 @endif
@@ -670,19 +679,17 @@
 <script>
 let editResourceCounter = 1;
 
+// Mendapatkan data human resource berdasarkan role
+const humanResourcesByRole = @json($humanResourcesByRole ?? []);
+console.log('Human Resources by Role:', humanResourcesByRole);
+
 // Mendapatkan semua user yang tersedia untuk dropdown
-const availableUsers = @json(\App\Models\User::with('roles')->get()->map(function($user) {
-    return [
-        'user_id' => $user->user_id,
-        'name' => $user->name,
-        'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role'
-    ];
-}));
+const availableUsers = @json($availableUsersDropdown ?? []);
 console.log('availableUsers:', availableUsers);
 
 // Mendapatkan user saat ini
-const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
-const currentlyAssignedUsersAllData = @json($assignedUsers);
+const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin'))->pluck('user_id') : []);
+const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin')) : []);
 console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('roles')->get()));
@@ -703,6 +710,12 @@ $(document).ready(function () {
     // Inisialisasi edit modal ketika membuka
     $('#kt_modal_edit_data').on('show.bs.modal', function () {
         initializeEditModal();
+    });
+
+    // ✅ FIX: Bersihkan alert ketika modal ditutup
+    $('#kt_modal_edit_data').on('hidden.bs.modal', function () {
+        // Hapus semua alert info yang mungkin tertinggal
+        $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
     });
 
     @if(isset($tasksWithUtilization) && $tasksWithUtilization->count() > 0)
@@ -779,13 +792,52 @@ function initializeEditModal() {
     $('#editResourceContainer').empty();
     editResourceCounter = 1;
 
+    $('.modal-info-alert').remove();
+
     // Debug log
     console.log('availableUsers:', availableUsers);
     console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+    console.log('humanResourcesByRole:', humanResourcesByRole);
+
+    if (availableUsers && availableUsers.length > 0) {
+        const uniqueRoles = [...new Set(availableUsers.map(user => user.role_name))];
+        console.log('Available roles in dropdown:', uniqueRoles);
+        
+        // Add info alert about role filtering
+        const infoHtml = `
+            <div class="alert alert-light-info d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
+                <i class="bi bi-info-circle me-2 text-info"></i>
+                <div>
+                    Hanya menampilkan user dengan role: <strong>${uniqueRoles.join(', ')}</strong> 
+                    (sesuai Human Resources pada Work Package ini)
+                </div>
+            </div>
+        `;
+        $('#addEditResourceBtn').after(infoHtml);
+    } else {
+        // Show warning if no users available
+        const warningHtml = `
+            <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
+                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                <div>
+                    <strong>Tidak ada user tersedia:</strong> 
+                    Tidak ada user dengan role yang sesuai dengan Human Resources pada Work Package ini.
+                </div>
+            </div>
+        `;
+        $('#addEditResourceBtn').after(warningHtml);
+    }
+
+    // Filter untuk exclude admin
+    const filteredAssignedUsers = currentlyAssignedUsers.filter(function(userId) {
+        return availableUsers.some(function(user) {
+            return user.user_id == userId;
+        });
+    });
     
     // Menambahkan assigned user saat ini
-    if (currentlyAssignedUsers && currentlyAssignedUsers.length > 0) {
-        currentlyAssignedUsers.forEach(function(userId) {
+    if (filteredAssignedUsers && filteredAssignedUsers.length > 0) {
+        filteredAssignedUsers.forEach(function(userId) {
             addEditResource(userId);
         });
     } else {
@@ -1011,8 +1063,24 @@ function addEditResource(selectedUserId = null) {
     // Validasi availableUsers
     if (!availableUsers || availableUsers.length === 0) {
         console.error('No available users found in addEditResource');
+
+        // Hapus semua alert
+        $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
+
+        const alertHtml = `
+            <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="noUsersAlert">
+                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                <div>
+                    Tidak ada user dengan role yang sesuai dengan Human Resources pada Work Package ini.<br>
+                    <small class="text-muted">Pastikan ada user dengan role yang sudah di-assign di work package ini.</small>
+                </div>
+            </div>
+        `;
+        $('#addEditResourceBtn').after(alertHtml);
+
         Swal.fire({
-            text: "Tidak ada data user yang tersedia. Pastikan ada user dalam sistem.",
+            text: "Tidak Ada User Tersedia.",
+            text: "Tidak ada data user dengan role yang sesuai. Pastikan ada user dengan role yang sudah di-assign pada Work Package ini.",
             icon: "warning",
             buttonsStyling: false,
             confirmButtonText: "OK",
@@ -1023,18 +1091,34 @@ function addEditResource(selectedUserId = null) {
         return;
     }
 
+    const currentlySelectedUsers = [];
+    $('#editResourceContainer select[name="resources[]"]').each(function() {
+        const selectedValue = $(this).val();
+        if (selectedValue && selectedValue !== '') {
+            currentlySelectedUsers.push(parseInt(selectedValue));
+        }
+    });
+
     let optionsHtml = '<option value="">Pilih Resource</option>';
     let defaultJhk = 0; 
     
     availableUsers.forEach(function(user) {
-        const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
-        optionsHtml += `<option value="${user.user_id}" ${selected}>${user.name} (${user.role_name})</option>`;
-        if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
-            const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
-            if (assigned) {
-                defaultJhk = assigned.jhk;
+        const isAlreadySelected = currentlySelectedUsers.includes(user.user_id) &&
+                                    selectedUserId !== user.user_id;
+
+        if (!isAlreadySelected) {
+            const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
+            optionsHtml += `<option value="${user.user_id}" data-role-id="${user.role_id}" data-default-jhk="${user.default_jhk}" ${selected}>${user.name} (${user.role_name})</option>`;
+    
+            if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
+                const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
+                if (assigned && assigned.jhk) {
+                    defaultJhk = assigned.jhk;
+                } else {
+                    defaultJhk = user.default_jhk || 0;
+                }
+                console.log('selected:', selected, 'assigned', assigned);
             }
-            console.log('selected:', selected, 'assigned', assigned);
         }
     });
     
@@ -1042,12 +1126,12 @@ function addEditResource(selectedUserId = null) {
         <div class="input-group mb-2" id="edit-resource-${editResourceCounter}">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
-                    <select class="form-select" name="resources[]" onchange="handleResourceChange(this)">
+                    <select class="form-select resource-select" name="resources[]" onchange="handleResourceChange(this)" data-resource-index="${editResourceCounter}">
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="number" class="form-control" name="jhk[]" placeholder="0" min="0" value="${defaultJhk}"/>
+                    <input type="number" class="form-control jhk-input" name="jhk[]" placeholder="0" min="0" value="${defaultJhk}" data-resource-index="${editResourceCounter}"/>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
@@ -1078,6 +1162,9 @@ function removeEditResource(index) {
  */
 function handleResourceChange(selectElement) {
     const selectedValue = selectElement.value;
+    const resourceIndex = selectElement.getAttribute('data-resource-index');
+    const jhkInput = document.querySelector(`input[data-resource-index="${resourceIndex}"]`);
+
     const allSelects = document.querySelectorAll('#editResourceContainer select');
     
     // Check for duplicates
@@ -1099,6 +1186,49 @@ function handleResourceChange(selectElement) {
             }
         });
         selectElement.value = ''; // Reset selection
+        jhkInput.value = 0; // Reset JHK
+        return;
+    }
+
+    // Auto populate JHK based on user roles
+    if (selectedValue !== '') {
+        const selectedOption = selectElement.querySelector(`option[value="${selectedValue}"]`);
+        const roleId = selectedOption.getAttribute('data-role-id');
+        const defaultJhk = selectedOption.getAttribute('data-default-jhk');
+        
+        // Check if this role already exists in Human Resources
+        let jhkValue = 0;
+        if (roleId && humanResourcesByRole[roleId]) {
+            jhkValue = humanResourcesByRole[roleId].jhk;
+            console.log(`Found existing role ${roleId} with JHK: ${jhkValue}`);
+        } else if (defaultJhk && defaultJhk > 0) {
+            jhkValue = parseInt(defaultJhk);
+            console.log(`Using default JHK: ${jhkValue}`);
+        }
+
+        // Set JHK value in input
+        if (jhkInput) {
+            jhkInput.value = jhkValue;
+            
+            // Show visual feedback if auto-populated
+            if (jhkValue > 0) {
+                jhkInput.style.backgroundColor = '#e8f5e8';
+                jhkInput.setAttribute('title', `Auto-populated from existing role data (${jhkValue} days)`);
+                
+                // Remove highlight after 3 seconds
+                setTimeout(() => {
+                    jhkInput.style.backgroundColor = '';
+                    jhkInput.removeAttribute('title');
+                }, 3000);
+            }
+        }
+    } else {
+        // Reset JHK jika tidak ada user yang dipilih
+        if (jhkInput) {
+            jhkInput.value = 0;
+            jhkInput.style.backgroundColor = '';
+            jhkInput.removeAttribute('title');
+        }
     }
 }
 

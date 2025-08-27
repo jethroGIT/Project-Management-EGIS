@@ -76,8 +76,86 @@ class WorkPackageController extends Controller
                 'user_id' => $user->user_id,
                 'name' => $user->name,
                 'role_name' => $user->roles->get(1)?->name ?? $user->roles->first()?->name ?? 'No Role',
+                'role_id' => $roleId,
                 'jhk' => $humanResource ? $humanResource->jhk : null,
                 'timesheets_count' => $user->timesheets_count,
+            ];
+        });
+
+        // Ambil assigned role ID dari Human Resources untuk work package ini
+        $assignedRoleIds = $humanResources->pluck('role_id')->unique()->values()->toArray();
+
+        // Filter users untuk dropdown (kecuali admin)
+        $availableUsersDropdown = User::with('roles')
+            ->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })
+            ->whereHas('roles', function($query) use ($assignedRoleIds) {
+                $query->whereIn('id', $assignedRoleIds);
+            })
+            ->get()
+            ->map(function($user) use ($workPackage, $assignedRoleIds) {
+                $userRoles = $user->getRoleNames();
+                $roleId = null;
+                $roleName = 'No Role';
+
+                // Ambil role yang sesuai dengan assigned roles di work package
+                $userRoleIds = $user->roles->pluck('id')->toArray();
+                $matchingRoleIds = array_intersect($userRoleIds, $assignedRoleIds);
+
+                if (!empty($matchingRoleIds)) {
+                    // Ambil role pertama yang match dengan assigned roles
+                    $matchingRoleId = collect($matchingRoleIds)->first();
+                    $matchingRole = $user->roles->where('id', $matchingRoleId)->first();
+                    
+                    if ($matchingRole) {
+                        $roleId = $matchingRole->id;
+                        $roleName = $matchingRole->name;
+                    }
+                } else {
+                    // Fallback jika tidak ada matching role (seharusnya tidak terjadi karena sudah di-filter)
+                    $karyawanRoles = $userRoles->filter(function($roleName) {
+                        return $roleName !== 'karyawan' && $roleName !== 'admin';
+                    });
+
+                    if ($karyawanRoles->isNotEmpty()) {
+                        $roleName = $karyawanRoles->first();
+                        $roleId = $user->roles->where('name', $roleName)->first()?->id;
+                    } else if ($userRoles->contains('karyawan')) {
+                        $roleName = 'karyawan';
+                        $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                    }
+                }
+
+                // Ambil JHK dari Human Resource untuk role ini
+                $humanResource = null;
+                if ($roleId) {
+                    $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+                        ->where('role_id', $roleId)
+                        ->first();
+                }
+
+                return [
+                    'user_id' => $user->user_id,
+                    'name' => $user->name,
+                    'role_name' => $roleName,
+                    'role_id' => $roleId,
+                    'default_jhk' => $humanResource ? $humanResource->jhk : 0
+                ];
+            })
+            ->filter(function($user) {
+                $isValid = $user['role_id'] !== null && $user['role_name'] !== 'No Role';
+                return $isValid;
+            })
+            ->values();
+
+        // Data Humman Resources berdasarkan role
+        $humanResourcesByRole = $humanResources->keyBy('role_id')->map(function($hr) {
+            return [
+                'role_id' => $hr->role_id,
+                'role_name' => $hr->role->name ?? 'Unknown Role',
+                'jtk' => $hr->jtk,
+                'jhk' => $hr->jhk
             ];
         });
 
@@ -134,15 +212,18 @@ class WorkPackageController extends Controller
         $wpId = $request->get('wp_id');
 
         // Menentukan URL kembali berdasarkan referrer
-        $backUrl = route('wp-management');
-        $backText = 'Kembali ke Manajemen';
+        $backUrl = null;
+        $backText = null;
+        $showBackButton = false;
 
         if ($referrer === 'detail' && $wpId) {
             $backUrl = route('wp-management.detail', ['wp_id' => $wpId]);
             $backText = 'Kembali ke Detail WP';
+            $showBackButton = true;
         } else if ($referrer === 'edit' && $wpId) {
             $backUrl = route('wp-management.edit', ['wp_id' => $wpId]);
             $backText = 'Kembali ke Edit WP';
+            $showBackButton = true;
         }
         
         return view('workpackage', compact(
@@ -156,7 +237,10 @@ class WorkPackageController extends Controller
             'tasks',
             'tasksWithUtilization',
             'backUrl',
-            'backText'
+            'backText',
+            'showBackButton',
+            'availableUsersDropdown',
+            'humanResourcesByRole'
         ));
     }
 
@@ -606,6 +690,7 @@ class WorkPackageController extends Controller
     public function updateVolumeData(Request $request, $volume_id)
     {
         $request->validate([
+            // 'work_order_number' => 'required|integer|min:1|max:999',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'resources' => 'nullable|array',
@@ -781,7 +866,103 @@ class WorkPackageController extends Controller
                 'message' => 'Gagal memperbarui data: ' . $e->getMessage()
             ], 500);
         }
-    }    
+    }
+
+    /**
+     * Validate work order number
+     */
+    // public function validateWorkOrderNumber(Request $request)
+    // {
+    //     try {
+    //         $workOrderInput = $request->input('work_order_number');
+    //         $volumeId = $request->input('volume_id');
+    //         $executionYear = $request->input('execution_year', date('Y'));
+
+    //         if (!$workOrderInput) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Nomor work order diperlukan'
+    //             ], 400);
+    //         }
+
+    //         // Format work order number dengan tahun
+    //         $fullWorkOrderNumber = $executionYear . '-' . str_pad($workOrderInput, 3, '0', STR_PAD_LEFT);
+
+    //         // Check dalam tahun yang sama
+    //         $existingInYear = WorkPackageVolume::where('work_order_number', $fullWorkOrderNumber)
+    //             ->where('execution_year', $executionYear);
+
+    //         if ($volumeId) {
+    //             $existingInYear->where('volume_id', '!=', $volumeId);
+    //         }
+
+    //         $conflictInYear = $existingInYear->first();
+
+    //         if ($conflictInYear) {
+    //             $conflictWorkPackage = $conflictInYear->workPackage;
+
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'available' => false,
+    //                 'work_order_number' => $fullWorkOrderNumber,
+    //                 'message' => "Nomor WO {$fullWorkOrderNumber} sudah digunakan di tahun {$executionYear}",
+    //                 'conflict_details' => [
+    //                     'wp_number' => $conflictWorkPackage->wp_number ?? 'Unknown',
+    //                     'wp_name' => $conflictWorkPackage->name ?? 'Unknown',
+    //                     'volume_number' => $conflictInYear->volume_number ?? 'Unknown'
+    //                 ]
+    //             ]);
+    //         }
+
+    //         // Check dalam work package yang sama
+    //         if ($volumeId) {
+    //             $currentVolume = WorkPackageVolume::findOrFail($volumeId);
+    //             $sameWorkPackageConflict = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
+    //                 ->where('work_order_number', $fullWorkOrderNumber)
+    //                 ->where('volume_id', '!=', $volumeId)
+    //                 ->first();
+                
+    //             if ($sameWorkPackageConflict) {
+    //                 return response()->json([
+    //                     'success' => false,
+    //                     'available' => false,
+    //                     'work_order_number' => $fullWorkOrderNumber,
+    //                     'message' => "Nomor WO {$fullWorkOrderNumber} sudah digunakan di volume lain dalam work package yang sama",
+    //                     'conflict_details' => [
+    //                         'volume_number' => $sameWorkPackageConflict->volume_number ?? 'Unknown',
+    //                         'same_work_package' => true
+    //                     ]
+    //                 ]);
+    //             }
+    //         }
+
+    //         Log::info('Work order number validation passed', [
+    //             'work_order_number' => $fullWorkOrderNumber,
+    //             'execution_year' => $executionYear,
+    //             'volume_id' => $volumeId
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'available' => true,
+    //             'work_order_number' => $fullWorkOrderNumber,
+    //             'message' => 'Nomor work order tersedia'
+    //         ]);
+
+    //     } catch (Exception $e) {
+    //         Log::error('Error validating work order number', [
+    //             'work_order_input' => $request->input('work_order_number'),
+    //             'volume_id' => $request->input('volume_id'),
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
+            
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Terjadi kesalahan saat validasi nomor work order: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Show the form for creating a new resource.

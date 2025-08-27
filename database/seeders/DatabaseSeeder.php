@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             RolePermissionSeeder::class,
             WpCategorySeeder::class,
+            WorkOrderSeeder::class,
             WorkPackageSeeder::class,
             WorkPackageVolumeSeeder::class,
             HumanResourceSeeder::class,

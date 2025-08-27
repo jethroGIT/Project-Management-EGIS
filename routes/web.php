@@ -41,6 +41,7 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');
     Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
     Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
+    Route::get('/wp-management/check-role-assignments', [WorkPackageManagementController::class, 'checkRoleAssignments'])->name('wp-management.check-role-assignments');
 
     // manajemen kategori work package
     Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
@@ -55,13 +56,11 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::put('/resource-management/{id}', [ResourceManagementController::class, 'update'])->name('resource.update');
 
     // Manajemen Roles
-    // Route::middleware('permission:manage roles')->group(function () {
-        Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
-        Route::post('/roles-management', [RolesManagementController::class, 'store'])->name('roles.store');
-        Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
-        Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
-        Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
-    // });
+    Route::get('/roles-management', [RolesManagementController::class, 'index'])->name('roles.management');
+    Route::post('/roles-management', [RolesManagementController::class, 'store'])->name('roles.store');
+    Route::get('/roles-management/{id}/edit', [RolesManagementController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles-management/{id}', [RolesManagementController::class, 'update'])->name('roles.update');
+    Route::delete('/roles-management/{id}', [RolesManagementController::class, 'destroy'])->name('roles.destroy');
 
     // Manajemen Timesheet
     Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');

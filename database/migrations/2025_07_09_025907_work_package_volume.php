@@ -16,12 +16,14 @@ return new class extends Migration
             $table->unsignedBigInteger('wp_id');
             $table->integer('volume_number');
             $table->integer('execution_year')->nullable();
+            $table->unsignedBigInteger('wo_id')->nullable();
             // $table->decimal('completeness', 5, 2)->default(0.00);
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
             $table->timestamps();
 
             $table->foreign('wp_id')->references('wp_id')->on('work_package')->onDelete('cascade');
+            $table->foreign('wo_id')->references('wo_id')->on('work_order')->onDelete('set null');
         });
     }
 

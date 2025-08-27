@@ -738,6 +738,10 @@ function validateCurrentStep() {
                 jhkInput.removeClass('is-invalid');
             }
         });
+
+        if (isValid) {
+            isValid = validateResourceSelection();
+        }
         
         if (!isValid) {
             Swal.fire({
@@ -769,6 +773,18 @@ function loadUsersForResources() {
             if (response.success) {
                 availableUsers = response.users;
                 updateResourceSelects();
+
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Gagal memuat data user untuk resource selection',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-secondary'
+                    }
+                });
             }
         },
         error: function(xhr) {
@@ -859,14 +875,82 @@ function updateResourceSelects() {
         $(this).html('<option value="">Pilih Resource</option>');
         
         availableUsers.forEach(user => {
-            const roleName = user.role ? user.role.name : 'No Role';
-            $(this).append(`<option value="${user.user_id}">${user.name} (${roleName})</option>`);
+            // Ensure have valid user data
+            if (!user.user_id || !user.name) {
+                return;
+            }
+
+            // const roleName = user.role ? user.role.name : 'No Role';
+            let roleName = 'No Role';
+            if (user.role && user.role.name && user.role.name !== 'No Role') {
+                roleName = user.role.name;
+            }
+
+            // Double check if admin users
+            if (roleName === 'admin') {
+                return;
+            }
+
+            const optionText = `${user.name} (${roleName})`
+            $(this).append(`<option value="${user.user_id}">${optionText}</option>`);
         });
         
         if (currentValue) {
             $(this).val(currentValue);
         }
     });
+}
+
+/**
+ * Enhanced validation for resource selection
+ */
+function validateResourceSelection() {
+    let isValid = true;
+    const selectedUsers = [];
+    const problemUsers = [];
+
+    $('.resource-item').each(function() {
+        const userSelect = $(this).find('select[name*="[user_id]"]');
+        const selectedUserId = userSelect.val();
+
+        if (selectedUserId) {
+            // Check for duplicates
+            if (selectedUsers.includes(selectedUserId)) {
+                const userName = userSelect.find('option:selected').text();
+                problemUsers.push(`Duplikat: ${userName}`);
+                isValid = false;
+            } else {
+                selectedUsers.push(selectedUserId);
+            }
+
+            // Check if selected user is admin
+            const selectedUser = availableUsers.find(u => u.user_id == selectedUserId);
+            if (selectedUser && selectedUser.role && selectedUser.role.name === 'admin') {
+                problemUsers.push(`Admin tidak boleh dipilih: ${selectedUser.name}`);
+                isValid = false;
+            }
+        }
+    });
+
+    if (!isValid) {
+        Swal.fire({
+            title: 'Validasi Resource Gagal',
+            html: `
+                <p>Masalah yang ditemukan:</p>
+                <ul class="text-start">
+                    ${problemUsers.map(problem => `<li>${problem}</li>`).join('')}
+                </ul>
+            `,
+            icon: 'warning',
+            buttonsStyling: false,
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'btn btn-warning'
+            }
+        });
+    }
+
+    return isValid;
 }
 
 /**

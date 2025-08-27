@@ -8,6 +8,7 @@ use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Exception;
 
@@ -23,9 +24,12 @@ class ResourceManagementController extends Controller
             $users = User::with('roles')->get();
     
             // Fetch all roles
-            $roles = Role::orderBy('name')->get();
+            $roles = Role::whereNotIn('name', ['karyawan'])
+                            ->orderBy('name')
+                            ->get();
     
             return view('resource_management', compact('users', 'roles'));
+
         } catch(Exception $e) {
             // Kembalikan dengan data kosong jika error
             $users = collect();
@@ -34,14 +38,6 @@ class ResourceManagementController extends Controller
             return view('resource_management', compact('users', 'roles'))
                 ->with('error', 'Terjadi kesalahan saat memuat data user: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -69,12 +65,22 @@ class ResourceManagementController extends Controller
             ]);
 
             // Assign role ke user
-            $role = Role::find($request->role_id);
-            if ($role) {
-                $user->assignRole($role->name);
+            $selectedRole = Role::find($request->role_id);
+            if ($selectedRole) {
+                if ($selectedRole->name === 'admin') {
+                    $user->assignRole('admin');
+                } else {
+                    $user->assignRole(['karyawan', $selectedRole->name]);
+                }
             }
 
             DB::commit();
+
+            // Ambil display role name untuk response
+            $userRoles = $user->fresh()->getRoleNames();
+            $displayRoleName = $userRoles->contains('admin') 
+                ? 'admin' 
+                : $userRoles->filter(fn($role) => $role !== 'karyawan')->first();
 
             return response()->json([
                 'success' => true,
@@ -83,7 +89,7 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_name' => $user->getRoleNames()->first() ?? 'Belum ada peran'
+                    'role_name' => $displayRoleName ?? 'Belum ada peran'
                 ],
                 'password_info' => $generatedPassword
             ]);
@@ -124,21 +130,31 @@ class ResourceManagementController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
         try {
             $user = User::with('roles')->findOrFail($id);
-            $roles = Role::orderBy('name')->get();
+            $roles = Role::whereNotIn('name', ['karyawan'])
+                            ->orderBy('name')
+                            ->get();
+
+            // Menampilkan role saat ini untuk edit form
+            $userRoles = $user->getRoleNames();
+            $currentRoleId = null;
+
+            if ($userRoles->contains('admin')) {
+                $currentRoleId = Role::where('name', 'admin')->first()?->id;
+            } else {
+                $karyawanRole = $userRoles->filter(function($roleName) {
+                    return $roleName !== 'karyawan';
+                })->first();
+
+                if ($karyawanRole) {
+                    $currentRoleId = Role::where('name', $karyawanRole)->first()?->id;
+                }
+            }
 
             return response()->json([
                 'success' => true,
@@ -146,8 +162,8 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_id' => $user->roles->first()?->id,
-                    'role_name' => $user->getRoleNames()->first() ?? 'No Role'
+                    'role_id' => $currentRoleId,
+                    'role_name' => $userRoles->filter(fn($role) => $role !== 'karyawan')->first() ?? 'No Role'
                 ],
                 'roles' => $roles
             ]);
@@ -190,17 +206,29 @@ class ResourceManagementController extends Controller
             // Deteksi perubahan data
             $originalName = $user->name;
             $originalEmail = $user->email;
-            $originalRoleId = $user->roles->first()?->id;
+            $originalRoles = $user->getRoleNames();
+            $originalMainRole = $originalRoles->contains('admin')
+                ? 'admin' 
+                : $originalRoles->filter(fn($role) => $role !== 'karyawan')->first();
             
             $newName = trim($request->name);
             $newEmail = trim($request->email);
-            $newRoleId = (int) $request->role_id;
+            $newRole = Role::find($request->role_id);
             $passwordChanged = $request->filled('password');
 
             // Pengecekan perubahan
             $nameChanged = $originalName !== $newName;
             $emailChanged = $originalEmail !== $newEmail;
-            $roleChanged = $originalRoleId !== $newRoleId;
+            $roleChanged = false;
+            if ($newRole) {
+                if ($originalRoles->contains('admin') && $newRole->name !== 'admin') {
+                    $roleChanged = true; // Admin -> Non-admin
+                } elseif (!$originalRoles->contains('admin') && $newRole->name === 'admin') {
+                    $roleChanged = true; // Non-admin -> Admin
+                } elseif (!$originalRoles->contains('admin') && $originalMainRole !== $newRole->name) {
+                    $roleChanged = true; // Karyawan role change 
+                }
+            }
             
             $hasChanges = $nameChanged || $emailChanged || $roleChanged || $passwordChanged;
 
@@ -215,7 +243,7 @@ class ResourceManagementController extends Controller
                     'current_data' => [
                         'name' => $originalName,
                         'email' => $originalEmail,
-                        'role_name' => $user->getRoleNames()->first() ?? 'No Role',
+                        'role_name' => $originalMainRole ?? 'No Role',
                         'last_updated' => $user->updated_at ? $user->updated_at->format('d M Y H:i') : 'Tidak diketahui'
                     ]
                 ], 200);
@@ -233,14 +261,21 @@ class ResourceManagementController extends Controller
             $user->save();
 
             // Update role jika berubah
-            if ($roleChanged) {
-                $role = Role::find($newRoleId);
-                if ($role) {
-                    $user->syncRoles([$role->name]);
+            if ($roleChanged && $newRole) {
+                if ($newRole->name === 'admin') {
+                    $user->syncRoles(['admin']);
+                } else {
+                    $user->syncRoles(['karyawan', $newRole->name]);
                 }
             }
 
             DB::commit();
+
+            // Ambil nama role terbaru untuk response
+            $updatedRoles = $user->fresh()->getRoleNames();
+            $displayRoleName = $updatedRoles->contains('admin') 
+                ? 'admin' 
+                : $updatedRoles->filter(fn($role) => $role !== 'karyawan')->first();
 
             return response()->json([
                 'success' => true,
@@ -249,7 +284,7 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_name' => $user->getRoleNames()->first() ?? 'No Role',
+                    'role_name' => $displayRoleName ?? 'No Role',
                     'updated_at' => $user->updated_at->format('d M Y H:i')
                 ]
             ]);
