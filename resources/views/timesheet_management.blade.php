@@ -643,52 +643,61 @@
             e.preventDefault();
             if (!validateAddActivityForm()) return;
 
-            const formData = new FormData(addActivityForm);
-            const url = addActivityForm.action;
+            const addActivityForm = $('#addActivityForm');
+            const formData = new FormData(addActivityForm[0]);
 
-            // Kirim permintaan AJAX
-            fetch(url, {
+            $.ajax({
+                url: addActivityForm.attr('action'),
                 method: 'POST',
-                body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+                data: formData,
+                processData: false,
+                contentType: false,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                beforeSend: function () {
+                    addActivityForm.find('input, button, select, textarea').prop('disabled', true);
+                    Swal.fire({
+                        title: 'Menambahkan Aktivitas...',
+                        text: 'Sedang memproses penambahan aktivitas baru',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
                     });
+                },
+                success: function (response) {
+                    Swal.fire({
+                        title: "Berhasil Ditambahkan",
+                        text: response.message || "Data berhasil ditambahkan!",
+                        icon: "success",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-secondary" }
+                    }).then(() => {
+                        addActivityModal.hide();
+                        window.location.reload();
+                    });
+                },
+                error: function (xhr) {
+                    let errorMessage = "Terjadi kesalahan saat menambahkan aktivitas";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        title: "Gagal Menambahkan Aktivitas",
+                        text: errorMessage,
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-secondary" }
+                    });
+                },
+                complete: function () {
+                    addActivityForm.find('input, button, select, textarea').prop('disabled', false);
                 }
-                return response.json(); // Parse respons JSON
-            })
-            .then(data => {
-                // Logika jika permintaan sukses
-                Swal.fire({
-                    text: data.message || "Data berhasil ditambahkan!",
-                    icon: "success",
-                    buttonsStyling: false,
-                    confirmButtonText: "Tutup",
-                    customClass: { confirmButton: "btn btn-secondary" }
-                }).then(() => {
-                    addActivityModal.hide(); // Sembunyikan modal
-                    location.reload(); // Reload halaman untuk melihat perubahan
-                    // ATAU update UI tanpa reload:
-                    // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
-                });
-            })
-            .catch(error => {
-                // Logika jika ada error (jaringan, validasi, server error)
-                console.error('Error updating resource:', error);
-                Swal.fire({
-                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "OK",
-                    customClass: { confirmButton: "btn btn-danger" }
-                });
             });
         });
     }

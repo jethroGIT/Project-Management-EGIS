@@ -196,7 +196,7 @@
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
+                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
                                                             <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                             Hapus
                                                         </a>
@@ -712,7 +712,7 @@ $(document).ready(function () {
         initializeEditModal();
     });
 
-    // ✅ FIX: Bersihkan alert ketika modal ditutup
+    // FIX: Bersihkan alert ketika modal ditutup
     $('#kt_modal_edit_data').on('hidden.bs.modal', function () {
         // Hapus semua alert info yang mungkin tertinggal
         $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
@@ -1248,92 +1248,6 @@ function toggleSubRows(rowId) {
     }
 }
 
-/** TASK MANAGEMENT **/
-/** Insert Task */
-/**
- * Function untuk menambah task pertama (jika belum ada task di tabel)
- */
-// function insertFirstTask() {
-//     // Reset semua field reference
-//     $('#referenceTaskId').val('');
-//     $('#insertPosition').val('');
-//     $('#insertTaskModalTitle').text('Tambah Task');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     } else {
-//         Swal.fire({
-//             text: "Volume ID tidak ditemukan. Tidak dapat menambahkan task.",
-//             icon: "error",
-//             buttonsStyling: false,
-//             confirmButtonText: "Tutup",
-//             customClass: {
-//                 confirmButton: "btn btn-secondary"
-//             }
-//         });
-//         return;
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#modalVolumeId').val(volumeId);
-//     $('#referenceTaskId').val('');
-//     $('#insertPosition').val('');
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
-/**
- * Function untuk insert task di atas
- */
-// function insertTaskAbove(taskId, taskName) {
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('above');
-//     $('#insertTaskModalTitle').text('Masukkan Task di Atas');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('above');
-//     $('#modalVolumeId').val(volumeId);
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
-/**
- * Function untuk insert task di bawah
- */
-// function insertTaskBelow(taskId, taskName) {
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('below');
-//     $('#insertTaskModalTitle').text('Masukkan Task di Bawah');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('below');
-//     $('#modalVolumeId').val(volumeId);
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
 /**
  * Function untuk insert sub task
  */
@@ -1787,7 +1701,7 @@ function deleteTask(taskId, taskName) {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
-            let warningText = ``;
+            let warningText = `Apakah Anda yakin ingin menghapus task "<b>${taskName}</b>"?`;
             if (response.success && response.subtask_count > 0) {
                 warningText = `<span style="font-size:0.95em">Task "<b>${taskName}</b>" ini memiliki ${response.subtask_count} sub task.<br>Menghapus task akan menghapus semua sub task terkait.<br></span>`;
             }

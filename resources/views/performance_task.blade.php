@@ -172,7 +172,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Sub Task Personel</h3>
+                <h3 class="modal-title">Tambah Sub Task</h3>
 
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
@@ -787,14 +787,7 @@
                 if (response.success) {
                     Swal.fire({
                         title: "Berhasil Dihapus",
-                        html: `
-                            <p>${response.message}</p>
-                            <div class="mt-3 p-3 bg-light rounded">
-                                <strong>Sub Task yang Dihapus</strong><br>
-                                <strong>Nama:</strong> ${response.deleted_sub_task.name}<br>
-                                <strong>Task:</strong> ${response.deleted_sub_task.task_name}<br>
-                            </div>
-                        `,
+                        text: 'Task berhasil dihapus',
                         icon: "success",
                         buttonStyling: false,
                         confirmButton: "Tutup",
