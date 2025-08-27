@@ -202,7 +202,7 @@
                     @method('POST')
                     {{-- hidden input --}}
                     <div id="edit_timesheet_ids_container"></div>
-                    {{-- <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value=""> --}}
+                    <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value="">
                     <div class="form-group mb-6">
                         <label for="edit_work_package_select" class="form-label fw-bold">Work Package</label>
                         <div class="input-group">
@@ -260,6 +260,7 @@
             </div>
         </div>
         <div class="card-body">
+            {{-- <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value=""> --}}
             <div class="form-group mb-6">
                 <label class="form-label fw-bold">Personel</label>
                 <div class="input-group">
@@ -737,6 +738,7 @@
                 const wpId = activities[0].volume.work_package.wp_id;
 
                 document.getElementById('edit_work_package_select').value = wpId;
+                document.getElementById('edit_timesheet_id').value = activities[0].timesheet_id;
 
                 const volumes = volumeData[wpId] || [];
                 const volumeSelect = document.getElementById('edit_volume_select');
@@ -845,6 +847,64 @@
                 if (result.isConfirmed) {
                     const timesheetId = document.getElementById('edit_timesheet_id').value; // atau ambil dari global variable
 
+                    fetch(`/timesheet-management/${timesheetId}/delete-all`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title:'Berhasil!', 
+                                text: data.message, 
+                                icon: 'success',
+                                buttonsStyling: false,
+                                confirmButtonText: "Tutup",
+                                customClass: { confirmButton: "btn btn-secondary" }
+                            }).then(() => {
+                                // Tutup modal dan update UI
+                                $('#editActivityModal').modal('hide');
+                                // location.reload();
+                                $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
+                                // console.log('Menghapus seluruh aktivitas personel');
+                                // document.getElementById(groupId).remove();
+                                editCurrentPersonelGroups--;
+                                // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
+                                // wrapper.remove();
+                                group.remove();
+                                updateEditGroupNumbering();
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Gagal', data.message, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
+                    });
+                }
+            });
+        }else {
+            Swal.fire({
+                title: "Hapus Aktivitas?",
+                text: `Apakah Anda yakin ingin menghapus aktivitas personel?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Hapus",
+                cancelButtonText: "Batal",
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: "btn btn-danger me-2",
+                    cancelButton: "btn btn-secondary"
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const timesheetId = document.getElementById('edit_timesheet_id').value; // atau ambil dari global variable
+
                     fetch(`/timesheet-management/${timesheetId}/delete`, {
                         method: 'DELETE',
                         headers: {
@@ -874,6 +934,7 @@
                                 // wrapper.remove();
                                 group.remove();
                                 updateEditGroupNumbering();
+                                location.reload();
                             });
                         } else {
                             Swal.fire('Gagal', data.message, 'error');
@@ -883,30 +944,6 @@
                         console.error(err);
                         Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
                     });
-                }
-            });
-        }else {
-            Swal.fire({
-                title: "Hapus Aktivitas?",
-                text: `Apakah Anda yakin ingin menghapus aktivitas personel?`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Ya, Hapus",
-                cancelButtonText: "Batal",
-                buttonsStyling: false,
-                customClass: {
-                    confirmButton: "btn btn-danger me-2",
-                    cancelButton: "btn btn-secondary"
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // location.reload();
-                    // document.getElementById(groupId).remove();
-                    editCurrentPersonelGroups--;
-                    // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
-                    // wrapper.remove();
-                    group.remove();
-                    updateEditGroupNumbering();
                 }
             });
         }

@@ -230,7 +230,7 @@ class TimesheetManagementController extends Controller
         }
     }
 
-    public function delete($id)
+    public function deleteAll($id)
     {
         try {
             $activity = Timesheet::findOrFail($id);
@@ -242,6 +242,24 @@ class TimesheetManagementController extends Controller
             // Hapus semua entri di tanggal & volume yang sama
             Timesheet::where('execution_date', $executionDate)
                 ->where('volume_id', $volumeId)
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil dihapus.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function delete($id)
+    {
+        try {
+            Timesheet::findOrFail($id)
                 ->delete();
 
             return response()->json([
