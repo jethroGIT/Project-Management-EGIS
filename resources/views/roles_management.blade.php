@@ -100,7 +100,7 @@
 
             <!-- Modal Add Role -->
             <div class="modal fade" tabindex="-1" id="kt_modal_add_role">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Tambah Peran</h3>
@@ -151,7 +151,7 @@
 
             <!-- Modal Edit Role -->
             <div class="modal fade" tabindex="-1" id="kt_modal_edit_role">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Edit Peran</h3>

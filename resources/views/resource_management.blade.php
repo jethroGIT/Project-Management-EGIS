@@ -103,7 +103,7 @@
 
             <!-- Modal Add User -->
             <div class="modal fade" tabindex="-1" id="kt_modal_add_user">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Tambah User</h3>
@@ -150,7 +150,7 @@
 
             <!-- Modal Edit User -->
             <div class="modal fade" tabindex="-1" id="kt_modal_edit_user">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Edit User</h3>
@@ -556,8 +556,7 @@ function submitAddUser() {
         success: function(response) {
             if (response.success) {
                 Swal.fire({
-                    title: "Berhasil",
-                    text: response.message || "User berhasil ditambahkan",
+                    title: "Berhasil ditambahkan",
                     icon: "success",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",

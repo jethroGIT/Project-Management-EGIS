@@ -200,89 +200,111 @@
     }
 
     // Modal and form handling for adding a new category
-    const addCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_add_category'));
-    const submitAddCategoryForm = document.getElementById('submitAddCategoryForm');
-    const addCategoryForm = document.getElementById('addCategoryForm');
+    $(document).ready(function () {
+        const addCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_add_category'));
+        const addCategoryForm = $('#addCategoryForm');
+        const submitAddCategoryForm = $('#submitAddCategoryForm');
 
-    function validateCategoryName() {
-        // Cek field utama
-        const formCategoryName = document.getElementById('name').value.trim();
-        const formCategoryNumber = document.getElementById('category_number').value.trim();
+        submitAddCategoryForm.on('click', function (e) {
+            e.preventDefault();
 
-        if (!formCategoryName || !formCategoryNumber) {
-            Swal.fire({
-                title: "Data Belum Lengkap",
-                text: "Nomor Kategori & Kategori Work Package wajib diisi.",
-                icon: "info",
-                buttonsStyling: false,
-                confirmButtonText: "Tutup",
-                customClass: { confirmButton: "btn btn-primary" }
-            });
-            return false;
-        }
-        if(formCategoryNumber <=0){
-            Swal.fire({
-                title: "Nomor Kategori Tidak Valid",
-                text: "Nomor Kategori harus berupa angka positif.",
-                icon: "info",
-                buttonsStyling: false,
-                confirmButtonText: "Tutup",
-                customClass: { confirmButton: "btn btn-primary" }
-            });
-            return false;
-        }
-        return true;
-    }
+            // Validasi manual
+            const categoryNumber = $('#category_number').val().trim();
+            const categoryName = $('#name').val().trim();
 
-    document.addEventListener('DOMContentLoaded', function () {
-        if (submitAddCategoryForm) {
-            submitAddCategoryForm.addEventListener('click', function (e) {
-                e.preventDefault();
-                if( !validateCategoryName()) {return;}
+            if (!categoryNumber || !categoryName) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Nomor Kategori & Kategori Work Package wajib diisi.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-primary" }
+                });
+                return;
+            }
+            if (parseInt(categoryNumber) <= 0) {
+                Swal.fire({
+                    title: "Nomor Kategori Tidak Valid",
+                    text: "Nomor Kategori harus berupa angka positif.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-primary" }
+                });
+                return;
+            }
 
-                const formData = new FormData(addCategoryForm);
-                const url = addCategoryForm.action;
+            // Siapkan FormData
+            const formData = new FormData(addCategoryForm[0]);
 
-                fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(errorData => {
-                                throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
-                            });
+            $.ajax({
+                url: addCategoryForm.attr('action'),
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                beforeSend: function () {
+                    // Disable form elements
+                    addCategoryForm.find('input, button').prop('disabled', true);
+
+                    Swal.fire({
+                        title: 'Menambahkan Kategori...',
+                        text: 'Sedang memproses penambahan kategori baru',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading()
                         }
-                        return response.json();
-                    })
-                    .then(data => {
+                    });
+                },
+                success: function (response) {
+                    if (response.success || response.message) {
                         Swal.fire({
-                            text: data.message || "Data berhasil ditambahkan!",
+                            title: "Berhasil Ditambahkan",
                             icon: "success",
                             buttonsStyling: false,
                             confirmButtonText: "Tutup",
                             customClass: { confirmButton: "btn btn-secondary" }
                         }).then(() => {
                             addCategoryModal.hide();
-                            location.reload();
+                            window.location.reload();
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error adding category:', error);
+                    } else {
                         Swal.fire({
-                            text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                            title: "Gagal",
+                            text: response.message || "Gagal menambahkan kategori",
                             icon: "error",
                             buttonsStyling: false,
-                            confirmButtonText: "OK",
-                            customClass: { confirmButton: "btn btn-danger" }
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
                         });
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Terjadi kesalahan saat menambahkan kategori";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        title: "Gagal Menambahkan Kategori",
+                        text: errorMessage,
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-secondary" }
                     });
+                },
+                complete: function () {
+                    // Enable form elements
+                    addCategoryForm.find('input, button').prop('disabled', false);
+                }
             });
-        }
+        });
     });
 
     // Modal and form handling for editing a new category
