@@ -149,7 +149,7 @@
                         <template id="personelActivityTemplate">
                             <div class="personel-activity-group card card-flush shadow-sm mb-6">
                                 <div class="card-header py-2">{{--  Sesuaikan padding header --}}
-                                    <h3 class="card-title fw-bold fs-5">Personel 1</h3>
+                                    <h3 class="card-title fw-bold fs-5"></h3>
                                     <div class="card-toolbar">
                                         <button type="button" class="btn btn-sm btn-light-danger remove-personel-btn">
                                             <i class="bi bi-trash fs-5"></i> Hapus
@@ -252,7 +252,7 @@
 <template id="editPersonelActivityTemplate">
     <div class="personel-activity-group card card-flush shadow-sm mb-6">
         <div class="card-header py-2"> {{-- Sesuaikan padding header --}}
-            <h3 class="card-title card-title-edit fw-bold fs-5">Personel 1</h3>
+            <h3 class="card-title card-title-edit fw-bold fs-5"></h3>
             <div class="card-toolbar">
                 <button type="button" class="btn btn-sm btn-light-danger remove-edit-personel-btn">
                     <i class="bi bi-trash fs-5"></i> Hapus
@@ -711,6 +711,7 @@
     
     let editCurrentPersonelGroups = 0;
     let editMaxPersonelGroups = {{ $users->count() }};
+    console.log('Max personel groups:', editMaxPersonelGroups);
 
     document.getElementById('editActivityModal').addEventListener('hidden.bs.modal', function () {
         // Reset seluruh isi container personel activity di modal edit
@@ -755,7 +756,7 @@
                 hiddenInputContainer.innerHTML = '';
 
                 // Tambahkan personel dan aktivitas yang sudah ada (dari database)
-                activities.forEach((item, index) => {
+                activities.forEach((item) => {
                     if (item.timesheet_id) {
                         const hiddenInput = document.createElement('input');
                         hiddenInput.type = 'hidden';
@@ -765,7 +766,7 @@
                     }
 
                     // Tetap panggil function untuk render field-nya
-                    editPersonelActivityGroup(item, index + 1);
+                    editPersonelActivityGroup(item);
                 });
 
                 editCurrentPersonelGroups = 0;
@@ -784,22 +785,18 @@
 
     const allUsers = @json($users);
     console.log('All users:', allUsers);
-    function editPersonelActivityGroup(activity, number){
-        // console.log('Adding/editing personel activity group:', activity, number);
+    function editPersonelActivityGroup(activity) {
         const template = document.getElementById('editPersonelActivityTemplate');
         if (!template) {
             console.error('Template editPersonelActivityTemplate not found');
             return;
         }
-        const clone = template.content.cloneNode(true);
-        
-        const personelSelect = clone.querySelector('.edit-personel-select');
-        const textarea = clone.querySelector('.edit-activity-textarea');
-        const title = clone.querySelector('.card-title-edit');
-        
-        // Set title
-        title.textContent = `Personel ${number}`;
-        
+        // Langsung clone node utama (bukan dibungkus lagi)
+        const group = template.content.cloneNode(true).querySelector('.personel-activity-group');
+
+        const personelSelect = group.querySelector('.edit-personel-select');
+        const textarea = group.querySelector('.edit-activity-textarea');
+
         // Populate select
         allUsers.forEach(user => {
             const userOption = document.createElement('option');
@@ -807,38 +804,29 @@
             let roleName = (user.roles && user.roles.length > 1)
                 ? user.roles[1].name
                 : (user.roles && user.roles.length ? user.roles[0].name : '');
-            // console.log('User:', user.name, 'Role:', roleName);
             userOption.textContent = `${user.name} - ${roleName}`;
             personelSelect.appendChild(userOption);
         });
 
-        textarea.value = activity.activity;
-        personelSelect.value = String(activity.user_id);
-        // Buat wrapper div untuk menyimpan clone dan memberi ID
-        const wrapper = document.createElement('div');
-        wrapper.classList.add('wrapper-edit-personel');
-        wrapper.classList.add('personel-activity-group');
-        wrapper.id = `edit-personel-activity-${editCurrentPersonelGroups}`;
-        wrapper.appendChild(clone);
+        textarea.value = activity.activity || '';
+        personelSelect.value = activity.user_id ? String(activity.user_id) : '';
 
-        // Pasang event listener pada tombol hapus
-        const removeBtn = wrapper.querySelector('.remove-edit-personel-btn');
-        if (!removeBtn) {
-            console.error('remove-edit-personel-btn not found in clone');
-        } else {
+        // Event listener tombol hapus
+        const removeBtn = group.querySelector('.remove-edit-personel-btn');
+        if (removeBtn) {
             removeBtn.addEventListener('click', function () {
-                removeEditPersonelActivityGroup(wrapper.id);
+                removeEditPersonelActivityGroup(group);
             });
         }
-        editPersonelActivityContainer.appendChild(wrapper);
-        editCurrentPersonelGroups++;
 
-        wrapper.querySelector('.remove-edit-personel-btn').addEventListener('click', function() {
-            removeEditPersonelActivityGroup(wrapper.id);
-        });
+        editPersonelActivityContainer.appendChild(group);
+        updateEditGroupNumbering();
     }
 
-    function removeEditPersonelActivityGroup(groupId) {
+    function removeEditPersonelActivityGroup(group) {
+        if (typeof group === 'string') {
+            group = document.getElementById(group);
+        }
         const totalGroups = editPersonelActivityContainer.querySelectorAll('.personel-activity-group').length;
         if (totalGroups <= 1) {
             Swal.fire({
@@ -855,44 +843,46 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-            const timesheetId = document.getElementById('edit_timesheet_id').value; // atau ambil dari global variable
+                    const timesheetId = document.getElementById('edit_timesheet_id').value; // atau ambil dari global variable
 
-            fetch(`/timesheet-management/${timesheetId}/delete`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        title:'Berhasil!', 
-                        text: data.message, 
-                        icon: 'success',
-                        buttonsStyling: false,
-                        confirmButtonText: "Tutup",
-                        customClass: { confirmButton: "btn btn-secondary" }
-                    }).then(() => {
-                        // Tutup modal dan update UI
-                        $('#editActivityModal').modal('hide');
-                        // location.reload();
-                        $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
-                        // console.log('Menghapus seluruh aktivitas personel');
-                        document.getElementById(groupId).remove();
-                        editCurrentPersonelGroups--;
-                        // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
-                        updateEditGroupNumbering();
+                    fetch(`/timesheet-management/${timesheetId}/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title:'Berhasil!', 
+                                text: data.message, 
+                                icon: 'success',
+                                buttonsStyling: false,
+                                confirmButtonText: "Tutup",
+                                customClass: { confirmButton: "btn btn-secondary" }
+                            }).then(() => {
+                                // Tutup modal dan update UI
+                                $('#editActivityModal').modal('hide');
+                                // location.reload();
+                                $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
+                                // console.log('Menghapus seluruh aktivitas personel');
+                                // document.getElementById(groupId).remove();
+                                editCurrentPersonelGroups--;
+                                // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
+                                // wrapper.remove();
+                                group.remove();
+                                updateEditGroupNumbering();
+                            });
+                        } else {
+                            Swal.fire('Gagal', data.message, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
                     });
-                } else {
-                    Swal.fire('Gagal', data.message, 'error');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
-            });
                 }
             });
         }else {
@@ -911,22 +901,45 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // location.reload();
-                    document.getElementById(groupId).remove();
+                    // document.getElementById(groupId).remove();
                     editCurrentPersonelGroups--;
                     // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
+                    // wrapper.remove();
+                    group.remove();
                     updateEditGroupNumbering();
                 }
             });
         }
     }
 
+    // ...existing code...
     function updateEditGroupNumbering() {
-        editPersonelActivityContainer.querySelectorAll('.personel-activity-group').forEach((group, index) => {
+        // Selalu urutkan berdasarkan urutan DOM
+        const groups = editPersonelActivityContainer.querySelectorAll('.personel-activity-group');
+        groups.forEach((group, index) => {
             group.id = `edit-personel-activity-${index}`;
-            group.querySelector('.card-title').textContent = `Personel ${index + 1}`;
+            const title = group.querySelector('.card-title, .card-title-edit');
+            if (title) title.textContent = `Personel ${index + 1}`;
+            const select = group.querySelector('.edit-personel-select');
+            if (select) {
+                select.id = `edit_personel_select_${index}`;
+                select.name = `personel_ids[${index}]`;
+            }
+            const textarea = group.querySelector('.edit-activity-textarea');
+            if (textarea) {
+                textarea.id = `edit_activity_${index}`;
+                textarea.name = `activities[${index}]`;
+            }
+            // Pastikan tombol hapus tetap berfungsi
+            const removeBtn = group.querySelector('.remove-edit-personel-btn');
+            if (removeBtn) {
+                removeBtn.onclick = function () {
+                    removeEditPersonelActivityGroup(group);
+                };
+            }
         });
     }
-
+    
     // Event listener for edit buttons
     $(document).on('click', '.btn-edit-activity', function(e) {
         e.preventDefault();
@@ -979,7 +992,7 @@
                 return;
             }
             // Tambahkan group kosong baru
-            editPersonelActivityGroup({ activity: '', user_id: '' }, totalGroups + 1);
+            editPersonelActivityGroup({ activity: '', user_id: '' });
             updateAllPersonelSelects(editVolumeSelect.value);
             updateEditGroupNumbering();
             updateEditPersonelSelectOptions();
