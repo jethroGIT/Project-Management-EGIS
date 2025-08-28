@@ -35,7 +35,7 @@
             <div class="table-responsive mb-2">
                 <table id="tabel_role" class="table table-striped gy-4 gs-3 border rounded w-100">
                     <thead>
-                        <tr class="fw-bolder fs-4 text-gray-1000 px-7">
+                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th class="align-middle border-bottom">No</th>
                             <th class="align-middle border-bottom min-w-200px">Nama Peran</th>
                             <th class="align-middle border-bottom">Singkatan</th>

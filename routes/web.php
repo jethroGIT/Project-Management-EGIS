@@ -16,6 +16,7 @@ use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
 use App\Http\Controllers\SignInController;
 use App\Http\Controllers\TimesheetManagementController;
+use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WPCategoryManagementController;
 use App\Http\Controllers\WorkPackageManagementController;
 
@@ -94,6 +95,8 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::delete('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'deleteSubTask'])->name('work-package.subtask.delete');
     Route::put('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'updateSubTask'])->name('work-package.subtask.update');
 
+    // work order
+    Route::get('/work-order', [WorkOrderController::class, 'index'])->name('work-order');
 });
 
 Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){

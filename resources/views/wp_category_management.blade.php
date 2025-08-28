@@ -34,7 +34,7 @@
             <div class="table-responsive mb-2">
                 <table id="tabel_category" class="table table-striped table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
-                        <tr class="fw-bolder fs-4 text-gray-1000 px-7">
+                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th class="align-middle border-bottom text-center">No</th>
                             <th class="align-middle border-bottom" style="min-width: 110px">No. Kategori</th>
                             <th class="align-middle border-bottom">Kategori</th>
