@@ -119,6 +119,20 @@
                                                     </span>
                                                 @endif
                                             </div>
+
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-hash me-1"></i>
+                                                    Work Order
+                                                </div>
+                                                <div class="fs-7">
+                                                    @if ($volume['wo_number'])
+                                                        WO {{ $volume['wo_number'] }}
+                                                    @else
+                                                        <span>Belum tersedia</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                             
                                             <div class="mb-4">
                                                 <div class="fw-bold mb-1">
@@ -175,6 +189,20 @@
                                                     Volume {{ $volume['volume_number'] }}
                                                 </h4>
                                                 <span class="badge badge-light-info">{{ $volume['execution_year'] }}</span>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-hash me-1"></i>
+                                                    Work Order
+                                                </div>
+                                                <div class="fs-7">
+                                                    @if ($volume['wo_number'])
+                                                        WO {{ $volume['wo_number'] }}
+                                                    @else
+                                                        <span>Belum tersedia</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                             
                                             <div class="mb-4">

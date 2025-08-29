@@ -42,6 +42,10 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
     Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
     Route::get('/wp-management/check-role-assignments', [WorkPackageManagementController::class, 'checkRoleAssignments'])->name('wp-management.check-role-assignments');
+    Route::get('/wp-management/available-work-orders', [WorkPackageManagementController::class, 'getAvailableWorkOrders'])->name('wp-management.available-work-orders');
+    Route::post('/wp-management/assign-work-order', [WorkPackageManagementController::class, 'assignWorkOrder'])->name('wp-management.assign-work-order');
+    Route::get('/wp-management/next-wo-number', [WorkPackageManagementController::class, 'getNextWoNumber'])->name('wp-management.next-wo-number');
+    Route::get('/wp-management/check-wo-number', [WorkPackageManagementController::class, 'checkWoNumberAvailability'])->name('wp-management.check-wo-number');
 
     // manajemen kategori work package
     Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');

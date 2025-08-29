@@ -12,11 +12,13 @@ use App\Models\Task;
 use App\Models\SubTask;
 use App\Models\Work;
 use App\Models\Timesheet;
+use App\Models\WorkOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Carbon\Carbon;
 use Exception;
 
@@ -134,6 +136,12 @@ class WorkPackageManagementController extends Controller
                                         Carbon::parse($volume->end_date)->format('d M Y');
                 }
 
+                // Mendapatkan nomor work order
+                $woNumber = null;
+                if ($volume->wo_id && $volume->workOrder) {
+                    $woNumber = $volume->workOrder->wo_number;
+                }
+
                 return [
                     'volume_id' => $volume->volume_id,
                     'volume_number' => $volume->volume_number,
@@ -143,7 +151,9 @@ class WorkPackageManagementController extends Controller
                     'period_formatted' => $periodFormatted,
                     'duration_days' => $workPackage->duration,
                     'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada resource',
-                    'resource_count' => $resourceNames->count()
+                    'resource_count' => $resourceNames->count(),
+                    'wo_id' => $volume->wo_id,
+                    'wo_number' => $woNumber
                 ];
             });
 
@@ -688,6 +698,12 @@ class WorkPackageManagementController extends Controller
                                     Carbon::parse($volume->end_date)->format('d M Y');
                 }
 
+                // Mendapatkan nomor work order
+                $woNumber = null;
+                if ($volume->wo_id && $volume->workOrder) {
+                    $woNumber = $volume->workOrder->wo_number;
+                }
+
                 return [
                     'volume_id' => $volume->volume_id,
                     'volume_number' => $volume->volume_number,
@@ -695,7 +711,9 @@ class WorkPackageManagementController extends Controller
                     'end_date' => $volume->end_date,
                     'execution_year' => $volume->execution_year,
                     'period_formatted' => $periodFormatted,
-                    'resources' => $resources
+                    'resources' => $resources,
+                    'wo_id' => $volume->wo_id,
+                    'wo_number' => $woNumber
                 ];
             });
 
@@ -783,7 +801,12 @@ class WorkPackageManagementController extends Controller
 
             Log::info('Updating work package', [
                 'wp_id' => $wp_id, 
-                'data' => $request->all()
+                'data' => $request->all(),
+                'has_resources' => $request->has('resources'),
+                'resources_data' => $request->input('resources', []),
+                'has_work_order_assignments' => $request->has('work_order_assignments'),
+                'request_method' => $request->method(),
+                'content_type' => $request->header('Content-Type')
             ]);
 
             // Temukan data work package
@@ -813,6 +836,9 @@ class WorkPackageManagementController extends Controller
                 'resources.*.role_id' => 'required|exists:roles,id',
                 'resources.*.jtk' => 'required|integer|min:1',
                 'resources.*.jhk' => 'required|integer|min:1',
+
+                // Work orderassignments validation
+                'work_order_assignments' => 'nullable|string',
             ]);
 
             // CHECK DATA UPDATE CHANGES
@@ -845,6 +871,18 @@ class WorkPackageManagementController extends Controller
                         'role_id' => $hr->role_id,
                         'jtk' => $hr->jtk,
                         'jhk' => $hr->jhk
+                    ];
+                })
+                ->toArray();
+
+            // Mendapatkan data original work order assignments
+            $originalWorkOrderAssignments = $workPackage->workPackageVolumes()
+                ->orderBy('volume_number', 'asc')
+                ->get()
+                ->map(function($volume) {
+                    return [
+                        'volume_id' => $volume->volume_id,
+                        'wo_id' => $volume->wo_id
                     ];
                 })
                 ->toArray();
@@ -907,6 +945,44 @@ class WorkPackageManagementController extends Controller
             
             $humanResourcesChanged = $originalHumanResources !== $newHumanResources;
 
+            // Cek perubahan work order assignments
+            $workOrderAssignmentsChanged = false;
+            $newWorkOrderAssignments = [];
+
+            if ($request->has('work_order_assignments')) {
+                $workOrderAssignments = json_decode($request->input('work_order_assignments'), true);
+
+                if (!empty($workOrderAssignments)) {
+                    foreach ($workOrderAssignments as $volumeId => $assignmentData) {
+                        if ($assignmentData['type'] === 'new') {
+                            $newWorkOrderAssignments[] = [
+                                'volume_id' => (int)$volumeId,
+                                'wo_id' => 'new_' . $assignmentData['wo_number']
+                            ];
+                        } else {
+                            $newWorkOrderAssignments[] = [
+                                'volume_id' => (int)$volumeId,
+                                'wo_id' => (int)$assignmentData['wo_id']
+                            ];
+                        }
+                    }
+
+                    // Mengurutkan kedua array untuk perbandingan
+                    $originalWorkOrderAssignmentsSorted = collect($originalWorkOrderAssignments)
+                        ->sortBy('volume_id')
+                        ->values()
+                        ->toArray();
+                    
+                    $newWorkOrderAssignmentsSorted = collect($newWorkOrderAssignments)
+                        ->sortBy('volume_id')
+                        ->values()
+                        ->toArray();
+                    
+                    // Membandingkan work order assignments
+                    $workOrderAssignmentsChanged = $originalWorkOrderAssignmentsSorted !== $newWorkOrderAssignmentsSorted;
+                }
+            }
+
             // Perbandingan untuk menentukan adanya perubahan
             $hasChanges = $categoryChanged ||
                         $wpNumberChanged || 
@@ -915,7 +991,8 @@ class WorkPackageManagementController extends Controller
                         $deliverableChanged || 
                         $durationChanged || 
                         $volumesChanged || 
-                        $humanResourcesChanged;
+                        $humanResourcesChanged ||
+                        $workOrderAssignmentsChanged;
 
             // Log Perbandingan Perubahan
             Log::info('Final change detection result', [
@@ -929,7 +1006,8 @@ class WorkPackageManagementController extends Controller
                     'deliverable_changed' => $deliverableChanged,
                     'duration_changed' => $durationChanged,
                     'volumes_changed' => $volumesChanged,
-                    'human_resources_changed' => $humanResourcesChanged
+                    'human_resources_changed' => $humanResourcesChanged,
+                    'work_order_assignments_changed' => $workOrderAssignmentsChanged
                 ],
                 'comparisons' => [
                     'category' => ['old' => $originalCategoryId, 'new' => $newCategoryId],
@@ -937,7 +1015,8 @@ class WorkPackageManagementController extends Controller
                     'name' => ['old' => $originalName, 'new' => $newName],
                     'duration' => ['old' => $originalDuration, 'new' => $newDuration],
                     'volumes' => ['old' => $originalVolumes, 'new' => $newVolumes],
-                    'human_resources' => ['old' => $originalHumanResources, 'new' => $newHumanResources]
+                    'human_resources' => ['old' => $originalHumanResources, 'new' => $newHumanResources],
+                    'work_order_assignments' => ['old' => $originalWorkOrderAssignments, 'new' => $newWorkOrderAssignments]
                 ]
             ]);
             
@@ -954,7 +1033,8 @@ class WorkPackageManagementController extends Controller
                         'category' => $workPackage->wpCategory->name ?? 'Unknown',
                         'duration' => $workPackage->duration . ' hari',
                         'volumes_count' => count($originalVolumes),
-                        'resources_count' => count($originalHumanResources)
+                        'resources_count' => count($originalHumanResources),
+                        'work_order_assignments_count' => count($originalWorkOrderAssignments)
                     ]
                 ], 200);
             }
@@ -1083,6 +1163,16 @@ class WorkPackageManagementController extends Controller
                 ]);
             }
 
+            // Step 4: Update work order assignments
+            // Handle work order assignments
+            if ($workOrderAssignmentsChanged && $request->has('work_order_assignments')) {
+                $workOrderAssignments = json_decode($request->input('work_order_assignments'), true);
+
+                if (!empty($workOrderAssignments)) {
+                    $this->processWorkOrderAssignments($workOrderAssignments, $wp_id);
+                }
+            }
+
             DB::commit();
 
             Log::info('Work Package updated successfully', [
@@ -1101,7 +1191,8 @@ class WorkPackageManagementController extends Controller
                     'category' => $category->name,
                     'duration' => $workPackage->duration,
                     'volumes_count' => count($validatedData['volumes']),
-                    'resources_count' => count($validatedData['resources'])
+                    'resources_count' => count($validatedData['resources']),
+                    'work_order_assignments_changed' => $workOrderAssignmentsChanged
                 ]
             ]);
 
@@ -1630,6 +1721,286 @@ class WorkPackageManagementController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus Work Package: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Process work order assignments
+     */
+    private function processWorkOrderAssignments($assignments, $wp_id)
+    {
+        try {
+            foreach ($assignments as $volumeId => $assignmentData) {
+                $workOrder = null;
+    
+                if ($assignmentData['type'] === 'new') {
+                    $woNumber = (int) $assignmentData['wo_number'];
+                    
+                    // double check if WO number exists before creating
+                    $existingWo = WorkOrder::where('wo_number', $woNumber)->first();
+                    if ($existingWo) {
+                        $workOrder = $existingWo;
+                    } else {
+                        try {
+                            // Create new work order
+                            $workOrder = WorkOrder::create([
+                                'wo_number' => $woNumber
+                            ]);
+
+                        } catch (QueryException $e) {
+                            if ($e->getCode() === '23505' || strpos($e->getMessage(), 'duplicate key') !== false) {
+                                // Fetch the existing work order that was created by another process
+                                $workOrder = WorkOrder::where('wo_number', $woNumber)->first();
+                            } else {
+                                throw $e;
+                            }
+                        }
+                    }
+
+                } else {
+                    // Use existing work order
+                    $workOrder = WorkOrder::find($assignmentData['wo_id']);
+                }
+    
+                if ($workOrder) {
+                    // Update volume with work order
+                    $volume = WorkPackageVolume::where('volume_id', $volumeId)
+                        ->where('wp_id', $wp_id)
+                        ->first();
+
+                    $updated = $volume->update(['wo_id' => $workOrder->wo_id]);
+
+                    Log::info('Work order assigned to volume', [
+                        'wo_id' => $workOrder->wo_id,
+                        'wo_number' => $workOrder->wo_number,
+                        'volume_id' => $volumeId,
+                        'wp_id' => $wp_id,
+                        'updated' => $updated
+                    ]);
+                }
+            }
+
+        } catch (QueryException $e) {
+            Log::error('Database error in work order assignments', [
+                'wp_id' => $wp_id,
+                'assignments' => $assignments,
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+
+        } catch (Exception $e) {
+            Log::error('General error processing work order assignments', [
+                'wp_id' => $wp_id,
+                'assignments' => $assignments,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Get available work orders for assignment
+     */
+    public function getAvailableWorkOrders(Request $request)
+    {
+        try {
+            // Get all available work orders
+            $workOrders = WorkOrder::orderBy('wo_number', 'asc')
+                ->get()
+                ->map(function ($wo) {
+                    $usageCount = WorkPackageVolume::where('wo_id', $wo->wo_id)->count();
+
+                    return [
+                        'wo_id' => $wo->wo_id,
+                        'wo_number' => $wo->wo_number,
+                        'usage_count' => $usageCount,
+                        'is_available' => true
+                    ];
+                });
+            
+            return response()->json([
+                'success' => true,
+                'work_orders' => $workOrders
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error fetching available work orders', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data Work Order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get next available WO number
+     */
+    public function getNextWoNumber(Request $request)
+    {
+        try {
+            $lastWo = WorkOrder::orderBy('wo_number', 'desc')->first();
+
+            $nextNumber = 1;
+            if ($lastWo) {
+                $nextNumber = $lastWo->wo_number + 1;
+            }
+
+            return response()->json([
+                'success' => true,
+                'next_wo_number' => $nextNumber
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error fetching next WO number', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil nomor WO berikutnya: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check if work order number is available
+     */
+    public function checkWoNumberAvailability(Request $request)
+    {
+        try {
+            $woNumber = $request->get('wo_number');
+
+            if (!$woNumber) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nomor WO diperlukan'
+                ], 400);
+            }
+
+            $woNumber = (int) $woNumber;
+            $isAvailable = !WorkOrder::where('wo_number', $woNumber)->exists();
+
+            return response()->json([
+                'success' => true,
+                'available' => $isAvailable,
+                'wo_number' => $woNumber,
+                'message' => $isAvailable ? 'Nomor WO tersedia' : 'Nomor WO sudah digunakan'
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error checking WO number availability', [
+                'wo_number' => $request->get('wo_number'),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memeriksa ketersediaan nomor WO'
+            ], 500);
+        }
+    }
+
+    /**
+     * Assign work order to selected volumes
+     */
+    public function assignWorkOrder(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $validatedData = $request->validate([
+                'wp_id' => 'required|exists:work_package,wp_id',
+                'wo_id' => 'nullable|exists:work_order,wo_id',
+                'volume_ids' => 'required|array|min:1',
+                'volume_ids.*' => 'exists:work_package_volume,volume_id',
+
+                // For new work order
+                'create_new_wo' => 'nullable|boolean',
+                'new_wo_number' => 'nullable|integer|min:1|max:999'
+            ]);
+
+            $wpId = $validatedData['wp_id'];
+            $volumeIds = $validatedData['volume_ids'];
+            $workOrder = null;
+
+            // Handle work order creation or selection
+            if ($request->input('create_new_wo', false)) {
+                $newWoNumber = (int) $validatedData['new_wo_number'];
+
+                $isWoNumberExists = WorkOrder::where('wo_number', $newWoNumber)->exists();
+                if ($isWoNumberExists) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Nomor WO {$newWoNumber} sudah digunakan"
+                    ], 422);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Assignment berhasil disimpan sementara. Akan disimpan permanen saat menyimpan Work Package.',
+                    'assignment_details' => [
+                        'work_order' => [
+                            'wo_number' => $newWoNumber,
+                            'type' => 'new'
+                        ],
+                        'affected_volumes' => $volumeIds
+                    ]
+                ]);
+
+            } else {
+                // Use existing work order
+                if (!$validatedData['wo_id']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Work Order harus dipilih'
+                    ], 422);
+                }
+
+                $workOrder = WorkOrder::findOrFail($validatedData['wo_id']);
+            }
+
+            // Return temporary assignment info
+            return response()->json([
+                'success' => true,
+                'message' => 'Assignment disimpan sementara. Akan disimpan permanen saat menyimpan Work Package.',
+                'assignment_details' => [
+                    'work_order' => [
+                        'wo_id' => $workOrder->wo_id,
+                        'wo_number' => $workOrder->wo_number,
+                        'type' => 'existing'
+                    ],
+                    'affected_volumes' => $volumeIds
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Work Order atau Volume tidak ditemukan'
+            ], 404);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal melakukan assignment work order: ' . $e->getMessage()
             ], 500);
         }
     }
