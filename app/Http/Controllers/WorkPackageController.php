@@ -58,6 +58,20 @@ class WorkPackageController extends Controller
             ->orderBy('hresource_id')
             ->get();
 
+        $currentAssignments = $volume->work->groupBy(function($work) {
+            return $work->user->roles->get(1)?->id ?? $work->user->roles->first()?->id;
+        })->map(function($group) {
+            return [
+                'count' => $group->count(),
+                'users' => $group->map(function($work) {
+                    return [
+                        'user_id' => $work->user->user_id,
+                        'name' => $work->user->name
+                    ];
+                })
+            ];
+        });
+
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
         })->with(['roles']) // ambil relasi role
@@ -84,6 +98,22 @@ class WorkPackageController extends Controller
 
         // Ambil assigned role ID dari Human Resources untuk work package ini
         $assignedRoleIds = $humanResources->pluck('role_id')->unique()->values()->toArray();
+
+        // Buat data kapasitas role
+        $roleCapacity = $humanResources->keyBy('role_id')->map(function($hr) use ($currentAssignments) {
+            $roleId = $hr->role_id;
+            $currentCount = isset($currentAssignments[$roleId]) ? $currentAssignments[$roleId]['count'] : 0;
+
+            return [
+                'role_id' => $roleId,
+                'role_name' => $hr->role->name ?? 'Unknown Role',
+                'jtk' => $hr->jtk,
+                'current_count' => $currentCount,
+                'available_slots' => max(0, $hr->jtk - $currentCount),
+                'is_full' => $currentCount >= $hr->jtk,
+                'current_users' => isset($currentAssignments[$roleId]) ? $currentAssignments[$roleId]['users']->toArray() : []
+            ];
+        });
 
         // Filter users untuk dropdown (kecuali admin)
         $availableUsersDropdown = User::with('roles')
@@ -135,12 +165,20 @@ class WorkPackageController extends Controller
                         ->first();
                 }
 
+                // Tambah informasi kapasitas
+                $capacity = isset($roleCapacity[$roleId]) ? $roleCapacity[$roleId] : null;
+                $isRoleFull = $capacity ? $capacity['is_full'] : false;
+                $availableSlots = $capacity ? $capacity['available_slots'] : 0;
+
                 return [
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'role_name' => $roleName,
                     'role_id' => $roleId,
-                    'default_jhk' => $humanResource ? $humanResource->jhk : 0
+                    'default_jhk' => $humanResource ? $humanResource->jhk : 0,
+                    'is_role_full' => $isRoleFull,
+                    'available_slots' => $availableSlots,
+                    'jtk_limit' => $capacity ? $capacity['jtk'] : 0
                 ];
             })
             ->filter(function($user) {
@@ -240,7 +278,9 @@ class WorkPackageController extends Controller
             'backText',
             'showBackButton',
             'availableUsersDropdown',
-            'humanResourcesByRole'
+            'humanResourcesByRole',
+            'roleCapacity',
+            'currentAssignments'
         ));
     }
 
@@ -825,102 +865,6 @@ class WorkPackageController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Validate work order number
-     */
-    // public function validateWorkOrderNumber(Request $request)
-    // {
-    //     try {
-    //         $workOrderInput = $request->input('work_order_number');
-    //         $volumeId = $request->input('volume_id');
-    //         $executionYear = $request->input('execution_year', date('Y'));
-
-    //         if (!$workOrderInput) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Nomor work order diperlukan'
-    //             ], 400);
-    //         }
-
-    //         // Format work order number dengan tahun
-    //         $fullWorkOrderNumber = $executionYear . '-' . str_pad($workOrderInput, 3, '0', STR_PAD_LEFT);
-
-    //         // Check dalam tahun yang sama
-    //         $existingInYear = WorkPackageVolume::where('work_order_number', $fullWorkOrderNumber)
-    //             ->where('execution_year', $executionYear);
-
-    //         if ($volumeId) {
-    //             $existingInYear->where('volume_id', '!=', $volumeId);
-    //         }
-
-    //         $conflictInYear = $existingInYear->first();
-
-    //         if ($conflictInYear) {
-    //             $conflictWorkPackage = $conflictInYear->workPackage;
-
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'available' => false,
-    //                 'work_order_number' => $fullWorkOrderNumber,
-    //                 'message' => "Nomor WO {$fullWorkOrderNumber} sudah digunakan di tahun {$executionYear}",
-    //                 'conflict_details' => [
-    //                     'wp_number' => $conflictWorkPackage->wp_number ?? 'Unknown',
-    //                     'wp_name' => $conflictWorkPackage->name ?? 'Unknown',
-    //                     'volume_number' => $conflictInYear->volume_number ?? 'Unknown'
-    //                 ]
-    //             ]);
-    //         }
-
-    //         // Check dalam work package yang sama
-    //         if ($volumeId) {
-    //             $currentVolume = WorkPackageVolume::findOrFail($volumeId);
-    //             $sameWorkPackageConflict = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
-    //                 ->where('work_order_number', $fullWorkOrderNumber)
-    //                 ->where('volume_id', '!=', $volumeId)
-    //                 ->first();
-                
-    //             if ($sameWorkPackageConflict) {
-    //                 return response()->json([
-    //                     'success' => false,
-    //                     'available' => false,
-    //                     'work_order_number' => $fullWorkOrderNumber,
-    //                     'message' => "Nomor WO {$fullWorkOrderNumber} sudah digunakan di volume lain dalam work package yang sama",
-    //                     'conflict_details' => [
-    //                         'volume_number' => $sameWorkPackageConflict->volume_number ?? 'Unknown',
-    //                         'same_work_package' => true
-    //                     ]
-    //                 ]);
-    //             }
-    //         }
-
-    //         Log::info('Work order number validation passed', [
-    //             'work_order_number' => $fullWorkOrderNumber,
-    //             'execution_year' => $executionYear,
-    //             'volume_id' => $volumeId
-    //         ]);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'available' => true,
-    //             'work_order_number' => $fullWorkOrderNumber,
-    //             'message' => 'Nomor work order tersedia'
-    //         ]);
-
-    //     } catch (Exception $e) {
-    //         Log::error('Error validating work order number', [
-    //             'work_order_input' => $request->input('work_order_number'),
-    //             'volume_id' => $request->input('volume_id'),
-    //             'error' => $e->getMessage(),
-    //             'trace' => $e->getTraceAsString()
-    //         ]);
-            
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Terjadi kesalahan saat validasi nomor work order: ' . $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
 
     /**
      * Show the form for creating a new resource.

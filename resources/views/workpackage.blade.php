@@ -462,7 +462,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group mb-4">
+                                    <div class="form-group">
                                         <div class="mb-1">
                                             <div class="row g-2">
                                                 <div class="col-md-8">
@@ -669,6 +669,9 @@ let editResourceCounter = 1;
 const humanResourcesByRole = @json($humanResourcesByRole ?? []);
 console.log('Human Resources by Role:', humanResourcesByRole);
 
+// Data kapasitas role
+const roleCapacity = @json($roleCapacity ?? []);
+
 // Mendapatkan semua user yang tersedia untuk dropdown
 const availableUsers = @json($availableUsersDropdown ?? []);
 console.log('availableUsers:', availableUsers);
@@ -784,18 +787,36 @@ function initializeEditModal() {
     console.log('availableUsers:', availableUsers);
     console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
     console.log('humanResourcesByRole:', humanResourcesByRole);
+    console.log('roleCapacity:', roleCapacity);
 
     if (availableUsers && availableUsers.length > 0) {
         const uniqueRoles = [...new Set(availableUsers.map(user => user.role_name))];
-        console.log('Available roles in dropdown:', uniqueRoles);
+        // console.log('Available roles in dropdown:', uniqueRoles);
+        // Build role capacity info
+        const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
+            const status = capacity.is_full ? 
+                `${capacity.current_count}/${capacity.jtk} (Penuh)` : 
+                `${capacity.current_count}/${capacity.jtk} (${capacity.available_slots} tersedia)`;
+            
+            return `${capacity.role_name}: ${status}`;
+        }).join('<br>');
         
         // Add info alert about role filtering
         const infoHtml = `
-            <div class="alert alert-light-info d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
-                <i class="bi bi-info-circle me-2 text-info"></i>
-                <div>
-                    Hanya menampilkan user dengan role: <strong>${uniqueRoles.join(', ')}</strong> 
-                    (sesuai Human Resources pada Work Package ini)
+            <div class="alert alert-light-info modal-info-alert" id="roleInfo">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-info-circle me-2 text-info"></i>
+                    <div>
+                        <div>User dengan role berdasarkan Work Package ini: <strong>${uniqueRoles.join(', ')}</strong></div>
+                    </div>
+                </div>
+                <div class="alert alert-info" id="roleCapacityInfo">
+                    <div class="fw-bold mb-1">Kebutuhan Tenaga Kerja:</div>
+                    <div class="">${roleCapacityInfo}</div>
+                    <div class="small mt-2">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        User dengan role yang sudah penuh tidak dapat dipilih
+                    </div>
                 </div>
             </div>
         `;
@@ -1088,36 +1109,83 @@ function addEditResource(selectedUserId = null) {
     let optionsHtml = '<option value="">Pilih Resource</option>';
     let defaultJhk = 0; 
     
+    // Group users berdasarkan role untuk pengecekan kapasitas
+    const usersByRole = {};
     availableUsers.forEach(function(user) {
-        const isAlreadySelected = currentlySelectedUsers.includes(user.user_id) &&
-                                    selectedUserId !== user.user_id;
-
-        if (!isAlreadySelected) {
-            const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
-            optionsHtml += `<option value="${user.user_id}" data-role-id="${user.role_id}" data-default-jhk="${user.default_jhk}" ${selected}>${user.name} (${user.role_name})</option>`;
-    
-            if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
-                const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
-                if (assigned && assigned.jhk) {
-                    defaultJhk = assigned.jhk;
-                } else {
-                    defaultJhk = user.default_jhk || 0;
-                }
-                console.log('selected:', selected, 'assigned', assigned);
-            }
+        if (!usersByRole[user.role_id]) {
+            usersByRole[user.role_id] = [];
         }
+        usersByRole[user.role_id].push(user);
+    });
+
+    // Membuat opsi dengan validasi kapasitas
+    Object.keys(usersByRole).forEach(function(roleId) {
+        const users = usersByRole[roleId];
+        const capacity = roleCapacity[roleId];
+        
+        if (!capacity) return;
+
+        // Hitung user yang dipilih untuk role ini
+        const currentSelectedForRole = currentlySelectedUsers.filter(userId => {
+            const user = availableUsers.find(u => u.user_id === userId);
+            return user && user.role_id == roleId;
+        }).length;
+
+        // Cek apakah role ini sudah penuh
+        const isRoleAtCapacity = currentSelectedForRole >= capacity.jtk;
+        
+        users.forEach(function(user) {
+            const isAlreadySelected = currentlySelectedUsers.includes(user.user_id) && 
+                                    selectedUserId !== user.user_id;
+            
+            if (!isAlreadySelected) {
+                const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
+
+                // Cek jika dapat menambahkan user ini berdasarkan kapasitas role
+                const canSelectUser = selectedUserId == user.user_id || !isRoleAtCapacity;
+                const disabledAttr = canSelectUser ? '' : 'disabled';
+                const roleStatus = isRoleAtCapacity ? ' (Penuh)' : '';
+                
+                optionsHtml += `<option value="${user.user_id}" 
+                               data-role-id="${user.role_id}" 
+                               data-default-jhk="${user.default_jhk}"
+                               data-role-capacity="${capacity.jtk}"
+                               data-current-count="${currentSelectedForRole}"
+                               ${disabledAttr} ${selected}>
+                               ${user.name} (${user.role_name}) ${roleStatus}
+                               </option>`;
+
+                if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
+                    const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
+                    if (assigned && assigned.jhk) {
+                        defaultJhk = assigned.jhk;
+                    } else {
+                        defaultJhk = user.default_jhk || 0;
+                    }
+                }
+            }
+        });
     });
     
     const resourceHtml = `
         <div class="input-group mb-2" id="edit-resource-${editResourceCounter}">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
-                    <select class="form-select resource-select" name="resources[]" onchange="handleResourceChange(this)" data-resource-index="${editResourceCounter}">
+                    <select class="form-select resource-select" 
+                            name="resources[]" 
+                            onchange="handleResourceChange(this)" 
+                            data-resource-index="${editResourceCounter}">
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="number" class="form-control jhk-input" name="jhk[]" placeholder="0" min="0" value="${defaultJhk}" data-resource-index="${editResourceCounter}"/>
+                    <input type="number" 
+                            class="form-control jhk-input" 
+                            name="jhk[]" 
+                            placeholder="0" 
+                            min="0" 
+                            value="${defaultJhk}" 
+                            data-resource-index="${editResourceCounter}"/>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
@@ -1141,6 +1209,8 @@ function removeEditResource(index) {
     const resourceCount = $('#editResourceContainer .input-group').length;
 
     $(`#edit-resource-${index}`).remove();
+
+    updateRoleCapacityDisplay();
 }
 
 /**
@@ -1181,6 +1251,51 @@ function handleResourceChange(selectElement) {
         const selectedOption = selectElement.querySelector(`option[value="${selectedValue}"]`);
         const roleId = selectedOption.getAttribute('data-role-id');
         const defaultJhk = selectedOption.getAttribute('data-default-jhk');
+        const capacity = roleCapacity[roleId];
+
+        if (capacity) {
+            // Count current selections for this role (excluding this select)
+            let currentSelectionCount = 0;
+            allSelects.forEach(function(select) {
+                if (select !== selectElement && select.value !== '') {
+                    const option = select.querySelector(`option[value="${select.value}"]`);
+                    if (option && option.getAttribute('data-role-id') === roleId) {
+                        currentSelectionCount++;
+                    }
+                }
+            });
+
+            // Check if adding this user would exceed capacity
+            if (currentSelectionCount >= capacity.jtk) {
+                Swal.fire({
+                    title: "Kapasitas Role Penuh",
+                    html: `
+                        <div class="text-center">
+                            <p class="mb-3">Role <strong>${capacity.role_name}</strong> sudah mencapai batas maksimum!</p>
+                            <div class="alert alert-light-warning py-2">
+                                <div class="small">
+                                    <strong>Kapasitas:</strong> ${capacity.jtk} orang<br>
+                                    <strong>Sudah terisi:</strong> ${currentSelectionCount} orang<br>
+                                    <strong>Sisa slot:</strong> ${Math.max(0, capacity.jtk - currentSelectionCount)} orang
+                                </div>
+                            </div>
+                            <p class="small text-muted">
+                                Untuk menambah user dengan role ini, hapus salah satu user dengan role yang sama terlebih dahulu.
+                            </p>
+                        </div>
+                    `,
+                    icon: "warning",
+                    buttonsStyling: false,
+                    confirmButtonText: "OK",
+                    customClass: {
+                        confirmButton: "btn btn-warning"
+                    }
+                });
+                selectElement.value = '';
+                jhkInput.value = 0;
+                return;
+            }
+        }
         
         // Check if this role already exists in Human Resources
         let jhkValue = 0;
@@ -1208,12 +1323,60 @@ function handleResourceChange(selectElement) {
                 }, 3000);
             }
         }
+
+        // Update capacity info in real-time
+        updateRoleCapacityDisplay();
+
     } else {
         // Reset JHK jika tidak ada user yang dipilih
         if (jhkInput) {
             jhkInput.value = 0;
             jhkInput.style.backgroundColor = '';
             jhkInput.removeAttribute('title');
+        }
+        updateRoleCapacityDisplay();
+    }
+}
+
+/**
+ * Function untuk update tampilan kapasitas role secara real-time
+ */
+function updateRoleCapacityDisplay() {
+    const allSelects = document.querySelectorAll('#editResourceContainer select');
+    const currentSelections = {};
+    
+    // Count current selections by role
+    allSelects.forEach(function(select) {
+        if (select.value !== '') {
+            const option = select.querySelector(`option[value="${select.value}"]`);
+            if (option) {
+                const roleId = option.getAttribute('data-role-id');
+                if (roleId) {
+                    currentSelections[roleId] = (currentSelections[roleId] || 0) + 1;
+                }
+            }
+        }
+    });
+
+    // Update capacity info display
+    const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
+        const currentCount = currentSelections[capacity.role_id] || 0;
+        const availableSlots = Math.max(0, capacity.jtk - currentCount);
+        const isFull = currentCount >= capacity.jtk;
+        
+        const status = isFull ? 
+            `${currentCount}/${capacity.jtk} (Penuh)` : 
+            `${currentCount}/${capacity.jtk} (${availableSlots} tersedia)`;
+        
+        return `${capacity.role_name}: ${status}`;
+    }).join('<br>');
+
+    // Update the info alert
+    const infoAlert = document.getElementById('roleCapacityInfo');
+    if (infoAlert) {
+        const infoContent = infoAlert.querySelector('div div:nth-child(2)');
+        if (infoContent) {
+            infoContent.innerHTML = roleCapacityInfo;
         }
     }
 }
