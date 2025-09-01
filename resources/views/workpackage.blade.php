@@ -779,7 +779,7 @@ function setupTaskSearch(table) {
 function initializeEditModal() {
     // Reset container
     $('#editResourceContainer').empty();
-    editResourceCounter = 1;
+    editResourceCounter = 0;
 
     $('.modal-info-alert').remove();
 
@@ -844,7 +844,7 @@ function initializeEditModal() {
     
     // Menambahkan assigned user saat ini
     if (filteredAssignedUsers && filteredAssignedUsers.length > 0) {
-        filteredAssignedUsers.forEach(function(userId) {
+        filteredAssignedUsers.forEach(function(userId, index) {
             addEditResource(userId);
         });
     } else {
@@ -1106,6 +1106,10 @@ function addEditResource(selectedUserId = null) {
         }
     });
 
+    // Hitung index berdasarkan jumlah container yang ada
+    const currentResourceCount = $('#editResourceContainer .input-group').length;
+    const resourceIndex = currentResourceCount;
+
     let optionsHtml = '<option value="">Pilih Resource</option>';
     let defaultJhk = 0; 
     
@@ -1168,13 +1172,13 @@ function addEditResource(selectedUserId = null) {
     });
     
     const resourceHtml = `
-        <div class="input-group mb-2" id="edit-resource-${editResourceCounter}">
+        <div class="input-group mb-2" id="edit-resource-${resourceIndex}" data-resource-index="${resourceIndex}">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
                     <select class="form-select resource-select" 
                             name="resources[]" 
                             onchange="handleResourceChange(this)" 
-                            data-resource-index="${editResourceCounter}">
+                            data-resource-index="${resourceIndex}">
                         ${optionsHtml}
                     </select>
                 </div>
@@ -1185,10 +1189,10 @@ function addEditResource(selectedUserId = null) {
                             placeholder="0" 
                             min="0" 
                             value="${defaultJhk}" 
-                            data-resource-index="${editResourceCounter}"/>
+                            data-resource-index="${resourceIndex}"/>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
+                    <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${resourceIndex})">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
                             <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
                         </svg>
@@ -1199,18 +1203,49 @@ function addEditResource(selectedUserId = null) {
     `;
     
     $('#editResourceContainer').append(resourceHtml);
-    editResourceCounter++;
+    // editResourceCounter++;
 }
 
 /**
  * Menghapus resource field di edit modal
  */
 function removeEditResource(index) {
-    const resourceCount = $('#editResourceContainer .input-group').length;
+    // const resourceCount = $('#editResourceContainer .input-group').length;
 
-    $(`#edit-resource-${index}`).remove();
+    $(`#edit-resource-${index}, [data-resource-index="${index}"]`).remove();
 
+    reindexResources();
     updateRoleCapacityDisplay();
+}
+
+/**
+ * Function untuk reindex semua resource containers
+ */
+function reindexResources() {
+    $('#editResourceContainer .input-group').each(function(newIndex) {
+        const container = $(this);
+        const oldIndex = container.attr('data-resource-index');
+
+        // Update container attributes
+        container.attr('id', `edit-resource-${newIndex}`);
+        container.attr('data-resource-index', newIndex);
+
+        // Update select element
+        const selectElement = container.find('select');
+        selectElement.attr('name', 'resources[]');
+        selectElement.attr('data-resource-index', newIndex);
+
+        // Update input element
+        const inputElement = container.find('input[type="number"]');
+        inputElement.attr('name', 'jhk[]');
+        inputElement.attr('data-resource-index', newIndex);
+        
+        // Update button onclick
+        const buttonElement = container.find('button');
+        buttonElement.attr('onclick', `removeEditResource(${newIndex})`);
+        
+        console.log(`Reindexed resource from ${oldIndex} to ${newIndex}`);
+    });
 }
 
 /**

@@ -706,6 +706,16 @@ class WorkPackageController extends Controller
             // Update execution_year dari data start_date
             $executionYear = Carbon::parse($request->start_date)->year;
 
+            // Mapping resource Jumlah Harian Kerja
+            $resourceJhkMapping = [];
+            if (!empty($request->resources) && !empty($request->jhk)) {
+                foreach ($request->resources as $index => $userId) {
+                    if (!empty($userId) && isset($request->jhk[$index])) {
+                        $resourceJhkMapping[$userId] = (int) $request->jhk[$index];
+                    }
+                }
+            }
+
             // Deteksi Perubahan
             $originalStartDate = Carbon::parse($volume->start_date)->format('Y-m-d');
             $originalEndDate = Carbon::parse($volume->end_date)->format('Y-m-d');
@@ -791,8 +801,8 @@ class WorkPackageController extends Controller
                 ]);
 
                 // Update jhk jika tersedia
-                if (isset($request->jhk[$index]) && $request->jhk[$index] !== null) {
-                    $jhkValue = (int) $request->jhk[$index];
+                if (isset($resourceJhkMapping[$userId])) {
+                    $jhkValue = $resourceJhkMapping[$userId];
 
                     // Cari role user terkait
                     $user = User::with('roles')->find($userId);
