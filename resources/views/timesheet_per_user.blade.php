@@ -6,7 +6,7 @@
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
-                <a href="{{route('timesheet.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <div>
@@ -25,7 +25,7 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-end mt-10">
+            <div class="d-flex justify-content-between mt-10">
                 {{-- <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
@@ -33,11 +33,17 @@
                     Filter Data
                 </button> --}}
                 <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#addActivityModal" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                        class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-plus mb-1 me-2" viewBox="0 0 16 16">
                         <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
                     </svg>
                     Tambah Aktivitas
+                </button>
+                <button type="button" class="btn btn-light-primary" aria-expanded="false" aria-controls="lihatAktivitas" onclick="window.location.href='{{ route('timesheet.detail', [$volume->volume_id]) }}'">
+                    Lihat Timesheet Summary
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                    </svg>
                 </button>
             </div>
             <div class="collapse" id="filterCard">
@@ -136,14 +142,17 @@
                                             <i class="bi bi-three-dots fs-3 text-dark"></i>
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                            <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
+                                            <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" href="#" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
                                                 data-timesheet-id="{{ $activity->timesheet_id }}"
                                                 data-execution-date="{{ $activity->execution_date }}"
                                                 data-activity="{{ $activity->activity }}"
                                                 >
                                                 <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
                                             </li>
-                                            <li><a class="dropdown-item d-flex align-items-center btn-delete-activity" data-timesheet-id="{{$activity->timesheet_id}}">
+                                            <li><a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" 
+                                                    data-timesheet-id="{{$activity->timesheet_id}}"
+                                                    data-activity="{{$activity->activity}}"
+                                                >
                                                     <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus
                                                 </a>
                                             </li>
@@ -168,7 +177,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
+                <h3 class="modal-title">Tambah Aktivitas Timesheet</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('timesheet.user.add', [$volume->volume_id,1])}}" id="addActivityForm">
@@ -200,7 +209,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
+                <h3 class="modal-title">Edit Aktivitas Timesheet</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id,1])}}" id="editActivityForm">
@@ -413,18 +422,24 @@
     $(document).on('click', '.btn-delete-activity', function(e) {
         e.preventDefault();
         const timesheetId = $(this).data('timesheet-id');
+        const activity = $(this).data('activity');
 
         Swal.fire({
-            title: 'Yakin ingin menghapus aktivitas?',
-            icon: 'warning',
+            title: "Konfirmasi Hapus Aktivitas",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus aktivitas:</span>
+                <p>${activity}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
+            icon: "warning",
+            buttonsStyling: false,
             showCancelButton: true,
-            confirmButtonText: 'Hapus',
             cancelButtonText: 'Batal',
+            confirmButtonText: "Ya, Hapus",
             customClass: {
-                confirmButton: 'btn btn-danger',
+                confirmButton: "btn btn-danger",
                 cancelButton: 'btn btn-secondary'
-            },
-            buttonsStyling: false
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`/timesheet-user/${timesheetId}/delete`, {

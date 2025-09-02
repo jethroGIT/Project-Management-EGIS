@@ -115,6 +115,16 @@ class PerformanceTaskController extends Controller
                 'completeness' => 0.00 // Default completeness
             ]);
 
+            // Cek status semua subtask pada task ini
+            $allSubTasks = SubTask::where('task_id', $task->task_id)->get();
+            $allComplete = $allSubTasks->count() > 0 && $allSubTasks->every(function($st) {
+                return $st->completeness >= 100;
+            });
+
+            // Update status task
+            $task->status = $allComplete ? 'closed' : 'open';
+            $task->save();
+
             DB::commit();
 
             // Log success
@@ -338,8 +348,20 @@ class PerformanceTaskController extends Controller
                 'updated_at' => $subTask->updated_at ? $subTask->updated_at->format('Y-m-d H:i:s') : null
             ];
 
+            $task = $subTask->task;
+
             // Delete sub task
             $subTask->delete();
+
+            // Cek status semua subtask pada task ini
+            $allSubTasks = SubTask::where('task_id', $task->task_id)->get();
+            $allComplete = $allSubTasks->count() > 0 && $allSubTasks->every(function($st) {
+                return $st->completeness >= 100;
+            });
+
+            // Update status task
+            $task->status = $allComplete ? 'closed' : 'open';
+            $task->save();
 
             DB::commit();
 

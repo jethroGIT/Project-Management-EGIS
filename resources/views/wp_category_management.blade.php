@@ -34,8 +34,9 @@
             <div class="table-responsive mb-2">
                 <table id="tabel_category" class="table table-striped table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
-                        <tr class="fw-bolder fs-4 text-gray-1000 px-7">
-                            <th class="align-middle border-bottom">No</th>
+                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                            <th class="align-middle border-bottom text-center">No</th>
+                            <th class="align-middle border-bottom" style="min-width: 110px">No. Kategori</th>
                             <th class="align-middle border-bottom">Kategori</th>
                             <th class="align-middle border-bottom" style="width: 140px">Action</th>
                         </tr>
@@ -43,7 +44,8 @@
                      <tbody style="font-size: 0.92rem;">
                         @forelse($wpCategories as $wpCategory)
                         <tr>
-                            <th scope="row" class="align-middle">{{$loop->index+1}}</th>
+                            <th scope="row" class="align-middle text-center">{{$loop->index+1}}</th>
+                            <td class="align-middle text-center">{{$wpCategory->category_number}}</td>
                             <td class="align-middle">{{$wpCategory->name}}</td>
                             <td>
                                 <div class="d-flex gap-2">
@@ -51,13 +53,17 @@
                                     <button type="button" class="btn btn-warning btn-sm btn-edit-category" title="Edit Kategori WP" 
                                             data-bs-toggle="modal" data-bs-target="#kt_modal_edit_category"
                                             data-category-id="{{$wpCategory->category_id}}" 
+                                            data-category-number="{{$wpCategory->category_number}}"
                                             data-category-name="{{$wpCategory->name}}"
                                     >
                                         <i class="bi bi-pencil-square fs-6"></i>
                                     </button>
 
                                     <!-- Delete Button -->
-                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Hapus Kategori WP" data-category-id="{{$wpCategory->category_id}}">
+                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Hapus Kategori WP" 
+                                            data-category-id="{{$wpCategory->category_id}}"
+                                            data-category-name="{{$wpCategory->name}}"
+                                    >
                                         <i class="bi bi-trash fs-6"></i>
                                     </button>
                                 </div>                                    
@@ -87,15 +93,21 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+                <h3 class="modal-title">Tambah Kategori WP</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.add')}}" id="addCategoryForm">
                     @csrf
-                    @method('POST')                   
-                    <div class="mb-6">
-                        <label class="form-label fw-bolder">Kategori WP</label>
-                        <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                    @method('POST')   
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bolder">No. Kategori</label>
+                            <input type="number" class="form-control" id="category_number" name="category_number" min="1"></input>
+                        </div>                
+                        <div class="col-md-9">
+                            <label class="form-label fw-bolder">Kategori WP</label>
+                            <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -112,16 +124,22 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+                <h3 class="modal-title">Edit Kategori WP</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.edit')}}" id="editCategoryForm">
                     @csrf
                     @method('PUT') 
                     <input type="hidden" name="category_id" id="form_category_id">
-                    <div class="mb-6">
-                        <label class="form-label fw-bolder">Kategori WP</label>
-                        <input class="form-control" id="categoryName" name="name" placeholder="Kategori"></input>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bolder">No. Kategori</label>
+                            <input type="number" class="form-control" id="categoryNumber" name="category_number" min="1"></input>
+                        </div>                
+                        <div class="col-md-9">
+                            <label class="form-label fw-bolder">Kategori WP</label>
+                            <input class="form-control" id="categoryName" name="name" placeholder="Kategori"></input>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -182,58 +200,111 @@
     }
 
     // Modal and form handling for adding a new category
-    const addCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_add_category'));
-    const submitAddCategoryForm = document.getElementById('submitAddCategoryForm');
-    const addCategoryForm = document.getElementById('addCategoryForm');
+    $(document).ready(function () {
+        const addCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_add_category'));
+        const addCategoryForm = $('#addCategoryForm');
+        const submitAddCategoryForm = $('#submitAddCategoryForm');
 
-    document.addEventListener('DOMContentLoaded', function () {
-        if (submitAddCategoryForm) {
-            submitAddCategoryForm.addEventListener('click', function (e) {
-                e.preventDefault();
+        submitAddCategoryForm.on('click', function (e) {
+            e.preventDefault();
 
-                const formData = new FormData(addCategoryForm);
-                const url = addCategoryForm.action;
+            // Validasi manual
+            const categoryNumber = $('#category_number').val().trim();
+            const categoryName = $('#name').val().trim();
 
-                fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(errorData => {
-                                throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
-                            });
+            if (!categoryNumber || !categoryName) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Nomor Kategori & Kategori Work Package wajib diisi.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-primary" }
+                });
+                return;
+            }
+            if (parseInt(categoryNumber) <= 0) {
+                Swal.fire({
+                    title: "Nomor Kategori Tidak Valid",
+                    text: "Nomor Kategori harus berupa angka positif.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-primary" }
+                });
+                return;
+            }
+
+            // Siapkan FormData
+            const formData = new FormData(addCategoryForm[0]);
+
+            $.ajax({
+                url: addCategoryForm.attr('action'),
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                beforeSend: function () {
+                    // Disable form elements
+                    addCategoryForm.find('input, button').prop('disabled', true);
+
+                    Swal.fire({
+                        title: 'Menambahkan Kategori...',
+                        text: 'Sedang memproses penambahan kategori baru',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading()
                         }
-                        return response.json();
-                    })
-                    .then(data => {
+                    });
+                },
+                success: function (response) {
+                    if (response.success || response.message) {
                         Swal.fire({
-                            text: data.message || "Data berhasil ditambahkan!",
+                            title: "Berhasil Ditambahkan",
                             icon: "success",
                             buttonsStyling: false,
                             confirmButtonText: "Tutup",
                             customClass: { confirmButton: "btn btn-secondary" }
                         }).then(() => {
                             addCategoryModal.hide();
-                            location.reload();
+                            window.location.reload();
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error adding category:', error);
+                    } else {
                         Swal.fire({
-                            text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                            title: "Gagal",
+                            text: response.message || "Gagal menambahkan kategori",
                             icon: "error",
                             buttonsStyling: false,
-                            confirmButtonText: "OK",
-                            customClass: { confirmButton: "btn btn-danger" }
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
                         });
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Terjadi kesalahan saat menambahkan kategori";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        title: "Gagal Menambahkan Kategori",
+                        text: errorMessage,
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-secondary" }
                     });
+                },
+                complete: function () {
+                    // Enable form elements
+                    addCategoryForm.find('input, button').prop('disabled', false);
+                }
             });
-        }
+        });
     });
 
     // Modal and form handling for editing a new category
@@ -248,12 +319,13 @@
                 const button = event.target.closest('.btn-edit-category');
                 // Isi input tersembunyi timesheet_id
                 document.getElementById('form_category_id').value = button.dataset.categoryId;
+                document.getElementById('categoryNumber').value = button.dataset.categoryNumber;
                 document.getElementById('categoryName').value = button.dataset.categoryName;
 
                 console.log("Button Data:", {
                 id: button.dataset.categoryId,
                 name: button.dataset.categoryName,
-            });
+                });
             }
         });
     });
@@ -284,7 +356,8 @@
                     })
                     .then(data => {
                         Swal.fire({
-                            text: data.message || "Data berhasil diubah!",
+                            title: "Berhasil",
+                            text: data.message || "Data berhasil diperbarui!",
                             icon: "success",
                             buttonsStyling: false,
                             confirmButtonText: "Tutup",
@@ -312,18 +385,24 @@
     $(document).on('click', '.btn-delete-category', function(e) {
         e.preventDefault();
         const categoryId = $(this).data('category-id');
+        const categoryName = $(this).data('category-name');
 
         Swal.fire({
-            title: 'Yakin ingin menghapus kategori?',
-            icon: 'warning',
+            title: "Konfirmasi Hapus Kategori WP",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus kategori:</span>
+                <p>${categoryName}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
+            icon: "warning",
+            buttonsStyling: false,
             showCancelButton: true,
-            confirmButtonText: 'Hapus',
             cancelButtonText: 'Batal',
+            confirmButtonText: "Ya, Hapus",
             customClass: {
-                confirmButton: 'btn btn-danger',
+                confirmButton: "btn btn-danger",
                 cancelButton: 'btn btn-secondary'
-            },
-            buttonsStyling: false
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`/wpcategory-management/${categoryId}/delete`, {

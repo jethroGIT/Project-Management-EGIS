@@ -2,13 +2,19 @@
 
 @section('content')
 <div class="container">
-    <h1 class="my-5 mt-2">Timesheet Activity Summary</h1>
+    <h1 class="my-5 mt-2">Timesheet Summary</h1>
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
-                <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
-                </a>
+                @if(auth()->user()->hasRole('admin'))
+                    <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
+                    </a>
+                @else
+                    <a href="{{route('timesheet.detail.user', [$volume->volume_id, auth()->user()->user_id])}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
+                    </a>
+                @endif
                 <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
             </div>            
             <div class="d-flex align-items-center justify-content-end">                
@@ -97,14 +103,14 @@
                         Lihat Ringkasan Mandays
                     </button>
                     {{-- id user dummy terlebih dulu, nanti ambil dari session user --}}
-                    @if(auth()->user() && auth()->user()->hasRole('karyawan'))
+                    {{-- @if(auth()->user()->hasRole('karyawan'))
                         <button type="button" class="btn btn-light-primary" aria-expanded="false" aria-controls="kelolaAktivitas" onclick="window.location.href='{{ route('timesheet.detail.user', [$volume->volume_id, 1]) }}'">
                             Kelola Aktivitas
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
                             </svg>
                         </button>
-                    @endif
+                    @endif --}}
                 </div>
                 <div class="collapse" id="mandaysSummaryTable">
                     <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">

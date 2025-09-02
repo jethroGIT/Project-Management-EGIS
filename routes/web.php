@@ -16,6 +16,7 @@ use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
 use App\Http\Controllers\SignInController;
 use App\Http\Controllers\TimesheetManagementController;
+use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WPCategoryManagementController;
 use App\Http\Controllers\WorkPackageManagementController;
 
@@ -71,6 +72,7 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::post('/timesheet-management/add', [TimesheetManagementController::class, 'add'])->name('timesheet.add');
     Route::get('/timesheet-management/{volume_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
     Route::post('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
+    Route::delete('/timesheet-management/{id}/delete-all', [TimesheetManagementController::class, 'deleteAll'])->name('timesheet.delete.all');
     Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
 
     // performance task
@@ -81,7 +83,7 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::class, 'destroySubTask'])->name('performance-task.sub-task.destroy');
 
     // performance finance
-    Route::put('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
+    Route::put('/performance-finance', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
 
     // work package volume page
     Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
@@ -97,6 +99,8 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::delete('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'deleteSubTask'])->name('work-package.subtask.delete');
     Route::put('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'updateSubTask'])->name('work-package.subtask.update');
 
+    // work order
+    Route::get('/work-order', [WorkOrderController::class, 'index'])->name('work-order');
 });
 
 Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
@@ -107,6 +111,7 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
         return redirect()->back();
     });
     Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
+    Route::put('/profile/{userId}', [ProfileUserController::class, 'edit'])->name('profile.edit');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // performance task

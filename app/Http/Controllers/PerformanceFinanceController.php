@@ -41,13 +41,17 @@ class PerformanceFinanceController extends Controller
             ->get();
         
         // timesheets
-        $timesheets = Timesheet::with('user.role')
+        $timesheets = Timesheet::with('user.roles')
             ->where('volume_id', $volume->volume_id)
             ->orderBy('execution_date', 'asc')
             ->get();
         
         // menghitung jumlah aktivitas untuk setiap role
-        $timesheetCountPerRole = $timesheets->groupBy('user.role_id')->map(function ($entriesPerRole) {
+        $timesheetCountPerRole = $timesheets->groupBy(function($ts) {
+            $user = $ts->user;
+            // Ambil role kedua jika ada, jika tidak ambil role pertama
+            return $user && $user->roles->count() ? ($user->roles->get(1)->id ?? $user->roles->first()->id) : null;
+        })->map(function ($entriesPerRole) {
             return $entriesPerRole->count();
         });
 
@@ -130,7 +134,7 @@ class PerformanceFinanceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, $volume_id)
+    public function edit(Request $request)
     {
         // Validasi input
         $validated = $request->validate([

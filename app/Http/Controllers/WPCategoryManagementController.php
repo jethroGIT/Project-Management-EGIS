@@ -18,11 +18,13 @@ class WPCategoryManagementController extends Controller
         try {
             $request->validate([
                 'name' => 'required|string|max:255',
+                'category_number' => 'required|integer|min:1|unique:wp_category,category_number'
             ]);
 
-            $category = new WpCategory();
-            $category->name = $request->input('name');
-            $category->save();
+            $category = WpCategory::create([
+                'name' => $request->name,
+                'category_number' => (string) $request->category_number
+            ]);
             
             return response()->json([
                 'success' => true,
@@ -44,8 +46,17 @@ class WPCategoryManagementController extends Controller
             // save
             $category = WpCategory::where('category_id', $request->category_id)
                                 ->firstOrFail();
-            $category->name = $request->name;
-            $category->save();
+            if($category->name === $request->name && $category->category_number === $request->category_number){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada perubahan yang dilakukan.'
+                ], 400);
+            }
+
+            $category->update([
+                'name' => $request->name,
+                'category_number' => (string) $request->category_number
+            ]);
 
             return response()->json([
                 'success' => true,

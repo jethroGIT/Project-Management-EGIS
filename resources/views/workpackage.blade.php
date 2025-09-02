@@ -102,12 +102,21 @@
 
                     <!-- Timesheet Button -->
                     <div class="d-flex justify-content-end mb-4">
-                        <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
-                            Timesheet
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                            </svg>
-                        </button>
+                        @if(auth()->user()->hasRole('admin'))
+                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
+                                Timesheet
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                                </svg>
+                            </button>
+                        @else
+                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail.user', [$volume->volume_id, auth()->user()->user_id]) }}'">
+                                Timesheet
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                                </svg>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -150,10 +159,10 @@
                 <table id="tabel_wp_task" class="table gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="fw-bolder fs-4 text-gray-1000 px-7">
-                            <th></th>
+                            <th style="width: 20px"></th>
                             <th class="align-middle border-bottom" style="width: 20px;">No</th>
-                            <th class="align-middle border-bottom" style="width: 300px;">Task</th>
-                            <th class="align-middle border-bottom" style="width: 300px;">Sub Task</th>
+                            <th class="align-middle border-bottom" style="min-width: 300px;">Task</th>
+                            <th class="align-middle border-bottom" style="min-width: 300px;">Sub Task</th>
                             @if(auth()->user() && auth()->user()->hasRole('admin'))
                                 <th class="align-middle border-bottom">Action</th>
                             @endif
@@ -187,7 +196,7 @@
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
+                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
                                                             <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                             Hapus
                                                         </a>
@@ -383,7 +392,6 @@
             <div class="modal-content">
                 <div class="modal-header flex-column align-items-start pb-1">
                     <h3 class="modal-title" id="editSubTaskModalTitle">Edit Sub Task</h3>
-                    <p id="editSubTaskModalSubTitle" class="mb-0 mt-1 text-muted">Task</p>
                 </div>
                 <div class="modal-body">
                     <form id="editSubTaskForm" method="POST">
@@ -392,8 +400,14 @@
                         <input type="hidden" name="sub_task_id" id="editSubTaskId" value="">
                         <input type="hidden" name="task_id" id="editSubTaskParentTaskId" value="">
                         <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Task</label>
+                            <input type="text" id="editSubTaskTaskName" class="form-control bg-light" readonly>
+                            <div class="form-text text-muted">Task induk untuk sub task ini</div>
+                        </div>
+                        <div class="form-group mb-4">
                             <label class="form-label fw-bold">Nama Sub Task</label>
                             <textarea name="name" id="editSubTaskName" class="form-control" placeholder="Masukkan Nama Sub Task" rows="3" required maxlength="255"></textarea>
+                            <div class="form-text text-muted">Deskripsi detail dari sub task (maksimal 255 karakter)</div>
                         </div>
                     </form>
                 </div>
@@ -701,7 +715,7 @@ $(document).ready(function () {
         initializeEditModal();
     });
 
-    // ✅ FIX: Bersihkan alert ketika modal ditutup
+    // FIX: Bersihkan alert ketika modal ditutup
     $('#kt_modal_edit_data').on('hidden.bs.modal', function () {
         // Hapus semua alert info yang mungkin tertinggal
         $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
@@ -1432,92 +1446,6 @@ function toggleSubRows(rowId) {
     }
 }
 
-/** TASK MANAGEMENT **/
-/** Insert Task */
-/**
- * Function untuk menambah task pertama (jika belum ada task di tabel)
- */
-// function insertFirstTask() {
-//     // Reset semua field reference
-//     $('#referenceTaskId').val('');
-//     $('#insertPosition').val('');
-//     $('#insertTaskModalTitle').text('Tambah Task');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     } else {
-//         Swal.fire({
-//             text: "Volume ID tidak ditemukan. Tidak dapat menambahkan task.",
-//             icon: "error",
-//             buttonsStyling: false,
-//             confirmButtonText: "Tutup",
-//             customClass: {
-//                 confirmButton: "btn btn-secondary"
-//             }
-//         });
-//         return;
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#modalVolumeId').val(volumeId);
-//     $('#referenceTaskId').val('');
-//     $('#insertPosition').val('');
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
-/**
- * Function untuk insert task di atas
- */
-// function insertTaskAbove(taskId, taskName) {
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('above');
-//     $('#insertTaskModalTitle').text('Masukkan Task di Atas');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('above');
-//     $('#modalVolumeId').val(volumeId);
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
-/**
- * Function untuk insert task di bawah
- */
-// function insertTaskBelow(taskId, taskName) {
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('below');
-//     $('#insertTaskModalTitle').text('Masukkan Task di Bawah');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('below');
-//     $('#modalVolumeId').val(volumeId);
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
 /**
  * Function untuk insert sub task
  */
@@ -1553,7 +1481,7 @@ function editSubTask(subTaskId) {
                 // if (response.subtask.completeness !== undefined) {
                 //     $('#editSubTaskCompleteness').val(response.subtask.completeness);
                 // }
-                $('#editSubTaskModalSubTitle').text(response.subtask.task_name || 'Task');
+                $('#editSubTaskTaskName').val(response.subtask.task_name || 'Task');
 
                 // Set form action jika perlu
                 // $('#editSubTaskForm').attr('action', `/work-package/subtask/${subTaskId}`);
@@ -1948,7 +1876,7 @@ function submitEditTask() {
 /**
  * Function untuk delete task
  */
-function deleteTask(taskId) {
+function deleteTask(taskId, taskName) {
     // Validasi taskId
     if (!taskId) {
         Swal.fire({
@@ -1971,13 +1899,14 @@ function deleteTask(taskId) {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
-            let warningText = "Apakah Anda yakin ingin menghapus task ini?";
+            let warningText = `Apakah Anda yakin ingin menghapus task "<b>${taskName}</b>"?`;
             if (response.success && response.subtask_count > 0) {
-                warningText = `Task ini memiliki ${response.subtask_count} sub task. Menghapus task akan menghapus semua sub task terkait. Lanjutkan?`;
+                warningText = `<span style="font-size:0.95em">Task "<b>${taskName}</b>" ini memiliki ${response.subtask_count} sub task.<br>Menghapus task akan menghapus semua sub task terkait.<br></span>`;
             }
+            warningText += `<br><span class="text-muted" style="font-size:0.85em;">Tindakan ini tidak dapat dibatalkan.</span>`;
             Swal.fire({
                 title: "Konfirmasi Hapus Task",
-                text: warningText,
+                html: warningText,
                 icon: "warning",
                 buttonsStyling: false,
                 showCancelButton: true,
@@ -1997,7 +1926,7 @@ function deleteTask(taskId) {
             // Jika gagal cek subtask (tidak ada sub task), tetap tampilkan konfirmasi standar
             Swal.fire({
                 title: "Konfirmasi Hapus Task",
-                text: "Apakah Anda yakin ingin menghapus task ini?",
+                html: `Apakah Anda yakin ingin menghapus task ${taskName}?`,
                 icon: "warning",
                 buttonsStyling: false,
                 showCancelButton: true,
@@ -2313,7 +2242,11 @@ function submitEditSubTask() {
 function deleteSubTaskConfirmation(subTaskId, subTaskName) {
     Swal.fire({
         title: "Konfirmasi Hapus Sub Task",
-        text: `Apakah Anda yakin ingin menghapus sub task "${subTaskName}"?`,
+        html: `
+            <span>Apakah Anda yakin ingin menghapus sub task:</span>
+            <p>${subTaskName}?</p>
+            <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+        `,
         icon: "warning",
         buttonsStyling: false,
         showCancelButton: true,

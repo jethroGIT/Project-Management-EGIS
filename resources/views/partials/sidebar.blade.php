@@ -270,6 +270,22 @@
                     </div>
                     <div class="menu-item">
                         <a
+                            class="menu-link {{ request()->routeIs('work-order') ? 'active' : '' }}"
+                            href="{{ route('work-order') }}"
+                        >
+                            <span class="menu-icon">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 16 16">
+                                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0L6 9.707a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                        <path d="M8 1.5a1.5 1.5 0 0 1 1.415 1H12a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1h2.585A1.5 1.5 0 0 1 8 1.5m0-1A2.5 2.5 0 0 0 5.5 3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1.5A2.5 2.5 0 0 0 8 .5"/>
+                                    </svg>
+                                </span>
+                            </span>
+                            <span class="menu-title">Work Order</span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a
                             class="menu-link {{ request()->routeIs('wp-management') ? 'active' : '' }}"
                             href="{{ route('wp-management') }}"
                         >

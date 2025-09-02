@@ -34,7 +34,7 @@
             <div class="table-responsive mb-2">
                 <table id="tabel_resource" class="table table-striped gy-4 gs-3 border rounded w-100">
                     <thead>
-                        <tr class="fw-bolder fs-4 text-gray-1000 px-7">
+                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th class="align-middle border-bottom">No</th>
                             <th class="align-middle border-bottom min-w-200px">Nama</th>
                             <th class="align-middle border-bottom">Email</th>
@@ -111,7 +111,7 @@
 
             <!-- Modal Add User -->
             <div class="modal fade" tabindex="-1" id="kt_modal_add_user">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Tambah User</h3>
@@ -158,7 +158,7 @@
 
             <!-- Modal Edit User -->
             <div class="modal fade" tabindex="-1" id="kt_modal_edit_user">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Edit User</h3>
@@ -446,7 +446,7 @@ function submitEditUser() {
         },
         success: function(response) {
             if (response.success) {
-                let successMessage = response.message || "User berhasil diperbarui!";
+                let successMessage = response.message || "Data berhasil diperbarui!";
 
                 Swal.fire({
                     title: "Berhasil",
@@ -564,8 +564,7 @@ function submitAddUser() {
         success: function(response) {
             if (response.success) {
                 Swal.fire({
-                    title: "Berhasil",
-                    text: response.message || "User berhasil ditambahkan",
+                    title: "Berhasil ditambahkan",
                     icon: "success",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
