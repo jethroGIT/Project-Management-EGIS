@@ -39,7 +39,7 @@
                                 <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
                             </svg>
                             <div class="m-2">
-                                Filter Data berdasarkan Tahun
+                                Filter Data berdasarkan Kategori
                             </div>
                         </h3>
                     </div>
@@ -49,7 +49,7 @@
                                 <label class="form-label fw-bold">Tahun</label>
                                 <select class="form-select form-select-solid" id="kategoriFilter">
                                     <option value="">Pilih Tahun</option>
-                                    {{-- @if(isset($categories) && $categories->count() > 0)
+                                    @if(isset($categories) && $categories->count() > 0)
                                         @foreach($categories as $category)
                                             <option value="{{ $category->category_id }}">
                                                 @if(isset($category->category_number))
@@ -58,7 +58,7 @@
                                                 {{ $category->name }}
                                             </option>
                                         @endforeach
-                                    @endif --}}
+                                    @endif
                                 </select>
                             </div>
                         </div>
@@ -82,16 +82,17 @@
                 <table id="table_work_order" class="table table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="text-center fw-bolder fs-6 text-gray-800 px-7">
-                            <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping --}}
-                            <th scope="col" rowspan="2" class="align-middle border-bottom" style="min-width:15px"></th>
+                            <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping WP category --}}
                             <th scope="col" rowspan="2" class="align-middle border-bottom" style="min-width:50px">No. WP</th>
                             <th scope="col" rowspan="2" class="align-middle border-bottom">Work Package</th>
-                            <th scope="col" rowspan="2" class="align-middle border-bottom"  style="min-width:90px">No. WO</th>
+                            <th scope="col" colspan="2" class="align-middle border-bottom"  style="min-width:100px">No. WO</th>
                             <th scope="col" colspan="3" class="align-middle border-bottom">Volume (Qty)</th>
                             <th scope="col" rowspan="2" class="align-middle border-bottom" style="min-width: 70px">Action</th>
                         </tr>
                         <tr class="text-center fw-bolder fs-6 text-gray-800 px-7">
-                            <th scope="col" style="display: none;"></th> {{-- untuk grouping --}}
+                            <th scope="col" style="display: none;"></th> {{-- untuk grouping WP category --}}
+                            <th class="align-middle border-bottom" style="min-width: 50px">2024</th>
+                            <th class="align-middle border-bottom" style="min-width: 50px">2025</th>
                             <th class="align-middle border-bottom" style="min-width: 100px">By Contract</th>
                             <th class="align-middle border-bottom" style="min-width: 70px">Realisasi</th>
                             <th class="align-middle border-bottom" style="min-width: 50px">Sisa</th>
@@ -99,51 +100,49 @@
                     </thead>
                     <tbody style="font-size: 0.92rem;">
                         @forelse($workPackages as $wp)
-                            @php
-                                $totalWithWO = $wp->workPackageVolumes->whereNotNull('wo_id')->count();
-                                $remaining = $wp->volume_qty - $totalWithWO;
-                            @endphp
-                            <tr class="parent-row" data-group="{{ $wp->wpCategory->name ?? 'wpcat' }}">
-                                <td style="display: none;">{{ $wp->wpCategory->name ?? 'wpcat' }}</td> {{-- untuk grouping --}}
-                                <td style="cursor:pointer;">
-                                    <a class="toggle-collapse" data-bs-toggle="collapse" href="#detail-{{$wp->wp_id}}" aria-expanded="false" aria-controls="detail-{{$wp->wp_id}}">
-                                        <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-task{{$wp->wp_id}}"></i>
-                                    </a>
-                                </td>
+                            <tr>
+                                @php
+                                    $totalWithWO = $wp->workPackageVolumes->whereNotNull('wo_id')->count();
+                                    $remaining = $wp->volume_qty - $totalWithWO;
+                                @endphp
+
+                                {{-- Kolom tersembunyi untuk grouping --}}
+                                <td style="display: none;">{{$wp->wpCategory->name ?? '-'}}</td>
                                 <td class="align-middle text-center">{{$wp->wp_number}}</td>
                                 <td class="align-middle">{{$wp->name}}</td>
-                                <td class="align-middle text-center"></td>
-                                <td class="text-center align-middle">{{$wp->volume_qty}}</td>
-                                <td class="text-center align-middle">{{$totalWithWO}}</td>
-                                <td class="text-center align-middle">{{$remaining}}</td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-success btn-sm" title="Lihat Detail">
-                                        <i class="bi bi-eye fs-2 text-center"></i>
+                                <td class="align-middle text-center">
+                                    @php
+                                        $wo2024 = $wp->workPackageVolumes->firstWhere('execution_year', 2024);
+                                    @endphp
+                                    @if($wo2024 && $wo2024->workOrder)
+                                        WO {{ $wo2024->workOrder->wo_number ?? '-' }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="align-middle text-center">
+                                    @php
+                                        $wo2025 = $wp->workPackageVolumes->firstWhere('execution_year', 2025);
+                                    @endphp
+                                    @if($wo2025 && $wo2025->workOrder)
+                                        WO {{ $wo2025->workOrder->wo_number ?? '-' }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="align-middle text-center">{{$wp->volume_qty}}</td>
+                                <td class="align-middle text-center">{{$totalWithWO}}</td>
+                                <td class="align-middle text-center">{{$remaining}}</td>
+                                <td class="align-middle text-center">
+                                    {{-- Button Lihat Detail --}}
+                                    <button type="button" class="btn btn-success btn-sm" title="Lihat Detail" 
+                                            data-bs-toggle="modal" data-bs-target="#kt_modal_detail_wo" 
+                                            data-wp-id="{{ $wp->wp_id }}"
+                                    >
+                                        <i class="bi bi-eye fs-2 text-center p-0"></i>
                                     </button>
                                 </td>
-                            </tr>
-                            @if($wp->workPackageVolumes->count() > 0)
-                                @php
-                                    $grouped = $wp->workPackageVolumes->groupBy('wo_id');
-                                @endphp
-                                @foreach($wp->workPackageVolumes as $volume)
-                                    <tr class="collapse child-row text-center" id="detail-{{$wp->wp_id}}">
-                                        <td style="display: none"></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td class="ps-5">
-                                            {{ $volume->execution_year ?? '-' }} - WO {{ $volume->workOrder->wo_number ?? '-' }}
-                                        </td>
-                                        <td></td>
-                                        <td>
-                                            {{ $grouped[$volume->wo_id]->count() }}
-                                        </td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                @endforeach
-                            @endif
+                            </tr>  
                         @empty
                             <tr>
                                 <td colspan="9" class="text-center text-muted py-4">
@@ -158,27 +157,101 @@
                     </tbody>                
                 </table>
             </div> 
-
         </div>
     </div>
 </div>
 @endsection
 
+<div class="modal fade" tabindex="-1" id="kt_modal_detail_wo">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Detail Work Order</h3>
+            </div>
+            <div class="modal-body">
+                <span class="badge badge-primary" id="work_package_no">WP </span>
+                <p id="work_package_name">WP </p>
+                <table id="modal_work_order" class="table table-hover gy-4 gs-3 border rounded w-100">
+                    <thead>
+                        <tr class="text-center fw-bold fs-6 text-gray-800 px-7">
+                            <th scope="col" class="align-middle border-bottom">Tahun</th>
+                            <th scope="col" class="align-middle border-bottom">No. WO</th>
+                            <th scope="col" class="align-middle border-bottom">Realisasi (Qty)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="font-size: 0.92rem;">
+                            <td class="align-middle text-center">2024</td>
+                            <td class="align-middle text-center">WO-001</td>
+                            <td class="align-middle text-center">10</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
+    window.wpData = @json($workPackages);
     $(document).ready(function() {
         initTabelWorkOrder();
 
-        @if(isset($workPackages) && $workPackages->count() > 0)
-            @foreach($workPackages as $wp)
-                $('#detail-{{ $wp->wp_id }}').on('show.bs.collapse', function () {
-                    $('#icon-task{{ $wp->wp_id }}').removeClass('bi-plus text-dark').addClass('bi-dash text-primary');
+        // Filter event listener
+        $('#applyFilter').on('click', function() {
+            applyFilter();
+        });
+
+        $('#resetFilter').on('click', function() {
+            resetFilter();
+        });
+
+        $('#table_work_order').on('click', '.btn-success[data-wp-id]', function() {
+            const wpId = $(this).data('wp-id');
+            const wp = window.wpData.find(w => w.wp_id == wpId);
+
+            $('#work_package_no').text(wp ? 'WP - ' + wp.wp_number : 'WP');
+            $('#work_package_name').text(wp ? wp.name : 'WP');
+
+            let rows = '';
+            if (wp && wp.work_package_volumes) {
+                // Group by wo_id
+                const woGroups = {};
+                wp.work_package_volumes.forEach(function(vol) {
+                    if (vol.wo_id && vol.work_order) {
+                        if (!woGroups[vol.wo_id]) {
+                            woGroups[vol.wo_id] = {
+                                execution_year: vol.execution_year,
+                                wo_number: vol.work_order.wo_number,
+                                totalWithWO: 0,
+                                realization_qty: 0
+                            };
+                        }
+                        woGroups[vol.wo_id].totalWithWO += (vol.volume_qty ?? 0);
+                        woGroups[vol.wo_id].realization_qty += 1; // Jumlahkan baris volume, bukan sum kolom
+                    }
                 });
-                $('#detail-{{ $wp->wp_id }}').on('hide.bs.collapse', function () {
-                    $('#icon-task{{ $wp->wp_id }}').removeClass('bi-dash text-primary').addClass('bi-plus text-dark');
+
+                Object.values(woGroups).forEach(function(group) {
+                    rows += `
+                        <tr style="font-size: 0.92rem;">
+                            <td class="align-middle text-center">${group.execution_year ?? '-'}</td>
+                            <td class="align-middle text-center">WO ${group.wo_number ?? '-'}</td>
+                            <td class="align-middle text-center">${group.realization_qty}</td>
+                        </tr>
+                    `;
                 });
-            @endforeach
-        @endif
+            }
+            if(!rows) {
+                rows = `<tr><td colspan="4" class="text-center text-muted">Tidak ada data WO</td></tr>`;
+            }
+
+            $('#kt_modal_detail_wo tbody').html(rows);
+        });
     });
 
     function initTabelWorkOrder() {
@@ -189,35 +262,15 @@
                 header: true,
                 headerOffset: 70
             },
-            ordering: false,
+            ordering: false, 
             rowGroup: {
                 dataSrc: 0,
                 startRender: function (rows, group) {
-                    // Jangan filter terlalu ketat - hapus kondisi wpcat
-                    if (!group || group.trim() === '') {
-                        return null;
-                    }
-                    
                     return $('<tr/>')
-                        .append('<td colspan="9" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>')
+                        .append('<td colspan="' + rows.columns()[0].length + '" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>')
                         .addClass('wp-group-header');
                 }
-            }, // <- TAMBAHKAN COMMA INI
-            drawCallback: function(settings) {
-                // Hide child-row dari DataTables styling
-                $('.child-row').removeClass('odd even');
-                
-                // Remove unwanted group headers
-                $('.dtrg-group').each(function() {
-                    var groupText = $(this).find('td').text().trim();
-                    if (!groupText || groupText === 'No group' || groupText === '' || groupText === 'wpcat') {
-                        $(this).remove();
-                    }
-                });
             },
-            columnDefs: [
-                { targets: 0, visible: false, searchable: false }
-            ]
         });
         setupWorkOrderSearch(table);
     }
@@ -247,6 +300,34 @@
                 this.focus();
             }
         });
+    }
+
+    function applyFilter() {
+        const categoryId = $('#kategoriFilter').val();
+        const table = $('#table_work_order').DataTable();
+
+        if (categoryId) {
+            // Ambil nama kategori dari dropdown
+            const selectedCategory = $('#kategoriFilter option:selected').text().trim();
+
+            // Hapus prefix nomor kategori jika ada
+            let categoryName = selectedCategory.replace(/^\d+\.\s*/, '');
+
+            // Terapkan filter ke kolom kategori (kolom ke-0)
+            table.column(0).search(categoryName, false, true).draw();
+        } else {
+            // Hapus filter jika tidak ada kategori yang dipilih
+            table.column(0).search('').draw();
+        }
+
+        $('#filterCollapse').collapse('hide');
+    }
+
+    function resetFilter() {
+        $('#kategoriFilter').val('');
+        const table = $('#table_work_order').DataTable();
+        table.columns().search('').draw();
+        $('#filterCollapse').collapse('hide');
     }
 </script>
 @endpush
