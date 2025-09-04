@@ -298,7 +298,7 @@
                                     </svg>
                                 </span>
                             </span>
-                            <span class="menu-title">Manajemen Work Package</span>
+                            <span class="menu-title">Manajemen Kategori Work Package</span>
                         </a>
                     </div>
                     <div class="menu-item">
@@ -311,7 +311,7 @@
                                     <path d="M2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l6.414 6.414a1 1 0 0 1 0 1.414l-5.586 5.586a1 1 0 0 1-1.414 0L2.293 9.707A1 1 0 0 1 2 9V3a1 1 0 0 1 1-1z"/>
                                 </svg>
                             </span>
-                            <span class="menu-title">Manajemen Kategori WP</span>
+                            <span class="menu-title">Manajemen Work Package</span>
                         </a>
                     </div>
                     <div class="menu-item">
@@ -329,7 +329,7 @@
                             <span class="menu-title">Manajemen SDM</span>
                         </a>
                     </div>
-                    <div class="menu-item">
+                    <!-- <div class="menu-item">
                         <a
                             class="menu-link {{ request()->routeIs('roles.management') ? 'active' : '' }}"
                             href="{{ route('roles.management') }}"
@@ -342,7 +342,7 @@
                             </span>
                             <span class="menu-title">Manajemen Peran</span>
                         </a>
-                    </div>
+                    </div> -->
                     <div class="menu-item">
                         <a
                             class="menu-link {{ request()->routeIs('timesheet.management') ? 'active' : '' }}"

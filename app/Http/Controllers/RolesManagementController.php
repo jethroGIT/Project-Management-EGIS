@@ -24,7 +24,7 @@ class RolesManagementController extends Controller
             $roles = Role::whereNotIn('name', ['karyawan', 'admin'])
                             ->get();
     
-            return view('roles_management', compact('roles'));
+            return view('resource_management', compact('roles'));
 
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data peran.');
@@ -105,7 +105,7 @@ class RolesManagementController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified role.
      */
     public function edit(string $id)
     {
@@ -140,8 +140,8 @@ class RolesManagementController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Peran tidak ditemukan: ' . $e->getMessage()
-            ], 404);
+                'message' => 'Gagal mengambil data peran: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -316,7 +316,7 @@ class RolesManagementController extends Controller
             if ($usersCount > 0) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Peran tidak dapat dihapus karena masih digunakan oleh {$usersCount} user. Ubah peran user tersebut terlebih dahulu.",
+                    'message' => "Peran tidak dapat dihapus karena masih digunakan oleh {$usersCount} user. Hapus assignment user terlebih dahulu.",
                     'has_users' => true,
                     'users_count' => $usersCount,
                     'role_name' => $role->name

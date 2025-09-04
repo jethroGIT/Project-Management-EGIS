@@ -48,8 +48,16 @@ class ResourceManagementController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:user,email',
-            'role_id' => 'required|exists:roles,id',
+            'desc' => 'nullable|string|max:1000', 
+            // 'role_id' => 'required|exists:roles,id',
             'password' => 'nullable|string|min:6|confirmed'
+        ], [
+            'name.required' => 'Nama harus diisi',
+            'name.max' => 'Nama maksimal 255 karakter',
+            'email.email' => 'Format email tidak valid',
+            'email.unique' => 'Email sudah terdaftar dalam sistem',
+            'email.max' => 'Email maksimal 255 karakter',
+            'desc.max' => 'Deskripsi maksimal 1000 karakter',
         ]);
 
         try {
@@ -61,26 +69,27 @@ class ResourceManagementController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 // 'role_id' => $request->role_id,
-                'password' => Hash::make($generatedPassword)
+                'password' => Hash::make($generatedPassword),
+                'desc' => $request->desc ? trim($request->desc) : null,
             ]);
 
             // Assign role ke user
-            $selectedRole = Role::find($request->role_id);
-            if ($selectedRole) {
-                if ($selectedRole->name === 'admin') {
-                    $user->assignRole('admin');
-                } else {
-                    $user->assignRole(['karyawan', $selectedRole->name]);
-                }
-            }
+            // $selectedRole = Role::find($request->role_id);
+            // if ($selectedRole) {
+            //     if ($selectedRole->name === 'admin') {
+            //         $user->assignRole('admin');
+            //     } else {
+            //         $user->assignRole(['karyawan', $selectedRole->name]);
+            //     }
+            // }
 
             DB::commit();
 
             // Ambil display role name untuk response
-            $userRoles = $user->fresh()->getRoleNames();
-            $displayRoleName = $userRoles->contains('admin') 
-                ? 'admin' 
-                : $userRoles->filter(fn($role) => $role !== 'karyawan')->first();
+            // $userRoles = $user->fresh()->getRoleNames();
+            // $displayRoleName = $userRoles->contains('admin') 
+            //     ? 'admin' 
+            //     : $userRoles->filter(fn($role) => $role !== 'karyawan')->first();
 
             return response()->json([
                 'success' => true,
@@ -88,8 +97,8 @@ class ResourceManagementController extends Controller
                 'user' => [
                     'user_id' => $user->user_id,
                     'name' => $user->name,
-                    'email' => $user->email,
-                    'role_name' => $displayRoleName ?? 'Belum ada peran'
+                    'email' => $user->email
+                    // 'role_name' => $displayRoleName ?? 'Belum ada peran'
                 ],
                 'password_info' => $generatedPassword
             ]);
@@ -162,8 +171,9 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_id' => $currentRoleId,
-                    'role_name' => $userRoles->filter(fn($role) => $role !== 'karyawan')->first() ?? 'No Role'
+                    'desc' => $user->desc
+                    // 'role_id' => $currentRoleId,
+                    // 'role_name' => $userRoles->filter(fn($role) => $role !== 'karyawan')->first() ?? 'No Role'
                 ],
                 'roles' => $roles
             ]);
@@ -194,8 +204,9 @@ class ResourceManagementController extends Controller
                 'max:255',
                 Rule::unique('user', 'email')->ignore($id, 'user_id')
             ],
-            'role_id' => 'required|exists:roles,id',
-            'password' => 'nullable|string|min:6|confirmed'
+            // 'role_id' => 'required|exists:roles,id',
+            'password' => 'nullable|string|min:6|confirmed',
+            'desc' => 'nullable|string|max:1000'
         ]);
 
         try {
@@ -206,31 +217,34 @@ class ResourceManagementController extends Controller
             // Deteksi perubahan data
             $originalName = $user->name;
             $originalEmail = $user->email;
-            $originalRoles = $user->getRoleNames();
-            $originalMainRole = $originalRoles->contains('admin')
-                ? 'admin' 
-                : $originalRoles->filter(fn($role) => $role !== 'karyawan')->first();
+            $originalDescription = $user->desc;
+            // $originalRoles = $user->getRoleNames();
+            // $originalMainRole = $originalRoles->contains('admin')
+            //     ? 'admin' 
+            //     : $originalRoles->filter(fn($role) => $role !== 'karyawan')->first();
             
             $newName = trim($request->name);
             $newEmail = trim($request->email);
-            $newRole = Role::find($request->role_id);
+            $newDescription = trim($request->desc);
+            // $newRole = Role::find($request->role_id);
             $passwordChanged = $request->filled('password');
 
             // Pengecekan perubahan
             $nameChanged = $originalName !== $newName;
             $emailChanged = $originalEmail !== $newEmail;
-            $roleChanged = false;
-            if ($newRole) {
-                if ($originalRoles->contains('admin') && $newRole->name !== 'admin') {
-                    $roleChanged = true; // Admin -> Non-admin
-                } elseif (!$originalRoles->contains('admin') && $newRole->name === 'admin') {
-                    $roleChanged = true; // Non-admin -> Admin
-                } elseif (!$originalRoles->contains('admin') && $originalMainRole !== $newRole->name) {
-                    $roleChanged = true; // Karyawan role change 
-                }
-            }
+            $descriptionChanged = $originalDescription !== $newDescription;
+            // $roleChanged = false;
+            // if ($newRole) {
+            //     if ($originalRoles->contains('admin') && $newRole->name !== 'admin') {
+            //         $roleChanged = true; // Admin -> Non-admin
+            //     } elseif (!$originalRoles->contains('admin') && $newRole->name === 'admin') {
+            //         $roleChanged = true; // Non-admin -> Admin
+            //     } elseif (!$originalRoles->contains('admin') && $originalMainRole !== $newRole->name) {
+            //         $roleChanged = true; // Karyawan role change 
+            //     }
+            // }
             
-            $hasChanges = $nameChanged || $emailChanged || $roleChanged || $passwordChanged;
+            $hasChanges = $nameChanged || $emailChanged || $descriptionChanged || $passwordChanged;
 
             // Jika tidak ada perubahan
             if (!$hasChanges) {
@@ -243,7 +257,8 @@ class ResourceManagementController extends Controller
                     'current_data' => [
                         'name' => $originalName,
                         'email' => $originalEmail,
-                        'role_name' => $originalMainRole ?? 'No Role',
+                        'desc' => $originalDescription,
+                        // 'role_name' => $originalMainRole ?? 'No Role',
                         'last_updated' => $user->updated_at ? $user->updated_at->format('d M Y H:i') : 'Tidak diketahui'
                     ]
                 ], 200);
@@ -252,6 +267,7 @@ class ResourceManagementController extends Controller
             // Update info dasar
             $user->name = $newName;
             $user->email = $newEmail;
+            $user->desc = $newDescription;
 
             // Update password jika diisi
             if ($passwordChanged) {
@@ -261,21 +277,21 @@ class ResourceManagementController extends Controller
             $user->save();
 
             // Update role jika berubah
-            if ($roleChanged && $newRole) {
-                if ($newRole->name === 'admin') {
-                    $user->syncRoles(['admin']);
-                } else {
-                    $user->syncRoles(['karyawan', $newRole->name]);
-                }
-            }
+            // if ($roleChanged && $newRole) {
+            //     if ($newRole->name === 'admin') {
+            //         $user->syncRoles(['admin']);
+            //     } else {
+            //         $user->syncRoles(['karyawan', $newRole->name]);
+            //     }
+            // }
 
             DB::commit();
 
             // Ambil nama role terbaru untuk response
-            $updatedRoles = $user->fresh()->getRoleNames();
-            $displayRoleName = $updatedRoles->contains('admin') 
-                ? 'admin' 
-                : $updatedRoles->filter(fn($role) => $role !== 'karyawan')->first();
+            // $updatedRoles = $user->fresh()->getRoleNames();
+            // $displayRoleName = $updatedRoles->contains('admin') 
+            //     ? 'admin' 
+            //     : $updatedRoles->filter(fn($role) => $role !== 'karyawan')->first();
 
             return response()->json([
                 'success' => true,
@@ -284,7 +300,8 @@ class ResourceManagementController extends Controller
                     'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role_name' => $displayRoleName ?? 'No Role',
+                    'desc' => $user->desc,
+                    // 'role_name' => $displayRoleName ?? 'No Role',
                     'updated_at' => $user->updated_at->format('d M Y H:i')
                 ]
             ]);
