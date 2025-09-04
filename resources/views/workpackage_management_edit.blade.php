@@ -434,12 +434,12 @@
 
                                         <!-- Invalid feedback -->
                                         <div class="invalid-feedback" id="woNumberFeedback">
-                                            Nomor WO ini sudah digunakan
+                                            <!-- Nomor WO ini sudah digunakan -->
                                         </div>
                                         
                                         <!-- Success feedback -->
                                         <div class="valid-feedback" id="woNumberValidFeedback">
-                                            Nomor WO tersedia
+                                            <!-- Nomor WO tersedia -->
                                         </div>
                                     </div>
                                     <div class="col-md-8">
@@ -2212,7 +2212,7 @@ function showWoNumberError(message) {
     helpText.text(message).removeClass('text-success text-muted').addClass('text-danger');
     
     // Update feedback message
-    feedback.text(message).show();
+    // feedback.text(message).show();
     validFeedback.hide();
 }
 </script>
