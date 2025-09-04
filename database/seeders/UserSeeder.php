@@ -22,19 +22,19 @@ class UserSeeder extends Seeder
                 'role' => 'Project Manager',
             ],
             [
-                'name' => 'Restia',
+                'name' => 'Restia Moegiono',
                 'email' => 'restia123@gmail.com',
                 'password' => bcrypt('rest123!'),
                 'role' => 'Senior Consultant',
             ],
             [
-                'name' => 'Yudis',
-                'email' => 'yudis123@gmail.com',
+                'name' => 'Yudistira Dwi Wardhana',
+                'email' => 'yudistira123@gmail.com',
                 'password' => bcrypt('yudi123!'),
-                'role' => 'Associate Consultant',
+                'role' => ['Associate Consultant', 'Senior Consultant'],
             ],
             [
-                'name' => 'Annisa Y',
+                'name' => 'Annisa Yuniar',
                 'email' => 'annisay123@gmail.com',
                 'password' => bcrypt('anny123!'),
                 'role' => 'Junior Consultant',
@@ -45,13 +45,55 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('vani123!'),
                 'role' => 'Technical Writer',
             ],
+            [
+                'name' => 'Wahyu Winarno',
+                'email' => 'wahyu123@gmail.com',
+                'password' => bcrypt('wahy123!'),
+                'role' => 'Senior Consultant',
+            ],
+            [
+                'name' => 'Nus Primata',
+                'email' => 'nusprimata123@gmail.com',
+                'password' => bcrypt('nusp123!'),
+                'role' => 'Senior Consultant',
+            ],
+            [
+                'name' => 'Eko Yon Handri',
+                'email' => 'ekoyon123@gmail.com',
+                'password' => bcrypt('ekoy123!'),
+                'role' => 'Senior Consultant',
+            ],
+            [
+                'name' => 'Indra',
+                'email' => 'indra123@gmail.com',
+                'password' => bcrypt('indr123!'),
+                'role' => 'Associate Consultant',
+            ],
+            [
+                'name' => 'Bayu Samudra',
+                'email' => 'bayu123@gmail.com',
+                'password' => bcrypt('bayu123!'),
+                'role' => 'Junior Consultant',
+            ],
+            [
+                'name' => 'Galuh Dhipa',
+                'email' => 'galuhd123@gmail.com',
+                'password' => bcrypt('galu123!'),
+                'role' => 'Junior Consultant',
+            ],
+            [
+                'name' => 'Decky',
+                'email' => 'decky123@gmail.com',
+                'password' => bcrypt('deck123!'),
+                'role' => 'Technical Writer',
+            ],
         ];
 
         foreach ($workers as $worker) {
-            $role = $worker['role'];
+            $roles = (array) $worker['role'];
             unset($worker['role']);
             $worker = User::create($worker);
-            $worker->assignRole(['karyawan',$role]);
+            $worker->assignRole(array_merge(['karyawan'],$roles));
         };
 
         $admin= User::create([

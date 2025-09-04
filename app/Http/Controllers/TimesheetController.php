@@ -84,7 +84,7 @@ class TimesheetController extends Controller
             }
             return $user->roles->get(1)?->id ?? $user->roles->first()?->id;
         })->map(function ($entriesPerRole) {
-            return $entriesPerRole->count();
+            return $entriesPerRole->sum('duration');
         });
 
         $startDate = $request->query('start_date');
@@ -132,7 +132,7 @@ class TimesheetController extends Controller
             ->first();
 
         // menghitung jumlah aktivitas dari role tertentu
-        $activitiesCount = $activities->count();
+        $activitiesCount = $activities->sum('duration');
 
         return view('timesheet_per_user', compact('volume', 'workPackage', 'humanResources', 'activities', 'user', 'activitiesCount'));
     }

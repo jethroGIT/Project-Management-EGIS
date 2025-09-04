@@ -52,7 +52,7 @@ class PerformanceFinanceController extends Controller
             // Ambil role kedua jika ada, jika tidak ambil role pertama
             return $user && $user->roles->count() ? ($user->roles->get(1)->id ?? $user->roles->first()->id) : null;
         })->map(function ($entriesPerRole) {
-            return $entriesPerRole->count();
+            return $entriesPerRole->sum('duration');
         });
 
         $costsPerRole = $humanResources->map(function ($hResource) use ($timesheetCountPerRole) {

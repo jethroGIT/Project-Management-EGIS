@@ -38,9 +38,9 @@
                             <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping --}}
                             <th scope="col" style="width: 30px;">No</th>
                             <th scope="col" style="width: 30px;">Vol</th>
-                            <th scope="col" style="width: 75px; min-width: 40px;">Tanggal</th>
+                            <th scope="col" style="width: 75px; min-width: 35px;">Tanggal</th>
                             @foreach($users as $user)
-                                <th scope="col" style="width: 80px;">
+                                <th scope="col" style="min-width: 80px;">
                                     @php
                                         // Menggunakan first() untuk mendapatkan role pertama jika ada
                                         $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
@@ -48,7 +48,7 @@
                                     <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$roleName}}">{{$user->name}}</span>
                                 </th>     
                             @endforeach
-                            <th scope="col" style="width: 100px;">Action</th>
+                            <th scope="col" style="width: 30px;">Action</th>
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.92rem;">
@@ -75,10 +75,81 @@
                                     @php
                                         $userEntry = $group->firstWhere('user_id', $user->user_id);
                                     @endphp
-                                    <td>{{ $userEntry->activity ?? '-' }}</td>
+                                    @if($userEntry)
+                                        <td>
+                                            @if($userEntry->duration == 1.0)
+                                                <span class="badge badge-light-info mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                            @elseif($userEntry->duration == 0.5)
+                                                <span class="badge badge-light-primary mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                            @else
+                                                <span class="badge badge-secondary mb-1">{{ $userEntry->duration}} Hari</span></br>
+                                            @endif
+                                            <span>{{ $userEntry->activity}}</span>
+                                        </td>
+                                    @else
+                                        <td class="text-center">-</td>
+                                    @endif
                                 @endforeach
 
                                 <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                            </svg>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center btn-edit-activity" href="#"
+                                                    title="Edit Aktivitas" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editActivityModal"
+                                                    data-timesheet-id="{{$firstEntry->timesheet_id}}"
+                                                    data-volume-id="{{$firstEntry->volume_id}}"
+                                                    data-execution-date="{{$executionDate}}"
+                                                >
+                                                    <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                    Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" title="Hapus Aktivitas"
+                                                    data-execution-date="{{$executionDate}}" 
+                                                    data-timesheet-id="{{$firstEntry->timesheet_id}}"
+                                                >
+                                                    <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                    Hapus
+                                                </a>
+                                            </li>
+                                            {{-- <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center" href="{{ route('wp-management.detail', ['wp_id' => $wp['wp_id']]) }}">
+                                                    <i class="bi bi-eye me-3 fs-2 text-dark"></i>
+                                                    Lihat Detail
+                                                </a>
+                                            </li> --}}
+                                            <!-- <li>
+                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
+                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                    Masukkan di Atas
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
+                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                    Masukkan di Bawah
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
+                                                    <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                    Masukkan Sub Baris
+                                                </a>
+                                            </li> -->
+                                        </ul>
+                                    </div>
+                                </td>
+                                {{-- <td>
                                     <div class="d-flex gap-2">
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-activity" 
                                                 title="Edit Aktivitas" 
@@ -94,7 +165,7 @@
                                             <i class="bi bi-trash fs-6"></i>
                                         </button>
                                     </div>                                  
-                                </td>
+                                </td> --}}
                             </tr>
                         @endforeach
                     </tbody>

@@ -127,6 +127,7 @@
                                 <th scope="col" style="width: 40px;">No</th>
                                 <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
                                 <th scope="col">Aktivitas</th>                       
+                                <th scope="col text-center" style="width: 110px">Durasi (Hari)</th>                       
                                 <th scope="col" style="width: 40px;">Action</th>
                             </tr>
                         </thead>
@@ -136,7 +137,8 @@
                                 <th scope="row">{{$loop->index+1}}</th>
                                 <td>{{\Carbon\Carbon::parse($activity->execution_date)->format('d M')}}</td>
                                 <td>{{$activity->activity}}</td>
-                                <td>
+                                <td class="text-center">{{$activity->duration}}</td>
+                                <td class="text-center">
                                     <div class="dropdown">
                                         <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-three-dots fs-3 text-dark"></i>

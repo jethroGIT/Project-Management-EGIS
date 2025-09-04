@@ -75,7 +75,7 @@ class WorkPackageController extends Controller
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
         })->with(['roles']) // ambil relasi role
-        ->withCount(['timesheets' => function ($query) use ($volume_id) {
+        ->with(['timesheets' => function ($query) use ($volume_id) {
             // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
             $query->where('volume_id', $volume_id);
         }])
@@ -92,7 +92,7 @@ class WorkPackageController extends Controller
                 'role_name' => $user->roles->get(1)?->name ?? $user->roles->first()?->name ?? 'No Role',
                 'role_id' => $roleId,
                 'jhk' => $humanResource ? $humanResource->jhk : null,
-                'timesheets_count' => $user->timesheets_count,
+                'timesheets_count' => $user->timesheets->sum('duration'),
             ];
         });
 
@@ -226,7 +226,7 @@ class WorkPackageController extends Controller
 
         // Hitung aktivitas per role dari timesheet
         $timesheetCountPerRole = $timesheets->groupBy(fn($t) => $t->user->roles->get(1)?->id ?? $t->user->roles->first()?->id)
-            ->map(fn($group) => $group->count());
+            ->map(fn($group) => $group->sum('duration'));
 
         
         $totalByYoy = 0;
