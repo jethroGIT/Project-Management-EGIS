@@ -62,24 +62,6 @@
                         </div>
                     </div>
 
-                    <!-- Finance Performance -->
-                    <div class="col-md-4">
-                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
-                            <div class="card-header">
-                                <h3 class="card-title fw-bold">Finance Performance</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                    <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
-                                </div>
-                            </div>
-                            <!-- Overlay -->
-                            <div class="performance-overlay d-flex align-items-center justify-content-center">
-                                <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- WP Performance -->
                     <div class="col-md-4">
                         <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-task.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
@@ -97,8 +79,51 @@
                             </div>
                         </div>
                     </div>
-                    {{-- <div class="col-md-4">
-                    </div> --}}
+
+                    <!-- Finance Performance/mandays -->
+                    @if(auth()->user()->hasRole('admin'))
+                        <div class="col-md-4">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                                <div class="card-header">
+                                    <h3 class="card-title fw-bold">Finance Performance</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
+                                        <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
+                                    </div>
+                                </div>
+                                <!-- Overlay -->
+                                <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="col-md-4">
+                            <div class="card card-flush shadow-sm mb-4 duration-card">
+                                <div class="card-header title-mandays">
+                                    <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
+                                </div>
+                                <div class="card-body p-1">
+                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
+                                        @if(isset($assignedUsers) && $assignedUsers->count() > 0)
+                                            @php
+                                                $currentUser = $assignedUsers->firstWhere('user_id', auth()->user()->user_id);
+                                            @endphp
+                                            <div class="mini-mandays-card">
+                                                <div class="mb-1" style="font-size: 1.1rem;">Rencana</div>
+                                                <div class="fs-2 text-success">{{ $currentUser['jhk'] ?? 0 }}</div>
+                                            </div>
+                                            <div class="mini-mandays-card">
+                                                <div class="mb-1" style="font-size: 1.1rem;">Realisasi</div>
+                                                <div class="fs-2 text-success">{{ $currentUser['timesheets_count'] ?? 0 }}</div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Timesheet Button -->
                     <div class="d-flex justify-content-end mb-4">
@@ -2468,5 +2493,48 @@ document.addEventListener("DOMContentLoaded", function () {
     border-top: 1px solid #dee2e6;
     box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
     padding: 1rem;
+}
+
+.title-mandays {
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
+    min-height: 56px !important;
+    /* height: 34px !important; */
+    line-height: 1.1 !important;
+    background: transparent !important;
+    border-bottom: none !important;
+    display: flex;
+    align-items: center;
+}
+
+.title-mandays .card-title {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+
+.mini-mandays-card {
+    min-width: 110px;
+    max-width: 140px;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e3e6ef;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(33, 37, 41, 0.08);
+    margin-right: 12px;
+    /* padding-bottom: 0px; */
+}
+
+.mini-mandays-card:hover {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px) scale(0.98);
+    /* border-color: #b7d4f4; */
+}
+
+.mini-mandays-card:last-child {
+    margin-right: 0;
 }
 </style>
