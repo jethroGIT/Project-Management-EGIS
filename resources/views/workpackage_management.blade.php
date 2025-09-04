@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="mt-0 mb-5">Management Work Package</h1>
+    <h1 class="mt-0 mb-5">Management Kategori Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-6">
         <div class="card-body">
