@@ -149,13 +149,13 @@
                                                 >
                                                 <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
                                             </li>
-                                            <li><a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" 
+                                            {{-- <li><a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" 
                                                     data-timesheet-id="{{$activity->timesheet_id}}"
                                                     data-activity="{{$activity->activity}}"
                                                 >
                                                     <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus
                                                 </a>
-                                            </li>
+                                            </li> --}}
                                         </ul>
                                     </div>
                                 </td>
@@ -244,6 +244,25 @@
      // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
+
+        const activitiesCount = {{ $activitiesCount }};
+        const mandaysPlan = {{ $humanResources->jhk ?? 0 }};
+
+        // Handler tombol tambah aktivitas
+        $('[data-bs-target="#addActivityModal"]').on('click', function(e) {
+            if (activitiesCount >= mandaysPlan) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Mandays sudah penuh',
+                    text: 'Jumlah aktivitas Anda sudah sama atau lebih dari rencana mandays.',
+                    confirmButtonText: 'Ok',
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false;
+            }
+            // Jika belum penuh, modal tetap muncul
+        });
     });
 
     function initTabelTimesheet() {

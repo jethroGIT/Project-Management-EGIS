@@ -5,7 +5,7 @@
     <h1 class="my-5 mt-2">Timesheet Summary</h1>
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
-            <div class="d-flex align-items-center mb-7">
+            <div class="d-flex align-items-center">
                 @if(auth()->user()->hasRole('admin'))
                     <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                         <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
@@ -32,21 +32,25 @@
                 <label class="form-label">Filter Berdasarkan Tanggal</label>
                 <input type="text" class="form-control form-control-solid" placeholder="Pilih rentang tanggal" id="kt_daterangepicker_1" style="width: 35%"/>
             </div> --}}
-            <form class="d-flex justify-content-end align-items-center mb-5">
-                <label class="me-5 mb-0" for="searchActivity">Cari: </label>
-                <div>
-                    <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
-                        <input 
-                            class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
-                            style="width:200px" 
-                            type="search"
-                            id="searchActivity" 
-                            placeholder="Cari aktivitas" 
-                            aria-label="Search"
-                        >                    
-                    </form>
-                </div>                  
-            </form>
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <button class="btn btn-light-primary mb-3" id="scrollToMandays">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-down mb-1 me-2" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
+                    </svg>
+                    Lihat Total Mandays
+                </button>
+                <form class="d-flex justify-content-end" onsubmit="return false;">
+                    <label class="me-5 mt-3" for="searchActivity">Cari: </label>
+                    <input 
+                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                        style="width:200px" 
+                        type="search"
+                        id="searchActivity" 
+                        placeholder="Cari aktivitas" 
+                        aria-label="Search"
+                    >                    
+                </form> 
+            </div>
             <div class="tab-content">
                 <div class="tab-pane fade show active">
                     <div class="table-responsive">
@@ -96,38 +100,23 @@
                 </div>           
             </div>
             <div class="separator my-3"></div>                        
-            <div class="col">
-                <div class="d-flex justify-content-between mb-5">
-                    <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
-                        <i class="bi bi-chevron-down me-2"></i>
-                        Lihat Ringkasan Mandays
-                    </button>
-                    {{-- id user dummy terlebih dulu, nanti ambil dari session user --}}
-                    {{-- @if(auth()->user()->hasRole('karyawan'))
-                        <button type="button" class="btn btn-light-primary" aria-expanded="false" aria-controls="kelolaAktivitas" onclick="window.location.href='{{ route('timesheet.detail.user', [$volume->volume_id, 1]) }}'">
-                            Kelola Aktivitas
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                            </svg>
-                        </button>
-                    @endif --}}
+            <div class="card card-flush shadow-sm border-0 mb-5" id="mandaysCard" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
+                <div class="card-header pb-0">
+                    <h3 class="card-title fw-bold p-0">Total Mandays</h3>
                 </div>
-                <div class="collapse" id="mandaysSummaryTable">
+                <div class="card-body py-0">
                     <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
-                        <thead>
+                        <thead style="font-size: 1.1rem;">
                             <tr>
-                                <th scope="col" colspan="3" class="text-center bg-light py-1">Total Mandays</th>
+                                <th scope="col" rowspan="2" class="fw-bold align-middle bg-light py-1">Personel</th>
+                                <th scope="col" colspan="2" class="fw-bold text-center align-middle bg-light py-2">Mandays</th>
                             </tr>
                             <tr>
-                                <th scope="col" rowspan="2" class="align-middle py-1">Personel</th>
-                                <th scope="col" colspan="2" class="text-center align-middle py-1">Mandays</th>
-                            </tr>
-                            <tr>
-                                <th class="text-center align-middle py-0">Rencana</th>
-                                <th class="text-center align-middle py-0">Realisasi</th>                            
+                                <th class="fw-bold text-center align-middle bg-light py-1">Rencana</th>
+                                <th class="fw-bold text-center align-middle bg-light py-1">Realisasi</th>                            
                             </tr>
                         </thead>
-                        <tbody style="font-size: 0.92rem;">
+                        <tbody style="font-size: 0.97rem;">
                             @foreach($humanResources as $hResource)
                             <tr>
                                 <td class="align-middle">{{$hResource->role->name}}</td>
@@ -153,15 +142,19 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-
-     // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
+
+        $('#scrollToMandays').on('click', function() {
+            $('html, body').animate({
+                scrollTop: $('#mandaysCard').offset().top - 60 // offset untuk header
+            }, 600);
+        });
     });
 
     function initTabelTimesheet() {
         const table = $('#kt_datatable_example_2').DataTable({
-            "scrollY": '350px',
+            "scrollY": '300px',
             "scrollX": true,
             "fixedHeader": {
                 "header": true,
