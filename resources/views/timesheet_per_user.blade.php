@@ -147,6 +147,7 @@
                                             <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" href="#" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
                                                 data-timesheet-id="{{ $activity->timesheet_id }}"
                                                 data-execution-date="{{ $activity->execution_date }}"
+                                                data-duration="{{ $activity->duration }}"
                                                 data-activity="{{ $activity->activity }}"
                                                 >
                                                 <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
@@ -187,14 +188,30 @@
                     @method('POST')
 
                     <div class="form-group mb-6">
-                        <label class="form-label fw-bold">Tanggal</label>
-                        <div class="input-group">
-                            <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Tanggal</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31" required/>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Durasi (Hari)</label>
+                                <div class="input-group">
+                                    <select class="form-select" name="duration" id="duration" required>
+                                        <option value="0.5">0.5</option>
+                                        <option value="1">1</option>
+                                        <option value="1.5">1.5</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                    <span class="input-group-text">Hari</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="mb-6">
                         <label class="form-label fw-bolder">Aktivitas</label>
-                        <textarea class="form-control" id="activity" name="activity" rows="3" placeholder="Aktivitas"></textarea>
+                        <textarea class="form-control" id="activity" name="activity" rows="3" placeholder="Aktivitas" required></textarea>
                     </div>
                 </form>
             </div>
@@ -220,11 +237,27 @@
                     <input type="hidden" name="timesheet_id" id="form_timesheet_id">
                     
                     <div class="form-group mb-6">
-                        <label class="form-label fw-bold">Tanggal</label>
-                        <div class="input-group">
-                            <input type="date" class="form-control" name="execution_date" id="executionDate" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Tanggal</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="execution_date" id="executionDate" placeholder="Masukkan Tanggal" min="1" max="31" required/>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Durasi (Hari)</label>
+                                <div class="input-group">
+                                    <select class="form-select" name="duration" id="duration_day" required>
+                                        <option value="0.5">0.5</option>
+                                        <option value="1.0">1.0</option>
+                                        <option value="1.5">1.5</option>
+                                        <option value="2.0">2.0</option>
+                                    </select>
+                                    <span class="input-group-text">Hari</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="mb-6">
                         <label class="form-label fw-bolder">Aktivitas</label>
                         <textarea class="form-control" id="activityTimesheet" name="activity" rows="3" placeholder="Aktivitas"></textarea>
@@ -380,6 +413,7 @@
                 // Isi input tersembunyi timesheet_id
                 document.getElementById('form_timesheet_id').value = button.dataset.timesheetId;
                 document.getElementById('executionDate').value = button.dataset.executionDate;
+                document.getElementById('duration_day').value = button.dataset.duration;
                 document.getElementById('activityTimesheet').value = button.dataset.activity;
             }
         });

@@ -136,31 +136,6 @@ class TimesheetController extends Controller
 
         return view('timesheet_per_user', compact('volume', 'workPackage', 'humanResources', 'activities', 'user', 'activitiesCount'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
     
     /**
      * adding the user activity.
@@ -171,6 +146,7 @@ class TimesheetController extends Controller
             // save
             $request->validate([
                 'execution_date' => 'required|date',
+                'duration' => 'required|numeric',
                 'activity' => 'required'
             ]);
 
@@ -191,6 +167,7 @@ class TimesheetController extends Controller
             $activity = Timesheet::create([
                 'user_id' => $user_id,
                 'volume_id' => $volume_id,
+                'duration' => $request->duration,
                 'execution_date' => $request->execution_date,
                 'activity' => $request->activity,
             ]);
@@ -223,6 +200,10 @@ class TimesheetController extends Controller
 
             if ($request->filled('execution_date')) {
                 $activity->execution_date = $request->execution_date;
+            }
+
+            if ($request->filled('duration')) {
+                $activity->duration = $request->duration;
             }
 
             if ($request->filled('activity')) {
@@ -259,21 +240,5 @@ class TimesheetController extends Controller
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }
