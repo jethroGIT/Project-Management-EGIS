@@ -196,7 +196,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">Durasi (Hari)</label>
+                                <label class="form-label fw-bold">Durasi</label>
                                 <div class="input-group">
                                     <select class="form-select" name="duration" id="duration" required>
                                         <option value="0.5">0.5</option>
@@ -245,7 +245,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">Durasi (Hari)</label>
+                                <label class="form-label fw-bold">Durasi</label>
                                 <div class="input-group">
                                     <select class="form-select" name="duration" id="duration_day" required>
                                         <option value="0.5">0.5</option>

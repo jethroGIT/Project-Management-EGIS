@@ -7,6 +7,59 @@
     <!-- Card Activity -->
      <div class="card card-flush shadow-sm">
         <div class="card-body row">
+            <!-- Filter Button -->
+            <div class="d-flex justify-content-start mb-4">
+                <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
+                        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+                    </svg>
+                    Filter Data
+                </button>
+            </div>
+
+            <!-- Filter Collapse -->
+            <div class="collapse" id="filterCollapse">
+                <div class="card card-flush shadow-lg mb-4">
+                     <div class="card-header">
+                         <h3 class="card-title">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                                 <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+                             </svg>
+                             <div class="m-2">
+                                Filter Data
+                             </div>
+                         </h3>
+                     </div>
+                     <div class="card-body py-5">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">Work Package</label>
+                                <select class="form-select form-select-solid" id="workPackageFilter">
+                                    <option value="">Pilih Work Package</option>
+                                    @if(isset($workPackagesFilter) && $workPackagesFilter->count() > 0)
+                                        @foreach($workPackagesFilter as $wp)
+                                            <option value="{{ $wp->wp_id }}">
+                                                {{ trim(preg_replace('/\s+/', ' ', $wp->wp_number . ' - ' . $wp->name)) }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                     </div>
+                     <div class="card-footer">
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-danger me-3" id="resetFilter">
+                                Hapus Filter
+                            </button>
+                            <button type="button" class="btn btn-primary" id="applyFilter">
+                                Terapkan
+                            </button>
+                        </div>
+                     </div>
+                </div>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center">
                 <!-- Add Activity Button -->
                 <div class="d-flex justify-content-start mb-4">
@@ -65,7 +118,7 @@
 
                             <tr>
                                 {{-- Kolom tersembunyi untuk grouping --}}
-                                <td style="display: none;">{{ $wpGroupKey }}</td>
+                                <td style="display: none;">{{ trim(preg_replace('/\s+/', ' ', $wpGroupKey)) }}</td>
 
                                 <td>{{ $rowNumber++ }}</td>
                                 <td>{{ $volumeNum }}</td>
@@ -229,11 +282,27 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="form-group mb-6">
-                                        <label for="personel_select_0" class="form-label fw-bold">Personel</label>
-                                        <div class="input-group">
-                                            <select class="form-select form-select-solid personel-select" name="personel_ids[]" id="personel_select_0" required>
-                                                <option value="">Pilih Personel</option>
-                                            </select>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <label for="personel_select_0" class="form-label fw-bold">Personel</label>
+                                                <div class="input-group">
+                                                    <select class="form-select form-select-solid personel-select" name="personel_ids[]" id="personel_select_0" required>
+                                                        <option value="">Pilih Personel</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="duration_0" class="form-label fw-bold">Durasi</label>
+                                                <div class="input-group">
+                                                    <select class="form-select duration-select" name="durations[]" id="duration_0" required>
+                                                        <option value="0.5">0.5</option>
+                                                        <option value="1.0">1.0</option>
+                                                        <option value="1.5">1.5</option>
+                                                        <option value="2.0">2.0</option>
+                                                    </select>
+                                                    <span class="input-group-text" style="min-width:40px; padding-left:6px; padding-right:6px;">Hari</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div> 
                                     <div class="form-group mb-6">
@@ -333,11 +402,27 @@
         <div class="card-body">
             {{-- <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value=""> --}}
             <div class="form-group mb-6">
-                <label class="form-label fw-bold">Personel</label>
-                <div class="input-group">
-                    <select class="form-select form-select-solid edit-personel-select" name="personel_ids[]" id="personel_select_0" required>
-                        <option value="">Pilih Personel</option>
-                    </select>
+                <div class="row">
+                    <div class="col-md-8">
+                        <label for="personel_select_0" class="form-label fw-bold">Personel</label>
+                        <div class="input-group">
+                            <select class="form-select form-select-solid edit-personel-select" name="personel_ids[]" id="personel_select_0" required>
+                                <option value="">Pilih Personel</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="duration_0" class="form-label fw-bold">Durasi</label>
+                        <div class="input-group">
+                            <select class="form-select edit-duration-select" name="durations[]" id="duration_0" required>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2.0">2.0</option>
+                            </select>
+                            <span class="input-group-text" style="min-width:40px; padding-left:6px; padding-right:6px;">Hari</span>
+                        </div>
+                    </div>
                 </div>
             </div> 
             <div class="form-group mb-6">
@@ -353,28 +438,36 @@
     $(document).ready(function() {
         // Inisialisasi DataTable untuk tabel aktivitas
         initTableTimesheet();
+
+        $('#applyFilter').on('click', function() {
+            applyFilter();
+        });
+
+        $('#resetFilter').on('click', function() {
+            resetFilter();
+        });
     });
 
     function initTableTimesheet() {
         const table = $('#tabel_aktivitas').DataTable({
-        scrollY: '350px',
-        scrollX: true,
-        fixedHeader: {
-            header: true,
-            headerOffset: 70
-        },
-        ordering: true,
-        rowGroup: {
-            dataSrc: 0,
-            startRender: function (rows, group) {
-                return $('<tr/>')
-                    .append('<td colspan="' + rows.columns()[0].length + '" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>')
-                    .addClass('wp-group-header');
-            }
-        },
-        columnDefs: [
-            { targets: 0, visible: false, searchable: false }
-        ]
+            scrollY: '350px',
+            scrollX: true,
+            fixedHeader: {
+                header: true,
+                headerOffset: 70
+            },
+            ordering: false,
+            rowGroup: {
+                dataSrc: 0,
+                startRender: function (rows, group) {
+                    return $('<tr/>')
+                        .append('<td colspan="' + rows.columns()[0].length + '" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>')
+                        .addClass('wp-group-header');
+                }
+            },
+            columnDefs: [
+                { targets: 0, visible: false, searchable: true }
+            ]
         });
         setupActivitySearch(table);
     }
@@ -385,8 +478,7 @@
         // Search input handler
         searchInput.on('keyup change input', function() {
             const searchValue = this.value.trim();
-            console.log('Search value:', searchValue);
-            table.search(searchValue).draw();
+            table.column(4).search(searchValue, false, true).draw();
         });
 
         // Clear button handler
@@ -405,6 +497,37 @@
                 this.focus();
             }
         });
+    }
+
+    function escapeRegex(string) {
+        return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    }
+
+    function normalizeText(text) {
+        return text.replace(/\s+/g, ' ').trim();
+    }
+
+    function applyFilter() {
+        const wpId = $('#workPackageFilter').val();
+        const table = $('#tabel_aktivitas').DataTable();
+
+        if (wpId) {
+            let selectedWP = $('#workPackageFilter option:selected').text();
+            selectedWP = normalizeText(selectedWP);
+            const WPKey = escapeRegex(selectedWP);
+            table.column(0).search('^' + WPKey + '$', true, false).draw();
+        } else {
+            table.column(0).search('').draw();
+        }
+
+        $('#filterCollapse').collapse('hide');
+    }
+
+    function resetFilter() {
+        $('#workPackageFilter').val('');
+        const table = $('#tabel_aktivitas').DataTable();
+        table.columns().search('').draw();
+        $('#filterCollapse').collapse('hide');
     }
 
     // menampilkan volume berdasarkan work package yang dipilih
@@ -567,7 +690,10 @@
         const selectElement = newGroupDiv.querySelector('.personel-select');
         selectElement.id = `personel_select_${newGroupIndex}`;
         selectElement.name = `personel_ids[${newGroupIndex}]`; // Gunakan indeks untuk array name
-        // selectElement.classList.add('personel-select');
+
+        const durationElement = newGroupDiv.querySelector('.duration-select');
+        durationElement.id = `duration_${newGroupIndex}`;
+        durationElement.name = `durations[${newGroupIndex}]`; // Gunakan indeks untuk array name
 
         const textareaElement = newGroupDiv.querySelector('.activity-textarea');
         textareaElement.id = `activity_${newGroupIndex}`;
@@ -609,6 +735,8 @@
             group.querySelector('.card-title').textContent = `Personel ${index + 1}`;
             group.querySelector('.personel-select').id = `personel_select_${index}`;
             group.querySelector('.personel-select').name = `personel_ids[${index}]`;
+            group.querySelector('.duration-select').id = `duration_${index}`;
+            group.querySelector('.duration-select').name = `durations[${index}]`;
             group.querySelector('.activity-textarea').id = `activity_${index}`;
             group.querySelector('.activity-textarea').name = `activities[${index}]`;
             group.querySelector('.remove-personel-btn').onclick = function() {
@@ -646,11 +774,17 @@
 
         // Reset ID dan name personel & aktivitas pertama
         const firstSelect = container.querySelector('.personel-select');
+        const firstDuration = container.querySelector('.duration-select');
         const firstTextarea = container.querySelector('.activity-textarea');
         if (firstSelect) {
             firstSelect.id = 'personel_select_0';
             firstSelect.name = 'personel_ids[0]';
             firstSelect.innerHTML = '<option value="">Pilih Personel</option>';
+        }
+        if (firstDuration) {
+            firstDuration.id = 'duration_0';
+            firstDuration.name = 'durations[0]';
+            firstDuration.value = '0.5';
         }
         if (firstTextarea) {
             firstTextarea.id = 'activity_0';
@@ -681,7 +815,7 @@
         if (!wp || !vol || !date) {
             Swal.fire({
                 title: "Data Belum Lengkap",
-                text: "Work Package, Volume, Tanggal, Personel, dan aktivitas wajib diisi.",
+                text: "Work Package, Volume, Tanggal, Personel, Durasi, dan aktivitas wajib diisi.",
                 icon: "info",
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
@@ -697,7 +831,7 @@
             if (!personelSelects[i].value.trim() || !activityTextareas[i].value.trim()) {
                 Swal.fire({
                     title: "Data Belum Lengkap",
-                    text: "Personel dan aktivitas wajib diisi untuk setiap grup.",
+                    text: "Personel, durasi, dan aktivitas wajib diisi untuk setiap grup.",
                     icon: "info",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
@@ -868,6 +1002,7 @@
         const group = template.content.cloneNode(true).querySelector('.personel-activity-group');
 
         const personelSelect = group.querySelector('.edit-personel-select');
+        const durationSelect = group.querySelector('.edit-duration-select');
         const textarea = group.querySelector('.edit-activity-textarea');
 
         // Populate select
@@ -881,6 +1016,7 @@
             personelSelect.appendChild(userOption);
         });
 
+        durationSelect.value = activity.duration ? String(activity.duration) : '1.0';
         textarea.value = activity.activity || '';
         personelSelect.value = activity.user_id ? String(activity.user_id) : '';
 
@@ -1032,6 +1168,11 @@
             if (select) {
                 select.id = `edit_personel_select_${index}`;
                 select.name = `personel_ids[${index}]`;
+            }
+            const duration = group.querySelector('.edit-duration-select');
+            if (duration) {
+                duration.id = `edit_duration_${index}`;
+                duration.name = `durations[${index}]`;
             }
             const textarea = group.querySelector('.edit-activity-textarea');
             if (textarea) {

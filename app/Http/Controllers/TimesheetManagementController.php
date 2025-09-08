@@ -6,6 +6,7 @@ use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
+use App\Models\WpCategory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -68,7 +69,17 @@ class TimesheetManagementController extends Controller
             }
         }
 
-        return view('timesheet_management', compact('activitiesForTable', 'existingAssignments', 'groupedActivities', 'users', 'workPackages', 'personnelByVolume'));
+        $workPackagesFilter = WorkPackage::whereIn('wp_id', function($query) {
+            $query->select('wp_id')
+                ->from('work_package_volume')
+                ->whereIn('volume_id', function($subQuery) {
+                    $subQuery->select('volume_id')
+                        ->from('timesheet');
+                });
+        })->orderBy('wp_number')->get();
+
+        return view('timesheet_management', compact('activitiesForTable', 'existingAssignments', 'workPackagesFilter',
+                                                    'groupedActivities', 'users', 'workPackages', 'personnelByVolume'));
     }
 
     public function add(Request $request)
@@ -81,6 +92,7 @@ class TimesheetManagementController extends Controller
             ]);
 
             $personelIds = $request->input('personel_ids', []);
+            $durations = $request->input('durations', []);
             $activities = $request->input('activities', []);
 
             // Cek apakah sudah ada aktivitas di volume & tanggal yang sama untuk user ini
@@ -106,6 +118,7 @@ class TimesheetManagementController extends Controller
                     'user_id' => $userId, // ingat: user_id = personel_id
                     'volume_id' => $request->volume_id,
                     'execution_date' => $request->execution_date,
+                    'duration' => $durations[$index],
                     'activity' => $activities[$index]
                 ]);
                 $timesheets[] = $timesheet;
@@ -132,6 +145,7 @@ class TimesheetManagementController extends Controller
             $activities = Timesheet::where('volume_id', $volumeId)
                 ->where('execution_date', $executionDate)
                 ->with('user.roles', 'volume.workPackage')
+                ->orderBy('user_id')
                 ->get();
 
             if ($activities->isEmpty()) {
@@ -164,6 +178,7 @@ class TimesheetManagementController extends Controller
 
             $timesheetIds = $request->input('timesheet_ids', []);
             $personelIds = $request->input('personel_ids', []);
+            $durations = $request->input('durations', []);
             $activities = $request->input('activities', []);
             $executionDate = $request->input('execution_date');
             $volumeId = $request->input('volume_id');
@@ -175,6 +190,7 @@ class TimesheetManagementController extends Controller
             // tidak sekedar cek apakah terisi, tapi apakah ada perubahan !!
             foreach ($personelIds as $index => $userId) {
                 $activity = $activities[$index] ?? null;
+                $duration = $durations[$index] ?? null;
                 $timesheetId = $timesheetIds[$index] ?? null;
 
                 if ($activity === null) continue;
@@ -186,13 +202,15 @@ class TimesheetManagementController extends Controller
                     $isUserChanged = $userId != $timesheet->user_id;
                     $isVolumeChanged = $volumeId != $timesheet->volume_id;
                     $isDateChanged = $executionDate != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
+                    $isDurationChanged = $duration != $timesheet->duration;
                     $isActivityChanged = $activity != $timesheet->activity;
 
-                    if ($isUserChanged || $isVolumeChanged || $isDateChanged || $isActivityChanged) {
+                    if ($isUserChanged || $isVolumeChanged || $isDateChanged || $isDurationChanged || $isActivityChanged) {
                         $timesheet->update([
                             'user_id' => $userId,
                             'volume_id' => $volumeId,
                             'execution_date' => $executionDate,
+                            'duration' => $duration,
                             'activity' => $activity,
                         ]);
                         $hasChanges = true;
@@ -205,6 +223,7 @@ class TimesheetManagementController extends Controller
                         'user_id' => $userId,
                         'volume_id' => $volumeId,
                         'execution_date' => $executionDate,
+                        'duration' => $duration,
                         'activity' => $activity,
                     ]);
                     $hasChanges = true;

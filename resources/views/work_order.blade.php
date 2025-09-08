@@ -46,9 +46,9 @@
                     <div class="card-body py-5">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label fw-bold">Tahun</label>
+                                <label class="form-label fw-bold">Kategori WP</label>
                                 <select class="form-select form-select-solid" id="kategoriFilter">
-                                    <option value="">Pilih Tahun</option>
+                                    <option value="">Pilih Kategori WP</option>
                                     @if(isset($categories) && $categories->count() > 0)
                                         @foreach($categories as $category)
                                             <option value="{{ $category->category_id }}">
