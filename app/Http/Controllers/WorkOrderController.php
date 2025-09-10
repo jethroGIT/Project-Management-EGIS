@@ -6,6 +6,7 @@ use App\Models\WorkOrder;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use App\Models\WpCategory;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class WorkOrderController extends Controller
@@ -14,8 +15,94 @@ class WorkOrderController extends Controller
         $workPackages = WorkPackage::with(['workPackageVolumes.workOrder', 'workPackageVolumes', 'wpCategory'])
             ->orderBy('wp_id', 'asc')
             ->get();
+
+        $workPackages = $workPackages->sortBy(function($wp) {
+            return $wp->wpCategory->name ?? '-';
+        });
         
-        $categories = WpCategory::orderBy('category_number', 'asc')->get();
-        return view('work_order', compact('workPackages', 'categories'));
+        $workOrders = WorkOrder::with('workPackageVolumes')->orderBy('wo_number', 'asc')->get();
+
+        $workOrders = $workOrders->sortBy(function($wo) {
+            return $wo->wo_number . '-' . ($wo->workPackageVolumes->first()->execution_year ?? '');
+        });
+        
+        $categories = WpCategory::with('workPackage')->orderBy('category_number', 'asc')->get();
+
+        foreach ($workOrders as $wo) {
+            // Hitung jumlah volume yang menggunakan WO ini
+            $wo->realization_qty = $wo->workPackageVolumes()->count();
+        }
+
+        foreach ($workPackages as $wp) {
+            // Hitung jumlah volume yang belum menggunakan WO
+            $wp->remaining = $wp->volume_qty - $wp->workPackageVolumes->whereNotNull('wo_id')->count();
+            $remainingWPCount = collect($workPackages)->filter(function($wp) {
+                // $wp->remaining sudah dihitung sebelumnya (misal: $wp->remaining = $wp->volume_qty - $totalWithWO)
+                return $wp->remaining != 0;
+            })->count();
+            // format periode
+            foreach ($wp->workPackageVolumes as $volume) {
+                $periodFormatted = "Belum tersedia";
+                if ($volume->start_date && $volume->end_date) {
+                    $periodFormatted = Carbon::parse($volume->start_date)->format('d M Y') . 
+                        ' - ' .
+                        Carbon::parse($volume->end_date)->format('d M Y');
+                }
+                $volume->period_formatted = $periodFormatted;
+            }
+        }
+
+        return view('work_order', compact('workPackages', 'categories', 'workOrders', 'remainingWPCount'));
+    }
+
+    public function add(){
+        // add new work order
+    }
+
+    public function assign(Request $request){
+        // assign multiple volumes to work order
+        try {
+            $volumeIds = (array) $request->volume_id;
+            $updated = 0;
+            $skipped = 0;
+
+            foreach ($volumeIds as $vid) {
+                $volume = WorkPackageVolume::where('volume_id', $vid)->first();
+                if (!$volume) continue;
+
+                if ($request->wo_id == $volume->wo_id) {
+                    $skipped++;
+                    continue;
+                }
+
+                $volume->update([
+                    'wo_id' => $request->wo_id
+                ]);
+                $updated++;
+            }
+
+            if ($updated === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $skipped > 0 ? 'Tidak ada perubahan yang dilakukan.' : 'Volume tidak ditemukan.'
+                ], 400);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Data berhasil diperbarui.",
+                'updated_count' => $updated,
+                'skipped_count' => $skipped
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateWO(){
+        // update & delete assigned WO of WPV
     }
 }

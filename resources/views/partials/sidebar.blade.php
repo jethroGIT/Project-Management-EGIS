@@ -281,7 +281,7 @@
                                     </svg>
                                 </span>
                             </span>
-                            <span class="menu-title">Work Order</span>
+                            <span class="menu-title">Manajemen Work Order</span>
                         </a>
                     </div>
                     <div class="menu-item">

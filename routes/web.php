@@ -101,6 +101,9 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
 
     // work order
     Route::get('/work-order', [WorkOrderController::class, 'index'])->name('work-order');
+    Route::post('/work-order/add', [WorkOrderController::class, 'add'])->name('work-order.add');
+    Route::put('/work-order/assign', [WorkOrderController::class, 'assign'])->name('work-order.assign');
+    Route::put('/work-order/update', [WorkOrderController::class, 'updateWO'])->name('work-order.update');
 });
 
 Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
