@@ -90,6 +90,7 @@
                             min="1" 
                             placeholder="20" 
                             required
+                            disabled
                         >
                     </div>
 
@@ -124,15 +125,22 @@
             <div class="card-header py-0">
                 <h3 class="card-title">
                     <i class="bi bi-collection text-primary me-2"></i>
-                    Manajemen Volume ({{ $volumesData->count() }})
+                    Manajemen Volume ({{ $volumesWithWorkOrderCount }}/{{ $totalVolumeQty }} volume)
                 </h3>
                 <div class="card-toolbar">
-                    <button type="button" class="btn btn-light-info btn-sm me-2" onclick="openAssignWO()">
+                    <!-- <button type="button" class="btn btn-light-info btn-sm me-2" onclick="openAssignWO()">
                         <i class="bi bi-plus-circle"></i> Assign Work Order
-                    </button>
-                    <button type="button" class="btn btn-light-success btn-sm me-2" onclick="addVolume()">
-                        <i class="bi bi-plus-circle"></i> Tambah Volume
-                    </button>
+                    </button> -->
+                    @if($remainingVolumeSlots > 0)
+                        <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAddVolume()">
+                            <i class="bi bi-plus-circle"></i> Tambah Volume
+                        </button>
+                    @else
+                        <span class="badge badge-light-success">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Volume sudah penuh
+                        </span>
+                    @endif
                 </div>
             </div>
             <div class="card-body py-0">
@@ -361,6 +369,130 @@
         </div>
     </form>
 
+    <!-- Modal for Add Volume -->
+    <div class="modal fade" tabindex="-1" id="kt_modal_add_volume_wo" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">
+                        <i class="bi bi-plus-circle text-primary me-2"></i>
+                        Tambah Volume
+                    </h3>
+                </div>
+
+                <div class="modal-body">
+                    <form id="addVolumeWoForm">
+                        @csrf
+
+                        <!-- Volume Selection -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-folder text-primary me-2 fs-4"></i>
+                                <h5 class="mb-0">Pilih Nomor Volume</h5>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold required">Nomor Volume</label>
+                                    <select name="volume_number" id="volumeNumberSelect" class="form-select" required>
+                                        <option value="">Pilih Nomor Volume</option>
+                                    </select>
+                                    <div class="form-text">Pilih nomor volume yang akan diaktifkan</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-light-info mt-4">
+                                        <div class="small">
+                                            <strong>Available:</strong> <span id="availableVolumeInfo">-</span><br>
+                                            <strong>Remaining:</strong> <span id="remainingVolumeInfo">{{ $remainingVolumeSlots }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="separator separator-dashed my-4"></div>
+
+                        <!-- Work Order Selection -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-hash text-primary me-2 fs-4"></i>
+                                <h5 class="mb-0">Pilih Work Order</h5>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold required">Work Order</label>
+                                    <select name="wo_id" id="addVolumeWoSelect" class="form-select mb-2" required>
+                                        <option value="">Pilih Work Order</option>
+                                        <option value="create_new">Buat Work Order Baru</option>
+                                    </select>
+                                    <div class="d-flex align-items-center">
+                                        <span id="addVolumeWoStatusBadge" class="badge badge-light-dark">
+                                            <i class="bi bi-clock me-1"></i>Belum dipilih
+                                        </span>
+                                    </div>
+                                    <div class="form-text">Pilih WO yang tersedia atau buat baru</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- New Work Order Form -->
+                        <div id="addVolumeNewWoContainer" style="display: none;" class="mb-4">
+                            <div class="alert alert-light-primary py-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <h6 class="mb-0">Buat Work Order Baru</h6>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold required">Nomor WO</label>
+                                        <input type="number" name="new_wo_number" id="addVolumeNewWoNumber" 
+                                            class="form-control" min="1" max="999" placeholder="1">
+                                        <div class="invalid-feedback" id="addVolumeWoNumberFeedback">
+                                            Nomor WO sudah digunakan
+                                        </div>
+                                        <div class="valid-feedback" id="addVolumeWoNumberValidFeedback">
+                                            Nomor WO tersedia
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <div id="addVolumeWoStatusIndicator" class="pb-2">
+                                            <i class="bi bi-clock text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-6">
+                                        <div class="form-text" id="addVolumeWoNumberHelp">
+                                            Masukkan nomor work order yang unik
+                                        </div>
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div id="addVolumeSummary" style="display: none;" class="alert alert-light-success">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <h6 class="mb-0">Ringkasan</h6>
+                            </div>
+                            <div id="addVolumeSummaryContent">
+                                <!-- Summary content -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="executeAddVolumeWithWO()" id="addVolumeWoBtn">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        Tambah Volume
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Assign Work Order -->
     <div class="modal fade" tabindex="-1" id="kt_modal_assign_wo" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-lg">
@@ -397,7 +529,7 @@
                                             Belum dipilih
                                         </span>
                                     </div>
-                                    <div class="form-text">Pilih WO yang sudah ada atau buat baru</div>
+                                    <div class="form-text">Pilih WO yang tersedia atau buat baru</div>
                                 </div>
                             </div>
                         </div>
@@ -614,6 +746,8 @@ let maxVolumeNumber = {{ $volumesData->max('volume_number') ?? 0 }};
 
 let originalWpNumber = "{{ $workPackage->wp_number }}";
 let originalCategoryId = "{{ $workPackage->category_id }}";
+
+let temporaryAssignments = {};
 
 // Form validation
 $(document).ready(function() {
@@ -1117,6 +1251,437 @@ function updateResourceNumbering() {
 }
 
 /** VOLUME MANAGEMENT */
+// Latest Volume Management
+/**
+ * Open add volume with work order modal
+ */
+function openAddVolume() {
+    // Reset form
+    resetAddVolumeWOForm();
+
+    // Update modal info before load
+    updateModalVolumeInfo();
+
+    // Load available volume numbers
+    loadAvailableVolumeNumbers();
+    
+    // Load available work orders
+    loadWorkOrdersForAddVolume();
+    
+    // Show modal
+    $('#kt_modal_add_volume_wo').modal('show');
+}
+
+/**
+ * Reset add volume work order form
+ */
+function resetAddVolumeWOForm() {
+    const form = document.getElementById('addVolumeWoForm');
+    if (form) {
+        form.reset();
+    }
+    
+    $('#addVolumeNewWoContainer').hide();
+    $('#addVolumeSummary').hide();
+    $('#addVolumeWoStatusBadge').html('<i class="bi bi-clock me-1"></i>Belum dipilih')
+                                .removeClass()
+                                .addClass('badge badge-light-dark');
+    
+    // Reset validation states
+    $('#addVolumeNewWoNumber').removeClass('is-invalid is-valid');
+}
+
+/**
+ * Load available volume numbers
+ */
+function loadAvailableVolumeNumbers() {
+    const select = $('#volumeNumberSelect');
+    select.find('option:gt(0)').remove();
+    
+    const totalVolumeQty = {{ $totalVolumeQty }};
+    // const currentVolumes = @json($volumesData->pluck('volume_number')->toArray());
+    const currentVolumes = [];
+    const volumeElements = document.querySelectorAll('.volume-item');
+
+    volumeElements.forEach(volume => {
+        const titleElement = volume.querySelector('h5');
+        if (titleElement) {
+            const match = titleElement.textContent.match(/Volume (\d+)/);
+            if (match) {
+                currentVolumes.push(parseInt(match[1]));
+            }
+        }
+    });
+    
+    let availableCount = 0;
+    
+    for (let i = 1; i <= totalVolumeQty; i++) {
+        if (!currentVolumes.includes(i)) {
+            select.append(new Option(`Volume ${i}`, i));
+            availableCount++;
+        }
+    }
+    
+    $('#availableVolumeInfo').text(`${availableCount} volume tersedia`);
+    $('#remainingVolumeInfo').text(availableCount);
+}
+
+/**
+ * Load work orders for add volume
+ */
+function loadWorkOrdersForAddVolume() {
+    $.ajax({
+        url: '{{ route("wp-management.available-work-orders") }}',
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                populateAddVolumeWorkOrderSelect(response.work_orders);
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading work orders for add volume:', xhr);
+        }
+    });
+}
+
+/**
+ * Populate add volume work order select
+ */
+function populateAddVolumeWorkOrderSelect(workOrders) {
+    const select = $('#addVolumeWoSelect');
+
+    // Clear existing options except default ones
+    select.find('option:gt(1)').remove();
+    
+    // Add available work orders
+    workOrders.forEach(function(wo) {
+        const statusText = wo.usage_count > 0 ? ` (Digunakan ${wo.usage_count} kali)` : ' (Tersedia)';
+        select.append(new Option(`WO ${wo.wo_number}${statusText}`, wo.wo_id));
+    });
+}
+
+/**
+ * Execute add volume with work order
+ */
+function executeAddVolumeWithWO() {
+    const volumeNumber = $('#volumeNumberSelect').val();
+    const woSelect = $('#addVolumeWoSelect').val();
+
+    // Validation
+    if (!volumeNumber) {
+        Swal.fire({
+            title: 'Nomor Volume Belum Dipilih',
+            text: 'Silakan pilih nomor volume yang akan ditetapkan.',
+            icon: 'warning',
+            buttonsStyling: false,
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'btn btn-warning'
+            }
+        });
+        return;
+    }
+
+    if (!woSelect) {
+        Swal.fire({
+            title: 'Work Order Belum Dipilih',
+            text: 'Silakan pilih work order atau buat yang baru.',
+            icon: 'warning',
+            buttonsStyling: false,
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'btn btn-warning'
+            }
+        });
+        return;
+    }
+
+    if (woSelect === 'create_new') {
+        const newWoNumber = $('#addVolumeNewWoNumber').val();
+        if (!newWoNumber) {
+            Swal.fire({
+                title: 'Nomor WO Belum Diisi',
+                text: 'Silakan isi nomor work order yang akan dibuat.',
+                icon: 'warning',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-warning'
+                }
+            });
+            return;
+        }
+
+        if ($('#addVolumeNewWoNumber').hasClass('is-invalid')) {
+            Swal.fire({
+                title: 'Nomor WO Tidak Valid',
+                text: 'Nomor WO yang dimasukkan sudah digunakan.',
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
+            return;
+        }
+    }
+
+    // Show loading
+    Swal.fire({
+        title: 'Menambahkan Volume...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+    formData.append('wp_id', {{ $workPackage->wp_id }});
+    formData.append('volume_number', volumeNumber);
+    
+    if (woSelect === 'create_new') {
+        formData.append('create_new_wo', true);
+        formData.append('new_wo_number', $('#addVolumeNewWoNumber').val());
+    } else {
+        formData.append('wo_id', woSelect);
+        formData.append('create_new_wo', false);
+    }
+
+    // Debug FormData
+    console.log('=== FormData Debug ===');
+    for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]} (type: ${typeof pair[1]})`);
+    }
+
+    // Submit request
+    fetch('{{ route("wp-management.assign-volume-with-wo") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        Swal.close();
+
+        if (data.success) {
+            Swal.fire({
+                title: 'Volume Berhasil Ditambahkan!',
+                html: `
+                    <div class="text-center">
+                        <div class="alert alert-light-success py-2">
+                            <strong>Volume ${data.volume_data.volume_number}</strong> telah ditetapkan dengan 
+                            <strong>WO ${data.volume_data.wo_number}</strong>
+                        </div>
+                    </div>
+                `,
+                icon: 'success',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-primary'
+                }
+            }).then(() => {
+                // Reload page to show new volume
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                title: 'Gagal Menambahkan Volume',
+                text: data.message,
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
+        }
+    })
+    .catch(error => {
+        Swal.close();
+        console.error('Error:', error);
+
+        Swal.fire({
+            title: 'Error!',
+            text: 'Terjadi kesalahan saat menambahkan volume',
+            icon: 'error',
+            buttonsStyling: false,
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'btn btn-secondary'
+            }
+        });
+    });
+}
+
+// Event handler for add volume modal
+$(document).ready(function() {
+    // Volume number change handler
+    $('#volumeNumberSelect').on('change', function() {
+        updateAddVolumeSummary();
+    });
+
+    $('#addVolumeWoSelect').on('change', function() {
+        const selectedValue = $(this).val();
+        
+        if (selectedValue === 'create_new') {
+            $('#addVolumeNewWoContainer').show();
+            $('#addVolumeWoStatusBadge').html('<i class="bi bi-plus-circle me-1"></i>Buat Baru')
+                                        .removeClass()
+                                        .addClass('badge badge-light-primary');
+            loadNextWoNumberForAddVolume();
+        } else if (selectedValue) {
+            $('#addVolumeNewWoContainer').hide();
+            $('#addVolumeWoStatusBadge').html('<i class="bi bi-check-circle me-1"></i>Dipilih')
+                                        .removeClass()
+                                        .addClass('badge badge-light-success');
+        } else {
+            $('#addVolumeNewWoContainer').hide();
+            $('#addVolumeWoStatusBadge').html('<i class="bi bi-clock me-1"></i>Belum dipilih')
+                                        .removeClass()
+                                        .addClass('badge badge-light-dark');
+        }
+        
+        updateAddVolumeSummary();
+    });
+
+    // New WO number validation
+    $('#addVolumeNewWoNumber').on('input', function() {
+        const woNumber = $(this).val();
+        
+        if (woNumber && woNumber.trim() !== '') {
+            setTimeout(() => {
+                checkWoNumberAvailabilityForAddVolume(woNumber);
+            }, 500);
+        }
+        
+        updateAddVolumeSummary();
+    });
+
+    // Update modal info when opened
+    $('#kt_modal_add_volume_wo').on('show.bs.modal', function () {
+        console.log('Modal opening, updating volume info...');
+        updateModalVolumeInfo();
+        loadAvailableVolumeNumbers();
+    });
+    
+    // Reset form when modal closed
+    $('#kt_modal_add_volume_wo').on('hidden.bs.modal', function () {
+        console.log('Modal closed, resetting form...');
+        resetAddVolumeWOForm();
+    });
+});
+
+/**
+ * Load next WO number for add volume
+ */
+function loadNextWoNumberForAddVolume() {
+    $.ajax({
+        url: '{{ route("wp-management.next-wo-number") }}',
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#addVolumeNewWoNumber').val(response.next_wo_number);
+                setTimeout(() => {
+                    checkWoNumberAvailabilityForAddVolume(response.next_wo_number);
+                }, 100);
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading next WO number for add volume:', xhr);
+        }
+    });
+}
+
+/**
+ * Check WO number availability for add volume
+ */
+function checkWoNumberAvailabilityForAddVolume(woNumber) {
+    $.ajax({
+        url: '{{ route("wp-management.check-wo-number") }}',
+        method: 'GET',
+        data: { wo_number: woNumber },
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                if (response.available) {
+                    $('#addVolumeNewWoNumber').removeClass('is-invalid').addClass('is-valid');
+                    $('#addVolumeWoNumberHelp').text('Nomor WO tersedia dan dapat digunakan')
+                                               .removeClass('text-danger')
+                                               .addClass('text-success');
+                } else {
+                    $('#addVolumeNewWoNumber').removeClass('is-valid').addClass('is-invalid');
+                    $('#addVolumeWoNumberHelp').text('Nomor WO sudah digunakan')
+                                               .removeClass('text-success')  
+                                               .addClass('text-danger');
+                }
+            }
+        },
+        error: function(xhr) {
+            console.error('Error checking WO number for add volume:', xhr);
+        }
+    });
+}
+
+/**
+ * Update add volume summary
+ */
+function updateAddVolumeSummary() {
+    const volumeNumber = $('#volumeNumberSelect').val();
+    const woSelect = $('#addVolumeWoSelect').val();
+    const summaryContainer = $('#addVolumeSummary');
+    const summaryContent = $('#addVolumeSummaryContent');
+    
+    if (!volumeNumber || !woSelect) {
+        summaryContainer.hide();
+        return;
+    }
+    
+    let woText = 'Belum dipilih';
+    
+    if (woSelect === 'create_new') {
+        const newWoNumber = $('#addVolumeNewWoNumber').val();
+        if (newWoNumber) {
+            woText = `WO ${newWoNumber} (Baru)`;
+        } else {
+            woText = 'Buat baru (nomor belum diisi)';
+        }
+    } else {
+        const selectedOption = $('#addVolumeWoSelect option:selected').text();
+        woText = selectedOption.split(' (')[0]; // Remove usage info
+    }
+    
+    summaryContent.html(`
+        <div class="row">
+            <div class="col-md-6">
+                <div class="fw-bold">Volume:</div>
+                <div>Volume ${volumeNumber}</div>
+            </div>
+            <div class="col-md-6">
+                <div class="fw-bold">Work Order:</div>
+                <div>${woText}</div>
+            </div>
+        </div>
+    `);
+    
+    summaryContainer.show();
+}
+
+
+// EARLIER VOLUME MANAGEMENT
 /**
  * Add new volume
  */
@@ -1186,10 +1751,308 @@ function addVolume() {
     }, 100);
 }
 
+// LATEST REMOVE VOLUME MECHANISM
+/**
+ * Remove volume (delete work order from volume)
+ */
+function removeVolume(buttonElement, volumeId) {
+    const volumeCard = buttonElement.closest('.volume-card-item');
+    const volumeElement = buttonElement.closest('.volume-item');
+    const volumeNumber = volumeElement.querySelector('h5').textContent.match(/Volume (\d+)/)[1];
+
+    // Show confirmation dialog
+    Swal.fire({
+        title: 'Hapus Volume',
+        html: `
+            <div class="text-center">
+                <p class="mb-3">Apakah Anda yakin ingin menghapus Volume ${volumeNumber}?</p>
+                <div class="alert alert-light-warning py-2">
+                    <div class="small">
+                        <strong>Catatan:</strong> Work Order pada volume akan dihapus
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        buttonsStyling: false,
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            executeRemoveWorkOrderFromVolume(volumeCard, volumeId, volumeNumber);
+        }
+    });
+}
+
+/**
+ * Execute remove work order from volume via AJAX
+ */
+function executeRemoveWorkOrderFromVolume(volumeCard, volumeId, volumeNumber) {
+    // Show loading
+    Swal.fire({
+        title: 'Menghapus Work Order...',
+        html: `
+            <div class="text-center">
+                <p>Sedang menghapus Work Order dari volume...</p>
+                <div class="mt-3">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false
+    });
+
+    // Ajax call
+    $.ajax({
+        url: `{{ route('wp-management.remove-wo-from-volume', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId),
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            remove_wo_only: true
+        }),
+        success: function(response) {
+            if (response.success) {
+                // Remove volume card from DOM (since it no longer has WO)
+                volumeCard.remove();
+
+                // Update volume count in header
+                updateVolumeCount();
+
+                // Show success message
+                Swal.fire({
+                    title: `Volume ${volumeNumber} Berhasil Dihapus`,
+                    text: `Volume ${volumeNumber} telah dihapus, serta Work Order telah dilepas dari volume tersebut.`,
+                    icon: 'success',
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    }
+                });
+                
+            } else {
+                Swal.fire({
+                    title: 'Gagal Menghapus Work Order',
+                    text: response.message || 'Terjadi kesalahan saat menghapus Work Order',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        confirmButton: 'btn btn-secondary'
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'Terjadi kesalahan saat menghapus Work Order';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Update remaining volume slots info
+ */
+function updateRemainingVolumeSlots() {
+    const volumeCards = document.querySelectorAll('.volume-item');
+    const currentVolumeCount = volumeCards.length;
+    const totalVolumeQty = {{ $totalVolumeQty }};
+    const remainingSlots = totalVolumeQty - currentVolumeCount;
+
+    console.log('=== Remaining Slots Debug ===');
+    console.log('Current volume count:', currentVolumeCount);
+    console.log('Total volume qty:', totalVolumeQty);
+    console.log('Remaining slots:', remainingSlots);
+
+    // Update toolbar
+    const toolbar = document.querySelector('.card-toolbar');
+    if (toolbar && remainingSlots > 0) {
+        // Show add button if there are remaining slots
+        const addButton = toolbar.querySelector('button');
+        const badge = toolbar.querySelector('.badge');
+
+        if (badge && remainingSlots > 0) {
+            // Replace badge with button
+            badge.outerHTML = `
+                <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAddVolume()">
+                    <i class="bi bi-plus-circle"></i> Tambah Volume
+                </button>
+            `;
+        }
+    }
+}
+
+/**
+ * Update volume count in header
+ */
+function updateVolumeCount() {
+    const volumeCards = document.querySelectorAll('.volume-item');
+    const volumeCount = volumeCards.length;
+    const totalVolumeQty = {{ $totalVolumeQty }};
+
+    console.log('=== Volume Count Debug ===');
+    console.log('Volume cards found:', volumeCount);
+    console.log('Total volume qty:', totalVolumeQty);
+
+    // Update header title
+    const volumeManagementCard = document.querySelector('.card-flush.shadow-sm.mb-6:has(.bi-collection)');
+    const headerTitle = volumeManagementCard ? volumeManagementCard.querySelector('.card-title') : null;
+    if (headerTitle && headerTitle.textContent.includes('Manajemen Volume')) {
+        headerTitle.innerHTML = `<i class="bi bi-collection text-primary me-2"></i>Manajemen Volume (${volumeCount}/${totalVolumeQty} volume)`;
+        console.log('Header updated:', headerTitle.innerHTML);
+    }
+
+    updateNoVolumeMessage();
+
+    updateRemainingVolumeSlots();
+}
+
+/**
+ * Show no volume message
+ */
+function updateNoVolumeMessage() {
+    const remainingVolumes = document.querySelectorAll('.volume-item').length;
+    const noVolumesMessage = document.getElementById('noVolumesMessage');
+
+    if (remainingVolumes === 0) {
+        if (noVolumesMessage) {
+            noVolumesMessage.style.display = 'block';
+        } else {
+            const volumeCardsWrapper = document.querySelector('.volume-cards-wrapper');
+            if (volumeCardsWrapper) {
+                const newNoVolumesMessage = document.createElement('div');
+                newNoVolumesMessage.id = 'noVolumesMessage';
+                newNoVolumesMessage.className = 'text-center py-5';
+                newNoVolumesMessage.innerHTML = `
+                    <i class="bi bi-collection fs-1 text-muted mb-3"></i>
+                    <h6 class="text-muted">Belum ada volume</h6>
+                    <p class="text-muted">Klik "Tambah Volume" untuk menambahkan volume work package</p>
+                `;
+
+                volumeCardsWrapper.parentNode.insertBefore(newNoVolumesMessage, volumeCardsWrapper.nextSibling);
+            }
+        }
+    } else {
+        if (noVolumesMessage) {
+            noVolumesMessage.style.display = 'none';
+        }
+    }
+
+    // Update modal information
+    updateModalVolumeInfo();
+}
+
+/**
+ * Update modal volume information
+ */
+function updateModalVolumeInfo() {
+    const totalVolumeQty = {{ $totalVolumeQty }};
+    const currentVolumes = document.querySelectorAll('.volume-item');
+    const currentVolumeNumbers = [];
+
+    // Get current volume numbers
+    currentVolumeNumbers.forEach(volume => {
+        const titleElement = volume.querySelector('h5');
+        if (titleElement) {
+            const match = titleElement.textContent.match(/Volume (\d+)/);
+            if (match) {
+                currentVolumeNumbers.push(parseInt(match[1]));
+            }
+        }
+    });
+
+    // Update available volume info
+    const availableCount = totalVolumeQty - currentVolumeNumbers.length;
+    const remainingSlots = availableCount;
+    
+    // Update modal elements if they exist
+    const availableInfo = document.getElementById('availableVolumeInfo');
+    const remainingInfo = document.getElementById('remainingVolumeInfo');
+    
+    if (availableInfo) {
+        availableInfo.textContent = `${availableCount} volume tersedia`;
+        console.log('Available info updated:', availableInfo.textContent);
+    }
+    
+    if (remainingInfo) {
+        remainingInfo.textContent = remainingSlots;
+        console.log('Remaining info updated:', remainingInfo.textContent);
+    }
+    
+    // Update volume select options in modal if modal is open
+    const modal = document.getElementById('kt_modal_add_volume_wo');
+    if (modal && modal.classList.contains('show')) {
+        updateModalVolumeSelect(currentVolumeNumbers, totalVolumeQty);
+    }
+}
+
+/**
+ * Update volume select options in modal
+ */
+function updateModalVolumeSelect(currentVolumeNumbers, totalVolumeQty) {
+    const select = document.getElementById('volumeNumberSelect');
+    if (!select) return;
+    
+    // Clear existing options except the first one
+    const options = select.querySelectorAll('option');
+    for (let i = 1; i < options.length; i++) {
+        options[i].remove();
+    }
+
+    // Add available volume options
+    let availableCount = 0;
+    for (let i = 1; i <= totalVolumeQty; i++) {
+        if (!currentVolumeNumbers.includes(i)) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Volume ${i}`;
+            select.appendChild(option);
+            availableCount++;
+        }
+    }
+    
+    console.log('Modal select updated, available options:', availableCount);
+    
+    // Reset select value
+    select.value = '';
+    
+    // Update summary
+    const summaryContainer = document.getElementById('addVolumeSummary');
+    if (summaryContainer) {
+        summaryContainer.style.display = 'none';
+    }
+}
+
+// EARLIER REMOVE VOLUME MECHANISM
 /**
  * Remove last volume with validation
  */
-function removeVolume(buttonElement, volumeId) {
+function removeVolumeEarlier(buttonElement, volumeId) {
     const volumeCard = buttonElement.closest('.col-md-6');
     const volumeElement = buttonElement.closest('.volume-item');
     const volumeNumber = volumeElement.querySelector('h5').textContent.match(/Volume (\d+)/)[1];
@@ -1577,13 +2440,13 @@ function updateVolumeNumbering() {
 /**
  * Update volume count
  */
-function updateVolumeCount() {
-    const volumeCount = document.querySelectorAll('.volume-item').length;
-    const headerTitle = document.querySelector('.card-title');
-    if (headerTitle && headerTitle.textContent.includes('Manajemen Volume')) {
-        headerTitle.innerHTML = `<i class="bi bi-collection text-primary me-2"></i>Manajemen Volume (${volumeCount})`;
-    }
-}
+// function updateVolumeCount() {
+//     const volumeCount = document.querySelectorAll('.volume-item').length;
+//     const headerTitle = document.querySelector('.card-title');
+//     if (headerTitle && headerTitle.textContent.includes('Manajemen Volume')) {
+//         headerTitle.innerHTML = `<i class="bi bi-collection text-primary me-2"></i>Manajemen Volume (${volumeCount})`;
+//     }
+// }
 
 /**
  * Edit volume details - rediect to volume detail page
@@ -1608,612 +2471,611 @@ function editVolumeDetails(volumeId) {
 }
 
 /* Work Order Assignment */
-let availableWorkOrders = [];
-let selectedVolumes = [];
-let temporaryAssignments = {};
+// let availableWorkOrders = [];
+// let selectedVolumes = [];
 
 /**
  * Open assign work order modal
  */
-function openAssignWO() {
-    // reset form and variables
-    resetAssignWOForm();
+// function openAssignWO() {
+//     // reset form and variables
+//     resetAssignWOForm();
 
-    // Load available work orders
-    loadAvailableWorkOrders();
+//     // Load available work orders
+//     loadAvailableWorkOrders();
 
-    // Load volume options
-    loadVolumeOptions();
+//     // Load volume options
+//     loadVolumeOptions();
 
-    // Show modal
-    $('#kt_modal_assign_wo').modal('show');
-}
+//     // Show modal
+//     $('#kt_modal_assign_wo').modal('show');
+// }
 
 /**
  * Reset assign work order form
  */
-function resetAssignWOForm() {
-    const assignWoForm = document.getElementById('assignWoForm');
-    if (assignWoForm) {
-        assignWoForm.reset();
-    }
+// function resetAssignWOForm() {
+//     const assignWoForm = document.getElementById('assignWoForm');
+//     if (assignWoForm) {
+//         assignWoForm.reset();
+//     }
 
-    // $('#assignWoForm')[0].reset();
-    $('#newWoContainer').hide();
-    $('#assignmentSummary').hide();
-    $('#woStatusBadge').html('<i class="bi bi-clock me-1"></i>Belum dipilih')
-                        .removeClass()
-                        .addClass('badge badge-light-dark');
-    selectedVolumes = [];
-    updateAssignmentSummary();
-}
+//     // $('#assignWoForm')[0].reset();
+//     $('#newWoContainer').hide();
+//     $('#assignmentSummary').hide();
+//     $('#woStatusBadge').html('<i class="bi bi-clock me-1"></i>Belum dipilih')
+//                         .removeClass()
+//                         .addClass('badge badge-light-dark');
+//     selectedVolumes = [];
+//     updateAssignmentSummary();
+// }
 
 /**
  * Load available work orders
  */
-function loadAvailableWorkOrders() {
-    $.ajax({
-        url: '{{ route("wp-management.available-work-orders") }}',
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            if (response.success) {
-                availableWorkOrders = response.work_orders;
-                populateWorkOrderSelect();
-            } else {
-                console.error('Failed to load work orders:', response.message);
-            }
-        },
-        error: function(xhr) {
-            console.error('Error loading work orders:', xhr);
-        }
-    });
-}
+// function loadAvailableWorkOrders() {
+//     $.ajax({
+//         url: '{{ route("wp-management.available-work-orders") }}',
+//         method: 'GET',
+//         headers: {
+//             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+//         },
+//         success: function(response) {
+//             if (response.success) {
+//                 availableWorkOrders = response.work_orders;
+//                 populateWorkOrderSelect();
+//             } else {
+//                 console.error('Failed to load work orders:', response.message);
+//             }
+//         },
+//         error: function(xhr) {
+//             console.error('Error loading work orders:', xhr);
+//         }
+//     });
+// }
 
 /**
  * Populate work order select dropdown
  */
-function populateWorkOrderSelect() {
-    const select = $('#woSelect');
+// function populateWorkOrderSelect() {
+//     const select = $('#woSelect');
 
-    // Clear existing options except default ones
-    select.find('option:gt(1)').remove();
+//     // Clear existing options except default ones
+//     select.find('option:gt(1)').remove();
     
-    // Add available work orders
-    availableWorkOrders.forEach(function(wo) {
-        const isUsed = wo.usage_count > 0;
-        const statusIcon = isUsed ? '🔄' : '✅';
-        const statusText = isUsed ? ` (Digunakan ${wo.usage_count} kali)` : ' (Tersedia)';
+//     // Add available work orders
+//     availableWorkOrders.forEach(function(wo) {
+//         const isUsed = wo.usage_count > 0;
+//         const statusIcon = isUsed ? '🔄' : '✅';
+//         const statusText = isUsed ? ` (Digunakan ${wo.usage_count} kali)` : ' (Tersedia)';
         
-        const option = new Option(
-            `WO ${wo.wo_number} ${statusText}`,
-            wo.wo_id
-        );
+//         const option = new Option(
+//             `WO ${wo.wo_number} ${statusText}`,
+//             wo.wo_id
+//         );
         
-        // if (isUsed) {
-        //     option.style.color = '#6c757d';
-        // }
+//         // if (isUsed) {
+//         //     option.style.color = '#6c757d';
+//         // }
         
-        select.append(option);
-    });
-}
+//         select.append(option);
+//     });
+// }
 
 /**
  * Load volume options for selection
  */
-function loadVolumeOptions() {
-    const container = $('#volumeSelectionContainer');
-    container.empty();
+// function loadVolumeOptions() {
+//     const container = $('#volumeSelectionContainer');
+//     container.empty();
 
-    // Get volumes from current page data
-    const volumes = @json($volumesData);
+//     // Get volumes from current page data
+//     const volumes = @json($volumesData);
 
-    if (volumes.length === 0) {
-        container.html(`
-            <div class="text-center py-4">
-                <i class="bi bi-folder fs-2 text-muted mb-2"></i>
-                <p class="text-muted mb-0">Tidak ada volume tersedia</p>
-            </div>
-        `);
-        return;
-    }
+//     if (volumes.length === 0) {
+//         container.html(`
+//             <div class="text-center py-4">
+//                 <i class="bi bi-folder fs-2 text-muted mb-2"></i>
+//                 <p class="text-muted mb-0">Tidak ada volume tersedia</p>
+//             </div>
+//         `);
+//         return;
+//     }
 
-    volumes.forEach(function(volume, index) {
-        const currentAssignment = temporaryAssignments[volume.volume_id];
-        const hasWo = currentAssignment || volume.wo_number;
-        const woText = currentAssignment ? 
-            `(Akan di-assign: ${currentAssignment.wo_number})` : 
-            (volume.wo_number ? `(WO ${volume.wo_number})` : 'Belum ada WO');
-        const badgeClass = currentAssignment ? 
-            'badge-light-info' : 
-            (hasWo ? 'badge-light-info' : 'badge-light-dark');
+//     volumes.forEach(function(volume, index) {
+//         const currentAssignment = temporaryAssignments[volume.volume_id];
+//         const hasWo = currentAssignment || volume.wo_number;
+//         const woText = currentAssignment ? 
+//             `(Akan di-assign: ${currentAssignment.wo_number})` : 
+//             (volume.wo_number ? `(WO ${volume.wo_number})` : 'Belum ada WO');
+//         const badgeClass = currentAssignment ? 
+//             'badge-light-info' : 
+//             (hasWo ? 'badge-light-info' : 'badge-light-dark');
 
-        const volumeHtml = `
-            <div class="col-md-6 mb-3">
-                <div class="form-check volume-option d-flex justify-content-between align-items-center" data-volume-id="${volume.volume_id}">
-                    <input 
-                        class="form-check-input volume-checkbox" 
-                        type="checkbox" 
-                        value="${volume.volume_id}" 
-                        id="volume_${volume.volume_id}"
-                        onchange="handleVolumeSelection()"
-                    >
-                    <label class="form-check-label w-100 ps-2" for="volume_${volume.volume_id}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Volume ${volume.volume_number}</strong>
-                                <div class="small text-muted">${volume.period_formatted || 'Belum dikonfigurasi'}</div>
-                            </div>
-                            <span class="badge ${badgeClass}">
-                                ${woText}
-                            </span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-        `;
+//         const volumeHtml = `
+//             <div class="col-md-6 mb-3">
+//                 <div class="form-check volume-option d-flex justify-content-between align-items-center" data-volume-id="${volume.volume_id}">
+//                     <input 
+//                         class="form-check-input volume-checkbox" 
+//                         type="checkbox" 
+//                         value="${volume.volume_id}" 
+//                         id="volume_${volume.volume_id}"
+//                         onchange="handleVolumeSelection()"
+//                     >
+//                     <label class="form-check-label w-100 ps-2" for="volume_${volume.volume_id}">
+//                         <div class="d-flex justify-content-between align-items-center">
+//                             <div>
+//                                 <strong>Volume ${volume.volume_number}</strong>
+//                                 <div class="small text-muted">${volume.period_formatted || 'Belum dikonfigurasi'}</div>
+//                             </div>
+//                             <span class="badge ${badgeClass}">
+//                                 ${woText}
+//                             </span>
+//                         </div>
+//                     </label>
+//                 </div>
+//             </div>
+//         `;
 
-        container.append(volumeHtml);
-    });
-}
+//         container.append(volumeHtml);
+//     });
+// }
 
 /**
  * Handle volume selection changes
  */
-function handleVolumeSelection() {
-    selectedVolumes = [];
-    $('.volume-checkbox:checked').each(function() {
-        const volumeId = $(this).val();
-        const container = $(`.volume-option[data-volume-id="${volumeId}"]`);
+// function handleVolumeSelection() {
+//     selectedVolumes = [];
+//     $('.volume-checkbox:checked').each(function() {
+//         const volumeId = $(this).val();
+//         const container = $(`.volume-option[data-volume-id="${volumeId}"]`);
         
-        if ($(this).prop('checked')) {
-            selectedVolumes.push($(this).val());
-            container.addClass('selected');
-        } else {
-            container.removeClass('selected');
-        }
-    });
+//         if ($(this).prop('checked')) {
+//             selectedVolumes.push($(this).val());
+//             container.addClass('selected');
+//         } else {
+//             container.removeClass('selected');
+//         }
+//     });
 
-    updateAssignmentSummary();
-}
+//     updateAssignmentSummary();
+// }
 
 /**
  * Select all volumes
  */
-function selectAllVolumes() {
-    $('.volume-checkbox').prop('checked', true);
-    $('.volume-option').addClass('selected');
-    handleVolumeSelection();
-}
+// function selectAllVolumes() {
+//     $('.volume-checkbox').prop('checked', true);
+//     $('.volume-option').addClass('selected');
+//     handleVolumeSelection();
+// }
 
 /**
  * Clear all volume selections
  */
-function clearAllVolumes() {
-    $('.volume-checkbox').prop('checked', false);
-    $('.volume-option').removeClass('selected');
-    handleVolumeSelection();
-}
+// function clearAllVolumes() {
+//     $('.volume-checkbox').prop('checked', false);
+//     $('.volume-option').removeClass('selected');
+//     handleVolumeSelection();
+// }
 
 /**
  * Update assignment summary
  */
-function updateAssignmentSummary() {
-    const summaryContainer = $('#assignmentSummary');
-    const summaryContent = $('#summaryContent');
+// function updateAssignmentSummary() {
+//     const summaryContainer = $('#assignmentSummary');
+//     const summaryContent = $('#summaryContent');
 
-    if (selectedVolumes.length === 0) {
-        summaryContainer.hide();
-        return;
-    }
+//     if (selectedVolumes.length === 0) {
+//         summaryContainer.hide();
+//         return;
+//     }
 
-    const woSelect = $('#woSelect').val();
-    let woText = 'Belum dipilih';
+//     const woSelect = $('#woSelect').val();
+//     let woText = 'Belum dipilih';
     
-    if (woSelect === 'create_new') {
-        const newWoNumber = $('#newWoNumber').val();
-        if (newWoNumber) {
-            woText = `Buat baru: ${newWoNumber}`;
-        } else {
-            woText = 'Buat baru: (nomor belum diisi)';
-        }
-    } else if (woSelect) {
-        const selectedWo = availableWorkOrders.find(wo => wo.wo_id == woSelect);
-        if (selectedWo) {
-            woText = `${selectedWo.wo_number}`;
-        }
-    }
+//     if (woSelect === 'create_new') {
+//         const newWoNumber = $('#newWoNumber').val();
+//         if (newWoNumber) {
+//             woText = `Buat baru: ${newWoNumber}`;
+//         } else {
+//             woText = 'Buat baru: (nomor belum diisi)';
+//         }
+//     } else if (woSelect) {
+//         const selectedWo = availableWorkOrders.find(wo => wo.wo_id == woSelect);
+//         if (selectedWo) {
+//             woText = `${selectedWo.wo_number}`;
+//         }
+//     }
 
-    summaryContent.html(`
-        <div class="row alert">
-            <div class="col-md-6">
-                <div class="fw-bold">Work Order:</div>
-                <div class="">${woText}</div>
-            </div>
-            <div class="col-md-6">
-                <div class="fw-bold">Volume Terpilih:</div>
-                <div class="">${selectedVolumes.length} volume</div>
-            </div>
-        </div>
-    `);
+//     summaryContent.html(`
+//         <div class="row alert">
+//             <div class="col-md-6">
+//                 <div class="fw-bold">Work Order:</div>
+//                 <div class="">${woText}</div>
+//             </div>
+//             <div class="col-md-6">
+//                 <div class="fw-bold">Volume Terpilih:</div>
+//                 <div class="">${selectedVolumes.length} volume</div>
+//             </div>
+//         </div>
+//     `);
 
-    summaryContainer.show();
-}
+//     summaryContainer.show();
+// }
 
-$(document).ready(function() {
-    // Work order select change handler
-    $('#woSelect').on('change', function() {
-        const selectedValue = $(this).val();
+// $(document).ready(function() {
+//     // Work order select change handler
+//     $('#woSelect').on('change', function() {
+//         const selectedValue = $(this).val();
 
-        if (selectedValue === 'create_new') {
-            $('#newWoContainer').show();
-            $('#woStatusBadge').html('<i class="bi bi-plus-circle me-1"></i>Buat Baru')
-                                .removeClass()
-                                .addClass('badge badge-light-primary');
-            loadNextWoNumber();
-        } else if (selectedValue) {
-            $('#newWoContainer').hide();
-            const selectedWo = availableWorkOrders.find(wo => wo.wo_id == selectedValue);
-            if (selectedWo) {
-                const statusClass = 'badge-light-success';
-                const statusIcon = 'check-circle';
-                const statusText = `Tersedia (${selectedWo.usage_count} penggunaan)`;
+//         if (selectedValue === 'create_new') {
+//             $('#newWoContainer').show();
+//             $('#woStatusBadge').html('<i class="bi bi-plus-circle me-1"></i>Buat Baru')
+//                                 .removeClass()
+//                                 .addClass('badge badge-light-primary');
+//             loadNextWoNumber();
+//         } else if (selectedValue) {
+//             $('#newWoContainer').hide();
+//             const selectedWo = availableWorkOrders.find(wo => wo.wo_id == selectedValue);
+//             if (selectedWo) {
+//                 const statusClass = 'badge-light-success';
+//                 const statusIcon = 'check-circle';
+//                 const statusText = `Tersedia (${selectedWo.usage_count} penggunaan)`;
                 
-                $('#woStatusBadge').html(`<i class="bi bi-${statusIcon} me-1"></i>${statusText}`)
-                                  .removeClass()
-                                  .addClass(`badge ${statusClass}`);
-            }
-        } else {
-            $('#newWoContainer').hide();
-            $('#woStatusBadge').html('<i class="bi bi-clock me-1"></i>Belum dipilih')
-                                .removeClass()
-                                .addClass('badge badge-light-dark');
-        }
+//                 $('#woStatusBadge').html(`<i class="bi bi-${statusIcon} me-1"></i>${statusText}`)
+//                                   .removeClass()
+//                                   .addClass(`badge ${statusClass}`);
+//             }
+//         } else {
+//             $('#newWoContainer').hide();
+//             $('#woStatusBadge').html('<i class="bi bi-clock me-1"></i>Belum dipilih')
+//                                 .removeClass()
+//                                 .addClass('badge badge-light-dark');
+//         }
 
-        updateAssignmentSummary();
-    });
+//         updateAssignmentSummary();
+//     });
 
-    // New WO number input handler
-    let woValidationTimeout;
-    $('#newWoNumber').on('input', function() {
-        const woNumber = $(this).val();
+//     // New WO number input handler
+//     let woValidationTimeout;
+//     $('#newWoNumber').on('input', function() {
+//         const woNumber = $(this).val();
 
-        // Clear previous timeout
-        clearTimeout(woValidationTimeout);
+//         // Clear previous timeout
+//         clearTimeout(woValidationTimeout);
 
-        // Reset states
-        resetWoNumberValidation();
+//         // Reset states
+//         resetWoNumberValidation();
 
-        if (woNumber && woNumber.trim() !== '') {
-            // Show loading state
-            showWoNumberLoading();
+//         if (woNumber && woNumber.trim() !== '') {
+//             // Show loading state
+//             showWoNumberLoading();
 
-            woValidationTimeout = setTimeout(() => {
-                checkWoNumberAvailability(woNumber);
-            }, 500);
-        }
+//             woValidationTimeout = setTimeout(() => {
+//                 checkWoNumberAvailability(woNumber);
+//             }, 500);
+//         }
 
-        updateAssignmentSummary();
-    });
+//         updateAssignmentSummary();
+//     });
 
-    // WO number blur validation
-    $('#newWoNumber').on('blur', function() {
-        const woNumber = $(this).val();
+//     // WO number blur validation
+//     $('#newWoNumber').on('blur', function() {
+//         const woNumber = $(this).val();
 
-        if (woNumber && woNumber.trim() !== '') {
-            clearTimeout(woValidationTimeout);
-            showWoNumberLoading();
-            checkWoNumberAvailability(woNumber);
-        }
-    });
-});
+//         if (woNumber && woNumber.trim() !== '') {
+//             clearTimeout(woValidationTimeout);
+//             showWoNumberLoading();
+//             checkWoNumberAvailability(woNumber);
+//         }
+//     });
+// });
 
 /**
  * Load next available WO number
  */
-function loadNextWoNumber() {
-    // Show loading state
-    showWoNumberLoading();
+// function loadNextWoNumber() {
+//     // Show loading state
+//     showWoNumberLoading();
 
-    $.ajax({
-        url: '{{ route("wp-management.next-wo-number") }}',
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            if (response.success) {
-                $('#newWoNumber').val(response.next_wo_number);
+//     $.ajax({
+//         url: '{{ route("wp-management.next-wo-number") }}',
+//         method: 'GET',
+//         headers: {
+//             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+//         },
+//         success: function(response) {
+//             if (response.success) {
+//                 $('#newWoNumber').val(response.next_wo_number);
 
-                // Auto-validate the suggested number
-                setTimeout(() => {
-                    checkWoNumberAvailability(response.next_wo_number);
-                }, 100);
+//                 // Auto-validate the suggested number
+//                 setTimeout(() => {
+//                     checkWoNumberAvailability(response.next_wo_number);
+//                 }, 100);
 
-                updateAssignmentSummary();
-            } else {
-                showWoNumberError('Gagal memuat nomor WO berikutnya');
-            }
-        },
-        error: function(xhr) {
-            console.error('Error loading next WO number:', xhr);
-            showWoNumberError('Gagal memuat nomor WO berikutnya');
-        }
-    });
-}
+//                 updateAssignmentSummary();
+//             } else {
+//                 showWoNumberError('Gagal memuat nomor WO berikutnya');
+//             }
+//         },
+//         error: function(xhr) {
+//             console.error('Error loading next WO number:', xhr);
+//             showWoNumberError('Gagal memuat nomor WO berikutnya');
+//         }
+//     });
+// }
 
 /**
  * Execute work order assignment
  */
-function executeAssignWo() {
-    // Validation
-    if (selectedVolumes.length === 0) {
-        Swal.fire({
-            title: 'Volume Belum Dipilih',
-            text: 'Silakan pilih minimal satu volume untuk di-assign work order.',
-            icon: 'warning',
-            buttonsStyling: false,
-            confirmButtonText: 'OK',
-            customClass: {
-                confirmButton: 'btn btn-warning'
-            }
-        });
-        return;
-    }
+// function executeAssignWo() {
+//     // Validation
+//     if (selectedVolumes.length === 0) {
+//         Swal.fire({
+//             title: 'Volume Belum Dipilih',
+//             text: 'Silakan pilih minimal satu volume untuk di-assign work order.',
+//             icon: 'warning',
+//             buttonsStyling: false,
+//             confirmButtonText: 'OK',
+//             customClass: {
+//                 confirmButton: 'btn btn-warning'
+//             }
+//         });
+//         return;
+//     }
 
-    const woSelect = $('#woSelect').val();
-    if (!woSelect) {
-        Swal.fire({
-            title: 'Work Order Belum Dipilih',
-            text: 'Silakan pilih work order atau buat work order baru.',
-            icon: 'warning',
-            buttonsStyling: false,
-            confirmButtonText: 'OK',
-            customClass: {
-                confirmButton: 'btn btn-warning'
-            }
-        });
-        return;
-    }
+//     const woSelect = $('#woSelect').val();
+//     if (!woSelect) {
+//         Swal.fire({
+//             title: 'Work Order Belum Dipilih',
+//             text: 'Silakan pilih work order atau buat work order baru.',
+//             icon: 'warning',
+//             buttonsStyling: false,
+//             confirmButtonText: 'OK',
+//             customClass: {
+//                 confirmButton: 'btn btn-warning'
+//             }
+//         });
+//         return;
+//     }
 
-    if (woSelect === 'create_new') {
-        const newWoNumber = $('#newWoNumber').val();
-        const woInput = $('#newWoNumber');
+//     if (woSelect === 'create_new') {
+//         const newWoNumber = $('#newWoNumber').val();
+//         const woInput = $('#newWoNumber');
 
-        if (!newWoNumber) {
-            Swal.fire({
-                title: 'Nomor WO Belum Diisi',
-                text: 'Silakan isi nomor work order yang akan dibuat.',
-                icon: 'warning',
-                buttonsStyling: false,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'btn btn-warning'
-                }
-            });
-            woInput.focus();
-            return;
-        }
+//         if (!newWoNumber) {
+//             Swal.fire({
+//                 title: 'Nomor WO Belum Diisi',
+//                 text: 'Silakan isi nomor work order yang akan dibuat.',
+//                 icon: 'warning',
+//                 buttonsStyling: false,
+//                 confirmButtonText: 'OK',
+//                 customClass: {
+//                     confirmButton: 'btn btn-warning'
+//                 }
+//             });
+//             woInput.focus();
+//             return;
+//         }
 
-        // Check if WO number has validation error
-        if (woInput.hasClass('is-invalid')) {
-            Swal.fire({
-                title: 'Nomor WO Tidak Valid',
-                text: 'Nomor WO yang dimasukkan sudah digunakan. Silakan gunakan nomor lain.',
-                icon: 'error',
-                buttonsStyling: false,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'btn btn-secondary'
-                }
-            });
-            woInput.focus();
-            return;
-        }
+//         // Check if WO number has validation error
+//         if (woInput.hasClass('is-invalid')) {
+//             Swal.fire({
+//                 title: 'Nomor WO Tidak Valid',
+//                 text: 'Nomor WO yang dimasukkan sudah digunakan. Silakan gunakan nomor lain.',
+//                 icon: 'error',
+//                 buttonsStyling: false,
+//                 confirmButtonText: 'OK',
+//                 customClass: {
+//                     confirmButton: 'btn btn-secondary'
+//                 }
+//             });
+//             woInput.focus();
+//             return;
+//         }
 
-        // Check if WO number validation is still loading
-        const indicator = $('#woStatusIndicator');
-        if (indicator.find('.spinner-border').length > 0) {
-            Swal.fire({
-                title: 'Validasi Sedang Berlangsung',
-                text: 'Mohon tunggu hingga validasi nomor WO selesai.',
-                icon: 'info',
-                buttonsStyling: false,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'btn btn-info'
-                }
-            });
-            return;
-        }
-    }
+//         // Check if WO number validation is still loading
+//         const indicator = $('#woStatusIndicator');
+//         if (indicator.find('.spinner-border').length > 0) {
+//             Swal.fire({
+//                 title: 'Validasi Sedang Berlangsung',
+//                 text: 'Mohon tunggu hingga validasi nomor WO selesai.',
+//                 icon: 'info',
+//                 buttonsStyling: false,
+//                 confirmButtonText: 'OK',
+//                 customClass: {
+//                     confirmButton: 'btn btn-info'
+//                 }
+//             });
+//             return;
+//         }
+//     }
 
-    // Store temporary assignments
-    let assignmentDetails = {};
+//     // Store temporary assignments
+//     let assignmentDetails = {};
     
-    if (woSelect === 'create_new') {
-        const newWoNumber = parseInt($('#newWoNumber').val());
-        assignmentDetails = {
-            type: 'new',
-            wo_number: newWoNumber
-        };
-    } else {
-        const selectedWo = availableWorkOrders.find(wo => wo.wo_id == woSelect);
-        assignmentDetails = {
-            type: 'existing',
-            wo_id: selectedWo.wo_id,
-            wo_number: selectedWo.wo_number
-        };
-    }
+//     if (woSelect === 'create_new') {
+//         const newWoNumber = parseInt($('#newWoNumber').val());
+//         assignmentDetails = {
+//             type: 'new',
+//             wo_number: newWoNumber
+//         };
+//     } else {
+//         const selectedWo = availableWorkOrders.find(wo => wo.wo_id == woSelect);
+//         assignmentDetails = {
+//             type: 'existing',
+//             wo_id: selectedWo.wo_id,
+//             wo_number: selectedWo.wo_number
+//         };
+//     }
 
-    // Store temporary assignments
-    selectedVolumes.forEach(volumeId => {
-        temporaryAssignments[volumeId] = assignmentDetails;
-    });
+//     // Store temporary assignments
+//     selectedVolumes.forEach(volumeId => {
+//         temporaryAssignments[volumeId] = assignmentDetails;
+//     });
 
-    Swal.fire({
-        title: 'Assignment Disimpan Sementara',
-        html: `
-            <div class="text-center">
-                <div class="alert alert-light-info">
-                    <div class="fw-bold mb-2">Detail Assignment:</div>
-                    <div class="small">
-                        <strong>Work Order:</strong> ${assignmentDetails.wo_number}<br>
-                        <strong>Volume Assigned:</strong> ${selectedVolumes.length}
-                    </div>
-                </div>
-                <div class="alert alert-light-warning">
-                    <small><i class="bi bi-info-circle me-1"></i>Assignment akan disimpan secara permanen saat tombol "Simpan Perubahan" ditekan.</small>
-                </div>
-            </div>
-        `,
-        icon: 'success',
-        buttonsStyling: false,
-        confirmButtonText: 'OK',
-        customClass: {
-            confirmButton: 'btn btn-primary'
-        }
-    }).then(() => {
-        // Close modal and refresh volume display
-        $('#kt_modal_assign_wo').modal('hide');
-        refreshVolumeDisplay();
-    });
-}
+//     Swal.fire({
+//         title: 'Assignment Disimpan Sementara',
+//         html: `
+//             <div class="text-center">
+//                 <div class="alert alert-light-info">
+//                     <div class="fw-bold mb-2">Detail Assignment:</div>
+//                     <div class="small">
+//                         <strong>Work Order:</strong> ${assignmentDetails.wo_number}<br>
+//                         <strong>Volume Assigned:</strong> ${selectedVolumes.length}
+//                     </div>
+//                 </div>
+//                 <div class="alert alert-light-warning">
+//                     <small><i class="bi bi-info-circle me-1"></i>Assignment akan disimpan secara permanen saat tombol "Simpan Perubahan" ditekan.</small>
+//                 </div>
+//             </div>
+//         `,
+//         icon: 'success',
+//         buttonsStyling: false,
+//         confirmButtonText: 'OK',
+//         customClass: {
+//             confirmButton: 'btn btn-primary'
+//         }
+//     }).then(() => {
+//         // Close modal and refresh volume display
+//         $('#kt_modal_assign_wo').modal('hide');
+//         refreshVolumeDisplay();
+//     });
+// }
 
 /**
  * Refresh volume display to show temporary assignments
  */
-function refreshVolumeDisplay() {
-    // Update volume cards to show temporary assignments
-    Object.keys(temporaryAssignments).forEach(volumeId => {
-        const assignment = temporaryAssignments[volumeId];
-        const volumeCard = $(`.volume-item[data-volume-id="${volumeId}"]`);
+// function refreshVolumeDisplay() {
+//     // Update volume cards to show temporary assignments
+//     Object.keys(temporaryAssignments).forEach(volumeId => {
+//         const assignment = temporaryAssignments[volumeId];
+//         const volumeCard = $(`.volume-item[data-volume-id="${volumeId}"]`);
         
-        if (volumeCard.length) {
-            const woInfo = volumeCard.find('.mb-4:has(.bi-hash)');
-            if (woInfo.length) {
-                woInfo.find('.fs-7').html(`
-                    <span class="badge badge-light-info">
-                        ${assignment.wo_number} (Belum disimpan)
-                    </span>
-                `);
-            }
-        }
-    });
-}
+//         if (volumeCard.length) {
+//             const woInfo = volumeCard.find('.mb-4:has(.bi-hash)');
+//             if (woInfo.length) {
+//                 woInfo.find('.fs-7').html(`
+//                     <span class="badge badge-light-info">
+//                         ${assignment.wo_number} (Belum disimpan)
+//                     </span>
+//                 `);
+//             }
+//         }
+//     });
+// }
 
 /**
  * Check WO number availability
  */
-function checkWoNumberAvailability(woNumber) {
-    $.ajax({
-        url: '{{ route("wp-management.check-wo-number") }}',
-        method: 'GET',
-        data : {wo_number : woNumber},
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            if (response.success) {
-                if (response.available) {
-                    showWoNumberSuccess();
-                } else {
-                    showWoNumberError('Nomor WO sudah digunakan');
-                }
-            } else {
-                showWoNumberError(response.message ||'Gagal memeriksa nomor WO');
-            }
-        },
-        error: function(xhr) {
-            console.error('Error checking WO number:', xhr);
-            showWoNumberError('Terjadi kesalahan saat memeriksa nomor WO');
-        }
-    });
-}
+// function checkWoNumberAvailability(woNumber) {
+//     $.ajax({
+//         url: '{{ route("wp-management.check-wo-number") }}',
+//         method: 'GET',
+//         data : {wo_number : woNumber},
+//         headers: {
+//             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+//         },
+//         success: function(response) {
+//             if (response.success) {
+//                 if (response.available) {
+//                     showWoNumberSuccess();
+//                 } else {
+//                     showWoNumberError('Nomor WO sudah digunakan');
+//                 }
+//             } else {
+//                 showWoNumberError(response.message ||'Gagal memeriksa nomor WO');
+//             }
+//         },
+//         error: function(xhr) {
+//             console.error('Error checking WO number:', xhr);
+//             showWoNumberError('Terjadi kesalahan saat memeriksa nomor WO');
+//         }
+//     });
+// }
 
 /**
  * Reset WO number validation state
  */
-function resetWoNumberValidation() {
-    const input = $('#newWoNumber');
-    const indicator = $('#woStatusIndicator');
-    const helpText = $('#woNumberHelp');
-    const feedback = $('#woNumberFeedback');
-    const validFeedback = $('#woNumberValidFeedback');
+// function resetWoNumberValidation() {
+//     const input = $('#newWoNumber');
+//     const indicator = $('#woStatusIndicator');
+//     const helpText = $('#woNumberHelp');
+//     const feedback = $('#woNumberFeedback');
+//     const validFeedback = $('#woNumberValidFeedback');
 
-    // Remove all validation classes
-    input.removeClass('is-invalid is-valid');
+//     // Remove all validation classes
+//     input.removeClass('is-invalid is-valid');
 
-    // Reset indicator
-    indicator.html('<i class="bi bi-clock text-muted"></i>');
+//     // Reset indicator
+//     indicator.html('<i class="bi bi-clock text-muted"></i>');
 
-    // Reset help text
-    helpText.text('Masukkan nomor work order yang unik').removeClass('text-danger text-success');
+//     // Reset help text
+//     helpText.text('Masukkan nomor work order yang unik').removeClass('text-danger text-success');
 
-    // Hide feedback messages
-    feedback.hide();
-    validFeedback.hide();
-}
+//     // Hide feedback messages
+//     feedback.hide();
+//     validFeedback.hide();
+// }
 
 /**
  * Show WO number loading state
  */
-function showWoNumberLoading() {
-    const indicator = $('#woStatusIndicator');
-    const helpText = $('#woNumberHelp');
+// function showWoNumberLoading() {
+//     const indicator = $('#woStatusIndicator');
+//     const helpText = $('#woNumberHelp');
 
-    indicator.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
-    helpText.text('Memeriksa ketersediaan nomor WO...').removeClass('text-danger text-success').addClass('text-muted');
-}
+//     indicator.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
+//     helpText.text('Memeriksa ketersediaan nomor WO...').removeClass('text-danger text-success').addClass('text-muted');
+// }
 
 /**
  * Show WO number success state
  */
-function showWoNumberSuccess() {
-    const input = $('#newWoNumber');
-    const indicator = $('#woStatusIndicator');
-    const helpText = $('#woNumberHelp');
-    const feedback = $('#woNumberFeedback');
-    const validFeedback = $('#woNumberValidFeedback');
+// function showWoNumberSuccess() {
+//     const input = $('#newWoNumber');
+//     const indicator = $('#woStatusIndicator');
+//     const helpText = $('#woNumberHelp');
+//     const feedback = $('#woNumberFeedback');
+//     const validFeedback = $('#woNumberValidFeedback');
 
-    // Add success class
-    input.removeClass('is-invalid').addClass('is-valid');
+//     // Add success class
+//     input.removeClass('is-invalid').addClass('is-valid');
 
-    // Update indicator
-    indicator.html('<i class="bi bi-check-circle text-success"></i>');
+//     // Update indicator
+//     indicator.html('<i class="bi bi-check-circle text-success"></i>');
 
-    // Update help text
-    helpText.text('Nomor WO tersedia dan dapat digunakan').removeClass('text-danger text-muted').addClass('text-success');
+//     // Update help text
+//     helpText.text('Nomor WO tersedia dan dapat digunakan').removeClass('text-danger text-muted').addClass('text-success');
     
-    // Show/hide feedback
-    feedback.hide();
-    validFeedback.show();
-}
+//     // Show/hide feedback
+//     feedback.hide();
+//     validFeedback.show();
+// }
 
 /**
  * Show WO number error state
  */
-function showWoNumberError(message) {
-    const input = $('#newWoNumber');
-    const indicator = $('#woStatusIndicator');
-    const helpText = $('#woNumberHelp');
-    const feedback = $('#woNumberFeedback');
-    const validFeedback = $('#woNumberValidFeedback');
+// function showWoNumberError(message) {
+//     const input = $('#newWoNumber');
+//     const indicator = $('#woStatusIndicator');
+//     const helpText = $('#woNumberHelp');
+//     const feedback = $('#woNumberFeedback');
+//     const validFeedback = $('#woNumberValidFeedback');
     
-    // Add error class
-    input.removeClass('is-valid').addClass('is-invalid');
+//     // Add error class
+//     input.removeClass('is-valid').addClass('is-invalid');
     
-    // Update indicator
-    indicator.html('<i class="bi bi-x-circle text-danger"></i>');
+//     // Update indicator
+//     indicator.html('<i class="bi bi-x-circle text-danger"></i>');
     
-    // Update help text
-    helpText.text(message).removeClass('text-success text-muted').addClass('text-danger');
+//     // Update help text
+//     helpText.text(message).removeClass('text-success text-muted').addClass('text-danger');
     
-    // Update feedback message
-    // feedback.text(message).show();
-    validFeedback.hide();
-}
+//     // Update feedback message
+//     // feedback.text(message).show();
+//     validFeedback.hide();
+// }
 </script>
 @endpush

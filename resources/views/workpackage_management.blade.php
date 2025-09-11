@@ -97,10 +97,8 @@
                             <th class="align-middle border-bottom min-w-200px">Work Package</th>
                             <th class="align-middle border-bottom">Volume (Qty)</th>
                             <th class="align-middle border-bottom min-w-100px">Durasi Kerja (Hari Kerja)</th>
-                            <!-- <th class="align-middle border-bottom min-w-200px">Task</th> -->
                             <th class="align-middle border-bottom min-w-200px">Actual Scope</th>
                             <th class="align-middle border-bottom min-w-400px">Deliverables</th>
-                            <!-- <th class="align-middle border-bottom min-w-100px">% Complete</th> -->
                             <th class="align-middle border-bottom min-w-200px">Resource Names</th>
                             <th class="align-middle border-bottom">Action</th>
                         </tr>
@@ -202,15 +200,9 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">
-                                <span id="modal-title">Tambah Work Package</span>
+                                <span id="modal-title">Tambah Kategori Work Package</span>
                                 <span class="badge badge-light-primary ms-3" id="step-indicator">Step 1 of 3</span>
                             </h3>
-
-                            <!--begin::Close-->
-                            <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                                <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                            </div>
-                            <!--end::Close-->
                         </div>
 
                         <div class="modal-body">
@@ -243,9 +235,9 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group mb-4">
-                                                <label class="form-label fw-bold required">Kategori Work Package</label>
+                                                <label class="form-label fw-bold required">Work Package</label>
                                                 <select class="form-select form-select-solid" name="category_id" id="category_id" required>
-                                                    <option value="">Pilih Kategori</option>
+                                                    <option value="">Pilih Work Package</option>
                                                     @if(isset($categories) && $categories->count() > 0)
                                                         @foreach($categories as $category)
                                                             <option value="{{ $category->category_id }}" data-number="{{ $category->category_number ?? '' }}">
@@ -259,9 +251,12 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-3">
                                             <div class="form-group mb-4">
-                                                <label class="form-label fw-bold required">Nomor Work Package</label>
+                                                <label class="form-label fw-bold required">Nomor Sub Work Package</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text" id="wp_number_display" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nomor work package saat ini">-</span>
                                                     <input type="number" name="wp_sequence" id="wp_sequence" class="form-control" placeholder="1" min="1" required/>
@@ -274,11 +269,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div class="form-group mb-4">
-                                        <label class="form-label fw-bold required">Nama Work Package</label>
-                                        <input type="text" name="name" class="form-control" placeholder="Masukkan Nama Work Package" required/>
+                                        <div class="col-md-9">
+                                            <div class="form-group mb-4">
+                                                <label class="form-label fw-bold required">Nama Sub Work Package</label>
+                                                <input type="text" name="name" class="form-control" placeholder="Masukkan Nama Work Package" required/>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="row">
@@ -317,20 +313,52 @@
                                                 <i class="bi bi-people text-primary me-2"></i>
                                                 Assign Resources
                                             </h4>
-                                            <p class="text-muted mb-4">Pilih resource yang akan ditugaskan untuk work package ini beserta jumlah hari kerja.</p>
+                                            <p class="text-muted mb-4">Pilih jabatan beserta jumlah hari kerja, dan pilih user untuk ditugaskan pada work package ini.</p>
                                         </div>
                                     </div>
 
-                                    <div id="resourcesContainer">
-                                        <!-- Resource akan ditambahkan disini -->
+                                    <div id="roleAssignmentsContainer">
+                                        <!-- Role assignments akan ditambahkan disini -->
                                     </div>
 
-                                    <button type="button" class="btn btn-light-primary" id="addResourceBtn">
+                                    <button type="button" class="btn btn-light-primary mb-4" id="addRoleAssignmentBtn">
                                         <i class="bi bi-plus-circle"></i> Tambah Resource
                                     </button>
+
+                                    <!-- Summary Table -->
+                                    <div class="card bg-light shadow">
+                                        <div class="card-header py-0">
+                                            <h5 class="card-title mb-0">
+                                                <i class="bi bi-graph-up text-primary me-2"></i>
+                                                Ringkasan Kebutuhan Tenaga Kerja
+                                            </h5>
+                                        </div>
+                                        <div class="card-body py-0">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-borderless mb-0" id="roleAssignmentSummaryTable">
+                                                    <thead>
+                                                        <tr class="fw-bold text-gray-700">
+                                                            <th>Jabatan</th>
+                                                            <th class="text-center">JTK (Jumlah Tenaga Kerja)</th>
+                                                            <th class="text-center">JHK (Jumlah Hari Kerja)</th>
+                                                            <th>Users yang Di-assign</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="roleAssignmentSummaryBody">
+                                                        <tr id="noRoleAssignmentSummary">
+                                                            <td colspan="4" class="text-center text-muted py-3">
+                                                                Belum ada resource yang di-assign
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- Step 1: Tasks -->
+
+                                <!-- Step 2: Tasks -->
                                  <div class="step-content" id="step-2" style="display: none;">
                                     <div class="row">
                                         <div class="col-md-12">
@@ -382,7 +410,7 @@ $(document).ready(function () {
     initTabelWPDetail();
 
     initMultiStepModal();
-    loadUsersForResources();
+    loadUsersAndRolesForResources();
 
     // Filter event listener
     $('#applyFilter').on('click', function() {
@@ -392,6 +420,9 @@ $(document).ready(function () {
     $('#resetFilter').on('click', function() {
         resetFilter();
     });
+
+    // Event Delegation
+    setupEventListeners();
 });
 
 function initTabelWPDetail() {
@@ -505,9 +536,11 @@ function resetFilter() {
 // Multi-step modal variables
 let currentStep = 0;
 let totalSteps = 2;
-let resourceCounter = 0;
+let roleAssignmentCounter = 0;
 let taskCounter = 0;
 let availableUsers = [];
+let availableRoles = [];
+let roleAssignments = [];
 
 /**
  * Initialize multi-step modal functionality
@@ -559,8 +592,8 @@ function initMultiStepModal() {
     });
 
     // Add resource button
-    $('#addResourceBtn').on('click', function() {
-        addResource();
+    $('#addRoleAssignmentBtn').on('click', function() {
+        addRoleAssignment();
     });
 
     // Add task button
@@ -630,17 +663,24 @@ function checkWpNumberAvailability(categoryId, sequence) {
  */
 function resetMultiStepModal() {
     currentStep = 0;
-    resourceCounter = 0;
+    // resourceCounter = 0;
+    roleAssignmentCounter = 0;
     taskCounter = 0;
     
     // Reset form
     $('#addWorkPackageForm')[0].reset();
     
     // Reset containers
-    $('#resourcesContainer').html(getInitialResourceHTML());
+    $('#roleAssignmentsContainer').empty();
     $('#tasksContainer').html('');
-    
+
     goToStep(0);
+
+    $('#roleAssignmentsContainer').html(getInitialRoleAssignmentsHTML());
+
+    // Update resource selects
+    updateRoleSelects();
+    updateRoleAssignmentSummary();
 }
 
 /**
@@ -709,12 +749,12 @@ function validateCurrentStep() {
         
     } else if (currentStep === 1) {
         // Validate resources
-        const resourceItems = $('.resource-item');
+        const roleCards = $('.role-assignment-card');
         
-        if (resourceItems.length === 0) {
+        if (roleCards.length === 0) {
             Swal.fire({
                 title: "Resource Diperlukan",
-                text: "Minimal harus ada 1 resource yang ditugaskan",
+                text: "Minimal harus ada 1 resource assignment",
                 icon: "error",
                 buttonsStyling: false,
                 confirmButtonText: "OK",
@@ -724,222 +764,403 @@ function validateCurrentStep() {
             });
             return false;
         }
-        
-        resourceItems.each(function() {
-            const userSelect = $(this).find('select[name*="[user_id]"]');
-            const jhkInput = $(this).find('input[name*="[jhk]"]');
-            
-            if (!userSelect.val() || !jhkInput.val()) {
-                isValid = false;
-                if (!userSelect.val()) userSelect.addClass('is-invalid');
-                if (!jhkInput.val()) jhkInput.addClass('is-invalid');
-            } else {
-                userSelect.removeClass('is-invalid');
-                jhkInput.removeClass('is-invalid');
-            }
-        });
 
-        if (isValid) {
-            isValid = validateResourceSelection();
-        }
-        
-        if (!isValid) {
-            Swal.fire({
-                title: "Validasi Resource Gagal",
-                text: "Mohon lengkapi semua data resource",
-                icon: "error",
-                buttonsStyling: false,
-                confirmButtonText: "OK",
-                customClass: {
-                    confirmButton: "btn btn-primary"
-                }
-            });
-        }
+        isValid = validateRoleAssignment();
     }
     // Step 2 is optional, so always valid
     
     return isValid;
 }
 
-
 /**
- * Load users for resource selection
+ * Load users and roles for resource selection
  */
-function loadUsersForResources() {
+function loadUsersAndRolesForResources() {
     $.ajax({
         url: `/wp-management/users-with-roles`,
         method: 'GET',
         success: function(response) {
             if (response.success) {
                 availableUsers = response.users;
-                updateResourceSelects();
+                availableRoles = response.roles.filter(role =>
+                    role.name !== 'admin' && role.name !== 'karyawan'
+                );
 
+                // updateResourceSelects();
+                updateRoleSelects();
             } else {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Gagal memuat data user untuk resource selection',
-                    icon: 'error',
-                    buttonsStyling: false,
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'btn btn-secondary'
-                    }
-                });
+                showErrorAlert('Gagal memuat data user dan role untuk resource selection');
             }
         },
         error: function(xhr) {
-            console.error('Failed to load users:', xhr.responseJSON);
-            console.error('Status:', xhr.status);
-            console.error('Response Text:', xhr.responseText);
+            console.error('Failed to load users and roles for:', xhr);
+            showErrorAlert('Gagal memuat data user dan role');
         }
     });
 }
 
 /**
- * Get initial resource HTML
+ * Get initial resource HTML with user and role selection
  */
-function getInitialResourceHTML() {
+function getInitialRoleAssignmentsHTML() {
     return `
-        <div class="resource-item mb-4 p-4 border border-light rounded shadow" data-index="0">
+        <div class="role-assignment-card mb-4 p-4 border-2 border-primary rounded shadow" data-index="0">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Resource #1</h5>
-                <button type="button" class="btn btn-light-danger btn-sm remove-resource" style="display: none;">
+                <h5 class="mb-0 text-info">
+                    <i class="bi bi-person-badge me-2"></i>
+                    Resource Assignment #1
+                </h5>
+                <button type="button" class="btn btn-light-danger btn-sm remove-role-assignment" style="display: none;">
                     <i class="bi bi-trash"></i> Hapus
                 </button>
             </div>
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="form-group mb-3">
-                        <label class="form-label fw-bold required">Pilih Resource</label>
-                        <select class="form-select" name="resources[0][user_id]" required>
-                            <option value="">Pilih Resource</option>
+
+            <!-- Role and JHK Selection -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label fw-bold required">Pilih Jabatan</label>
+                        <select class="form-select role-select" name="role_assignments[0][role_id]" required>
+                            <option value="">Pilih Jabatan</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-group mb-3">
-                        <label class="form-label fw-bold required">Jumlah Hari Kerja</label>
-                        <input type="number" name="resources[0][jhk]" class="form-control" placeholder="0" min="1" required/>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label fw-bold required">Jumlah Hari Kerja (JHK)</label>
+                        <input type="number" name="role_assignments[0][jhk]" class="form-control jhk-input" placeholder="0" min="1" required/>
+                        <div class="form-text">JHK berlaku untuk semua user dalam role ini</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Users Container -->
+            <div class="users-container" data-role-index="0">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold">Users untuk Role ini:</label>
+                </div>
+                
+                <div class="users-list" id="users-list-0">
+                    <!-- User assignments akan ditambahkan disini -->
+                </div>
+
+                <button type="button" class="btn btn-light-success btn-sm add-user-to-role" data-role-index="0">
+                    <i class="bi bi-person-plus"></i> Tambah User
+                </button>
+                
+                <div class="no-users-message text-muted text-start py-3" id="no-users-0">
+                    <small>Klik "Tambah User" untuk menambahkan user ke role ini</small>
                 </div>
             </div>
         </div>
     `;
 }
 
+/**
+ * Load users for resource selection
+ */
+// function loadUsersForResources() {
+//     $.ajax({
+//         url: `/wp-management/users-with-roles`,
+//         method: 'GET',
+//         success: function(response) {
+//             if (response.success) {
+//                 availableUsers = response.users;
+//                 updateResourceSelects();
+
+//             } else {
+//                 Swal.fire({
+//                     title: 'Error',
+//                     text: 'Gagal memuat data user untuk resource selection',
+//                     icon: 'error',
+//                     buttonsStyling: false,
+//                     confirmButtonText: 'OK',
+//                     customClass: {
+//                         confirmButton: 'btn btn-secondary'
+//                     }
+//                 });
+//             }
+//         },
+//         error: function(xhr) {
+//             console.error('Failed to load users:', xhr.responseJSON);
+//             console.error('Status:', xhr.status);
+//             console.error('Response Text:', xhr.responseText);
+//         }
+//     });
+// }
+
 /** RESOURCE MANAGEMENT */
 /**
- * Add new resource
+ * Add new resource assignment
  */
-function addResource() {
-    resourceCounter++;
-    
-    const resourceHTML = `
-        <div class="resource-item mb-4 p-4 border border-light rounded shadow" data-index="${resourceCounter}">
+function addRoleAssignment() {
+    roleAssignmentCounter++;
+
+    const roleAssignmentHTML = `
+        <div class="role-assignment-card mb-4 p-4 border border-2 rounded shadow" data-index="${roleAssignmentCounter}">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Resource #${resourceCounter + 1}</h5>
-                <button type="button" class="btn btn-light-danger btn-sm remove-resource">
+                <h5 class="mb-0 text-info">
+                    <i class="bi bi-person-badge me-2"></i>
+                    Resource Assignment #${roleAssignmentCounter + 1}
+                </h5>
+                <button type="button" class="btn btn-light-danger btn-sm remove-role-assignment">
                     <i class="bi bi-trash"></i> Hapus
                 </button>
             </div>
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="form-group mb-3">
-                        <label class="form-label fw-bold required">Pilih Resource</label>
-                        <select class="form-select" name="resources[${resourceCounter}][user_id]" required>
-                            <option value="">Pilih Resource</option>
+
+            <!-- Role and JHK Selection -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label fw-bold required">Pilih Jabatan</label>
+                        <select class="form-select role-select" name="role_assignments[${roleAssignmentCounter}][role_id]" required>
+                            <option value="">Pilih Jabatan</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-group mb-3">
-                        <label class="form-label fw-bold required">Jumlah Hari Kerja</label>
-                        <input type="number" name="resources[${resourceCounter}][jhk]" class="form-control" placeholder="0" min="1" required/>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label fw-bold required">Jumlah Hari Kerja (JHK)</label>
+                        <input type="number" name="role_assignments[${roleAssignmentCounter}][jhk]" class="form-control jhk-input" placeholder="0" min="1" required/>
+                        <div class="form-text">JHK berlaku untuk semua user dalam role ini</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Users Container -->
+            <div class="users-container" data-role-index="${roleAssignmentCounter}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold">Users untuk Role ini:</label>
+                </div>
+                
+                <div class="users-list" id="users-list-${roleAssignmentCounter}">
+                    <!-- User assignments akan ditambahkan disini -->
+                </div>
+
+                <button type="button" class="btn btn-light-success btn-sm add-user-to-role" data-role-index="${roleAssignmentCounter}">
+                    <i class="bi bi-person-plus"></i> Tambah User
+                </button>
+                
+                <div class="no-users-message text-muted text-start py-3" id="no-users-${roleAssignmentCounter}">
+                    <small>Klik "Tambah User" untuk menambahkan user ke role ini</small>
                 </div>
             </div>
         </div>
     `;
     
-    $('#resourcesContainer').append(resourceHTML);
-    updateResourceSelects();
-    updateRemoveButtons();
+    $('#roleAssignmentsContainer').append(roleAssignmentHTML);
+    updateRoleSelects();
+    updateRemoveRoleAssignmentButtons();
 }
 
 /**
  * Update resource select options
  */
-function updateResourceSelects() {
-    $('.resource-item select[name*="[user_id]"]').each(function() {
+function updateRoleSelects() {
+    // Update role selects
+    $('.role-assignment-card .role-select').each(function() {
         const currentValue = $(this).val();
-        $(this).html('<option value="">Pilih Resource</option>');
-        
-        availableUsers.forEach(user => {
-            // Ensure have valid user data
-            if (!user.user_id || !user.name) {
-                return;
-            }
+        $(this).html('<option value="">Pilih Jabatan</option>');
 
-            // const roleName = user.role ? user.role.name : 'No Role';
-            let roleName = 'No Role';
-            if (user.role && user.role.name && user.role.name !== 'No Role') {
-                roleName = user.role.name;
-            }
+        availableRoles.forEach(role => {
+            if (!role.id || !role.name) return;
 
-            // Double check if admin users
-            if (roleName === 'admin') {
-                return;
-            }
-
-            const optionText = `${user.name} (${roleName})`
-            $(this).append(`<option value="${user.user_id}">${optionText}</option>`);
+            const optionText = `${role.name}`;
+            $(this).append(`<option value="${role.id}">${optionText}</option>`);
         });
-        
+
         if (currentValue) {
             $(this).val(currentValue);
         }
     });
+
+    // Update user selects for all roles
+    $('.role-assignment-card').each(function() {
+        const roleIndex = $(this).data('index');
+        updateUserSelectsInRole(roleIndex);
+    });
 }
 
 /**
- * Enhanced validation for resource selection
+ * Update role assignment resource summary table
  */
-function validateResourceSelection() {
-    let isValid = true;
-    const selectedUsers = [];
-    const problemUsers = [];
+function updateRoleAssignmentSummary() {
+    const summaryData = [];
 
-    $('.resource-item').each(function() {
-        const userSelect = $(this).find('select[name*="[user_id]"]');
-        const selectedUserId = userSelect.val();
+    // Collect all role assignments
+    $('.role-assignment-card').each(function() {
+        const roleId = $(this).find('.role-select').val();
+        const roleName = $(this).find('.role-select option:selected').text();
+        // const userId = $(this).find('.user-select').val();
+        const jhk = parseInt($(this).find('.jhk-input').val()) || 0;
 
-        if (selectedUserId) {
-            // Check for duplicates
-            if (selectedUsers.includes(selectedUserId)) {
-                const userName = userSelect.find('option:selected').text();
-                problemUsers.push(`Duplikat: ${userName}`);
-                isValid = false;
-            } else {
-                selectedUsers.push(selectedUserId);
-            }
+        if (roleId && jhk > 0) {
+            // Get users for this role
+            const users = [];
+            $(this).find('.user-select-in-role').each(function() {
+                const userId = $(this).val();
+                const userName = $(this).find('option:selected').text();
 
-            // Check if selected user is admin
-            const selectedUser = availableUsers.find(u => u.user_id == selectedUserId);
-            if (selectedUser && selectedUser.role && selectedUser.role.name === 'admin') {
-                problemUsers.push(`Admin tidak boleh dipilih: ${selectedUser.name}`);
-                isValid = false;
-            }
+                if (userId && userName !== 'Pilih User') {
+                    users.push({
+                        userId: userId,
+                        userName: userName
+                    });
+                }
+            });
+
+            summaryData.push({
+                roleId: roleId,
+                roleName: roleName,
+                jhk: jhk,
+                jtk: users.length,
+                users: users
+            });
         }
     });
 
+    // Update summary table
+    const summaryBody = $('#roleAssignmentSummaryBody');
+    summaryBody.empty();
+    
+    if (summaryData.length === 0) {
+        summaryBody.append(`
+            <tr id="noRoleAssignmentSummary">
+                <td colspan="4" class="text-center text-muted py-3">
+                    Belum ada resource yang di-assign
+                </td>
+            </tr>
+        `);
+    } else {
+        summaryData.forEach(data => {
+            const usersList = data.users.map(user => user.userName).join(', ') || 'Belum ada user';
+            summaryBody.append(`
+                <tr>
+                    <td class="fw-bold">${data.roleName}</td>
+                    <td class="text-center">
+                        <span class="badge badge-light-primary">${data.jtk} orang</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-light-success">${data.jhk} hari</span>
+                    </td>
+                    <td class="small">${usersList}</td>
+                </tr>
+            `);
+        });
+    }
+}
+
+/**
+ * Enhanced validation for role assignment
+ */
+function validateRoleAssignment() {
+    let isValid = true;
+    const problems = [];
+    const usedRoles = [];
+    const globalUserAssignments = [];
+    let totalJhk = 0;
+
+    // Get duration value for comparison
+    const duration = parseInt($('input[name="duration"]').val()) || 0;
+
+    $('.role-assignment-card').each(function(index) {
+        const roleSelect = $(this).find('.role-select');
+        const jhkInput = $(this).find('.jhk-input');
+
+        const roleId = roleSelect.val();
+        const roleName = roleSelect.find('option:selected').text();
+        const jhk = parseInt(jhkInput.val()) || 0;
+
+        // Reset validation classes
+        roleSelect.removeClass('is-invalid');
+        jhkInput.removeClass('is-invalid');
+
+        // Validation
+        if (!roleId) {
+            roleSelect.addClass('is-invalid');
+            problems.push(`Assignment #${index + 1}: Role harus dipilih`);
+            isValid = false;
+        } else {
+            // Check for duplicate assignments
+            if (usedRoles.includes(roleId)) {
+                roleSelect.addClass('is-invalid');
+                problems.push(`Assignment #${index + 1}: Role ${roleName} sudah digunakan`);
+                isValid = false;
+            } else {
+                usedRoles.push(roleId);
+            }
+        }
+
+        if (jhk <= 0) {
+            jhkInput.addClass('is-invalid');
+            problems.push(`Resource Assignment #${index + 1}: JHK harus lebih dari 0`);
+            isValid = false;
+        } else {
+            totalJhk += jhk;
+        }
+
+        // Validate users in this role
+        const userSelects = $(this).find('.user-select-in-role');
+        let hasUsers = false;
+
+        userSelects.each(function(userIndex) {
+            const userSelect = $(this);
+            const userId = userSelect.val();
+            
+            userSelect.removeClass('is-invalid');
+
+            if (userId) {
+                hasUsers = true;
+
+                // Check for duplicate user assignments accross all roles
+                if (globalUserAssignments.includes(userId)) {
+                    userSelect.addClass('is-invalid');
+                    problems.push(`Resource Assignment #${index + 1}: User sudah di-assign di role lain`);
+                    isValid = false;
+                } else {
+                    globalUserAssignments.push(userId);
+                }
+            }
+        });
+
+        // There must be at least 1 user per role
+        if (roleId && !hasUsers) {
+            problems.push(`Resource Assignment #${index + 1}: Minimal harus ada 1 user untuk role ini`);
+            isValid = false;
+        }
+    });
+
+    // Check minimal requirement
+    if ($('.role-assignment-card').length === 0) {
+        problems.push('Minimal harus ada 1 role assignment');
+        isValid = false;
+    }
+
+    // Validate total JHK and Duration
+    if (totalJhk > duration && duration > 0) {
+        problems.push(`Total JHK (${totalJhk} hari) melebihi durasi kerja (${duration} hari)`);
+
+        // Add visual indication to all JHK inputs
+        $('.jhk-input').addClass('is-invalid');
+        $('input[name="duration"]').addClass('is-invalid');
+
+        isValid = false;
+    } else {
+        // Remove invalid classes if validation passes
+        $('.jhk-input').removeClass('is-invalid');
+        $('input[name="duration"]').removeClass('is-invalid');
+    }
+
     if (!isValid) {
         Swal.fire({
-            title: 'Validasi Resource Gagal',
+            title: 'Validasi Resource Assignment Gagal',
             html: `
-                <p>Masalah yang ditemukan:</p>
-                <ul class="text-start">
-                    ${problemUsers.map(problem => `<li>${problem}</li>`).join('')}
-                </ul>
+                <div class="text-start">
+                    <p class="mb-3">Masalah yang ditemukan:</p>
+                    <ul>
+                        ${problems.map(problem => `<li>${problem}</li>`).join('')}
+                    </ul>
+                </div>
             `,
             icon: 'warning',
             buttonsStyling: false,
@@ -954,41 +1175,226 @@ function validateResourceSelection() {
 }
 
 /**
+ * Enhanced validation for resource selection
+ */
+
+
+/**
  * Update remove buttons visibility
  */
-function updateRemoveButtons() {
-    const resourceItems = $('.resource-item');
-    
-    if (resourceItems.length <= 1) {
-        resourceItems.find('.remove-resource').hide();
+function updateRemoveRoleAssignmentButtons() {
+    const roleCards = $('.role-assignment-card');
+
+    if (roleCards.length <= 1) {
+        roleCards.find('.remove-role-assignment').hide();
     } else {
-        resourceItems.find('.remove-resource').show();
+        roleCards.find('.remove-role-assignment').show();
     }
 }
 
 /**
- * Remove resource event delegation
+ * Add user to specific role
  */
-$(document).on('click', '.remove-resource', function() {
-    $(this).closest('.resource-item').remove();
-    updateResourceNumbers();
-    updateRemoveButtons();
-});
+function addUserToRole(roleIndex) {
+    console.log('Adding user to role index:', roleIndex); // Debug log
+
+    const usersListContainer = $(`#users-list-${roleIndex}`);
+    console.log('Users list container found:', usersListContainer.length); // Debug log
+    
+    // fallback Jika tidak ditemukan, gunakan card index
+    if (usersListContainer.length === 0) {
+        console.warn('Container not found by ID, using card index...');
+        const targetCard = $(`.role-assignment-card`).eq(roleIndex);
+        if (targetCard.length) {
+            usersListContainer = targetCard.find('.users-list');
+            console.log('Found container via card index');
+        }
+    }
+
+    if (usersListContainer.length === 0) {
+        console.error(`Users list container not found for role index: ${roleIndex}`);
+        return;
+    }
+
+    const existingUserCount = usersListContainer.find('.user-assignment-item').length;
+
+    const userItemHTML = `
+        <div class="user-assignment-item d-flex align-items-center gap-2 p-2 rounded" data-user-index="${existingUserCount}">
+            <div class="flex-grow-1">
+                <select class="form-select user-select-in-role" name="role_assignments[${roleIndex}][users][${existingUserCount}][user_id]" required>
+                    <option value="">Pilih User</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-light-danger btn-sm remove-user-from-role" data-role-index="${roleIndex}">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+
+    usersListContainer.append(userItemHTML);
+
+    // Update user select options
+    updateUserSelectsInRole(roleIndex);
+    
+    // Hide no users message
+    $(`#no-users-${roleIndex}`).hide();
+    
+    updateRoleAssignmentSummary();
+}
+
+/**
+ * Update user selects in specific role
+ */
+function updateUserSelectsInRole(roleIndex) {
+    const container = $(`.users-container[data-role-index="${roleIndex}"]`);
+
+    container.find('.user-select-in-role').each(function() {
+        const currentValue = $(this).val();
+        $(this).html('<option value="">Pilih User</option>');
+
+        availableUsers.forEach(user => {
+            if (!user.user_id || !user.name) return;
+            
+            $(this).append(`<option value="${user.user_id}">${user.name}</option>`);
+        });
+        
+        if (currentValue) {
+            $(this).val(currentValue);
+        }
+    });
+}
 
 /**
  * Update resource numbers after removal
  */
-function updateResourceNumbers() {
-    $('.resource-item').each(function(index) {
-        $(this).find('h5').text(`Resource #${index + 1}`);
-        
+function updateRoleAssignmentNumbers() {
+    $('.role-assignment-card').each(function(index) {
+        $(this).find('h5').text(`Resource Assignment #${index + 1}`);
+
         // Update name attributes
-        $(this).find('select').attr('name', `resources[${index}][user_id]`);
-        $(this).find('input').attr('name', `resources[${index}][jhk]`);
+        // $(this).find('.user-select').attr('name', `resources[${index}][user_id]`);
+        $(this).find('.role-select').attr('name', `role_assignments[${index}][role_id]`);
+        $(this).find('.jhk-input').attr('name', `role_assignments[${index}][jhk]`);
+
+        // Update users container
+        $(this).find('.users-container').attr('data-role-index', index);
+        $(this).find('.add-user-to-role').attr('data-role-index', index);
+        $(this).find('.users-list').attr('id', `users-list-${index}`);
+        $(this).find('.no-users-message').attr('id', `no-users-${index}`);
+        
+        // Update user assignments
+        $(this).find('.user-assignment-item').each(function(userIndex) {
+            $(this).attr('data-user-index', userIndex);
+            $(this).find('.user-select-in-role').attr('name', `role_assignments[${index}][users][${userIndex}][user_id]`);
+            $(this).find('.remove-user-from-role').attr('data-role-index', index);
+        });
+
         $(this).attr('data-index', index);
     });
+
+    roleAssignmentCounter = $('.role-assignment-card').length - 1;
+}
+
+/**
+ * Update user number in specific role
+ */
+function updateUserNumbers(roleIndex) {
+    const container = $(`.users-container[data-role-index="${roleIndex}"]`);
+
+    container.find('.user-assignment-item').each(function(index) {
+        $(this).attr('data-user-index', index);
+        $(this).find('.user-select-in-role').attr('name', `role_assignments[${roleIndex}][users][${index}][user_id]`);
+    });
+}
+
+/**
+ * Function to toggle showing No user message
+ */
+function toggleNoUsersMessage(roleIndex) {
+    const usersList = $(`#users-list-${roleIndex}`);
+    const noUsersMessage = $(`#no-users-${roleIndex}`);
+
+    if (usersList.find('.user-assignment-item').length === 0) {
+        noUsersMessage.show();
+    } else {
+        noUsersMessage.hide();
+    }
+}
+
+/**
+ * Helper function to show error alerts
+ */
+function showErrorAlert(message) {
+    Swal.fire({
+        title: 'Error',
+        text: message,
+        icon: 'error',
+        buttonsStyling: false,
+        confirmButtonText: 'OK',
+        customClass: {
+            confirmButton: 'btn btn-secondary'
+        }
+    });
+}
+
+/**
+ * Setup event listeners
+ */
+function setupEventListeners() {
+    // Hapus semua listener yang mungkin sudah ada
+    $(document).off('click.roleManagement');
     
-    resourceCounter = $('.resource-item').length - 1;
+    // Event delegation pada document level
+    $(document).on('click.roleManagement', '.add-user-to-role', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // Mencegah event bubbling
+        
+        // Gunakan position card dalam container, bukan DOM index
+        const roleCard = $(this).closest('.role-assignment-card');
+        const roleIndex = $('.role-assignment-card').index(roleCard);
+        
+        console.log('Add user clicked - Card position:', roleIndex);
+        
+        if (roleIndex >= 0) {
+            addUserToRole(roleIndex);
+        }
+    });
+
+    $(document).on('click.roleManagement', '.remove-user-from-role', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        
+        const roleCard = $(this).closest('.role-assignment-card');
+        const roleIndex = $('.role-assignment-card').index(roleCard);
+        
+        console.log('Remove user clicked - Card position:', roleIndex);
+        
+        if (roleIndex >= 0) {
+            $(this).closest('.user-assignment-item').remove();
+            updateUserNumbers(roleIndex);
+            updateRoleAssignmentSummary();
+            toggleNoUsersMessage(roleIndex);
+        }
+    });
+
+    $(document).on('click.roleManagement', '.remove-role-assignment', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        
+        $(this).closest('.role-assignment-card').remove();
+        updateRoleAssignmentNumbers();
+        updateRemoveRoleAssignmentButtons();
+        updateRoleAssignmentSummary();
+    });
+
+    // Event listeners untuk summary update
+    $(document).on('change.roleManagement', '.role-select, .jhk-input, .user-select-in-role', function() {
+        updateRoleAssignmentSummary();
+    });
+
+    $(document).on('input.roleManagement', '.jhk-input', function() {
+        updateRoleAssignmentSummary();
+    });
 }
 
 /** TASK MANAGEMENT */

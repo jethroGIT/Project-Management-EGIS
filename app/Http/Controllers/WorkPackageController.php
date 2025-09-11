@@ -48,7 +48,8 @@ class WorkPackageController extends Controller
             'task' => function($query) {
                 $query->orderBy('task_id');
             },
-            'work.user.roles'
+            'work.user.roles',
+            'work.role'
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
@@ -58,9 +59,7 @@ class WorkPackageController extends Controller
             ->orderBy('hresource_id')
             ->get();
 
-        $currentAssignments = $volume->work->groupBy(function($work) {
-            return $work->user->roles->get(1)?->id ?? $work->user->roles->first()?->id;
-        })->map(function($group) {
+        $currentAssignments = $volume->work->groupBy('role_id')->map(function($group) {
             return [
                 'count' => $group->count(),
                 'users' => $group->map(function($work) {
@@ -74,14 +73,20 @@ class WorkPackageController extends Controller
 
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
-        })->with(['roles']) // ambil relasi role
+        })->with(['work' => function($query) use ($volume_id) {
+            $query->where('volume_id', $volume_id)->with('role');
+        }])
         ->withCount(['timesheets' => function ($query) use ($volume_id) {
             // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
             $query->where('volume_id', $volume_id);
         }])
         ->get()
-        ->map(function ($user) use ($workPackage) {
-            $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+        ->map(function ($user) use ($workPackage, $volume_id) {
+            // $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+            $workRecord = $user->work->where('volume_id', $volume_id)->first();
+            $roleId = $workRecord->role_id ?? null;
+            $roleName = $workRecord->role->name ?? 'No Role';
+
             $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
                                             ->where('role_id', $roleId)
                                             ->first();
@@ -89,7 +94,8 @@ class WorkPackageController extends Controller
             return [
                 'user_id' => $user->user_id,
                 'name' => $user->name,
-                'role_name' => $user->roles->get(1)?->name ?? $user->roles->first()?->name ?? 'No Role',
+                // 'role_name' => $user->roles->get(1)?->name ?? $user->roles->first()?->name ?? 'No Role',
+                'role_name' => $roleName,
                 'role_id' => $roleId,
                 'jhk' => $humanResource ? $humanResource->jhk : null,
                 'timesheets_count' => $user->timesheets_count,
@@ -125,7 +131,7 @@ class WorkPackageController extends Controller
             })
             ->get()
             ->map(function($user) use ($workPackage, $assignedRoleIds) {
-                $userRoles = $user->getRoleNames();
+                // $userRoles = $user->getRoleNames();
                 $roleId = null;
                 $roleName = 'No Role';
 
@@ -134,28 +140,44 @@ class WorkPackageController extends Controller
                 $matchingRoleIds = array_intersect($userRoleIds, $assignedRoleIds);
 
                 if (!empty($matchingRoleIds)) {
-                    // Ambil role pertama yang match dengan assigned roles
-                    $matchingRoleId = collect($matchingRoleIds)->first();
-                    $matchingRole = $user->roles->where('id', $matchingRoleId)->first();
-                    
-                    if ($matchingRole) {
-                        $roleId = $matchingRole->id;
-                        $roleName = $matchingRole->name;
-                    }
-                } else {
-                    // Fallback jika tidak ada matching role (seharusnya tidak terjadi karena sudah di-filter)
-                    $karyawanRoles = $userRoles->filter(function($roleName) {
-                        return $roleName !== 'karyawan' && $roleName !== 'admin';
+                    // Prioritaskan role turunan karyawan
+                    $adminRoleId = Role::where('name', 'admin')->first()?->id;
+                    $karyawanRoleId = Role::where('name', 'karyawan')->first()?->id;
+
+                    $preferredRoleIds = array_filter($matchingRoleIds, function($id) use ($adminRoleId, $karyawanRoleId) {
+                        return $id !== $adminRoleId && $id !== $karyawanRoleId;
                     });
 
-                    if ($karyawanRoles->isNotEmpty()) {
-                        $roleName = $karyawanRoles->first();
-                        $roleId = $user->roles->where('name', $roleName)->first()?->id;
-                    } else if ($userRoles->contains('karyawan')) {
-                        $roleName = 'karyawan';
-                        $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                    if (!empty($preferredRoleIds)) {
+                        $roleId = reset($preferredRoleIds);
+                    } else {
+                        $roleId = reset($matchingRoleIds);
                     }
-                }
+
+                    // Ambil role pertama yang match dengan assigned roles
+                    // $matchingRoleId = collect($matchingRoleIds)->first();
+                    // $matchingRole = $user->roles->where('id', $matchingRoleId)->first();
+                    $matchingRole = $user->roles->where('id', $roleId)->first();
+                    
+                    if ($matchingRole) {
+                        // $roleId = $matchingRole->id;
+                        $roleName = $matchingRole->name;
+                    }
+                } 
+                // else {
+                //     // Fallback jika tidak ada matching role (seharusnya tidak terjadi karena sudah di-filter)
+                //     $karyawanRoles = $userRoles->filter(function($roleName) {
+                //         return $roleName !== 'karyawan' && $roleName !== 'admin';
+                //     });
+
+                //     if ($karyawanRoles->isNotEmpty()) {
+                //         $roleName = $karyawanRoles->first();
+                //         $roleId = $user->roles->where('name', $roleName)->first()?->id;
+                //     } else if ($userRoles->contains('karyawan')) {
+                //         $roleName = 'karyawan';
+                //         $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
+                //     }
+                // }
 
                 // Ambil JHK dari Human Resource untuk role ini
                 $humanResource = null;
@@ -218,16 +240,36 @@ class WorkPackageController extends Controller
 
         // hitung persentase finance performance
         // Ambil semua work dan timesheet berdasarkan volume
-        $works = Work::with('user.roles')->where('volume_id', $volume_id)->get();
-        $timesheets = Timesheet::with('user.roles')->where('volume_id', $volume_id)->get();
+        $works = Work::with(['user.roles', 'role'])->where('volume_id', $volume_id)->get();
+        // $timesheets = Timesheet::with('user.roles')->where('volume_id', $volume_id)->get();
 
-        $resourceCostPerRole = $works->groupBy(fn($w) => $w->user->roles->get(1)?->id ?? $w->user->roles->first()?->id)
-            ->map(fn($group) => $group->first()->user->roles->get(1)?->resource_cost ?? $group->first()->user->roles->first()?->resource_cost ?? 0);
+        // $resourceCostPerRole = $works->groupBy(fn($w) => $w->user->roles->get(1)?->id ?? $w->user->roles->first()?->id)
+        //     ->map(fn($group) => $group->first()->user->roles->get(1)?->resource_cost ?? $group->first()->user->roles->first()?->resource_cost ?? 0);
 
-        // Hitung aktivitas per role dari timesheet
-        $timesheetCountPerRole = $timesheets->groupBy(fn($t) => $t->user->roles->get(1)?->id ?? $t->user->roles->first()?->id)
-            ->map(fn($group) => $group->count());
+        // // Hitung aktivitas per role dari timesheet
+        // $timesheetCountPerRole = $timesheets->groupBy(fn($t) => $t->user->roles->get(1)?->id ?? $t->user->roles->first()?->id)
+        //     ->map(fn($group) => $group->count());
+        $timesheets = Timesheet::with(['user.roles'])
+            ->where('volume_id', $volume_id)
+            ->get();
 
+        // Group by role dari work record
+        $resourceCostPerRole = $works->groupBy('role_id')
+            ->map(function($group) {
+                $workRecord = $group->first();
+                return $workRecord->role ? $workRecord->role->resource_cost : 0;
+            });
+
+        // Hitung aktivitas per role dari work assignment
+        $timesheetCountPerRole = $timesheets->groupBy(function($timesheet) use ($volume_id) {
+            // Ambil role_id dari work record user ini
+            $work = Work::where('user_id', $timesheet->user_id)
+                        ->where('volume_id', $volume_id)
+                        ->first();
+            return $work ? $work->role_id : null;
+        })->map(function($group) {
+            return $group->count();
+        });
         
         $totalByYoy = 0;
         $totalRealization = 0;
@@ -837,27 +879,57 @@ class WorkPackageController extends Controller
             // Tambah assignments baru berdasarkan user_id
             $wpId = $volume->wp_id;
             foreach ($newResources as $index => $userId) {
+                $user = User::with('roles')->find($userId);
+                $roleId = null;
+
+                if ($user && $user->roles->isNotEmpty()) {
+                    // Cari role yang sesuai dengan human resources work package ini
+                    $userRoleIds = $user->roles->pluck('id')->toArray();
+                    $wpRoleIds = HumanResource::where('wp_id', $wpId)->pluck('role_id')->toArray();
+                    
+                    // Ambil role yang matching
+                    $matchingRoleIds = array_intersect($userRoleIds, $wpRoleIds);
+                    
+                    // Filter out admin dan karyawan
+                    $adminRoleId = Role::where('name', 'admin')->first()?->id;
+                    $karyawanRoleId = Role::where('name', 'karyawan')->first()?->id;
+                    
+                    $validRoleIds = array_filter($matchingRoleIds, function($id) use ($adminRoleId, $karyawanRoleId) {
+                        return $id !== $adminRoleId && $id !== $karyawanRoleId;
+                    });
+
+                    if (!empty($validRoleIds)) {
+                        $roleId = reset($validRoleIds);
+                    } else {
+                        // Fallback: ambil role pertama dari human resources
+                        $firstHR = HumanResource::where('wp_id', $wpId)->first();
+                        $roleId = $firstHR ? $firstHR->role_id : null;
+                    }
+                }
+
                 Work::create([
                     'user_id' => (int) $userId,
-                    'volume_id' => (int) $volume_id
+                    'volume_id' => (int) $volume_id,
+                    'role_id' => $roleId
                 ]);
 
                 // Update jhk jika tersedia
-                if (isset($resourceJhkMapping[$userId])) {
+                if (isset($resourceJhkMapping[$userId]) && $roleId) {
                     $jhkValue = $resourceJhkMapping[$userId];
 
                     // Cari role user terkait
-                    $user = User::with('roles')->find($userId);
-                    if ($user && $user->roles->isNotEmpty()) {
-                        // Update jhk di HumanResource
-                        $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
-                        $hr = HumanResource::where('role_id', $roleId)
-                                            ->where('wp_id', $wpId)
-                                            ->first();
-                        if ($hr) {
-                            $hr->jhk = $jhkValue;
-                            $hr->save();
-                        }
+                    // $user = User::with('roles')->find($userId);
+                    // if ($user && $user->roles->isNotEmpty()) {
+                    //     $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+                    // }
+                    
+                    // Update jhk di HumanResource
+                    $hr = HumanResource::where('role_id', $roleId)
+                                        ->where('wp_id', $wpId)
+                                        ->first();
+                    if ($hr) {
+                        $hr->jhk = $jhkValue;
+                        $hr->save();
                     }
                 }
             }
