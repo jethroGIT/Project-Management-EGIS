@@ -86,7 +86,18 @@
                                                 @php
                                                     $userEntry = $entries->where('user_id', $user->user_id)->first();
                                                 @endphp
-                                                {{ $userEntry->activity ?? '-'}}
+                                                @if($userEntry)
+                                                     @if($userEntry->duration == 1.0)
+                                                        <span class="badge badge-light-info badge-square mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                                    @elseif($userEntry->duration == 0.5)
+                                                        <span class="badge badge-light-primary badge-square mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                                    @else
+                                                        <span class="badge badge-secondary badge-square mb-1">{{ $userEntry->duration}} Hari</span></br>
+                                                    @endif
+                                                    <span>{{ $userEntry->activity}}</span>
+                                                @else
+                                                    -
+                                                @endif
                                             </td>
                                         @endforeach                                        
                                     </tr>  

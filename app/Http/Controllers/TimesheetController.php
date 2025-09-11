@@ -73,7 +73,7 @@ class TimesheetController extends Controller
         // daftar unique timesheet dari bulan yang dipilih
         $usersInSelectedMonth = $timesheets->pluck('user')->unique('user_id')
                                             ->sortBy(function($user) {
-                                                return $user->roles->first()?->id ?? 0;
+                                                return $user->roles->get(1)?->id ?? $user->roles->first()?->id;
                                 })->values();
 
         // menghitung jumlah aktivitas untuk setiap role
