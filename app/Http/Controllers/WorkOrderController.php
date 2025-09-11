@@ -22,9 +22,9 @@ class WorkOrderController extends Controller
         
         $workOrders = WorkOrder::with('workPackageVolumes')->orderBy('wo_number', 'asc')->get();
 
-        $workOrders = $workOrders->sortBy(function($wo) {
-            return $wo->wo_number . '-' . ($wo->workPackageVolumes->first()->execution_year ?? '');
-        });
+        // $workOrders = $workOrders->sortBy(function($wo) {
+        //     return $wo->wo_number . '-' . ($wo->workPackageVolumes->first()->execution_year ?? '');
+        // });
         
         $categories = WpCategory::with('workPackage')->orderBy('category_number', 'asc')->get();
 
@@ -55,8 +55,25 @@ class WorkOrderController extends Controller
         return view('work_order', compact('workPackages', 'categories', 'workOrders', 'remainingWPCount'));
     }
 
-    public function add(){
+    public function add(Request $request){
         // add new work order
+        try {
+            $request->validate([
+                'wo_number' => 'required|string|unique:work_order,wo_number',
+            ]);
+
+            $wo = WorkOrder::create([
+                'wo_number' => $request->wo_number,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Work Order berhasil ditambahkan.',
+                'data' => $wo
+            ]);
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 
     public function assign(Request $request){

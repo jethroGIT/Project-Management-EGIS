@@ -115,23 +115,31 @@
                                 <td class="align-middle">{{$wp->name}}</td>
                                 <td class="align-middle text-center">
                                     @php
-                                        $wo2024 = $wp->workPackageVolumes->firstWhere('execution_year', 2024);
+                                        $wo2024Numbers = $wp->workPackageVolumes
+                                            ->where('execution_year', 2024)
+                                            ->whereNotNull('workOrder')
+                                            ->sortBy(fn($vol) => $vol->workOrder->wo_number)
+                                            ->pluck('workOrder.wo_number')
+                                            ->filter()
+                                            ->unique()
+                                            ->map(fn($num) => 'WO ' . $num)
+                                            ->implode(', ');
                                     @endphp
-                                    @if($wo2024 && $wo2024->workOrder)
-                                        WO {{ $wo2024->workOrder->wo_number ?? '-' }}
-                                    @else
-                                        -
-                                    @endif
+                                    {{ $wo2024Numbers ?: '-' }}
                                 </td>
                                 <td class="align-middle text-center">
                                     @php
-                                        $wo2025 = $wp->workPackageVolumes->firstWhere('execution_year', 2025);
+                                        $wo2025Numbers = $wp->workPackageVolumes
+                                            ->where('execution_year', 2025)
+                                            ->whereNotNull('workOrder')
+                                            ->sortBy(fn($vol) => $vol->workOrder->wo_number)
+                                            ->pluck('workOrder.wo_number')
+                                            ->filter()
+                                            ->unique()
+                                            ->map(fn($num) => 'WO ' . $num)
+                                            ->implode(', ');
                                     @endphp
-                                    @if($wo2025 && $wo2025->workOrder)
-                                        WO {{ $wo2025->workOrder->wo_number ?? '-' }}
-                                    @else
-                                        -
-                                    @endif
+                                    {{ $wo2025Numbers ?: '-' }}
                                 </td>
                                 <td class="align-middle text-center">{{$wp->volume_qty}}</td>
                                 <td class="align-middle text-center">{{$totalWithWO}}</td>
@@ -247,9 +255,10 @@
                 <h3 class="modal-title">Assign Work Order pada Volume</h3>
             </div>
             <div class="modal-body">
-                <form id="assignWoForm" action="{{ route('work-order.assign') }}" method="POST">
+                <form id="assignWoForm">
+                    {{--  action="{{ route('work-order.assign') }}" method="POST" --}}
                     @csrf
-                    @method('PUT')
+                    {{-- @method('PUT') --}}
                     <div class="mb-8">
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-clipboard-check text-info me-2 fs-3"></i>
@@ -320,7 +329,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" onclick="assignWo()">Simpan</button>
+                <button type="button" class="btn btn-primary" onclick="addAssignWO()">Simpan</button>
             </div>
         </div>
     </div>
@@ -331,7 +340,7 @@
         <div class="card-header py-2">
             <h3 class="card-title title-template fw-bold fs-5">Volume Work Package</h3>
             <div class="card-toolbar">
-                <button type="button" class="btn btn-sm btn-light-danger remove-personel-btn">
+                <button type="button" class="btn btn-sm btn-light-danger remove-wpvolume-btn">
                     <i class="bi bi-trash fs-5"></i> Hapus
                 </button>
             </div>
@@ -487,20 +496,21 @@
 
             let rows = '';
             if (wp && wp.work_package_volumes) {
-                // Group by WO + execution_year
-                wp.work_package_volumes.forEach(function(vol) {
-                    if (vol.wo_id && vol.work_order) {
-                        const groupKey = `WO ${vol.work_order.wo_number} (${vol.execution_year ?? '-'})`;
-                        // const period = `${vol.start_date} - ${vol.end_date}`;
-                        const period = `${formatTanggal(vol.start_date)} - ${formatTanggal(vol.end_date)}`;
-                        rows += `
-                            <tr class="text-center px-7" style="font-size:0.95rem;">
-                                <td style="display:none;">${groupKey}</td>
-                                <td class="align-middle text-center">${vol.volume_number ?? '-'}</td>
-                                <td class="align-middle text-center">${period}</td>
-                            </tr>
-                        `;
-                    }
+                // Urutkan volume berdasarkan wo_number ascending
+                const sortedVolumes = [...wp.work_package_volumes]
+                    .filter(vol => vol.wo_id && vol.work_order)
+                    .sort((a, b) => a.work_order.wo_number - b.work_order.wo_number);
+
+                sortedVolumes.forEach(function(vol) {
+                    const groupKey = `WO ${vol.work_order.wo_number} (${vol.execution_year ?? '-'})`;
+                    const period = `${formatTanggal(vol.start_date)} - ${formatTanggal(vol.end_date)}`;
+                    rows += `
+                        <tr class="text-center px-7" style="font-size:0.95rem;">
+                            <td style="display:none;">${groupKey}</td>
+                            <td class="align-middle text-center">${vol.volume_number ?? '-'}</td>
+                            <td class="align-middle text-center">${period}</td>
+                        </tr>
+                    `;
                 });
             }
             if(!rows) {
@@ -663,7 +673,7 @@
             const wpSelect = card.querySelector('.wpSelect');
             const volumeWarning = card.querySelector('.volume-warning');
             const volumeOptions = card.querySelector('.volume-options');
-            const removeBtn = card.querySelector('.remove-personel-btn');
+            const removeBtn = card.querySelector('.remove-wpvolume-btn');
 
             if (title) {
                 title.textContent = `Volume Work Package ${idx + 1}`;
@@ -694,8 +704,8 @@
                     if (updatedCards.length < window.wpData.length) {
                         addBtn.disabled = false;
                     }
-                    updateAddBtnState();
                     updateWorkPackageOptions();
+                    updateAddBtnState();
                 };
             }
 
@@ -707,15 +717,15 @@
                     volumeWarning.style.display = 'none';
                     volumeOptions.style.display = 'block';
                 }
-                wpSelect.addEventListener('change', function() {
-                    if (!this.value) {
-                        volumeWarning.style.display = 'block';
-                        volumeOptions.style.display = 'none';
-                    } else {
-                        volumeWarning.style.display = 'none';
-                        volumeOptions.style.display = 'block';
-                    }
-                });
+                // wpSelect.addEventListener('change', function() {
+                //     if (!this.value) {
+                //         volumeWarning.style.display = 'block';
+                //         volumeOptions.style.display = 'none';
+                //     } else {
+                //         volumeWarning.style.display = 'none';
+                //         volumeOptions.style.display = 'block';
+                //     }
+                // });
 
                 const volumeList = card.querySelector('.volume-list');
                 wpSelect.addEventListener('change', function() {
@@ -766,11 +776,12 @@
                             }
                         }
                     }
-                    updateWorkPackageOptions();
+                    setTimeout(updateWorkPackageOptions, 0);
                     updateAddBtnState();
                 });
             }
         });
+        updateWorkPackageOptions();
         updateAddBtnState();
     }
 
@@ -779,13 +790,15 @@
         const cards = document.querySelectorAll('.card.card-flush.shadow-sm.border-0.mb-5');
 
         // Hitung WP yang masih punya volume belum di-assign WO
-        const availableWPCount = window.wpData.filter(wp =>
-            wp.work_package_volumes &&
-            wp.work_package_volumes.some(vol => !vol.wo_id)
-        ).length;
+        const availableWPIds = window.wpData
+            .filter(wp =>
+                wp.work_package_volumes &&
+                wp.work_package_volumes.some(vol => !vol.wo_id)
+            )
+            .map(wp => wp.wp_id);
 
         // Tombol aktif jika jumlah card < jumlah WP yang masih available
-        addBtn.disabled = cards.length >= availableWPCount;
+        addBtn.disabled = cards.length > availableWPIds.length;
     }
 
     function updateWorkPackageOptions(){
@@ -854,93 +867,160 @@
         }
     });
 
-    function assignWo() {
+    function addAssignWO() {
         const form = $('#assignWoForm');
         const url = form.attr('action');
         const wo_id = $('#woSelect').val();
         let volume_ids = [];
         let valid = true;
+        let incompletePeriod = false;
+        let incompleteVolumes = [];
 
         $('#volumeSelectionContainer .card').each(function(idx) {
-        const checked = $(this).find('.volume-checkbox:checked');
-        if (checked.length === 0) {
-            valid = false;
+            const checked = $(this).find('.volume-checkbox:checked');
+            if (checked.length === 0) {
+                valid = false;
+                Swal.fire({
+                    title: "Volume belum dipilih",
+                    text: `Silakan pilih minimal satu volume pada card Volume Work Package ${idx + 1}`,
+                    icon: "warning",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false; // break each
+            }
+            checked.each(function() {
+                volume_ids.push($(this).val());
+                const period = $(this).closest('.volume-option').find('.text-muted').text().trim();
+                if (period === "Belum tersedia") {
+                    incompletePeriod = true;
+                    incompleteVolumes.push($(this).val());
+                }
+            });
+        });
+
+        if (!wo_id) {
             Swal.fire({
-                title: "Volume belum dipilih",
-                text: `Silakan pilih minimal satu volume pada card Volume Work Package ${idx + 1}`,
+                title: "Data belum lengkap",
+                text: "Pilih Work Order terlebih dahulu!",
                 icon: "warning",
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
                 customClass: { confirmButton: "btn btn-secondary" }
             });
-            return false; // break each
+            return;
         }
-        checked.each(function() {
-            volume_ids.push($(this).val());
-        });
-    });
 
-    if (!wo_id) {
-        Swal.fire({
-            title: "Data belum lengkap",
-            text: "Pilih Work Order terlebih dahulu!",
-            icon: "warning",
-            buttonsStyling: false,
-            confirmButtonText: "Tutup",
-            customClass: { confirmButton: "btn btn-secondary" }
-        });
-        return;
-    }
+        if (!valid) return; 
 
-    if (!valid) return; 
+        if (incompletePeriod) {
+            Swal.fire({
+                title: "Konfigurasi Volume Belum Lengkap",
+                text: "Silakan lengkapi periode volume sebelum assign WO.",
+                icon: "warning",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            });
+            return;
+        }
 
         // Jika create new WO, ambil nomor WO baru
-        // let newWoNumber = null;
-        // if (wo_id === 'create_new') {
-        //     newWoNumber = $('#newWoNumber').val();
-        //     if (!newWoNumber || parseInt(newWoNumber) < 1) {
-        //         Swal.fire({
-        //             title: "Nomor WO tidak valid",
-        //             text: "Isi nomor WO baru minimal 1",
-        //             icon: "warning",
-        //             buttonsStyling: false,
-        //             confirmButtonText: "Tutup",
-        //             customClass: { confirmButton: "btn btn-secondary" }
-        //         });
-        //         return;
-        //     }
-        // }
-
-        // Siapkan data untuk dikirim
-        const data = {
-            _token: form.find('[name="_token"]').val(),
-            wo_id: wo_id,
-            volume_id: volume_ids
-        };
+        let newWoNumber = null;
         if (wo_id === 'create_new') {
-            data.newWoNumber = newWoNumber;
-        }
+            newWoNumber = $('#newWoNumber').val();
+            if (!newWoNumber || parseInt(newWoNumber) < 1) {
+                Swal.fire({
+                    title: "Nomor WO tidak valid",
+                    text: "Isi nomor WO baru minimal 1",
+                    icon: "warning",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return;
+            }
 
+            $.ajax({
+                url: "{{ route('work-order.add') }}",
+                method: 'POST',
+                data: {
+                    _token: form.find('[name="_token"]').val(),
+                    wo_number: newWoNumber
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                beforeSend: function () {
+                    form.find('input, button, select').prop('disabled', true);
+                    Swal.fire({
+                        title: 'Membuat Work Order...',
+                        text: 'Sedang membuat WO baru',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => { Swal.showLoading() }
+                    });
+                },
+                success: function (response) {
+                    if (response.success && response.data && response.data.wo_id) {
+                        // 2. Assign volume ke WO baru
+                        assignVolumesToWO(response.data.wo_id, volume_ids, form);
+                    } else {
+                        Swal.fire({
+                            title: "Gagal Membuat WO",
+                            text: response.message || "Gagal membuat WO baru",
+                            icon: "error",
+                            buttonsStyling: false,
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
+                        });
+                        form.find('input, button, select').prop('disabled', false);
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Terjadi kesalahan saat membuat WO baru";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        title: "Gagal Membuat WO",
+                        text: errorMessage,
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-secondary" }
+                    });
+                    form.find('input, button, select').prop('disabled', false);
+                }
+            });
+        }else{
+            // Langsung assign ke WO yang dipilih
+            assignVolumesToWO(wo_id, volume_ids, form);
+        }
+    }
+
+    function assignVolumesToWO(wo_id, volume_ids, form) {
         $.ajax({
-            url: url,
+            url: "{{ route('work-order.assign') }}",
             method: 'PUT',
-            data: data,
+            data: {
+                _token: form.find('[name="_token"]').val(),
+                wo_id: wo_id,
+                volume_id: volume_ids
+            },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             beforeSend: function () {
-                // Disable form elements
-                form.find('input, button, select').prop('disabled', true);
-
                 Swal.fire({
                     title: 'Assign Work Order...',
                     text: 'Sedang memproses assignment WO pada volume',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading()
-                    }
+                    didOpen: () => { Swal.showLoading() }
                 });
             },
             success: function (response) {
@@ -981,7 +1061,6 @@
                 });
             },
             complete: function () {
-                // Enable form elements
                 form.find('input, button, select').prop('disabled', false);
             }
         });
