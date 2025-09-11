@@ -89,7 +89,7 @@
         <div class="card-header py-0">
             <h3 class="card-title">
                 <i class="bi bi-collection text-primary me-2"></i>
-                Work Package Volumes ({{ $volumesData->count() }})
+                Work Package Volumes ({{ $volumesWithWorkOrderCount }} dari {{ $totalVolumesCount }} volume)
             </h3>
         </div>
         <div class="card-body py-0">
@@ -229,7 +229,6 @@
                                                     class="btn btn-light-primary btn-sm w-100 fs-6" 
                                                     onclick="manageVolume({{ $volume['volume_id'] }})" 
                                                 >
-                                                    <!-- <i class="bi bi-gear me-1"></i> -->
                                                     <i class="bi bi-eye me-1"></i>
                                                     Lihat Detail
                                                 </button>
@@ -245,7 +244,7 @@
                 <div class="text-center py-5">
                     <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
                     <h6 class="text-muted">Belum ada volume</h6>
-                    <p class="text-muted">Volume akan dibuat secara otomatis saat work package dibuat</p>
+                    <p class="text-muted">Volume belum dipanggil ke dalam Work Order</p>
                 </div>
             @endif
         </div>

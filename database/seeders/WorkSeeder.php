@@ -17,27 +17,33 @@ class WorkSeeder extends Seeder
             [
                 'user_id' => 1,
                 'volume_id' => 1,
+                'role_id' => 1,
             ],
             [
                 'user_id' => 2,
                 'volume_id' => 1,
+                'role_id' => 2,
             ],
             [
                 'user_id' => 3,
                 'volume_id' => 1,
+                'role_id' => 3,
             ],
             [
                 'user_id' => 4,
                 'volume_id' => 1,
+                'role_id' => 4,
             ],
             [
                 'user_id' => 5,
                 'volume_id' => 1,
+                'role_id' => 5,
             ],
             // Tambahan
             [
                 'user_id' => 3,
                 'volume_id' => 3,
+                'role_id' => 3,
             ],
         ];
 
