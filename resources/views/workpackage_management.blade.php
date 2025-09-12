@@ -34,7 +34,7 @@
                             <div class="form-group">
                                 <label class="form-label fw-bold">Kategori WP</label>
                                 <select class="form-select form-select-solid" id="kategoriFilter">
-                                    <option value="">Pilih Kategori</option>
+                                    <option value="">Pilih Work Package</option>
                                     @if(isset($categories) && $categories->count() > 0)
                                         @foreach($categories as $category)
                                             <option value="{{ $category->category_id }}">
@@ -98,7 +98,7 @@
                             <th class="align-middle border-bottom">Volume (Qty)</th>
                             <th class="align-middle border-bottom min-w-100px">Durasi Kerja (Hari Kerja)</th>
                             <th class="align-middle border-bottom min-w-200px">Actual Scope</th>
-                            <th class="align-middle border-bottom min-w-400px">Deliverables</th>
+                            <th class="align-middle border-bottom min-w-500px">Deliverables</th>
                             <th class="align-middle border-bottom min-w-200px">Resource Names</th>
                             <th class="align-middle border-bottom">Action</th>
                         </tr>
@@ -107,7 +107,7 @@
                         @if(isset($workPackagesData) && $workPackagesData->count() > 0)
                             @foreach($workPackagesData as $wp)
                                 <tr class="task-row">
-                                    <td>{{ $wp['category_name'] }}</td>
+                                    <td>{{ $wp['category_number'] }}. {{ $wp['category_name'] }}</td>
                                     <td>{{ $wp['wp_number'] }}</td>
                                     <td>{{ $wp['name'] }}</td>
                                     <td class="text-center">{{ $wp['volume_count'] }}</td>
@@ -115,7 +115,8 @@
                                     <td>{{ $wp['actual_scope_contract'] ?? 'Belum ada actual scope' }}</td>
                                     <td>
                                         @if($wp['deliverable'])
-                                            {{ $wp['deliverable'] }}
+                                            <!-- {{ $wp['deliverable'] }} -->
+                                            {!! nl2br(e($wp['deliverable'] ?? 'N/A')) !!}
                                         @else
                                             <span class="text-muted">Belum ada deliverable</span>
                                         @endif

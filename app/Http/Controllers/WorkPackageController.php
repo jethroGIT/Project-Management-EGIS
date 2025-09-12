@@ -246,7 +246,7 @@ class WorkPackageController extends Controller
         // $resourceCostPerRole = $works->groupBy(fn($w) => $w->user->roles->get(1)?->id ?? $w->user->roles->first()?->id)
         //     ->map(fn($group) => $group->first()->user->roles->get(1)?->resource_cost ?? $group->first()->user->roles->first()?->resource_cost ?? 0);
 
-        // // Hitung aktivitas per role dari timesheet
+        // Hitung aktivitas per role dari timesheet
         // $timesheetCountPerRole = $timesheets->groupBy(fn($t) => $t->user->roles->get(1)?->id ?? $t->user->roles->first()?->id)
         //     ->map(fn($group) => $group->count());
         $timesheets = Timesheet::with(['user.roles'])
