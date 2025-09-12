@@ -14,8 +14,8 @@
                 </button>
             </div>
             <div class="d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-light-info me-2 mb-3" onclick="openAssignWO()">
-                    <i class="bi bi-plus-circle"></i> Assign Work Order
+                <button type="button" class="btn btn-primary me-2 mb-3" onclick="openAssignWO()">
+                    <i class="bi bi-plus-circle"></i> Assign WP ke WO
                 </button>
 
                 <!-- Search Bar -->
@@ -247,12 +247,12 @@
     </div>
 </div>
 
-<!-- Modal Assign Work Order pada Volume (Contoh statis) -->
+<!-- Modal Assign Work Package ke Work Order (Contoh statis) -->
 <div class="modal fade" tabindex="-1" id="kt_modal_assign_wo" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Assign Work Order pada Volume</h3>
+                <h3 class="modal-title">Assign Work Package ke Work Order</h3>
             </div>
             <div class="modal-body">
                 <form id="assignWoForm">
@@ -261,10 +261,46 @@
                     {{-- @method('PUT') --}}
                     <div class="mb-8">
                         <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-clipboard-check text-info me-2 fs-3"></i>
+                            <i class="bi bi-clipboard-check text-primary me-2 fs-3"></i>
                             <h6 class="mb-0">Work Order</h6>
                         </div>
-                        <select name="wo_id" id="woSelect" class="form-select mb-2" required>
+                        @php
+                            $latestWO = $workOrders->sortByDesc('wo_number')->first();
+                        @endphp
+                        @if($latestWO)
+                            <div class="mb-3 px-2 py-2 rounded border border-info">
+                                <div class="fw-bold text-info mb-1">
+                                    <i class="bi bi-clock-history me-1"></i>
+                                    Work Order Sebelumnya: WO {{ $latestWO->wo_number }} ({{ $latestWO->workPackageVolumes->pluck('execution_year')->unique()->filter()->implode(', ') ?: '-' }})
+                                </div>
+                                <div class="text-dark small">
+                                    WP:
+                                    @php
+                                        $wpNumbers = $latestWO->workPackageVolumes->pluck('workPackage.wp_number')->unique()->filter();
+                                    @endphp
+                                    @if($wpNumbers->isNotEmpty())
+                                        @foreach($wpNumbers as $wpNum)
+                                            <span class="badge badge-light-primary badge-square fw-bold me-1">{{ $wpNum }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="fw-bold">-</span>
+                                    @endif
+                                    <br>
+                                    Volume yang di assign: <span class="fw-bold">{{ $latestWO->workPackageVolumes->count() }}</span>
+                                </div>
+                            </div>
+                        @else
+                            <div class="mb-3 px-2 py-2 rounded bg-light border border-primary text-muted">
+                                <i class="bi bi-primary-circle me-1"></i>
+                                Belum ada Work Order sebelumnya.
+                            </div>
+                        @endif
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Nomor WO</span>
+                            <input type="number" min="1" id="newWoNumber" name="newWoNumber"
+                                class="form-control" placeholder="1" required />
+                        </div>
+                        {{-- <select name="wo_id" id="woSelect" class="form-select mb-2" required>
                             <option value="">Pilih Work Order</option>
                             <option value="create_new" class="text-primary fw-bold">
                                 Buat Work Order Baru
@@ -311,13 +347,13 @@
                                     @endforeach
                                 </optgroup>
                             @endif
-                        </select>
+                        </select> --}}
                         {{-- <span class="badge badge-light-dark" id="woStatusBadge">
                             <i class="bi bi-clock me-1"></i>
                             Belum dipilih
                         </span> --}}
                     </div>
-                    <div id="newWoInputContainer" class="mb-5"></div>
+                    {{-- <div id="newWoInputContainer" class="mb-5"></div> --}}
                     <div id="volumeSelectionContainer"></div>
                     <div class="d-flex justify-content-start mb-0">
                         <button type="button btn-sm" class="btn btn-primary" id="addWPVolumeBtn" onclick="addMoreVolumeSelection()">
@@ -338,7 +374,7 @@
 <template id="volumeSelectionTemplate">
     <div class="card card-flush shadow-sm border-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
         <div class="card-header py-2">
-            <h3 class="card-title title-template fw-bold fs-5">Volume Work Package</h3>
+            <h3 class="card-title title-template fw-bold fs-5">Work Package Assignment #</h3>
             <div class="card-toolbar">
                 <button type="button" class="btn btn-sm btn-light-danger remove-wpvolume-btn">
                     <i class="bi bi-trash fs-5"></i> Hapus
@@ -348,7 +384,7 @@
         <div class="card-body">
             <div class="mb-10">
                 <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-info-circle text-info me-2 fs-3"></i>
+                    <i class="bi bi-info-circle text-primary me-2 fs-3"></i>
                     <h6 class="mb-0">Work Package</h6>
                 </div>
                 <select name="wp_id" class="form-select wpSelect mb-2" required>
@@ -373,7 +409,7 @@
                 <div class="volume-options" style="display:none;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-folder text-info me-2 fs-3"></i>
+                            <i class="bi bi-folder text-primary me-2 fs-3"></i>
                             <h5 class="mb-0">Volume</h5>
                         </div>
                         <div>
@@ -635,13 +671,8 @@
     function openAssignWO() {
         // reset form and variables
         resetAssignWOForm();
-
-        // Load available work orders
-        // loadAvailableWorkOrders();
-
-        // Load volume options
-        // loadVolumeOptions();
-
+        // Set rekomendasi nomor WO
+        $('#newWoNumber').val(getRecommendedWoNumber());
         // Show modal
         $('#kt_modal_assign_wo').modal('show');
     }
@@ -676,7 +707,7 @@
             const removeBtn = card.querySelector('.remove-wpvolume-btn');
 
             if (title) {
-                title.textContent = `Volume Work Package ${idx + 1}`;
+                title.textContent = `Work Package Assignment #${idx + 1}`;
             }
             // Event hapus card
             if (removeBtn) {
@@ -697,7 +728,7 @@
                     const updatedCards = container.querySelectorAll('.card.card-flush.shadow-sm.border-0.mb-5');
                     updatedCards.forEach((c, i) => {
                         const t = c.querySelector('.title-template');
-                        if (t) t.textContent = `Volume Work Package ${i + 1}`;
+                        if (t) t.textContent = `Work Package Assignment #${i + 1}`;
                     });
                     // Enable tombol jika card kurang dari wp available
                     const addBtn = document.getElementById('addWPVolumeBtn');
@@ -754,7 +785,10 @@
                                 sortedVolumes.forEach((vol, idx) => {
                                     volumeList.innerHTML += `
                                         <div class="volume-option form-check align-items-center mb-4" data-volume-id="${vol.volume_id}">
-                                            <input class="form-check-input mt-3 volume-checkbox" type="checkbox" value="${vol.volume_id}" id="volume${vol.volume_id}">
+                                            ${vol.wo_id ? 
+                                                '' 
+                                                : `<input class="form-check-input mt-3 volume-checkbox" type="checkbox" value="${vol.volume_id}" id="volume${vol.volume_id}">`
+                                            }
                                             <label class="form-check-label fw-bolder" for="volume${vol.volume_id}">
                                                 Volume ${vol.volume_number}
                                             </label>
@@ -831,50 +865,47 @@
         if (window.workOrders) {
             usedNumbers = window.workOrders.map(wo => parseInt(wo.wo_number, 10)).filter(n => !isNaN(n));
         }
-        // Cari angka terkecil yang belum dipakai, minimal 1
+        // Cari nilai terbesar, lalu +1
         let recommended = 1;
-        while (usedNumbers.includes(recommended)) {
-            recommended++;
+        if (usedNumbers.length > 0) {
+            recommended = Math.max(...usedNumbers) + 1;
         }
         return recommended;
     }
 
-    function createNewWO(){
-        const container = document.getElementById('newWoInputContainer');
-        const recNum = getRecommendedWoNumber();
-        container.innerHTML = `
-            <div class="mt-2">
-                <label for="newWoNumber" class="form-label fw-bolder mb-1"> 
-                    <i class="bi bi-info-circle me-2"></i>Buat Work Order Baru
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text">Nomor WO</span>
-                    <input type="number" min="1" id="newWoNumber" name="newWoNumber" 
-                            class="form-control" placeholder="1" value="${recNum}" required
-                    />
-                </div>
-            </div>
-        `;
-        document.getElementById('woSelect').value = 'create_new';
-    }
+    // function createNewWO(){
+    //     const container = document.getElementById('newWoInputContainer');
+    //     const recNum = getRecommendedWoNumber();
+    //     container.innerHTML = `
+    //         <div class="mt-2">
+    //             <label for="newWoNumber" class="form-label fw-bolder mb-1"> 
+    //                 <i class="bi bi-info-circle me-2"></i>Buat Work Order Baru
+    //             </label>
+    //             <div class="input-group">
+    //                 <span class="input-group-text">Nomor WO</span>
+    //                 <input type="number" min="1" id="newWoNumber" name="newWoNumber" 
+    //                         class="form-control" placeholder="1" value="${recNum}" required
+    //                 />
+    //             </div>
+    //         </div>
+    //     `;
+    //     document.getElementById('create_new');
+    // }
 
-    document.getElementById('woSelect').addEventListener('change', function() {
-        const container = document.getElementById('newWoInputContainer');
-        if (this.value == 'create_new') {
-            createNewWO();
-        }else{
-            container.innerHTML = '';
-        }
-    });
+    // document.getElementById('woSelect').addEventListener('change', function() {
+    //     const container = document.getElementById('newWoInputContainer');
+    //     if (this.value == 'create_new') {
+    //         createNewWO();
+    //     }else{
+    //         container.innerHTML = '';
+    //     }
+    // });
 
     function addAssignWO() {
         const form = $('#assignWoForm');
-        const url = form.attr('action');
-        const wo_id = $('#woSelect').val();
         let volume_ids = [];
         let valid = true;
         let incompletePeriod = false;
-        let incompleteVolumes = [];
 
         $('#volumeSelectionContainer .card').each(function(idx) {
             const checked = $(this).find('.volume-checkbox:checked');
@@ -895,29 +926,16 @@
                 const period = $(this).closest('.volume-option').find('.text-muted').text().trim();
                 if (period === "Belum tersedia") {
                     incompletePeriod = true;
-                    incompleteVolumes.push($(this).val());
                 }
             });
         });
-
-        if (!wo_id) {
-            Swal.fire({
-                title: "Data belum lengkap",
-                text: "Pilih Work Order terlebih dahulu!",
-                icon: "warning",
-                buttonsStyling: false,
-                confirmButtonText: "Tutup",
-                customClass: { confirmButton: "btn btn-secondary" }
-            });
-            return;
-        }
 
         if (!valid) return; 
 
         if (incompletePeriod) {
             Swal.fire({
                 title: "Konfigurasi Volume Belum Lengkap",
-                text: "Silakan lengkapi periode volume sebelum assign WO.",
+                text: "Silakan lengkapi periode volume sebelum assign WP ke WO.",
                 icon: "warning",
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
@@ -927,66 +945,48 @@
         }
 
         // Jika create new WO, ambil nomor WO baru
-        let newWoNumber = null;
-        if (wo_id === 'create_new') {
-            newWoNumber = $('#newWoNumber').val();
-            if (!newWoNumber || parseInt(newWoNumber) < 1) {
-                Swal.fire({
-                    title: "Nomor WO tidak valid",
-                    text: "Isi nomor WO baru minimal 1",
-                    icon: "warning",
-                    buttonsStyling: false,
-                    confirmButtonText: "Tutup",
-                    customClass: { confirmButton: "btn btn-secondary" }
-                });
-                return;
-            }
+        const newWoNumber = $('#newWoNumber').val();
+        if (!newWoNumber || parseInt(newWoNumber) < 1) {
+            Swal.fire({
+                title: "Nomor WO tidak valid",
+                text: "Isi nomor WO baru minimal 1",
+                icon: "warning",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            });
+            return;
+        }
 
-            $.ajax({
-                url: "{{ route('work-order.add') }}",
-                method: 'POST',
-                data: {
-                    _token: form.find('[name="_token"]').val(),
-                    wo_number: newWoNumber
-                },
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                beforeSend: function () {
-                    form.find('input, button, select').prop('disabled', true);
-                    Swal.fire({
-                        title: 'Membuat Work Order...',
-                        text: 'Sedang membuat WO baru',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        showConfirmButton: false,
-                        didOpen: () => { Swal.showLoading() }
-                    });
-                },
-                success: function (response) {
-                    if (response.success && response.data && response.data.wo_id) {
-                        // 2. Assign volume ke WO baru
-                        assignVolumesToWO(response.data.wo_id, volume_ids, form);
-                    } else {
-                        Swal.fire({
-                            title: "Gagal Membuat WO",
-                            text: response.message || "Gagal membuat WO baru",
-                            icon: "error",
-                            buttonsStyling: false,
-                            confirmButtonText: "Tutup",
-                            customClass: { confirmButton: "btn btn-secondary" }
-                        });
-                        form.find('input, button, select').prop('disabled', false);
-                    }
-                },
-                error: function (xhr) {
-                    let errorMessage = "Terjadi kesalahan saat membuat WO baru";
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
+        $.ajax({
+            url: "{{ route('work-order.add') }}",
+            method: 'POST',
+            data: {
+                _token: form.find('[name="_token"]').val(),
+                wo_number: newWoNumber
+            },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            beforeSend: function () {
+                form.find('input, button, select').prop('disabled', true);
+                Swal.fire({
+                    title: 'Membuat Work Order...',
+                    text: 'Sedang membuat WO baru',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => { Swal.showLoading() }
+                });
+            },
+            success: function (response) {
+                if (response.success && response.data && response.data.wo_id) {
+                    // 2. Assign volume ke WO baru
+                    assignVolumesToWO(response.data.wo_id, volume_ids, form);
+                } else {
                     Swal.fire({
                         title: "Gagal Membuat WO",
-                        text: errorMessage,
+                        text: response.message || "Gagal membuat WO baru",
                         icon: "error",
                         buttonsStyling: false,
                         confirmButtonText: "Tutup",
@@ -994,11 +994,24 @@
                     });
                     form.find('input, button, select').prop('disabled', false);
                 }
-            });
-        }else{
-            // Langsung assign ke WO yang dipilih
-            assignVolumesToWO(wo_id, volume_ids, form);
-        }
+            },
+            error: function (xhr) {
+                let errorMessage = "Terjadi kesalahan saat membuat WO baru";
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                Swal.fire({
+                    title: "Gagal Membuat WO",
+                    text: errorMessage,
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                form.find('input, button, select').prop('disabled', false);
+            }
+        });
+        // assignVolumesToWO(wo_id, volume_ids, form);
     }
 
     function assignVolumesToWO(wo_id, volume_ids, form) {
@@ -1015,7 +1028,7 @@
             },
             beforeSend: function () {
                 Swal.fire({
-                    title: 'Assign Work Order...',
+                    title: 'Assign WP ke WO...',
                     text: 'Sedang memproses assignment WO pada volume',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
@@ -1026,7 +1039,7 @@
             success: function (response) {
                 if (response.success || response.message) {
                     Swal.fire({
-                        title: "Berhasil Assign WO",
+                        title: "Berhasil Assign WP ke WO",
                         icon: "success",
                         buttonsStyling: false,
                         confirmButtonText: "Tutup",
@@ -1047,12 +1060,12 @@
                 }
             },
             error: function (xhr) {
-                let errorMessage = "Terjadi kesalahan saat assign WO";
+                let errorMessage = "Terjadi kesalahan saat assign";
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMessage = xhr.responseJSON.message;
                 }
                 Swal.fire({
-                    title: "Gagal Assign WO",
+                    title: "Gagal Assign WP ke WO",
                     text: errorMessage,
                     icon: "error",
                     buttonsStyling: false,

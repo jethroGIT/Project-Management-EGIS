@@ -18,15 +18,15 @@ class WorkOrderSeeder extends Seeder
             [
                 'wo_number' => 1
             ],
-            [
-                'wo_number' => 7
-            ],
-            [
-                'wo_number' => 8
-            ],
-            [
-                'wo_number' => 12
-            ],
+            // [
+            //     'wo_number' => 7
+            // ],
+            // [
+            //     'wo_number' => 8
+            // ],
+            // [
+            //     'wo_number' => 12
+            // ],
         ];
 
         foreach ($workOrders as $workOrder) {
