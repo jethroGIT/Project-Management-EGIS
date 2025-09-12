@@ -46,41 +46,50 @@ class PerformanceFinanceController extends Controller
             ->orderBy('execution_date', 'asc')
             ->get();
         
-        // menghitung jumlah aktivitas untuk setiap role
-        $timesheetCountPerRole = $timesheets->groupBy(function($ts) {
-            $user = $ts->user;
-            // Ambil role kedua jika ada, jika tidak ambil role pertama
-            return $user && $user->roles->count() ? ($user->roles->get(1)->id ?? $user->roles->first()->id) : null;
-        })->map(function ($entriesPerRole) {
-            return $entriesPerRole->sum('duration');
-        });
+        // Ambil semua user yang punya work di volume ini
+        $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
+                $query->where('volume_id', $volume_id);
+            })->with([
+                'work' => function($query) use ($volume_id) {
+                    $query->where('volume_id', $volume_id)->with('role');
+                },
+                'timesheets' => function($query) use ($volume_id) {
+                    $query->where('volume_id', $volume_id);
+                }
+            ])->get();
 
-        $costsPerRole = $humanResources->map(function ($hResource) use ($timesheetCountPerRole) {
+        // Hitung total durasi mandays per role
+        $mandaysPerRole = [];
+        foreach ($assignedUsers as $user) {
+            $workRecord = $user->work->where('volume_id', $volume_id)->first();
+            $roleId = $workRecord->role_id ?? null;
+            if (!$roleId) continue;
+            $duration = $user->timesheets->sum('duration');
+            if (!isset($mandaysPerRole[$roleId])) $mandaysPerRole[$roleId] = 0;
+            $mandaysPerRole[$roleId] += $duration;
+        }
+
+        // Hitung biaya per role
+        $costsPerRole = $humanResources->map(function ($hResource) use ($mandaysPerRole) {
             $roleId = $hResource->role_id;
-            $roleName = optional($hResource->role)->name ?? 'Unknown Role'; // Ambil nama role
-            
-            // Ambil resource cost langsung dari relasi Role
-            // Pastikan 'resource_cost' adalah kolom di tabel 'role'
-            $resourceCost = optional($hResource->role)->resource_cost ?? 0; 
-            
-            // Ambil jumlah aktivitas (realisasi mandays) dari timesheet untuk role ini
-            // Gunakan null coalescing operator (??) untuk default ke 0 jika roleId tidak ada di timesheetCountPerRole
-            $timesheetCount = $timesheetCountPerRole[$roleId] ?? 0;
+            $roleName = optional($hResource->role)->name ?? 'Unknown Role';
+            $resourceCost = optional($hResource->role)->resource_cost ?? 0;
 
-            // Hitung biaya-biaya
-            $byYoyCost = $hResource->jhk * $resourceCost; // Rencana (jhk dari HumanResource * resource_cost dari Role)
-            $realizationCost = $timesheetCount * $resourceCost; // Realisasi (timesheet count * resource_cost dari Role)
-            $remainingCost = $byYoyCost - $realizationCost; // Sisa biaya
+            $timesheetMandays = $mandaysPerRole[$roleId] ?? 0;
+
+            $byYoyCost = $hResource->jhk * $resourceCost;
+            $realizationCost = $timesheetMandays * $resourceCost;
+            $remainingCost = $byYoyCost - $realizationCost;
 
             return [
                 'role_id' => $roleId,
                 'role_name' => $roleName,
-                'jhk' => $hResource->jhk, // JHK rencana dari HumanResource (resource plan)
-                'resource_cost' => $resourceCost, // Cost per hari dari Role
-                'timesheet_count' => $timesheetCount, // Total aktivitas (realisasi mandays)
-                'by_yoy' => $byYoyCost, // Biaya rencana
-                'realization_cost' => $realizationCost, // Biaya realisasi
-                'remaining_cost' => $remainingCost, // Biaya sisa
+                'jhk' => $hResource->jhk,
+                'resource_cost' => $resourceCost,
+                'timesheet_count' => $timesheetMandays,
+                'by_yoy' => $byYoyCost,
+                'realization_cost' => $realizationCost,
+                'remaining_cost' => $remainingCost,
             ];
         });
 

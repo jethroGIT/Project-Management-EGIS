@@ -268,7 +268,7 @@ class WorkPackageController extends Controller
                         ->first();
             return $work ? $work->role_id : null;
         })->map(function($group) {
-            return $group->count();
+            return $group->sum('duration');
         });
         
         $totalByYoy = 0;

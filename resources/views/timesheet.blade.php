@@ -128,19 +128,15 @@
                             </tr>
                         </thead>
                         <tbody style="font-size: 0.97rem;">
-                            @foreach($humanResources as $hResource)
+                            @foreach($assignedUsers as $personil)
                             <tr>
-                                <td class="align-middle">{{$hResource->role->name}}</td>
-                                <td class="text-center align-middle" style="color:gray">{{$hResource->jhk}}</td>
+                                <td class="align-middle">{{$personil['role_name']}}</td>
+                                <td class="text-center align-middle" style="color:gray">{{$personil['jhk']}}</td>
                                 <td class="text-center align-middle">
-                                    @php
-                                        // Ambil realisasi mandays untuk role ini. Jika tidak ada data, default 0.
-                                        $realisasiMandays = $timesheetCountPerRole[$hResource->role_id] ?? 0;
-                                    @endphp
-                                    {!! mandaysLabel($hResource->jhk, $realisasiMandays) !!}
+                                    {!! mandaysLabel($personil['jhk'], $personil['realisasiMandays']) !!}
                                 </td>
-                            </tr> 
-                            @endforeach                           
+                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
