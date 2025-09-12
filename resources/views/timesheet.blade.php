@@ -17,17 +17,41 @@
                 @endif
                 <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
             </div>            
-            <div class="d-flex align-items-center justify-content-end">                
+            <div class="d-flex align-items-center justify-content-end">
                 <div class="d-flex align-items-center">
-                    <ul class="nav nav-tabs nav-line-tabs mb-7 fs-6 me-2">
+                    <ul class="nav flex-column nav-pills">
                         @foreach($months as $month)
-                        <li class="nav-item">
-                            <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
+                            </li>
                         @endforeach
                     </ul>
-                </div>                
+                    {{-- <div id="monthTabWrapper" class="filter-categories js-filter-categories js-shot-categories position-relative">
+                        <span class="scroll scroll-backward">
+                            <a class="active d-none" href="#" id="scrollLeft">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" role="img" class="icon">
+                                    <path d="M15 6L9 12L15 18" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </span>
+                        <span class="scroll scroll-forward">
+                            <a class="active" href="#" id="scrollRight">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" role="img" class="icon">
+                                    <path d="M9 6L15 12L9 18" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </span>
+                        <ul class="nav nav-tabs nav-line-tabs mb-7 fs-6" id="monthTabList" style="overflow: hidden; white-space: nowrap;">
+                            @foreach($months as $month)
+                            <li class="nav-item" style="display: inline-block;">
+                                <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div> --}}
+                </div>
             </div>
+
             {{-- <div class="mb-2">
                 <label class="form-label">Filter Berdasarkan Tanggal</label>
                 <input type="text" class="form-control form-control-solid" placeholder="Pilih rentang tanggal" id="kt_daterangepicker_1" style="width: 35%"/>
@@ -60,17 +84,17 @@
                                     <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
                                         <th scope="col" style="width: 20px;">No</th>
                                         <th scope="col" style="width: 40px; min-width: 20px;">Tanggal</th>
-                                        @foreach($usersInSelectedMonth as $user)
+                                        @foreach($assignedUsers as $user)
                                             <th scope="col" style="width: 100px;">
-                                                {{$user->name}}
-                                                @php
+                                                {{ $user['name'] }}
+                                                {{-- @php
                                                     // Menggunakan first() untuk mendapatkan role pertama jika ada
                                                     $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
-                                                @endphp
+                                                @endphp --}}
                                                 <i class="bi bi-info-circle text-primary"
                                                     data-bs-toggle="tooltip"
                                                     data-bs-placement="top"
-                                                    title="{{$roleName}}">
+                                                    title="{{ $user['role_name'] }}">
                                                 </i>
                                             </th>     
                                         @endforeach                       
@@ -151,6 +175,7 @@
     let personelCounter = 1;
     $(document).ready(function() {
         initTabelTimesheet();
+        // initTabScroll();  // Add this line
 
         $('#scrollToMandays').on('click', function() {
             $('html, body').animate({
@@ -158,6 +183,53 @@
             }, 600);
         });
     });
+
+    function initTabScroll() {
+        const wrapper = $('#monthTabWrapper');
+        const tabList = $('#monthTabList');
+        const scrollLeft = $('#scrollLeft');
+        const scrollRight = $('#scrollRight');
+        const scrollAmount = 150;  // Adjust scroll distance as needed
+
+        function checkScroll() {
+            const tabListWidth = tabList[0].scrollWidth;
+            const wrapperWidth = wrapper.width();
+            const isOverflow = tabListWidth > wrapperWidth || tabListWidth > 300;
+
+            if (isOverflow) {
+                wrapper.addClass('overflow-visible');
+                scrollRight.removeClass('d-none');
+                if (tabList.scrollLeft() > 0) {
+                    scrollLeft.removeClass('d-none');
+                } else {
+                    scrollLeft.addClass('d-none');
+                }
+                if (tabList.scrollLeft() >= tabListWidth - wrapperWidth) {
+                    scrollRight.addClass('d-none');
+                }
+            } else {
+                wrapper.removeClass('overflow-visible');
+                scrollLeft.addClass('d-none');
+                scrollRight.addClass('d-none');
+            }
+        }
+
+        scrollLeft.on('click', function(e) {
+            e.preventDefault();
+            tabList.animate({ scrollLeft: tabList.scrollLeft() - scrollAmount }, 300);
+            setTimeout(checkScroll, 300);
+        });
+
+        scrollRight.on('click', function(e) {
+            e.preventDefault();
+            tabList.animate({ scrollLeft: tabList.scrollLeft() + scrollAmount }, 300);
+            setTimeout(checkScroll, 300);
+        });
+
+        tabList.on('scroll', checkScroll);
+        $(window).on('resize', checkScroll);
+        checkScroll();  // Initial check
+    }
 
     function initTabelTimesheet() {
         const table = $('#kt_datatable_example_2').DataTable({
@@ -200,68 +272,6 @@
             }
         });
     }
-
-    // datepicker
-    // let startDate = '';
-    // let endDate = '';
-
-    // moment.locale('id'); // Set locale to Indonesian
-    // $(document).ready(function () {
-    // $('#kt_daterangepicker_1').daterangepicker({
-    //         locale: {
-    //             format: 'D MMMM YYYY',
-    //             applyLabel: "Terapkan",
-    //             cancelLabel: "Batal",
-    //             weekLabel: "Minggu",
-    //             daysOfWeek: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
-    //             monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
-    //             firstDay: 1 // Set hari pertama minggu ke Senin
-    //         }
-    //     }, function(start, end) {
-    //         startDate = start.format('YYYY-MM-DD');
-    //         endDate = end.format('YYYY-MM-DD');
-    //     });
-    //      $('#applyFilter').on('click', function () {
-    //         if (!startDate || !endDate) {
-    //             Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
-    //             return;
-    //         }
-
-    //         const url = new URL(window.location.href);
-    //         url.searchParams.set('start_date', startDate);
-    //         url.searchParams.set('end_date', endDate);
-    //         window.location.href = url.toString();
-    //     });
-
-    //     $('#resetFilter').on('click', function () {
-    //         const url = new URL(window.location.href);
-    //         url.searchParams.delete('start_date');
-    //         url.searchParams.delete('end_date');
-    //         window.location.href = url.toString();
-    //     });
-    // });
-
-
-    // Saat tombol Terapkan diklik
-    // document.getElementById('applyFilter').addEventListener('click', function () {
-    //     if (!startDate || !endDate) {
-    //         Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
-    //         return;
-    //     }
-
-    //     const url = new URL(window.location.href);
-    //     url.searchParams.set('start_date', startDate);
-    //     url.searchParams.set('end_date', endDate);
-    //     window.location.href = url.toString(); // reload dengan query string
-    // });
-
-    // Reset filter
-    // document.getElementById('resetFilter').addEventListener('click', function () {
-    //     const url = new URL(window.location.href);
-    //     url.searchParams.delete('start_date');
-    //     url.searchParams.delete('end_date');
-    //     window.location.href = url.toString();
-    // });
 </script>
 @endpush
 
@@ -277,3 +287,45 @@
         return '<span class="'.$badge.'">'. $realization . '</span>';
     }
 @endphp
+
+<style>
+    .nav {
+        overflow-x: auto;
+        overflow-y: hidden;
+        height: 55px;
+        width: 300px;
+        border-color: gray;
+        margin-bottom: 10px !important;
+    }
+
+    .nav-item {
+        cursor: pointer;
+        /* margin: 15px 10px; */
+        width: auto;
+        height: 70px;
+        /* box-shadow: 0 4px 6px -6px #222; */
+    }
+
+    .nav-link {
+        margin:5px 0;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .nav-pills .nav-link {
+        color: #2c2b2b !important;
+        background-color: #fff !important;
+    }
+
+    .nav-pills .nav-link.active,
+    .nav-pills .nav-link.show {
+        color: #2c2b2b !important;
+        background-color: #efefef !important;
+    }
+
+    /* .nav-item.selected {
+        color: #fff;
+        background-color: #007bff;
+    } */
+
+</style>

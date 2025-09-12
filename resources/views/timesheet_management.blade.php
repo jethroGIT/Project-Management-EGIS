@@ -98,7 +98,8 @@
                                         // Menggunakan first() untuk mendapatkan role pertama jika ada
                                         $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
                                     @endphp
-                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$roleName}}">{{$user->name}}</span>
+                                    {{-- <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$roleName}}">{{$user->short_name}}</span> --}}
+                                    {{$user->short_name}}
                                 </th>     
                             @endforeach
                             <th scope="col" style="width: 30px;">Action</th>
@@ -587,11 +588,7 @@
             personnelList.forEach(person => {
                 const option = document.createElement('option');
                 option.value = person.user_id;
-                let roleName = (person.roles && person.roles.length > 1)
-                    ? person.roles[1].name
-                    : (person.roles && person.roles.length ? person.roles[0].name : '');
-                console.log('User:', person.name, 'Role:', roleName);
-                option.textContent = `${person.name} - ${roleName}`;
+                option.textContent = `${person.name} - ${person.role_name}`;
                 select.appendChild(option);
             });
 

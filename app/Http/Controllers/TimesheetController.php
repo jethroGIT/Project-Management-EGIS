@@ -94,9 +94,17 @@ class TimesheetController extends Controller
                                             ->where('role_id', $roleId)
                                             ->first();
 
+            static $usedShortNames = [];
+                $parts = explode(' ', trim($user->name));
+                $short = $parts[0];
+                if (in_array(strtolower($short), $usedShortNames) && count($parts) > 1) {
+                    $short .= ' ' . strtoupper(substr($parts[1], 0, 1));
+                }
+                $usedShortNames[] = strtolower($short);
+
             return [
                 'user_id' => $user->user_id,
-                'name' => $user->name,
+                'name' => $short,
                 'role_name' => $roleName,
                 'role_id' => $roleId,
                 'jhk' => $humanResource ? $humanResource->jhk : null,
@@ -152,17 +160,21 @@ class TimesheetController extends Controller
         // user info
         $user = User::with('roles')->findOrFail($user_id);
 
-        $role_id = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+        $workRecord = $user->work->where('volume_id', $volume_id)->first();
+        $roleId = $workRecord->role_id ?? null;
+        $roleName = $workRecord && $workRecord->role ? $workRecord->role->name : 'No Role';
+
+        // $role_id = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
         
         // ambil jhk
         $humanResources = HumanResource::where('wp_id', $workPackage->wp_id)
-            ->where('role_id', $role_id)
+            ->where('role_id', $roleId)
             ->first();
 
         // menghitung jumlah aktivitas dari role tertentu
         $activitiesCount = $activities->sum('duration');
 
-        return view('timesheet_per_user', compact('volume', 'workPackage', 'humanResources', 'activities', 'user', 'activitiesCount'));
+        return view('timesheet_per_user', compact('volume', 'workPackage', 'humanResources', 'activities', 'user', 'roleName', 'activitiesCount'));
     }
     
     /**

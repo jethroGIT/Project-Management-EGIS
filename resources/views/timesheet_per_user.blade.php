@@ -13,10 +13,6 @@
                     <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
                     <div class="mb-2 px-2 rounded-1"  style="background-color: #d7e7f5; color: #1c1f21; width: fit-content;">
                         {{$user->name}}
-                        @php
-                            // Menggunakan first() untuk mendapatkan role pertama jika ada
-                            $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
-                        @endphp
                         <i class="bi bi-info-circle text-primary ms-1"
                             data-bs-toggle="tooltip"
                             data-bs-placement="bottom"

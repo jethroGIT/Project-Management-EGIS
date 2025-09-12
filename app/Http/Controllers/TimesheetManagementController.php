@@ -20,9 +20,9 @@ class TimesheetManagementController extends Controller
             ->get();
         
         $activitiesForTable = $timesheets->sortBy(function($timesheet) {
-            $wpNumber = optional($timesheet->volume->workPackage)->wp_number ?? ''; // Sesuaikan jika WP Anda punya kolom lain untuk number
+            $wpNumber = optional($timesheet->volume->workPackage)->wp_number ?? '';
             $wpName = optional($timesheet->volume->workPackage)->name ?? '';
-            $volumeNum = optional($timesheet->volume)->vol_num ?? ''; // Tambahkan volume number jika ingin urutan di dalam WP Group
+            $volumeNum = optional($timesheet->volume)->vol_num ?? '';
             $executionDate = optional($timesheet)->execution_date;
 
             // Gabungkan untuk sorting yang presisi untuk DataTables RowGroup
@@ -44,20 +44,40 @@ class TimesheetManagementController extends Controller
 
         // Ambil semua user unique di timesheet untuk semua bulan
         $users = $timesheets->pluck('user')
-                            ->filter() // pastikan user tidak null
-                            ->unique('user_id')
-                            ->sortBy(function($user) {
-                                return $user->roles->get(1)?->id ?? $user->roles->first()?->id ?? 0;
-                            })->values();
+            ->filter() // pastikan user tidak null
+            ->unique('user_id')
+            ->sortBy(function($user) {
+                return $user->roles->get(1)?->id ?? $user->roles->first()?->id ?? 0;
+            })->values();
 
-        $personnelByVolume = [];
+        // Pemendekan nama untuk $users
+        $usedShortNames = [];
+        $users = $users->map(function($user) use (&$usedShortNames) {
+            $parts = explode(' ', trim($user->name));
+            $short = $parts[0];
+            if (in_array(strtolower($short), $usedShortNames) && count($parts) > 1) {
+                $short .= ' ' . strtoupper(substr($parts[1], 0, 1));
+            }
+            $usedShortNames[] = strtolower($short);
+
+            // Kembalikan user dengan nama pendek
+            $user->short_name = $short;
+            return $user;
+        })->values();
 
         foreach ($workPackages as $wp) {
             foreach ($wp->workPackageVolumes as $vol) {
-                $personnelByVolume[$vol->volume_id] = $vol->users->map(function($user) {
+                $personnelByVolume[$vol->volume_id] = $vol->users->map(function($user) use ($vol) {
+                    // Ambil work record user pada volume ini
+                    $workRecord = $user->work->where('volume_id', $vol->volume_id)->first();
+                    $roleId = $workRecord->role_id ?? null;
+                    $roleName = $workRecord && $workRecord->role ? $workRecord->role->name : 'No Role';
+
                     return [
                         'user_id' => $user->user_id,
                         'name' => $user->name,
+                        'role_id' => $roleId,
+                        'role_name' => $roleName,
                         'roles' => $user->roles->map(function($role) {
                             return [
                                 'id' => $role->id,
@@ -65,7 +85,7 @@ class TimesheetManagementController extends Controller
                             ];
                         })->values()
                     ];
-                });
+                })->values();
             }
         }
 
