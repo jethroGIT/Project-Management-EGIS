@@ -19,6 +19,7 @@ use App\Http\Controllers\TimesheetManagementController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WPCategoryManagementController;
 use App\Http\Controllers\WorkPackageManagementController;
+use App\Http\Controllers\WOContentListController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -129,6 +130,8 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     // work package volume page
     Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
     Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
+
+    Route::get('/work-order/{wo_id}/content', [WOContentListController::class, 'index'])->name('wo.content-list');
 });
 
 Route::middleware(['auth', 'role:karyawan'])->group(function(){

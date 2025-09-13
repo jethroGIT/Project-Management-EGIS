@@ -164,7 +164,7 @@
 
                 <div
                     data-kt-menu-trigger="click" 
-                    class="menu-item menu-accordion {{ request()->routeIs('work-package*') ? 'show' : '' }}"
+                    class="menu-item menu-accordion {{ request()->routeIs('wo.content-list*') ? 'show' : '' }}"
                 >
                     <span class="menu-link">
                         <span class="menu-icon">
@@ -177,28 +177,24 @@
                                 </svg>
                             </span>
                         </span>
-                        <span class="menu-title">Work Package</span>
+                        <span class="menu-title">Work Order</span>
                         <span class="menu-arrow"></span>
                     </span>
                     <div class="menu-sub menu-sub-accordion menu-active-bg">
-                        @if(isset($workPackagesByYear))
-                            @foreach($workPackagesByYear as $year => $volumes)
+                        @if(isset($workOrdersByYear))
+                            @foreach($workOrdersByYear as $year => $workOrders)
                                 @php
-                                    // Urutkan volumes berdasarkan work order
-                                    $sortedVolumes = $volumes->sortBy(function($volume) {
-                                        // Ekstrak numeric dari work_order_number
-                                        preg_match('/(\d+)/', $volume->work_order_number ?? '0', $matches);
-                                        return (int) ($matches[1] ?? 0);
-                                    });
+                                    // Urutkan work orders berdasarkan nomor WO
+                                    $sortedWorkOrders = $workOrders->sortBy('wo_number');
 
                                     // Cek jika tahun tersebut memiliki volume yang aktif
                                     $isYearActive = false;
-                                    $hasActiveVolume = false;
-                                    if (isset($currentVolumeId)) {
-                                        foreach ($sortedVolumes as $volume) {
-                                            if ($volume->volume_id == $currentVolumeId) {
+                                    $hasActiveWo = false;
+                                    if (isset($currentWoId)) {
+                                        foreach ($sortedWorkOrders as $workOrder) {
+                                            if ($workOrder->wo_id == $currentWoId) {
                                                 $isYearActive = true;
-                                                $hasActiveVolume = true;
+                                                $hasActiveWo = true;
                                                 break;
                                             }
                                         }
@@ -207,7 +203,7 @@
 
                                 <div 
                                     data-kt-menu-trigger="click" 
-                                    class="menu-item menu-accordion {{ $hasActiveVolume ? 'show' : '' }}"
+                                    class="menu-item menu-accordion {{ $hasActiveWo ? 'show' : '' }}"
                                 >
                                     <span class="menu-link">
                                         <span class="menu-bullet">
@@ -216,22 +212,25 @@
                                         <span class="menu-title">{{ $year }}</span>
                                         <span class="menu-arrow"></span>
                                     </span>
-                                    <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveVolume ? 'show' : '' }}">
-                                        @foreach($sortedVolumes as $volume)
+                                    <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveWo ? 'show' : '' }}">
+                                        @foreach($sortedWorkOrders as $workOrder)
                                             @php
-                                                $isVolumeActive = isset($currentVolumeId) && $currentVolumeId == $volume->volume_id;
+                                                $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->wo_id;
 
-                                                $woNumber = $volume->workOrder ? $volume->workOrder->wo_number : '';
-                                                $fullTitle = "WO {$woNumber} -  WP {$volume->workPackage->wp_number} {$volume->workPackage->name}";
-                                                $maxLength = 40;
+                                                // Hitung jumlah volume dan WP
+                                                $volumeCount = $workOrder->workPackageVolumes->count();
+                                                $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.wp_number')->unique()->count();
+
+                                                $fullTitle = "WO {$workOrder->wo_number} ({$volumeCount} Volume, {$wpCount} WP)";
+                                                $maxLength = 35;
                                                 $truncatedTitle = strlen($fullTitle) > $maxLength ?
                                                     substr($fullTitle, 0, $maxLength) . "..." :
                                                     $fullTitle;
                                             @endphp
                                             <div class="menu-item">
                                                 <a 
-                                                    class="menu-link {{ $isVolumeActive ? 'active' : '' }}" 
-                                                    href="{{ route('work-package.detail', ['volume_id' => $volume->volume_id]) }}"
+                                                    class="menu-link {{ $isWoActive ? 'active' : '' }}" 
+                                                    href="{{ route('wo.content-list', ['wo_id' => $workOrder->wo_id]) }}"
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="right" 
                                                     data-bs-custom-class="sidebar-tooltip" 
@@ -241,11 +240,6 @@
                                                         <span class="bullet bullet-dot"></span>
                                                     </span>
                                                     <span class="menu-title">
-                                                        <!-- WO {{ $volume->work_order_number }} - WP {{ $volume->workPackage->wp_number }} 
-                                                        {{ $volume->workPackage->name }} -->
-                                                        <!-- @if($volume->volume_number > 1)
-                                                            (Vol. {{ $volume->volume_number }})
-                                                        @endif -->
                                                         {{ $truncatedTitle }}
                                                     </span>
                                                 </a>
