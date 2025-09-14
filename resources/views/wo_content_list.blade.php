@@ -21,14 +21,30 @@
             @if($volumesData->count() > 0)
                 <div class="row">
                     @foreach($volumesData as $volume)
+                        @php
+                            // Tentukan badge color berdasarkan completion
+                            $badgeClass = 'badge-light-dark';
+                            if ($volume['completion'] >= 80) {
+                                $badgeClass = 'badge-light-success';
+                            } elseif ($volume['completion'] >= 50) {
+                                $badgeClass = 'badge-light-primary';
+                            } elseif ($volume['completion'] >= 25) {
+                                $badgeClass = 'badge-light-info';
+                            } elseif ($volume['completion'] > 0) {
+                                $badgeClass = 'badge-light-warning';
+                            }
+                        @endphp
+
                         <!-- Volume Card -->
                         <div class="col-md-6 col-lg-4 mb-6">
                             <div class="card card-bordered h-100 shadow-sm hover-elevate-up wp-volume-card">
                                 <div class="card-body p-6">
                                     <!-- Status Badge -->
                                     <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <!-- <span class="badge badge-light-success">COMPLETE</span> -->
                                         <i class="bi bi-folder-fill text-primary fs-2"></i>
+                                        <span class="badge {{ $badgeClass }} badge-lg">
+                                            {{ number_format($volume['completion'], 2) }} %
+                                        </span>
                                     </div>
                                     
                                     <!-- Work Package Info -->
