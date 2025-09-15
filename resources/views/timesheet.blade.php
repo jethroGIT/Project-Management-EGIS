@@ -143,7 +143,7 @@
                     <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
                         <thead style="font-size: 1.1rem;">
                             <tr>
-                                <th scope="col" rowspan="2" class="fw-bold align-middle bg-light py-1">Personel</th>
+                                <th scope="col" rowspan="2" colspan="2" class="fw-bold text-center align-middle bg-light py-1">Personel</th>
                                 <th scope="col" colspan="2" class="fw-bold text-center align-middle bg-light py-2">Mandays</th>
                             </tr>
                             <tr>
@@ -155,6 +155,7 @@
                             @foreach($assignedUsers as $personil)
                             <tr>
                                 <td class="align-middle">{{$personil['role_name']}}</td>
+                                <td class="align-middle">{{$personil['name']}}</td>
                                 <td class="text-center align-middle" style="color:gray">{{$personil['jhk']}}</td>
                                 <td class="text-center align-middle">
                                     {!! mandaysLabel($personil['jhk'], $personil['realisasiMandays']) !!}
