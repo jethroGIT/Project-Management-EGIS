@@ -134,21 +134,23 @@ class WorkPackageManagementController extends Controller
             $workPackage = WorkPackage::with([
                 'wpCategory',
                 'workPackageVolumes' => function($query) {
-                    $query->whereNotNull('wo_id')
-                            ->orWhere(function($subQuery) {
-                                $subQuery->whereNotNull('start_date')
-                                        ->whereNotNull('end_date')
-                                        ->whereNotNull('execution_year');
-                            })
-                            ->orderBy('volume_number', 'asc');
+                    $query->orderBy('volume_number', 'asc');
                 },
                 'workPackageVolumes.work.user.roles',
                 'workPackageVolumes.workOrder',
                 'humanResources.role'
             ])->findOrFail($wp_id);
 
+            // Volume untuk ditampilkan di card
+            $volumesDisplay = $workPackage->workPackageVolumes->filter(function($volume) {
+                return $volume->wo_id !== null ||
+                        ($volume->start_date !== null &&
+                        $volume->end_date !== null &&
+                        $volume->execution_year !== null);
+            });
+
             // Transform volume data untuk tampilan
-            $volumesData = $workPackage->workPackageVolumes->map(function ($volume) use($workPackage) {
+            $volumesData = $volumesDisplay->map(function ($volume) use($workPackage) {
                 // Ambil resource names untuk volume ini
                 $resourceNames = $volume->work->map(function ($work) {
                     if ($work->user && $work->role) {
@@ -188,12 +190,37 @@ class WorkPackageManagementController extends Controller
             });
 
             // Transform human resources data
-            $humanResourcesData = $workPackage->humanResources->map(function ($hr) {
+            $humanResourcesData = $workPackage->humanResources->map(function ($hr) use ($workPackage) {
+                $roleName = $hr->role->name ?? 'No Role';
+
+                // Ambil semua user yang di-assign dengan role ini di semua volume WP
+                $usersWithRole = collect();
+
+                foreach ($workPackage->workPackageVolumes as $volume) {
+                    $volumeUsers = $volume->work->filter(function ($work) use ($hr) {
+                        return $work->role_id == $hr->role_id && $work->user;
+                    })->map(function ($work) {
+                        return [
+                            'user_id' => $work->user->user_id,
+                            'name' => $work->user->name,
+                            'volume_number' => $work->volume->volume_number ?? 'N/A'
+                        ];
+                    });
+
+                    $usersWithRole = $usersWithRole->merge($volumeUsers);
+                }
+
+                // Hapus duplikat user
+                $uniqueUsers = $usersWithRole->unique('user_id')->values();
+
                 return [
+                    'hr_id' => $hr->hresource_id,
                     'role_id' => $hr->role_id,
-                    'role_name' => $hr->role->name ?? 'Unknown Role',
+                    'role_name' => $roleName,
                     'jtk' => $hr->jtk,
-                    'jhk' => $hr->jhk
+                    'jhk' => $hr->jhk,
+                    'assigned_users' => $uniqueUsers,
+                    'assigned_users_count' => $uniqueUsers->count()
                 ];
             });
 
@@ -896,36 +923,6 @@ class WorkPackageManagementController extends Controller
                 // Ambil resource data untuk volume ini
                 $resources = $volume->work->map(function ($work) {
                     if ($work->user && $work->role) {
-                        // $userRoles = $work->user->getRoleNames();
-                        // $roleName = 'No Role';
-
-                        // ✅ DEBUG: Log untuk melihat roles user
-                        // Log::info('User roles debug in edit method', [
-                        //     'user_name' => $work->user->name,
-                        //     'all_roles' => $userRoles->toArray(),
-                        //     'roles_count' => $userRoles->count()
-                        // ]);
-
-                        // if ($userRoles->contains('karyawan')) {
-                        //     $karyawanRoles = $userRoles->filter(function($roleName) {
-                        //         return $roleName !== 'karyawan' && $roleName !== 'admin';
-                        //     });
-    
-                        //     if ($karyawanRoles->isNotEmpty()) {
-                        //         $roleName = $karyawanRoles->first();
-                        //     } else {
-                        //         $roleName = 'karyawan';
-                        //     } 
-                        // } else {
-                        //     $roleName = $userRoles->first() ?? 'No Role';
-                        // }
-
-                        // ✅ DEBUG: Log hasil role yang dipilih
-                        // Log::info('Selected role debug in edit method', [
-                        //     'user_name' => $work->user->name,
-                        //     'selected_role' => $roleName
-                        // ]);
-
                         return [
                             'work_id' => $work->work_id,
                             'user_id' => $work->user->user_id,
