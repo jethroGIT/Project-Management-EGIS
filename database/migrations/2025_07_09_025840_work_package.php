@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('wp_number')->unique();
             $table->string('name');
             $table->integer('volume_qty')->default(1);
-            $table->integer('duration'); // in days
+            $table->integer('duration')->nullable(); // in days
             $table->text('actual_scope_contract')->nullable();
             $table->text('deliverable')->nullable();
             // $table->decimal('completeness', 5, 2)->default(0.00);

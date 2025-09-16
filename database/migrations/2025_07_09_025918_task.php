@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('task', function (Blueprint $table) {
             $table->id('task_id');
             $table->unsignedBigInteger('volume_id');
-            $table->string('name');
-            // $table->decimal('completeness', 5, 2)->default(0.00);
+            $table->text('name');
+            $table->decimal('completeness', 5, 2)->nullable();
             $table->enum('status', ['open', 'closed'])->default('open'); // status of the task
             $table->timestamps();
 
