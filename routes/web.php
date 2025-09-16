@@ -42,9 +42,6 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
     Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
     Route::get('/wp-management/check-role-assignments', [WorkPackageManagementController::class, 'checkRoleAssignments'])->name('wp-management.check-role-assignments');
-    Route::get('/wp-management/next-wo-number', [WorkPackageManagementController::class, 'getNextWoNumber'])->name('wp-management.next-wo-number');
-    Route::delete('/wp-management/remove-volume-data/{volume_id}', [WorkPackageManagementController::class, 'removeVolume'])->name('wp-management.remove-volume-data');
-    Route::post('/wp-management/add-volume-with-period', [WorkPackageManagementController::class, 'addVolume'])->name('wp-management.add-volume-with-period');
 
     // manajemen kategori work package
     Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');

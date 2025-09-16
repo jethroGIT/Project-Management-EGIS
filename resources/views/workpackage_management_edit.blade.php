@@ -92,7 +92,6 @@
                             min="1" 
                             placeholder="20" 
                             required
-                            disabled
                         >
                     </div>
 
@@ -130,9 +129,6 @@
                     Manajemen Volume ({{ $volumesWithWorkOrderCount }}/{{ $totalVolumeQty }} volume)
                 </h3>
                 <div class="card-toolbar">
-                    <!-- <button type="button" class="btn btn-light-info btn-sm me-2" onclick="openAssignWO()">
-                        <i class="bi bi-plus-circle"></i> Assign Work Order
-                    </button> -->
                     @if($remainingVolumeSlots > 0)
                         <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAddVolume()">
                             <i class="bi bi-plus-circle"></i> Tambah Volume
@@ -165,8 +161,8 @@
                                         </div>
 
                                         <!-- Hidden inputs -->
-                                        <input type="hidden" name="volumes[{{ $index }}][volume_id]" value="{{ $volume['volume_id'] }}">
-                                        <input type="hidden" name="volumes[{{ $index }}][volume_number]" value="{{ $volume['volume_number'] }}">
+                                        <!-- <input type="hidden" name="volumes[{{ $index }}][volume_id]" value="{{ $volume['volume_id'] }}">
+                                        <input type="hidden" name="volumes[{{ $index }}][volume_number]" value="{{ $volume['volume_number'] }}"> -->
 
                                         <!-- Volume Status Badge -->
                                         <div class="mb-3">
@@ -301,7 +297,7 @@
             <div class="card-body py-0">
                 <div id="humanResourceContainer">
                     @foreach($humanResourcesData as $index => $hr)
-                        <div class="human-resource-item mb-6 p-4 border rounded shadow-sm" data-index="{{ $index }}">
+                        <div class="human-resource-item mb-6 p-4 border rounded shadow" data-index="{{ $index }}" data-hr-id="{{ $hr['hr_id'] }}">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0">Resource #{{ $index + 1 }}</h6>
                                 <button 
@@ -312,10 +308,13 @@
                                 </button>
                             </div>
 
-                            <div class="row">
+                            <!-- Hidden input untuk hr_id -->
+                            <input type="hidden" name="resources[{{ $index }}][hr_id]" value="{{ $hr['hr_id'] }}">
+
+                            <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold required">Role/Peran</label>
-                                    <select name="resources[{{ $index }}][role_id]" class="form-select" required>
+                                    <select name="resources[{{ $index }}][role_id]" class="form-select role-select" data-index="{{ $index }}" required>
                                         <option value="">Pilih Role</option>
                                         @foreach($roles as $role)
                                             @if($role->name !== 'admin' && $role->name !== 'karyawan')
@@ -334,11 +333,12 @@
                                     <input 
                                         type="number" 
                                         name="resources[{{ $index }}][jtk]" 
-                                        class="form-control" 
+                                        class="form-control jtk-input" 
                                         value="{{ $hr['jtk'] }}" 
                                         min="1" 
                                         placeholder="1" 
                                         required
+                                        data-index="{{ $index }}"
                                     >
                                     <div class="form-text">Jumlah orang dengan role ini</div>
                                 </div>
@@ -356,6 +356,52 @@
                                     <div class="form-text">Total hari kerja untuk role ini</div>
                                 </div>
                             </div>
+
+                            <!-- SDM Assignment -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold required">SDM</label>
+
+                                    <div class="users-container" id="users-container-{{ $index }}">
+                                        @if($hr['assigned_users']->count() > 0)
+                                            @foreach($hr['assigned_users'] as $userIndex => $user)
+                                                <div class="user-assignment-item mb-2 p-3 border rounded bg-light" data-user-index="{{ $userIndex }}">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="flex-grow-1">
+                                                            <select name="resources[{{ $index }}][users][{{ $userIndex }}][user_id]" class="form-select user-select" data-resource-index="{{ $index }}" data-user-index="{{ $userIndex }}">
+                                                                <option value="">Pilih SDM</option>
+                                                                @foreach($users as $availableUser)
+                                                                    @if(!$availableUser->hasRole('admin'))
+                                                                        <option 
+                                                                            value="{{ $availableUser->user_id }}" 
+                                                                            {{ $user['user_id'] == $availableUser->user_id ? 'selected' : '' }}
+                                                                            data-name="{{ $availableUser->name }}"
+                                                                            data-email="{{ $availableUser->email }}"
+                                                                        >
+                                                                            {{ $availableUser->name }}
+                                                                        </option>
+                                                                    @endif
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <button type="button" class="btn btn-light-danger btn-sm" onClick="removeUserFromResource(this)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <div class="no-users-message text-muted text-center py-3" id="no-users-{{ $index }}">
+                                                <small><i class="bi bi-info-circle me-1"></i>Belum ada SDM yang di-assign untuk role ini</small>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-light-success btn-sm" onclick="addUserToResource({{ $index }})">
+                                <i class="bi bi-person-plus"></i> Tambah SDM
+                            </button>
                         </div>
                     @endforeach
                 </div>
@@ -437,58 +483,6 @@
                             </div>
                         </div>
 
-                        <!-- Work Order Selection -->
-                        <!-- <div class="mb-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-hash text-primary me-2 fs-4"></i>
-                                <h5 class="mb-0">Pilih Work Order</h5>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <label class="form-label fw-bold required">Work Order</label>
-                                    <select name="wo_id" id="addVolumeWoSelect" class="form-select mb-2" required>
-                                        <option value="">Pilih Work Order</option>
-                                        <option value="create_new">Buat Work Order Baru</option>
-                                    </select>
-                                    <div class="d-flex align-items-center">
-                                        <span id="addVolumeWoStatusBadge" class="badge badge-light-dark">
-                                            <i class="bi bi-clock me-1"></i>Belum dipilih
-                                        </span>
-                                    </div>
-                                    <div class="form-text">Pilih WO yang tersedia atau buat baru</div>
-                                </div>
-                            </div>
-                        </div> -->
-
-                        <!-- New Work Order Form -->
-                        <!-- <div id="addVolumeNewWoContainer" style="display: none;" class="mb-4">
-                            <div class="alert alert-light-primary py-3">
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    <h6 class="mb-0">Buat Work Order Baru</h6>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold required">Nomor WO</label>
-                                        <input type="number" name="new_wo_number" id="addVolumeNewWoNumber" 
-                                            class="form-control" min="1" max="999" placeholder="1">
-                                        <div class="invalid-feedback" id="addVolumeWoNumberFeedback">
-                                            Nomor WO sudah digunakan
-                                        </div>
-                                        <div class="valid-feedback" id="addVolumeWoNumberValidFeedback">
-                                            Nomor WO tersedia
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <div id="addVolumeWoStatusIndicator" class="pb-2">
-                                            <i class="bi bi-clock text-muted"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
-
                         <!-- Summary -->
                         <div id="addVolumeSummary" style="display: none;" class="alert alert-light-success">
                             <div class="d-flex align-items-center mb-2">
@@ -512,154 +506,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal for Assign Work Order -->
-    <!-- <div class="modal fade" tabindex="-1" id="kt_modal_assign_wo" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">
-                        Assign Work Order pada Volume
-                    </h3>
-                </div>
-
-                <div class="modal-body">
-                    <form id="assignWoForm">
-                        @csrf
-
-                        Work Order Selection
-                        <div class="mb-2">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-hash text-primary me-2 fs-4"></i>
-                                <h5 class="mb-0">Pilih Work Order</h5>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <label class="form-label fw-bold required">Work Order</label>
-                                    <select name="wo_id" id="woSelect" class="form-select mb-2" required>
-                                        <option value="">Pilih Work Order</option>
-                                        <option value="create_new" class="text-primary fw-bold">
-                                            <i class="bi bi-plus-circle"></i> Buat Work Order Baru
-                                        </option>
-                                    </select>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge badge-light-dark" id="woStatusBadge">
-                                            <i class="bi bi-clock me-1"></i>
-                                            Belum dipilih
-                                        </span>
-                                    </div>
-                                    <div class="form-text">Pilih WO yang tersedia atau buat baru</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        New Work Order Form
-                        <div id="newWoContainer" style="display: none;" class="mb-6">
-                            <div class="alert alert-light-primary py-3">
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    <h6 class="mb-0">Buat Work Order Baru</h6>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold required">Nomor WO</label>
-                                        <div class="input-group">
-                                            <input 
-                                                type="number" 
-                                                name="new_wo_number" 
-                                                id="newWoNumber" 
-                                                class="form-control" 
-                                                placeholder="1" 
-                                                min="1"
-                                                max="999"
-                                                required
-                                            />
-                                            <span class="input-group-text" id="woStatusIndicator">
-                                                <i class="bi bi-clock text-muted"></i>
-                                            </span>
-                                        </div>
-
-                                        <div class="form-text" id="woNumberHelp">
-                                            Masukkan nomor work order yang unik
-                                        </div>
-
-                                        Invalid feedback
-                                        <div class="invalid-feedback" id="woNumberFeedback">
-                                            Nomor WO ini sudah digunakan
-                                        </div>
-                                        
-                                        Success feedback
-                                        <div class="valid-feedback" id="woNumberValidFeedback">
-                                            Nomor WO tersedia
-                                        </div>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <div class="alert alert-light-warning py-2 mt-4">
-                                            <small>
-                                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                                Pastikan nomor WO yang dimasukkan belum pernah digunakan sebelumnya
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="separator separator-dashed my-6"></div>
-
-                        Volume Selection
-                        <div class="mb-6">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-folder text-primary me-2 fs-4"></i>
-                                    <h5 class="mb-0">Pilih Volume untuk Assign</h5>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="selectAllVolumes()">
-                                        Pilih Semua
-                                    </button>
-                                    <button type="button" class="btn btn-light-danger btn-sm" onclick="clearAllVolumes()">
-                                        Bersihkan
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="form-text mb-3">
-                                Pilih volume yang akan ditetapkan work order. Volume yang sudah memiliki WO akan diganti.
-                            </div>
-
-                            <div id="volumeSelectionContainer" class="row mb-4">
-                                Volume options akan ditambahkan secara dinamis
-                            </div>
-                            
-                            <div class="invalid-feedback" id="volumeSelectionFeedback">
-                                Pilih minimal satu volume untuk assign
-                            </div>
-
-                            Assignment Summary
-                            <div id="assignmentSummary" style="display: none;" class="">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    <h5 class="mb-0">Ringkasan Assignment</h5>
-                                </div>
-                                <div id="summaryContent">
-                                    Summary akan diisi secara dinamis
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="executeAssignWo()" id="assignWoBtn">
-                        Simpan
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div> -->
 </div>
 @endsection
 
@@ -761,6 +607,8 @@
 @push('scripts')
 <script>
 let humanResourceIndex = {{ $humanResourcesData->count() }};
+let maxUserIndex = 0;
+
 let volumeIndex = {{ $volumesData->count() }};
 let maxVolumeNumber = {{ $volumesData->max('volume_number') ?? 0 }};
 
@@ -768,6 +616,10 @@ let originalWpNumber = "{{ $workPackage->wp_number }}";
 let originalCategoryId = "{{ $workPackage->category_id }}";
 
 let temporaryAssignments = {};
+let temporaryVolumeChanges = {
+    new_volumes: [],
+    removed_volumes: []
+};
 
 // Form validation
 $(document).ready(function() {
@@ -927,7 +779,7 @@ function saveWorkPackage() {
         }
     }
 
-    // ✅ ENSURE: Add resources manually if missing
+    // Ensure Add resources manually if missing
     let resourcesFound = false;
     for (let pair of formData.entries()) {
         if (pair[0].startsWith('resources[')) {
@@ -963,6 +815,12 @@ function saveWorkPackage() {
         formData.append('work_order_assignments', JSON.stringify(temporaryAssignments));
     }
 
+    // Volume changes to FormData
+    if (temporaryVolumeChanges.new_volumes.length > 0 || temporaryVolumeChanges.removed_volumes.length > 0) {
+        formData.append('volume_changes', JSON.stringify(temporaryVolumeChanges));
+        console.log('Volume changes added to FormData:', temporaryVolumeChanges);
+    }
+
     // Show loading
     Swal.fire({
         title: 'Menyimpan perubahan...',
@@ -985,8 +843,12 @@ function saveWorkPackage() {
         Swal.close();
 
         if (data.success) {
-            // Clear temporary assignments
+            // Clear temporary assignments and volume changes
             temporaryAssignments = {};
+            temporaryVolumeChanges = {
+                new_volumes: [],
+                removed_volumes: []
+            };
 
             Swal.fire({
                 title: 'Berhasil!',
@@ -1054,6 +916,28 @@ function saveWorkPackage() {
     });
 }
 
+/* HUMAN RESOURCE MANAGEMENT */
+// Event handlers untuk role change
+$(document).on('change', '.role-select', function() {
+    const resourceIndex = $(this).data('index');
+    const selectedRoleId = $(this).val();
+    
+    if (selectedRoleId) {
+        // Update users dropdown based on selected role
+        updateUsersForRole(resourceIndex, selectedRoleId);
+    }
+    
+    // Update JTK based on assigned users
+    updateJTKFromUsers(resourceIndex);
+});
+
+// event handlers untuk user select change
+$(document).on('change', '.user-select', function() {
+    const resourceIndex = $(this).data('resource-index');
+    updateJTKFromUsers(resourceIndex);
+    updateUserSelectOptions();
+});
+
 /**
  * Add new human resource
  */
@@ -1074,10 +958,12 @@ function addHumanResource() {
                 </button>
             </div>
 
-            <div class="row">
+            <input type="hidden" name="resources[${humanResourceIndex}][hr_id]" value="new">
+
+            <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label fw-bold required">Role/Peran</label>
-                    <select name="resources[${humanResourceIndex}][role_id]" class="form-select" required>
+                    <select name="resources[${humanResourceIndex}][role_id]" class="form-select role-select" data-index="${humanResourceIndex}" required>
                         <option value="">Pilih Role</option>
                         @foreach($roles as $role)
                             @if ($role->name !== 'admin' && $role->name !== 'karyawan')
@@ -1089,7 +975,7 @@ function addHumanResource() {
                 <div class="col-md-4">
                     <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jtk]" 
-                           class="form-control" min="1" placeholder="Contoh: 1" required>
+                           class="form-control jtk-input" min="1" placeholder="Contoh: 1" data-index="${humanResourceIndex}" required>
                     <div class="form-text">Jumlah orang dengan role ini</div>
                 </div>
                 <div class="col-md-4">
@@ -1099,13 +985,247 @@ function addHumanResource() {
                     <div class="form-text">Total hari kerja untuk role ini</div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="form-label fw-bold required">SDM</label>
+                </div>
+
+                <div class="users-container" id="users-container-${humanResourceIndex}">
+                    <div class="no-users-message text-muted text-center py-3" id="no-users-${humanResourceIndex}">
+                        <small><i class="bi bi-info-circle me-1"></i>Belum ada SDM yang di-assign untuk role ini</small>
+                    </div>
+                </div>
+            </div>
         </div>
+
     `;
 
     container.insertAdjacentHTML('beforeend', resourceHtml);
     humanResourceIndex++;
+
+    // Update user select options
+    updateUserSelectOptions();
 }
 
+/**
+ * Add user to specific resource
+ */
+function addUserToResource(resourceIndex) {
+    const container = document.getElementById(`users-container-${resourceIndex}`);
+    const noUsersMessage = document.getElementById(`no-users-${resourceIndex}`);
+    
+    if (noUsersMessage) {
+        noUsersMessage.style.display = 'none';
+    }
+
+    // Find next user index for this resource
+    const existingUsers = container.querySelectorAll('.user-assignment-item').length;
+    const userIndex = existingUsers;
+
+    const userHtml = `
+        <div class="user-assignment-item mb-2 p-3 border rounded bg-light" data-user-index="${userIndex}">
+            <div class="d-flex align-items-center gap-3">
+                <div class="flex-grow-1">
+                    <select name="resources[${resourceIndex}][users][${userIndex}][user_id]" class="form-select user-select" data-resource-index="${resourceIndex}" data-user-index="${userIndex}">
+                        <option value="">Pilih SDM</option>
+                        @foreach($users as $user)
+                            @if(!$user->hasRole('admin'))
+                                <option value="{{ $user->user_id }}" data-name="{{ $user->name }}" data-email="{{ $user->email }}">
+                                    {{ $user->name }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+                <button type="button" class="btn btn-light-danger btn-sm" onclick="removeUserFromResource(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', userHtml);
+
+    // Update user select options to prevent duplicates
+    updateUserSelectOptions();
+    
+    // Update JTK
+    updateJTKFromUsers(resourceIndex);
+}
+
+/**
+ * Remove user from resource
+ */
+function removeUserFromResource(button) {
+    const userItem = button.closest('.user-assignment-item');
+    const container = userItem.closest('.users-container');
+    const resourceIndex = container.id.split('-').pop();
+
+    userItem.remove();
+
+    // Show no users message if no users left
+    const remainingUsers = container.querySelectorAll('.user-assignment-item');
+    if (remainingUsers.length === 0) {
+        const noUsersMessage = document.getElementById(`no-users-${resourceIndex}`);
+        if (noUsersMessage) {
+            noUsersMessage.style.display = 'block';
+        }
+    }
+
+    // Update user select options
+    updateUserSelectOptions();
+    
+    // Update JTK
+    updateJTKFromUsers(resourceIndex);
+    
+    // Reindex user assignments for this resource
+    reindexUserAssignments(resourceIndex);
+}
+
+/**
+ * Update JTK based on assigned users
+ */
+function updateJTKFromUsers(resourceIndex) {
+    const container = document.getElementById(`users-container-${resourceIndex}`);
+    const userSelects = container.querySelectorAll('.user-select');
+    const jtkInput = document.querySelector(`input[name="resources[${resourceIndex}][jtk]"]`);
+
+    if (jtkInput) {
+        let selectedUsersCount = 0;
+        userSelects.forEach(select => {
+            if (select.value) {
+                selectedUsersCount++;
+            }
+        });
+
+        jtkInput.value = Math.max(selectedUsersCount, 1);
+    }
+}
+
+/**
+ * Update user select options to prevent duplicates
+ */
+function updateUserSelectOptions() {
+    const allUserSelects = document.querySelectorAll('.user-select');
+    const selectedUserIds = [];
+
+    // Collect all selected user Ids
+    allUserSelects.forEach(select => {
+        if (select.value) {
+            selectedUserIds.push(select.value);
+        }
+    });
+
+    // Update each select to disable already selected users
+    allUserSelects.forEach(select => {
+        const currentValue = select.value;
+        const options = select.querySelectorAll('option');
+
+        options.forEach(option => {
+            if (option.value && option.value !== currentValue && selectedUserIds.includes(option.value)) {
+                option.disabled = true;
+                option.setAttribute('data-disabled', 'duplicate');
+            } else {
+                option.disabled = false;
+                option.removeAttribute('data-disabled');
+            }
+        });
+    });
+}
+
+/**
+ * Reindex user assignments for a resource
+ */
+function reindexUserAssignments(resourceIndex) {
+    const container = document.getElementById(`users-container-${resourceIndex}`);
+    const userItems = container.querySelectorAll('.user-assignment-item');
+
+    userItems.forEach((item, index) => {
+        const select = item.querySelector('.user-select');
+        if (select) {
+            const currentName = select.name;
+            const newName = currentName.replace(/\[users\]\[\d+\]/, `[users][${index}]`);
+            select.name = newName;
+            select.setAttribute('data-user-index', index);
+        }
+
+        item.setAttribute('data-user-index', index);
+    });
+}
+
+/**
+ * Update users for role (called when role changes)
+ */
+function updateUsersForRole(resourceIndex, roleId) {
+    updateUserSelectOptions();
+}
+
+/**
+ * Update resource numbering after removal
+ */
+function updateResourceNumbering() {
+    const resourceItems = document.querySelectorAll('.human-resource-item');
+    
+    resourceItems.forEach((item, index) => {
+        const header = item.querySelector('h6');
+        if (header) {
+            header.textContent = `Resource #${index + 1}`;
+        }
+
+        // Update data-index
+        item.setAttribute('data-index', index);
+
+        // Update form field names
+        const inputs = item.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.name) {
+                input.name = input.name.replace(/resources\[\d+\]/, `resources[${index}]`);
+            }
+            if (input.hasAttribute('data-index')) {
+                input.setAttribute('data-index', index);
+            }
+        });
+
+        // Update users container ID
+        const usersContainer = item.querySelector('.users-container');
+        if (usersContainer) {
+            usersContainer.id = `users-container-${index}`;
+        }
+        
+        // Update no users message ID
+        const noUsersMessage = item.querySelector('.no-users-message');
+        if (noUsersMessage) {
+            noUsersMessage.id = `no-users-${index}`;
+        }
+
+        // Update button onclick attributes
+        const addUserBtn = item.querySelector('button[onclick*="addUserToResource"]');
+        if (addUserBtn) {
+            addUserBtn.setAttribute('onclick', `addUserToResource(${index})`);
+        }
+    });
+
+    // Update global counter
+    humanResourceIndex = resourceItems.length;
+}
+
+// Initialize on document ready
+$(document).ready(function() {
+    // Update user select options on page load
+    updateUserSelectOptions();
+
+    // Set up event handlers for existing elements
+    $('.role-select').each(function() {
+        const resourceIndex = $(this).data('index');
+        const selectedRoleId = $(this).val();
+        if (selectedRoleId) {
+            updateUsersForRole(resourceIndex, selectedRoleId);
+        }
+    });
+});
+
+// EARLY HUMAN RESOURCE MANAGEMENT
 /**
  * Remove human resource
  */
@@ -1256,20 +1376,6 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
     });
 }
 
-/**
- * Update resource numbering after removal
- */
-function updateResourceNumbering() {
-    const resourceItems = document.querySelectorAll('.human-resource-item');
-    
-    resourceItems.forEach((item, index) => {
-        const header = item.querySelector('h6');
-        if (header) {
-            header.textContent = `Resource #${index + 1}`;
-        }
-    });
-}
-
 /** VOLUME MANAGEMENT */
 // Latest 2 Volume Management
 /**
@@ -1303,7 +1409,7 @@ function resetAddVolumeForm() {
 }
 
 /**
- * Execute add volume
+ * Execute add volume (Temporary)
  */
 function executeAddVolume() {
     const volumeNumber = $('#volumeNumberSelect').val();
@@ -1328,7 +1434,7 @@ function executeAddVolume() {
     if (!startDate || !endDate) {
         Swal.fire({
             title: 'Periode Belum Lengkap',
-            text: 'Silakan isi start date dan end date.',
+            text: 'Silakan isi tanggal mulai dan tanggal akhir.',
             icon: 'warning',
             buttonsStyling: false,
             confirmButtonText: 'OK',
@@ -1343,7 +1449,7 @@ function executeAddVolume() {
     if (new Date(startDate) > new Date(endDate)) {
         Swal.fire({
             title: 'Periode Tidak Valid',
-            text: 'End date harus sama atau setelah start date.',
+            text: 'Tanggal akhir harus sama atau setelah tanggal mulai.',
             icon: 'error',
             buttonsStyling: false,
             confirmButtonText: 'OK',
@@ -1354,83 +1460,145 @@ function executeAddVolume() {
         return;
     }
 
-    // Show loading
+    // Temporary volume
+    const executionYear = new Date(startDate).getFullYear();
+    const periodFormatted = formatPeriod(startDate, endDate);
+
+    const newVolumeData = {
+        volume_number: parseInt(volumeNumber),
+        start_date: startDate,
+        end_date: endDate,
+        execution_year: executionYear,
+        period_formatted: periodFormatted,
+        temp_id: 'temp_' + Date.now(),
+        action: 'show_existing'
+    };
+
+    temporaryVolumeChanges.new_volumes.push(newVolumeData);
+
+    // Add volume card to DOM
+    addVolumeCardDOM(newVolumeData);
+
+    // Close modal
+    $('#kt_modal_add_volume').modal('hide');
+
+    // Show success message
     Swal.fire({
-        title: 'Menambahkan Volume...',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    // Prepare form data
-    const formData = new FormData();
-    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-    formData.append('wp_id', {{ $workPackage->wp_id }});
-    formData.append('volume_number', volumeNumber);
-    formData.append('start_date', startDate);
-    formData.append('end_date', endDate);
-    // formData.append('execution_year', executionYear);
-
-    // Submit request
-    fetch('{{ route("wp-management.add-volume-with-period") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        Swal.close();
-
-        if (data.success) {
-            $('#kt_modal_add_volume').modal('hide');
-
-            Swal.fire({
-                title: 'Volume Berhasil Ditambahkan!',
-                html: `
-                    <div class="text-center">
-                        <p class="mb-2">Volume ${volumeNumber} telah berhasil ditambahkan</p>
+        title: 'Volume Ditambahkan!',
+        html: `
+            <div class="text-center">
+                <p class="mb-2">Volume ${volumeNumber} telah ditambahkan ke daftar</p>
+                <div class="alert alert-light-info py-2 mt-3">
+                    <div class="small">
+                        <strong>Catatan:</strong> Klik "Simpan Perubahan" untuk menyimpan volume
                     </div>
-                `,
-                icon: 'success',
-                buttonsStyling: false,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'btn btn-primary'
-                } 
-            }).then(() => {
-                window.location.reload();
-            });
-        } else {
-            Swal.fire({
-                title: 'Gagal Menambahkan Volume',
-                text: data.message,
-                icon: 'error',
-                buttonsStyling: false,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'btn btn-secondary'
-                }
-            });
+                </div>
+            </div>
+        `,
+        icon: 'success',
+        buttonsStyling: false,
+        confirmButtonText: 'OK',
+        customClass: {
+            confirmButton: 'btn btn-primary'
         }
-    })
-    .catch(error => {
-        Swal.close();
-        console.error('Error:', error);
-
-        Swal.fire({
-            title: 'Error!',
-            text: 'Terjadi kesalahan saat menambahkan volume',
-            icon: 'error',
-            buttonsStyling: false,
-            confirmButtonText: 'OK',
-            customClass: {
-                confirmButton: 'btn btn-secondary'
-            }
-        });
     });
+
+    // Update UI
+    updateVolumeCount();
+    updateModalVolumeInfo();
+}
+
+/**
+ * Add volume card to DOM
+ */
+function addVolumeCardDOM(volumeData) {
+    const container = document.getElementById('volumeContainer');
+    const noVolumesMessage = document.getElementById('noVolumesMessage');
+
+    if (noVolumesMessage) {
+        noVolumesMessage.style.display = 'none';
+    }
+
+    const volumeHtml = `
+        <div class="volume-card-item col-md-6 col-lg-4 mb-4" style="min-width: 300px;">
+            <div class="card card-bordered h-100 shadow-sm hover-elevate-up volume-item" data-volume-id="${volumeData.temp_id}" data-volume-index="new" data-action="show_existing">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-folder-fill text-primary me-2"></i>
+                            Volume ${volumeData.volume_number}
+                        </h5>
+                        <button type="button" class="btn btn-light-danger btn-sm" onclick="removeTemporaryVolume(this, '${volumeData.temp_id}', ${volumeData.volume_number})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+
+                    <!-- Hidden inputs -->
+                    <!-- <input type="hidden" name="volumes[new_${volumeData.volume_number}][volume_id]" value="new">
+                    <input type="hidden" name="volumes[new_${volumeData.volume_number}][volume_number]" value="${volumeData.volume_number}"> -->
+
+                    <!-- Volume Status Badge -->
+                    <div class="mb-3">
+                        <span class="badge badge-light-warning">
+                            <i class="bi bi-clock me-1"></i>
+                            Belum Tersimpan
+                        </span>
+                    </div>
+
+                    <!-- Volume Info -->
+                    <div class="mb-4">
+                        <div class="fw-bold mb-1">
+                            <i class="bi bi-hash me-1"></i>
+                            Work Order
+                        </div>
+                        <div class="fs-7">
+                            <span>Belum ditentukan</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="fw-bold mb-1">
+                            <i class="bi bi-calendar-range me-1"></i>
+                            Periode Pelaksanaan
+                        </div>
+                        <div class="fs-7">
+                            ${volumeData.period_formatted}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="fw-bold mb-1">
+                            <i class="bi bi-people me-1"></i>
+                            Resources (0)
+                        </div>
+                        <div class="fs-7 text-wrap">
+                            Belum ada resource
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="fw-bold mb-1">
+                            <i class="bi bi-list-task me-1"></i>
+                            Tasks & Progress
+                        </div>
+                        <div class="fs-7">
+                            Belum ada task
+                        </div>
+                    </div>
+
+                    <!-- Edit Detail Button -->
+                    <div class="mt-auto">
+                        <button type="button" class="btn btn-warning btn-sm w-100" disabled>
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Simpan Dulu untuk Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', volumeHtml);
 }
 
 // Event handlers for add volume modal
@@ -1465,23 +1633,24 @@ $(document).ready(function() {
  */
 function updateModalVolumeInfo() {
     const totalVolumeQty = {{ $totalVolumeQty }};
-    const currentVolumes = document.querySelectorAll('.volume-item');
-    const currentVolumeNumbers = [];
+    const currentVolumes = document.querySelectorAll('.volume-item').length;
+    // const currentVolumeNumbers = [];
+    const availableCount = totalVolumeQty - currentVolumes;
 
     // Get current volume numbers
-    currentVolumeNumbers.forEach(volume => {
-        const titleElement = volume.querySelector('h5');
-        if (titleElement) {
-            const match = titleElement.textContent.match(/Volume (\d+)/);
-            if (match) {
-                currentVolumeNumbers.push(parseInt(match[1]));
-            }
-        }
-    });
+    // currentVolumeNumbers.forEach(volume => {
+    //     const titleElement = volume.querySelector('h5');
+    //     if (titleElement) {
+    //         const match = titleElement.textContent.match(/Volume (\d+)/);
+    //         if (match) {
+    //             currentVolumeNumbers.push(parseInt(match[1]));
+    //         }
+    //     }
+    // });
 
     // Update available volume info
-    const availableCount = totalVolumeQty - currentVolumeNumbers.length;
-    const remainingSlots = availableCount;
+    // const availableCount = totalVolumeQty - currentVolumeNumbers.length;
+    // const remainingSlots = availableCount;
     
     // Update modal elements if they exist
     const availableInfo = document.getElementById('availableVolumeInfo');
@@ -1489,19 +1658,19 @@ function updateModalVolumeInfo() {
     
     if (availableInfo) {
         availableInfo.textContent = `${availableCount} volume tersedia`;
-        console.log('Available info updated:', availableInfo.textContent);
+        // console.log('Available info updated:', availableInfo.textContent);
     }
     
     if (remainingInfo) {
-        remainingInfo.textContent = remainingSlots;
-        console.log('Remaining info updated:', remainingInfo.textContent);
+        remainingInfo.textContent = availableCount;
+        // console.log('Remaining info updated:', remainingInfo.textContent);
     }
-    
-    // Update volume select options in modal if modal is open
-    const modal = document.getElementById('kt_modal_add_volume');
-    if (modal && modal.classList.contains('show')) {
-        updateModalVolumeSelect(currentVolumeNumbers, totalVolumeQty);
-    }
+
+    console.log('Modal info updated:', {
+        total: totalVolumeQty,
+        visible: currentVolumes,
+        can_show: availableCount
+    });
 }
 
 /**
@@ -1539,166 +1708,36 @@ function loadAvailableVolumeNumbers() {
     $('#remainingVolumeInfo').text(availableCount);
 }
 
-/**
- * Update volume select options in modal
- */
-function updateModalVolumeSelect(currentVolumeNumbers, totalVolumeQty) {
-    const select = document.getElementById('volumeNumberSelect');
-    if (!select) return;
-    
-    // Clear existing options except the first one
-    const options = select.querySelectorAll('option');
-    for (let i = 1; i < options.length; i++) {
-        options[i].remove();
-    }
-
-    // Add available volume options
-    let availableCount = 0;
-    for (let i = 1; i <= totalVolumeQty; i++) {
-        if (!currentVolumeNumbers.includes(i)) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = `Volume ${i}`;
-            select.appendChild(option);
-            availableCount++;
-        }
-    }
-    
-    console.log('Modal select updated, available options:', availableCount);
-    
-    // Reset select value
-    select.value = '';
-    
-    // Update summary
-    const summaryContainer = document.getElementById('addVolumeSummary');
-    if (summaryContainer) {
-        summaryContainer.style.display = 'none';
-    }
-}
-
-// Latest Volume Management
-/**
- * Open add volume modal
- */
-function openAddVolumeEarly() {
-    // Reset form
-    // resetAddVolumeWOForm();
-
-    // Update modal info before load
-    // updateModalVolumeInfo();
-
-    // Load available volume numbers
-    // loadAvailableVolumeNumbers();
-    
-    // Load available work orders
-    // loadWorkOrdersForAddVolume();
-    
-    // Show modal
-    // $('#kt_modal_add_volume_wo').modal('show');
-}
-
-/**
- * Reset add volume work order form
- */
-// function resetAddVolumeWOForm() {
-//     const form = document.getElementById('addVolumeWoForm');
-//     if (form) {
-//         form.reset();
-//     }
-    
-//     $('#addVolumeNewWoContainer').hide();
-//     $('#addVolumeSummary').hide();
-//     $('#addVolumeWoStatusBadge').html('<i class="bi bi-clock me-1"></i>Belum dipilih')
-//                                 .removeClass()
-//                                 .addClass('badge badge-light-dark');
-    
-//     // Reset validation states
-//     $('#addVolumeNewWoNumber').removeClass('is-invalid is-valid');
-// }
-
-// EARLIER VOLUME MANAGEMENT
-/**
- * Add new volume
- */
-// function addVolume() {
-//     const container = document.getElementById('volumeContainer');
-//     const noVolumesMessage = document.getElementById('noVolumesMessage');
-    
-//     if (noVolumesMessage) {
-//         noVolumesMessage.style.display = 'none';
-//     }
-
-//     // Increase volume number
-//     maxVolumeNumber++;
-
-//     const volumeHtml = `
-//         <div class="col-md-6 col-lg-4 mb-4">
-//             <div class="card card-bordered h-100 hover-elevate-up volume-item" data-volume-id="new_${volumeIndex}" data-volume-index="${volumeIndex}">
-//                 <div class="card-body">
-//                     <div class="d-flex justify-content-between align-items-start mb-3">
-//                         <h5 class="card-title mb-0">
-//                             <i class="bi bi-folder-fill text-primary me-2"></i>
-//                             Volume ${maxVolumeNumber}
-//                         </h5>
-//                         <button type="button" class="btn btn-light-danger btn-sm" onclick="removeVolume(this, 'new_${volumeIndex}')">
-//                             <i class="bi bi-trash"></i>
-//                         </button>
-//                     </div>
-
-//                     <!-- Hidden inputs for new volume -->
-//                     <input type="hidden" name="volumes[${volumeIndex}][volume_id]" value="new">
-//                     <input type="hidden" name="volumes[${volumeIndex}][volume_number]" value="${maxVolumeNumber}">
-
-//                     <!-- New Volume Status -->
-//                     <div class="mb-3">
-//                         <span class="badge badge-light-dark">
-//                             <i class="bi bi-plus-circle me-1"></i>
-//                             Volume Baru
-//                         </span>
-//                     </div>
-
-//                     <!-- New Volume Info -->
-//                     <div class="alert alert-success py-2">
-//                         <div class="d-flex align-items-center">
-//                             <i class="bi bi-check-circle me-2"></i>
-//                             <div>
-//                                 <strong>Volume Baru Ditambahkan</strong>
-//                                 <div class="small">
-//                                     Setelah menyimpan, Anda dapat mengkonfigurasi detail volume.
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     `;
-
-//     container.insertAdjacentHTML('beforeend', volumeHtml);
-//     volumeIndex++;
-
-//     // Update volume count in header
-//     updateVolumeCount();
-    
-//     // Scroll to show new volume
-//     setTimeout(() => {
-//         container.scrollLeft = container.scrollWidth;
-//     }, 100);
-// }
 
 // LATEST REMOVE VOLUME MECHANISM
 /**
- * Remove volume (delete work order, period time, and execution year from volume)
+ * Remove volume temporary (delete work order, period time, and execution year from volume)
  */
 function removeVolume(buttonElement, volumeId) {
     const volumeCard = buttonElement.closest('.volume-card-item');
     const volumeElement = buttonElement.closest('.volume-item');
     const volumeNumber = volumeElement.querySelector('h5').textContent.match(/Volume (\d+)/)[1];
 
-    // Show confirmation dialog
-    Swal.fire({
-        title: 'Hapus Volume',
-        html: `
+    // Check if this is a temporary volume (not saved to database yet)
+    const isTemporary = volumeId.toString().startsWith('temp_');
+    const isShowExisting = volumeElement.dataset.action === 'show_existing';
+
+    let confirmTitle = isTemporary ? 'Hapus Volume Sementara' : 'Hapus Volume';
+    let confirmHtml = '';
+
+    if (isTemporary && isShowExisting) {
+        confirmHtml = `
+            <div class="text-center">
+                <p class="mb-3">Apakah Anda yakin ingin menghapus Volume ${volumeNumber}?</p>
+                <div class="alert alert-light-info py-2">
+                    <div class="small">
+                        <strong>Info:</strong> Volume ini tersimpan sementara
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        confirmHtml = `
             <div class="text-center">
                 <p class="mb-3">Apakah Anda yakin ingin menghapus Volume ${volumeNumber}?</p>
                 <div class="alert alert-light-warning py-2">
@@ -1707,12 +1746,23 @@ function removeVolume(buttonElement, volumeId) {
                         <div class="text-start">
                             • Work Order Assignment<br>
                             • Periode Pelaksanaan (Start Date & End Date)<br>
-                            • Tahun Pelaksanaan<br><br>
+                            • Tahun Pelaksanaan<br>
                         </div>
                     </div>
                 </div>
+                <div class="alert alert-light-info py-2">
+                    <div class="small">
+                        <strong>Catatan:</strong> Perubahan akan tersimpan ketika Anda klik "Simpan Perubahan"
+                    </div>
+                </div>
             </div>
-        `,
+        `;
+    }
+
+    // Show confirmation dialog
+    Swal.fire({
+        title: confirmTitle,
+        html: confirmHtml,
         icon: 'question',
         showCancelButton: true,
         buttonsStyling: false,
@@ -1724,110 +1774,120 @@ function removeVolume(buttonElement, volumeId) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            executeRemoveVolume(volumeCard, volumeId, volumeNumber);
+            // executeRemoveVolume(volumeCard, volumeId, volumeNumber);
+            if (isTemporary) {
+                removeTemporaryVolume(buttonElement, volumeId, volumeNumber);
+            } else {
+                markVolumeForRemoval(buttonElement, volumeId, volumeNumber);
+            }
         }
     });
 }
 
 /**
- * Execute remove work order from volume via AJAX
+ * Remove temporary volume
  */
-function executeRemoveVolume(volumeCard, volumeId, volumeNumber) {
-    // Show loading
-    Swal.fire({
-        title: 'Menghapus Work Order...',
-        html: `
-            <div class="text-center">
-                <p>Sedang menghapus Work Order dari volume...</p>
-                <div class="mt-3">
-                    <div class="spinner-border text-warning" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-        `,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false
-    });
+function removeTemporaryVolume(buttonElement, tempId, volumeNumber) {
+    const volumeCard = buttonElement.closest('.volume-card-item');
 
-    // Ajax call
-    $.ajax({
-        url: `{{ route('wp-management.remove-volume-data', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId),
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-            'Content-Type': 'application/json'
-        },
-        data: JSON.stringify({
-            remove_wo_only: false
-        }),
-        success: function(response) {
-            if (response.success) {
-                // Remove volume card from DOM (since it no longer has WO)
-                volumeCard.remove();
+    // Remove from temporary changes
+    temporaryVolumeChanges.new_volumes = temporaryVolumeChanges.new_volumes.filter(
+        volume => volume.temp_id !== tempId
+    );
 
-                // Update volume count in header
-                updateVolumeCount();
+    // Remove from DOM
+    volumeCard.remove();
 
-                // Show success message
-                Swal.fire({
-                    title: `Volume ${volumeNumber} Berhasil Dihapus`,
-                    // text: `Volume ${volumeNumber} telah dihapus, serta Work Order telah dilepas dari volume tersebut.`,
-                    html: `
-                        <div class="text-center">
-                            <p class="mb-2">Volume ${volumeNumber} telah dihapus.</p>
-                            <div class="alert alert-light-info py-2 mt-3">
-                                <div class="small">
-                                    <strong>Data yang dihapus:</strong><br>
-                                    <div class="text-start">
-                                        • Work Order Assignment<br>
-                                        • Periode Pelaksanaan (Start Date & End Date)<br>
-                                        • Tahun Pelaksanaan
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `,
-                    icon: 'success',
-                    buttonsStyling: false,
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    }
-                });
-                
-            } else {
-                Swal.fire({
-                    title: 'Gagal Menghapus Volume',
-                    text: response.message || 'Terjadi kesalahan saat menghapus volume',
-                    icon: 'error',
-                    buttonsStyling: false,
-                    confirmButtonText: 'Tutup',
-                    customClass: {
-                        confirmButton: 'btn btn-secondary'
-                    }
-                });
-            }
-        },
-        error: function(xhr) {
-            let errorMessage = 'Terjadi kesalahan saat menghapus volume';
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorMessage = xhr.responseJSON.message;
-            }
+    // Update UI
+    updateVolumeCount();
+    updateModalVolumeInfo();
 
-            Swal.fire({
-                title: 'Error',
-                text: errorMessage,
-                icon: 'error',
-                buttonsStyling: false,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'btn btn-secondary'
-                }
-            });
-        }
-    });
+    console.log('Temporary volume removed:', tempId);
+}
+
+/**
+ * Mark existing volume for removal
+ */
+function markVolumeForRemoval(buttonElement, volumeId, volumeNumber) {
+    const volumeCard = buttonElement.closest('.volume-card-item');
+    const volumeElement = buttonElement.closest('.volume-item');
+
+    // Add to removed volumes list
+    if (!temporaryVolumeChanges.removed_volumes.includes(volumeId)) {
+        temporaryVolumeChanges.removed_volumes.push(volumeId);
+    }
+
+    // Update UI to show removal status
+    const statusBadge = volumeElement.querySelector('.badge');
+    statusBadge.className = 'badge badge-light-danger';
+    statusBadge.innerHTML = '<i class="bi bi-trash me-1"></i>Akan Dihapus';
+
+    // Disable edit button
+    const editButton = volumeElement.querySelector('button[onclick*="editVolumeDetails"]');
+    if (editButton) {
+        editButton.disabled = true;
+        editButton.className = 'btn btn-secondary btn-sm w-100';
+        editButton.innerHTML = '<i class="bi bi-ban me-1"></i>Akan Dihapus';
+    }
+
+    // Change remove button to undo button
+    const removeButton = volumeElement.querySelector('button[onclick*="removeVolume"]');
+    if (removeButton) {
+        removeButton.className = 'btn btn-light-warning btn-sm';
+        removeButton.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i>';
+        removeButton.title = 'Batal hapus';
+        removeButton.setAttribute('onclick', `undoVolumeRemoval(this, '${volumeId}', ${volumeNumber})`);
+    }
+
+    console.log('Volume marked for removal:', volumeId);
+}
+
+/**
+ * Undo volume removal
+ */
+function undoVolumeRemoval(buttonElement, volumeId, volumeNumber) {
+    const volumeElement = buttonElement.closest('.volume-item');
+
+    // Remove from removed volumes list
+    temporaryVolumeChanges.removed_volumes = temporaryVolumeChanges.removed_volumes.filter(
+        id => id !== volumeId
+    );
+
+    // Restore UI to original state
+    const statusBadge = volumeElement.querySelector('.badge');
+    statusBadge.className = 'badge badge-light-success';
+    statusBadge.innerHTML = '<i class="bi bi-check-circle me-1"></i>Dikonfigurasi';
+
+    // Re-enable edit button
+    const editButton = volumeElement.querySelector('button[onclick*="editVolumeDetails"]');
+    if (editButton) {
+        editButton.disabled = false;
+        editButton.className = 'btn btn-light-primary btn-sm w-100';
+        editButton.innerHTML = '<i class="bi bi-pencil-square me-1"></i>Edit Volume';
+    }
+
+    // Change undo button back to remove button
+    const undoButton = volumeElement.querySelector('button[onclick*="undoVolumeRemoval"]');
+    if (undoButton) {
+        undoButton.className = 'btn btn-light-danger btn-sm';
+        undoButton.innerHTML = '<i class="bi bi-trash"></i>';
+        undoButton.title = 'Hapus volume';
+        undoButton.setAttribute('onclick', `removeVolume(this, '${volumeId}')`);
+    }
+
+    console.log('Volume removal undone:', volumeId);
+}
+
+/**
+ * Format period helper
+ */
+function formatPeriod(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    
+    return start.toLocaleDateString('id-ID', options) + ' - ' + end.toLocaleDateString('id-ID', options);
 }
 
 /**
@@ -1923,73 +1983,11 @@ function updateNoVolumeMessage() {
 }
 
 /**
- * Update volume select options in modal
- */
-// function updateModalVolumeSelect(currentVolumeNumbers, totalVolumeQty) {
-//     const select = document.getElementById('volumeNumberSelect');
-//     if (!select) return;
-    
-//     // Clear existing options except the first one
-//     const options = select.querySelectorAll('option');
-//     for (let i = 1; i < options.length; i++) {
-//         options[i].remove();
-//     }
-
-//     // Add available volume options
-//     let availableCount = 0;
-//     for (let i = 1; i <= totalVolumeQty; i++) {
-//         if (!currentVolumeNumbers.includes(i)) {
-//             const option = document.createElement('option');
-//             option.value = i;
-//             option.textContent = `Volume ${i}`;
-//             select.appendChild(option);
-//             availableCount++;
-//         }
-//     }
-    
-//     console.log('Modal select updated, available options:', availableCount);
-    
-//     // Reset select value
-//     select.value = '';
-    
-//     // Update summary
-//     const summaryContainer = document.getElementById('addVolumeSummary');
-//     if (summaryContainer) {
-//         summaryContainer.style.display = 'none';
-//     }
-// }
-
-/**
- * Update volume numbering after removal
- */
-// function updateVolumeNumbering() {
-//     const volumeCards = document.querySelectorAll('.volume-item');
-    
-//     volumeCards.forEach((card, index) => {
-//         const volumeNumber = index + 1;
-//         const header = card.querySelector('h5');
-//         if (header) {
-//             header.innerHTML = `<i class="bi bi-folder-fill text-primary me-2"></i>Volume ${volumeNumber}`;
-//         }
-
-//         // Update hidden input for volume number
-//         const volumeNumberInput = card.querySelector('input[name*="[volume_number]"]');
-//         if (volumeNumberInput) {
-//             volumeNumberInput.value = volumeNumber;
-//         }
-//     });
-
-//     // Update maxVolumeNumber
-//     maxVolumeNumber = volumeCards.length;
-// }
-
-/**
  * Edit volume details - rediect to volume detail page
  */
 function editVolumeDetails(volumeId) {
     if (volumeId && !volumeId.toString().startsWith('new_')) {
         const referrerUrl = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId) + '?referrer=edit&wp_id={{ $workPackage->wp_id }}';
-        // window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId);
         window.location.href = referrerUrl;
     } else {
         Swal.fire({
