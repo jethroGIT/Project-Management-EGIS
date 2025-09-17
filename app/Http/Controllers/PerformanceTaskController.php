@@ -60,22 +60,24 @@ class PerformanceTaskController extends Controller
         
         // Hitung utilisasi untuk setiap task dan total completion
         $tasksWithUtilization = $tasks->map(function ($task) {
-            $subTasks = $task->subTask;
-
-            if ($subTasks->count() > 0) {
-                // Hitung rata-rata completion dari semua sub tasks
-                $avgCompleteness = $subTasks->avg('completeness');
-                $task->utilization = round($avgCompleteness, 2);
-            } else {
-                $task->utilization = 0;
+            if($task->completeness == null){
+                $subTasks = $task->subTask;
+    
+                if ($subTasks->count() > 0) {
+                    // Hitung rata-rata completion dari semua sub tasks
+                    $avgCompleteness = $subTasks->avg('completeness');
+                    $task->utilization = round($avgCompleteness, 2);
+                } else {
+                    $task->utilization = 0;
+                }
+            }else{
+                $task->utilization = round($task->completeness, 2);
             }
-
             return $task;
         });
-
+            
         // Hitung total % complete dari rata-rata semua tasks
-        $totalCompletion = $tasksWithUtilization->avg('utilization');
-        $totalCompletion = round($totalCompletion, 2);
+        $totalCompletion = round($tasksWithUtilization->avg('utilization'), 2);
 
         return view('performance_task', compact(
             'workPackage',

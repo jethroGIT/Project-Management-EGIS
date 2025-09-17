@@ -73,32 +73,33 @@ class WorkPackageController extends Controller
 
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
             $query->where('volume_id', $volume_id);
-        })->with(['work' => function($query) use ($volume_id) {
-            $query->where('volume_id', $volume_id)->with('role');
-        }])
-        ->withCount(['timesheets' => function ($query) use ($volume_id) {
-            // Filter timesheet berdasarkan volume_id dan bulan yang dipilih
-            $query->where('volume_id', $volume_id);
-        }])
-        ->get()
+        })->with([
+            'work' => function($query) use ($volume_id) {
+                $query->where('volume_id', $volume_id)->with('role');
+            },
+            'timesheets' => function($query) use ($volume_id) {
+                $query->where('volume_id', $volume_id);
+            }
+        ])->get()
         ->map(function ($user) use ($workPackage, $volume_id) {
-            // $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
             $workRecord = $user->work->where('volume_id', $volume_id)->first();
             $roleId = $workRecord->role_id ?? null;
             $roleName = $workRecord->role->name ?? 'No Role';
 
             $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
-                                            ->where('role_id', $roleId)
-                                            ->first();
+                ->where('role_id', $roleId)
+                ->first();
+
+            // Hitung total durasi timesheet (mandays) untuk user pada volume ini
+            $timesheetsCount = $user->timesheets->sum('duration');
 
             return [
                 'user_id' => $user->user_id,
                 'name' => $user->name,
-                // 'role_name' => $user->roles->get(1)?->name ?? $user->roles->first()?->name ?? 'No Role',
                 'role_name' => $roleName,
                 'role_id' => $roleId,
                 'jhk' => $humanResource ? $humanResource->jhk : null,
-                'timesheets_count' => $user->timesheets->sum('duration'),
+                'timesheets_count' => $timesheetsCount,
             ];
         });
 
@@ -221,15 +222,20 @@ class WorkPackageController extends Controller
 
         // Hitung total completion dari task performance
         $tasks = $volume->task;
-        $totalCompletion = 0;
 
         $tasksWithUtilization = $tasks->map(function ($task) {
-            $subTasks = $task->subTask;
-            if ($subTasks->count() > 0) {
-                $avgCompleteness = $subTasks->avg('completeness');
-                $task->utilization = round($avgCompleteness, 2);
-            } else {
-                $task->utilization = 0;
+            if($task->completeness == null){
+                $subTasks = $task->subTask;
+    
+                if ($subTasks->count() > 0) {
+                    // Hitung rata-rata completion dari semua sub tasks
+                    $avgCompleteness = $subTasks->avg('completeness');
+                    $task->utilization = round($avgCompleteness, 2);
+                } else {
+                    $task->utilization = 0;
+                }
+            }else{
+                $task->utilization = round($task->completeness, 2);
             }
             return $task;
         });
