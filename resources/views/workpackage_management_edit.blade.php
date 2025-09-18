@@ -807,13 +807,12 @@ function saveWorkPackage() {
             return;
         }
     }
-    // BATAS
 
     formData.append('wp_sequence', $('#edit_wp_sequence').val());
 
-    if (Object.keys(temporaryAssignments).length > 0) {
-        formData.append('work_order_assignments', JSON.stringify(temporaryAssignments));
-    }
+    // if (Object.keys(temporaryAssignments).length > 0) {
+    //     formData.append('work_order_assignments', JSON.stringify(temporaryAssignments));
+    // }
 
     // Volume changes to FormData
     if (temporaryVolumeChanges.new_volumes.length > 0 || temporaryVolumeChanges.removed_volumes.length > 0) {
@@ -998,7 +997,6 @@ function addHumanResource() {
                 </div>
             </div>
         </div>
-
     `;
 
     container.insertAdjacentHTML('beforeend', resourceHtml);
@@ -1377,7 +1375,6 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
 }
 
 /** VOLUME MANAGEMENT */
-// Latest 2 Volume Management
 /**
  * Open add volume modal
  */
@@ -1634,23 +1631,7 @@ $(document).ready(function() {
 function updateModalVolumeInfo() {
     const totalVolumeQty = {{ $totalVolumeQty }};
     const currentVolumes = document.querySelectorAll('.volume-item').length;
-    // const currentVolumeNumbers = [];
     const availableCount = totalVolumeQty - currentVolumes;
-
-    // Get current volume numbers
-    // currentVolumeNumbers.forEach(volume => {
-    //     const titleElement = volume.querySelector('h5');
-    //     if (titleElement) {
-    //         const match = titleElement.textContent.match(/Volume (\d+)/);
-    //         if (match) {
-    //             currentVolumeNumbers.push(parseInt(match[1]));
-    //         }
-    //     }
-    // });
-
-    // Update available volume info
-    // const availableCount = totalVolumeQty - currentVolumeNumbers.length;
-    // const remainingSlots = availableCount;
     
     // Update modal elements if they exist
     const availableInfo = document.getElementById('availableVolumeInfo');
@@ -1930,9 +1911,9 @@ function updateVolumeCount() {
     const volumeCount = volumeCards.length;
     const totalVolumeQty = {{ $totalVolumeQty }};
 
-    console.log('=== Volume Count Debug ===');
-    console.log('Volume cards found:', volumeCount);
-    console.log('Total volume qty:', totalVolumeQty);
+    // console.log('=== Volume Count Debug ===');
+    // console.log('Volume cards found:', volumeCount);
+    // console.log('Total volume qty:', totalVolumeQty);
 
     // Update header title
     const volumeManagementCard = document.querySelector('.card-flush.shadow-sm.mb-6:has(.bi-collection)');
