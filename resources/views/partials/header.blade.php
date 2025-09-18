@@ -376,15 +376,6 @@
                         <div class="separator my-2"></div>
                         <!--end::Menu separator-->
                         <!--begin::Menu item-->
-                        <div class="menu-item px-5 my-1">
-                            <a
-                                class="menu-link px-5"
-                                href="../../demo14/dist/account/settings.html"
-                                >Account Settings</a
-                            >
-                        </div>
-                        <!--end::Menu item-->
-                        <!--begin::Menu item-->
                         <div class="menu-item px-5">
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                                 @csrf

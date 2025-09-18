@@ -105,18 +105,22 @@
                                     <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
                                 </div>
                                 <div class="card-body p-1">
-                                    <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
-                                        @if(isset($assignedUsers) && $assignedUsers->count() > 0)
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        @if(isset($assignedUsers) && ($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
                                             @php
                                                 $currentUser = $assignedUsers->firstWhere('user_id', auth()->user()->user_id);
                                             @endphp
-                                            <div class="mini-mandays-card">
+                                            <div class="mini-mandays-card h-100 mb-3">
                                                 <div class="mb-1" style="font-size: 1.1rem;">Rencana</div>
                                                 <div class="fs-2 text-success">{{ $currentUser['jhk'] ?? 0 }}</div>
                                             </div>
-                                            <div class="mini-mandays-card">
+                                            <div class="mini-mandays-card h-100 mb-3">
                                                 <div class="mb-1" style="font-size: 1.1rem;">Realisasi</div>
                                                 <div class="fs-2 text-success">{{ $currentUser['timesheets_count'] ?? 0 }}</div>
+                                            </div>
+                                        @else
+                                            <div style="height: 80px">
+                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->wp_number }}</span>
                                             </div>
                                         @endif
                                     </div>
@@ -127,7 +131,7 @@
 
                     <!-- Timesheet Button -->
                     <div class="d-flex justify-content-end mb-4">
-                        @if(auth()->user()->hasRole('admin'))
+                        @if(auth()->user()->hasRole('admin') || isset($assignedUsers) && !($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
                             <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
                                 Timesheet
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
