@@ -546,7 +546,7 @@
                                 <h3 class="card-title fw-bold">Actual Scope</h3>
                             </div>
                             <p class="mb-0 fs-6 text-dark fw-semibold">
-                                @if(isset($workPackage))
+                                @if(!empty($workPackage->actual_scope_contract))
                                     {{ $workPackage->actual_scope_contract ?? 'N/A' }}
                                 @else
                                     <p class="text-muted">
@@ -592,7 +592,7 @@
                                 <h3 class="card-title fw-bold">Deliverables</h3>
                             </div>
                             <div class="mb-2 fs-7">
-                                @if(isset($workPackage))
+                                @if(!empty($workPackage->deliverable))
                                     {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
                                 @else
                                     <p class="text-muted">

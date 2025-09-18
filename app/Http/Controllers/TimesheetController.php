@@ -110,7 +110,13 @@ class TimesheetController extends Controller
                 'jhk' => $humanResource ? $humanResource->jhk : null,
                 'realisasiMandays' => $user->timesheets->where('volume_id', $volume_id)->sum('duration'),
             ];
-        });
+        })->groupBy('role_id')
+        ->sortKeys() // urutkan role_id ascending
+        ->map(function($group) {
+            return $group->sortBy('user_id')->values(); // urutkan user_id ascending di setiap role
+        })
+        ->flatten(1) // gabungkan semua group jadi satu array
+        ->values();
 
         // menghitung jumlah aktivitas untuk setiap role
         $timesheetCountPerRole = $timesheets->groupBy(function ($entry) {

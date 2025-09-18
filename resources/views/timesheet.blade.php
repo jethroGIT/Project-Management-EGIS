@@ -85,7 +85,7 @@
                                         <th scope="col" style="width: 20px;">No</th>
                                         <th scope="col" style="width: 40px; min-width: 20px;">Tanggal</th>
                                         @foreach($assignedUsers as $user)
-                                            <th scope="col" style="width: 100px;">
+                                            <th scope="col" style="min-width: 100px;">
                                                 {{ $user['name'] }}
                                                 {{-- @php
                                                     // Menggunakan first() untuk mendapatkan role pertama jika ada
@@ -106,7 +106,7 @@
                                         <th scope="row">{{$loop->index+1}}</th>
                                         <td>{{\Carbon\Carbon::parse($date)->format('d')}}</td>
                                         @foreach($usersInSelectedMonth as $user)
-                                            <td>
+                                            <td >
                                                 @php
                                                     $userEntry = $entries->where('user_id', $user->user_id)->first();
                                                 @endphp

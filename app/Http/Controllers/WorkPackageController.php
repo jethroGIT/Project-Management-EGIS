@@ -90,7 +90,6 @@ class WorkPackageController extends Controller
                 ->where('role_id', $roleId)
                 ->first();
 
-            // Hitung total durasi timesheet (mandays) untuk user pada volume ini
             $timesheetsCount = $user->timesheets->sum('duration');
 
             return [
@@ -101,7 +100,24 @@ class WorkPackageController extends Controller
                 'jhk' => $humanResource ? $humanResource->jhk : null,
                 'timesheets_count' => $timesheetsCount,
             ];
-        });
+        })
+        ->groupBy('role_id')
+        ->sortKeys() // urutkan role_id ascending
+        ->map(function($group) {
+            return $group->sortBy('user_id')->values(); // urutkan user_id ascending di setiap role
+        })
+        ->flatten(1) // gabungkan semua group jadi satu array
+        ->values();
+
+        // Logging korelasi role_id dengan user_id
+        foreach ($assignedUsers as $au) {
+            \Log::info('User-Role Mapping', [
+                'user_id' => $au['user_id'],
+                'role_id' => $au['role_id'],
+                'role_name' => $au['role_name'],
+                'name' => $au['name']
+            ]);
+        }
 
         // Ambil assigned role ID dari Human Resources untuk work package ini
         $assignedRoleIds = $humanResources->pluck('role_id')->unique()->values()->toArray();

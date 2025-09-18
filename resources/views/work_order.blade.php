@@ -477,10 +477,6 @@
         const table = $('#table_work_order').DataTable({
             scrollY: '350px',
             scrollX: true,
-            fixedHeader: {
-                header: true,
-                headerOffset: 70
-            },
             ordering: false, 
             rowGroup: {
                 dataSrc: 0,
@@ -501,10 +497,6 @@
         const table = $('#table_summary_work_order').DataTable({
             scrollY: 'auto',
             scrollX: true,
-            // fixedHeader: {
-            //     header: true,
-            //     headerOffset: 20
-            // },
             resposive: true,
             paging: false,
             ordering: false, 

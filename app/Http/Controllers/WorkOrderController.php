@@ -13,12 +13,18 @@ class WorkOrderController extends Controller
 {
     public function index(){
         $workPackages = WorkPackage::with(['workPackageVolumes.workOrder', 'workPackageVolumes', 'wpCategory'])
-            ->orderBy('wp_id', 'asc')
-            ->get();
+            ->get()
+            ->sortBy(function($wp) {
+                // Urutkan dulu berdasarkan nomor kategori, lalu nomor WP
+                $catNum = $wp->wpCategory->category_number ?? 9999;
+                $wpNum = is_numeric($wp->wp_number) ? floatval($wp->wp_number) : $wp->wp_number;
+                return sprintf('%04d-%s', $catNum, $wpNum);
+            })
+            ->values();
 
-        $workPackages = $workPackages->sortBy(function($wp) {
-            return $wp->wpCategory->name ?? '-';
-        });
+        // $workPackages = $workPackages->sortBy(function($wp) {
+        //     return $wp->wpCategory->name ?? '-';
+        // });
         
         $workOrders = WorkOrder::with('workPackageVolumes')->orderBy('wo_number', 'asc')->get();
 

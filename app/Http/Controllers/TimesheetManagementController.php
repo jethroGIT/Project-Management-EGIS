@@ -46,9 +46,8 @@ class TimesheetManagementController extends Controller
         $users = $timesheets->pluck('user')
             ->filter() // pastikan user tidak null
             ->unique('user_id')
-            ->sortBy(function($user) {
-                return $user->roles->get(1)?->id ?? $user->roles->first()?->id ?? 0;
-            })->values();
+            ->sortBy('user_id')
+            ->values();
 
         // Pemendekan nama untuk $users
         $usedShortNames = [];

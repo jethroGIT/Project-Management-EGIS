@@ -93,7 +93,7 @@
                             <th scope="col" style="width: 30px;">Vol</th>
                             <th scope="col" style="width: 75px; min-width: 35px;">Tanggal</th>
                             @foreach($users as $user)
-                                <th scope="col" style="min-width: 80px;">
+                                <th scope="col">
                                     @php
                                         // Menggunakan first() untuk mendapatkan role pertama jika ada
                                         $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
@@ -130,7 +130,7 @@
                                         $userEntry = $group->firstWhere('user_id', $user->user_id);
                                     @endphp
                                     @if($userEntry)
-                                        <td>
+                                        <td style="min-width: 120px;">
                                             @if($userEntry->duration == 1.0)
                                                 <span class="badge badge-light-info mb-1">{{ $userEntry->duration }} Hari</span></br>
                                             @elseif($userEntry->duration == 0.5)
@@ -141,7 +141,7 @@
                                             <span>{{ $userEntry->activity}}</span>
                                         </td>
                                     @else
-                                        <td class="text-center">-</td>
+                                        <td class="text-center text-muted">-</td>
                                     @endif
                                 @endforeach
 

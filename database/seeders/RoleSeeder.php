@@ -61,7 +61,7 @@ class RoleSeeder extends Seeder
                 'name' => 'admin', 
                 'guard_name' => 'web',
                 'alt_name' => 'administrator', 
-                'desc' => 'memiliki akses penuh'
+                'desc' => null
             ],
             [
                 'name' => 'karyawan', 

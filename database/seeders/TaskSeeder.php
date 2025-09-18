@@ -96,91 +96,32 @@ class TaskSeeder extends Seeder
                 'status' => 'open',
                 'completeness' => null,
             ],
-            // 6.2 task 14-26
+            // 6.2 task 14-17
             [
                 'volume_id' => 5,
-                'name' => 'INISIASI/HASIL PENDEFINISIAN LINGKUP - Kick Off Meeting Pendampingan Surveillance 2025',
-                'status' => 'closed',
-                'completeness' => 100.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'INISIASI/HASIL PENDEFINISIAN LINGKUP - Review dan Revisi SPRINT SMKI 2025',
-                'status' => 'closed',
-                'completeness' => 100.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'INISIASI/HASIL PENDEFINISIAN LINGKUP - Review Core Records ISMS untuk tahun 2025',
+                'name' => 'INISIASI/HASIL PENDEFINISIAN LINGKUP',
                 'status' => 'open',
                 'completeness' => null,
             ],
             [
                 'volume_id' => 5,
-                'name' => 'INISIASI/HASIL PENDEFINISIAN LINGKUP - Review STK terkait ISMS untuk tahun 2025:
-                            a. Memastikan seluruh Pedoman SMKI masih relevan
-                            b. Membangun STK untuk Configuration Management
-                            c. Membangun STK untuk Monitoring, evaluation (MEAP) ISMS
-                            d. Revisit TKO Incident Handling
-                            e. Revisit STK terkait Asset Management',
-                'status' => 'open',
-                'completeness' => 70.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'PERSIAPAN - Review Internal & External Audit 2024 PTP Progress',
-                'status' => 'closed',
-                'completeness' => 100.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'PERSIAPAN - Workshop Persiapan Pemenuhan Evidence',
-                'status' => 'closed',
-                'completeness' => 100.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'PERSIAPAN - Monitoring Pemenuhan Evidence',
-                'status' => 'open',
-                'completeness' => 25.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'PERSIAPAN - Workshop Check-Point & Preparation Surveillance Audit',
+                'name' => 'PERSIAPAN',
                 'status' => 'open',
                 'completeness' => null,
             ],
             [
                 'volume_id' => 5,
-                'name' => 'PELAKSANAAN - Pendampingan Internal Audit',
+                'name' => 'PELAKSANAAN',
                 'status' => 'open',
                 'completeness' => null,
             ],
             [
                 'volume_id' => 5,
-                'name' => 'PELAKSANAAN - Pendampingan Management Review',
-                'status' => 'open',
-                'completeness' => 50.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'PELAKSANAAN - Pendampingan External Surveillance Audit',
+                'name' => 'PENINJAUAN',
                 'status' => 'open',
                 'completeness' => null,
             ],
-            [
-                'volume_id' => 5,
-                'name' => 'PENINJAUAN - Progress Monitoring (Weekly report)',
-                'status' => 'open',
-                'completeness' => 50.00,
-            ],
-            [
-                'volume_id' => 5,
-                'name' => 'PENINJAUAN - Pelaporan Akhir',
-                'status' => 'open',
-                'completeness' => null,
-            ],
-            // 9.1 task 27-56
+            // 9.1 task 18-47
             ['volume_id' => 6,'name' => 'POKOK-POKOK PERJANJIAN','status' => 'closed','completeness' => 100.00,],
             ['volume_id' => 6,'name' => 'Serbaaneka informasi','status' => 'closed','completeness' => 100.00,],
             ['volume_id' => 6,'name' => 'Lampiran A: KETENTUAN – KETENTUAN UMUM','status' => 'closed','completeness' => 100.00,],

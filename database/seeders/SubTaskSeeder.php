@@ -116,25 +116,59 @@ class SubTaskSeeder extends Seeder
             ['task_id' => 13,'name' => '- Perancangan Component Security Architecture','completeness' => 90.00],
             ['task_id' => 13,'name' => '- Perancangan Operational Security Architecture','completeness' => 90.00],
             // 6.2
-            ['task_id' => 16, 'name' => 'ISMS Manual ', 'completeness' => 90.00],
-            ['task_id' => 16, 'name' => '  a. Internal and External Issue ', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => '  b. Scope ', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => '  c. Resources ', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => '  d. Lampiran 2 - Vendor ', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => 'ISMS Manual Appendix - IS Objective + Monitoring ', 'completeness' => 90.00],
-            ['task_id' => 16, 'name' => 'ISMS Manual Appendix - IS Comunication + Monitoring ', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => 'IS Risk Register ', 'completeness' => 90.00],
-            ['task_id' => 16, 'name' => 'SOA ', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => 'IT Asset Register', 'completeness' => 80.00],
-            ['task_id' => 16, 'name' => 'Regulation register', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => 'Capacity Plan', 'completeness' => 80.00],
-            ['task_id' => 16, 'name' => 'IS Competency Matrix', 'completeness' => 95.00],
-            ['task_id' => 16, 'name' => 'ISMS RASCI', 'completeness' => 100.00],
-            ['task_id' => 16, 'name' => 'ISMS Charter ', 'completeness' => 100.00],
+            ['task_id' => 14, 'name' => 'Kick Off Meeting Pendampingan Surveillance 2025', 'completeness' => 100.00],
+            ['task_id' => 14, 'name' => 'Review dan Revisi SPRINT SMKI 2025', 'completeness' => 100.00],
 
-            ['task_id' => 21, 'name' => 'a. Workshop Check-Point Pemenuhan Evidence (Mercure)', 'completeness' => 100.00],
-            ['task_id' => 21, 'name' => 'b. Workshop Persiapan Internal Audit', 'completeness' => 0.00],
-            ['task_id' => 21, 'name' => 'c. Workshop Persiapan MR & External Audit', 'completeness' => 0.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            ISMS Manual ', 'completeness' => 90.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            a. Internal and External Issue ', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            b. Scope ', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            c. Resources ', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            d. Lampiran 2 - Vendor ', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            ISMS Manual Appendix - IS Objective + Monitoring ', 'completeness' => 90.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            ISMS Manual Appendix - IS Comunication + Monitoring ', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            IS Risk Register ', 'completeness' => 90.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            SOA ', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            IT Asset Register', 'completeness' => 80.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            Regulation register', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            Capacity Plan', 'completeness' => 80.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            IS Competency Matrix', 'completeness' => 95.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            ISMS RASCI', 'completeness' => 100.00],
+            ['task_id' => 14, 'name' => 'Review Core Records ISMS untuk tahun 2025:
+            ISMS Charter ', 'completeness' => 100.00],
+            ['task_id' => 14, 'name' => 'Review STK terkait ISMS untuk tahun 2025:
+            a. Memastikan seluruh Pedoman SMKI masih relevan
+            b. Membangun STK untuk Configuration Management
+            c. Membangun STK untuk Monitoring, evaluation (MEAP) ISMS
+            d. Revisit TKO Incident Handling
+            e. Revisit STK terkait Asset Management', 'completeness' => 70.00],
+
+            ['task_id' => 15, 'name' => 'Review Internal & External Audit 2024 PTP Progress', 'completeness' => 100.00],
+            ['task_id' => 15, 'name' => 'Workshop Persiapan Pemenuhan Evidence', 'completeness' => 100.00],
+            ['task_id' => 15, 'name' => 'Monitoring Pemenuhan Evidence', 'completeness' => 25.00],
+            ['task_id' => 15, 'name' => 'Workshop Check-Point & Preparation Surveillance Audit:a. Workshop Check-Point Pemenuhan Evidence (Mercure)', 'completeness' => 100.00],
+            ['task_id' => 15, 'name' => 'Workshop Check-Point & Preparation Surveillance Audit:b. Workshop Persiapan Internal Audit', 'completeness' => 0.00],
+            ['task_id' => 15, 'name' => 'Workshop Check-Point & Preparation Surveillance Audit:c. Workshop Persiapan MR & External Audit', 'completeness' => 0.00],
+
+            ['task_id' => 16, 'name' => 'Pendampingan Internal Audit', 'completeness' => 0.00],
+            ['task_id' => 16, 'name' => 'Pendampingan Management Review', 'completeness' => 50.00],
+            ['task_id' => 16, 'name' => 'Pendampingan External Surveillance Audit', 'completeness' => 0.00],
+
+            ['task_id' => 17, 'name' => 'Progress Monitoring (Weekly report)', 'completeness' => 50.00],
+            ['task_id' => 17, 'name' => 'Pelaporan Akhir', 'completeness' => 0.00],
             // 9.1
         ];
 

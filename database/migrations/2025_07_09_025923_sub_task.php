@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sub_task', function (Blueprint $table) {
             $table->id('sub_task_id');
             $table->unsignedBigInteger('task_id');
-            $table->string('name');
+            $table->text('name');
             $table->decimal('completeness', 5, 2)->default(0.00);
             $table->timestamps();
 
