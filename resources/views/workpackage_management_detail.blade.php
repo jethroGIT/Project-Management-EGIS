@@ -261,21 +261,31 @@
         <div class="card-body py-0">
             @if($humanResourcesData->count() > 0)
                 <div class="table-responsive mb-6">
-                    <table class="table table-striped table-hover border gy-4 gs-7 rounded">
+                    <table class="table table-row-bordered table-hover border gy-4 gs-7 rounded">
                         <thead>
-                            <tr class="fw-bold text-gray-800">
-                                <th>Peran</th>
+                            <tr class="fw-bold fs-4 text-gray-1000 bg-light">
+                                <th></th>
+                                <th style="width: 170px;">Peran</th>
+                                <th style="width: 170px;">SDM</th>
                                 <th class="text-center">JTK (Jumlah Tenaga Kerja)</th>
                                 <th class="text-center">JHK (Jumlah Hari Kerja)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($humanResourcesData as $hr)
-                                <tr>
+                            @foreach($humanResourcesData as $index => $hr)
+                                <tr class="role-row">
+                                    <td style="cursor:pointer;">
+                                        <a class="toggle-collapse" data-bs-toggle="collapse" data-bs-target="#role{{ $hr['hr_id'] }}-details" aria-expanded="false" aria-controls="role{{ $hr['hr_id'] }}-details">
+                                            <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-role{{ $hr['hr_id'] }}"></i>
+                                        </a>
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             {{ $hr['role_name'] }}
                                         </div>
+                                    </td>
+                                    <td>
+                                        
                                     </td>
                                     <td class="text-center">
                                         <span class="badge badge-light-primary badge-lg">{{ $hr['jtk'] }} Orang</span>
@@ -284,6 +294,28 @@
                                         <span class="badge badge-light-success badge-lg">{{ $hr['jhk'] }} Hari</span>
                                     </td>
                                 </tr>
+
+                                @if($hr['assigned_users']->count() > 0)
+                                    @foreach($hr['assigned_users'] as $user)
+                                        <tr class="collapse deskripsi-row" id="role{{ $hr['hr_id'] }}-details">
+                                            <td></td>
+                                            <td></td>
+                                            <td>
+                                                {{ $user['name'] }}
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr class="collapse deskripsi-row" id="role{{ $hr['hr_id'] }}-details">
+                                        <td></td>
+                                        <td colspan="4" class="text-center text-muted py-3">
+                                            <i class="bi bi-person-x me-2"></i>
+                                            Belum ada SDM yang di-assign untuk jabatan ini
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>
@@ -425,6 +457,19 @@
 
 @push('scripts')
 <script>
+$(document).ready(function() {
+    @if(isset($humanResourcesData) && $humanResourcesData->count() > 0)
+        @foreach($humanResourcesData as $hr)
+            $('#role{{ $hr['hr_id'] }}-details').on('show.bs.collapse', function () {
+                $('#icon-role{{ $hr['hr_id'] }}').removeClass('bi-plus').addClass('bi-dash');
+            });
+            $('#role{{ $hr['hr_id'] }}-details').on('hide.bs.collapse', function () {
+                $('#icon-role{{ $hr['hr_id'] }}').removeClass('bi-dash').addClass('bi-plus');
+            });
+        @endforeach
+    @endif
+});
+
 /**
  * Function untuk edit work package (placeholder)
  */

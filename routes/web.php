@@ -19,6 +19,7 @@ use App\Http\Controllers\TimesheetManagementController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WPCategoryManagementController;
 use App\Http\Controllers\WorkPackageManagementController;
+use App\Http\Controllers\WOContentListController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -38,17 +39,9 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
     Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
     Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
-    Route::get('/wp-management/volume/{volume_id}/check-associations', [WorkPackageManagementController::class, 'checkVolumeAssociations'])->name('wp-management.check-volume-associations');
-    Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');
     Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
     Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
     Route::get('/wp-management/check-role-assignments', [WorkPackageManagementController::class, 'checkRoleAssignments'])->name('wp-management.check-role-assignments');
-    Route::get('/wp-management/available-work-orders', [WorkPackageManagementController::class, 'getAvailableWorkOrders'])->name('wp-management.available-work-orders');
-    Route::post('/wp-management/assign-work-order', [WorkPackageManagementController::class, 'assignWorkOrder'])->name('wp-management.assign-work-order');
-    Route::get('/wp-management/next-wo-number', [WorkPackageManagementController::class, 'getNextWoNumber'])->name('wp-management.next-wo-number');
-    Route::get('/wp-management/check-wo-number', [WorkPackageManagementController::class, 'checkWoNumberAvailability'])->name('wp-management.check-wo-number');
-    Route::post('/wp-management/assign-volume-with-wo', [WorkPackageManagementController::class, 'assignVolumeWithWorkOrder'])->name('wp-management.assign-volume-with-wo');
-    Route::delete('/wp-management/remove-wo-from-volume/{volume_id}', [WorkPackageManagementController::class, 'removeVolume'])->name('wp-management.remove-wo-from-volume');
 
     // manajemen kategori work package
     Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
@@ -134,6 +127,8 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     // work package volume page
     Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
     Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
+
+    Route::get('/work-order/{wo_id}/content', [WOContentListController::class, 'index'])->name('wo.content-list');
 });
 
 Route::middleware(['auth', 'role:karyawan'])->group(function(){
