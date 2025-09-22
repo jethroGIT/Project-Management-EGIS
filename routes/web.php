@@ -20,6 +20,7 @@ use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WPCategoryManagementController;
 use App\Http\Controllers\WorkPackageManagementController;
 use App\Http\Controllers\WOContentListController;
+use App\Http\Controllers\WorkPackagesListController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -129,6 +130,9 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
 
     Route::get('/work-order/{wo_id}/content', [WOContentListController::class, 'index'])->name('wo.content-list');
+
+    // work packages list
+    Route::get('/workpackages-list', [WorkPackagesListController::class, 'index'])->name('workpackages-list');
 });
 
 Route::middleware(['auth', 'role:karyawan'])->group(function(){
