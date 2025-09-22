@@ -37,6 +37,7 @@
                     </div>
                 </div>
                 <div class="menu-item">
+                    @if(auth()->user() && auth()->user()->hasRole('admin'))
                     <a
                         class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                         href="{{ route('dashboard') }}"
@@ -92,6 +93,63 @@
                         </span>
                         <span class="menu-title">Dashboard</span>
                     </a>
+                    @else
+                    <a
+                        class="menu-link {{ request()->routeIs('dashboard-karyawan') ? 'active' : '' }}"
+                        href="{{ route('dashboard-karyawan') }}"
+                    >
+                        <span class="menu-icon">
+                            <!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+                            <span class="svg-icon svg-icon-2">
+                                <svg
+                                    fill="none"
+                                    height="24"
+                                    viewbox="0 0 24 24"
+                                    width="24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        rx="2"
+                                        width="9"
+                                        x="2"
+                                        y="2"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="13"
+                                        y="2"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="13"
+                                        y="13"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="2"
+                                        y="13"
+                                    ></rect>
+                                </svg>
+                            </span>
+                            <!--end::Svg Icon-->
+                        </span>
+                        <span class="menu-title">Dashboard</span>
+                    </a>
+                    @endif
                 </div>
                 
                 <div class="menu-item">

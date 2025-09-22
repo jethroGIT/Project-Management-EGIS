@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardKaryawanController;
 use App\Http\Controllers\PerencanaanController;
 use App\Http\Controllers\RealisasiController;
 use App\Http\Controllers\KanbanController;
@@ -136,6 +137,9 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
 });
 
 Route::middleware(['auth', 'role:karyawan'])->group(function(){
+    // dashboard karyawan
+    Route::get('/dashboard-karyawan', [DashboardKaryawanController::class, 'index'])->name('dashboard-karyawan');
+
     // timesheet activity per user
     Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
     Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
