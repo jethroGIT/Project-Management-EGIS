@@ -93,7 +93,7 @@
     </div>
     {{-- timeline --}}
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-12 mb-10">
             <div class="card h-md-100 card-flush shadow-sm mb-8">
                 <!--begin::Card header-->
                 <div class="card-header position-relative py-0 border-bottom border-bottom-1">
@@ -104,11 +104,11 @@
                 <!--begin::Card body-->
                 <div class="card-body pb-0">
                     <div class="table-responsive pb-10" style="overflow: auto; max-height: 350px;">
-                        <div class="position-relative" style="min-width:700px; height:340px;">
+                        {{-- <div class="position-relative" style="min-width:700px; height:340px;"> --}}
                             @php
                                 $bulanIndonesia = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
                                 $lebarBulan = 160; // px per bulan
-                                $totalLebar = count($bulanIndonesia) * $lebarBulan;
+                                // $totalLebar = count($bulanIndonesia) * $lebarBulan;
                                 $tinggiDiagram = 340; // px tinggi diagram
                                 $wpLabels = ['WP 1.1','WP 1.2','WP 2.1','WP 2.2','WP 2.3','WP 2.4','WP 2.5'];
                             @endphp
@@ -201,7 +201,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        {{-- </div> --}}
                     </div>
                 </div>
                 <!--end::Card body-->
