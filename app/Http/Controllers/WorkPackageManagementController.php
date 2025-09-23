@@ -37,7 +37,7 @@ class WorkPackageManagementController extends Controller
                 'workPackageVolumes' => function($query) {
                     $query->orderBy('volume_number', 'asc');
                 }
-            ])-> orderBy('wp_number', 'asc')->get();
+            ])->orderBy('wp_number', 'asc')->get();
 
             // Transform data untuk keperluan view
             $workPackagesData = $workPackages->map(function ($wp) {
@@ -49,28 +49,6 @@ class WorkPackageManagementController extends Controller
                 foreach ($wp->workPackageVolumes as $volume) {
                     foreach ($volume->work as $work) {
                         if ($work->user && $work->role) {
-                            // $userRoles = $work->user->getRoleNames();
-                            // $roleName = 'No Role';
-
-                            // if ($userRoles->contains('karyawan')) {
-                            //     // Ambil role selain 'karyawan' dan 'admin'
-                            //     $karyawanRoles = $userRoles->filter(function($roleName) {
-                            //         return $roleName !== 'karyawan' && $roleName !== 'admin';
-                            //     });
-                                
-                            //     if ($karyawanRoles->isNotEmpty()) {
-                            //         $roleName = $karyawanRoles->first();
-                            //     } else {
-                            //         $roleName = 'karyawan';
-                            //     }
-                            // } else {
-                            //     // Jika tidak ada role 'karyawan', ambil role pertama yang bukan admin
-                            //     $nonAdminRoles = $userRoles->filter(function($roleName) {
-                            //         return $roleName !== 'admin';
-                            //     });
-                            //     $roleName = $nonAdminRoles->first() ?? $userRoles->first() ?? 'No Role';
-                            // }
-
                             $resourceNames->push([
                                 'name' => $work->user->name,
                                 'role' => $work->role->name

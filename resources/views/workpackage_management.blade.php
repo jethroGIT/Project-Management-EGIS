@@ -455,7 +455,8 @@ function initTabelWPDetail() {
                 visible: false, // Kolom kategori disembunyikan karena sudah ditampilkan sebagai grup
                 searchable: true
             }
-        ]
+        ],
+        order: [[1, 'asc']]
     });
 
     // Setup search
