@@ -46,7 +46,7 @@ class AuthController extends Controller
             }else{
                 return response()->json([
                     'success' => true,
-                    'redirect' => '/dashboard-karyawan',
+                    'redirect' => '/dashboard-karyawan/' . $user->user_id,
                     'email' => $request->email,
                 ]);
             }
@@ -99,7 +99,7 @@ class AuthController extends Controller
         if($user->is_admin) {
             return redirect()->route('dashboard');
         }else{
-            return redirect()->route('dashboard-karyawan');
+            return redirect()->route('dashboard-karyawan', ['user_id' => $user->user_id]);
         }
     }
 

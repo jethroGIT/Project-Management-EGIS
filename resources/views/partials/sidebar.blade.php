@@ -95,8 +95,8 @@
                     </a>
                     @else
                     <a
-                        class="menu-link {{ request()->routeIs('dashboard-karyawan') ? 'active' : '' }}"
-                        href="{{ route('dashboard-karyawan') }}"
+                        class="menu-link {{ request()->routeIs('dashboard-karyawan', ['user_id' => Auth::user()->user_id]) ? 'active' : '' }}"
+                        href="{{ route('dashboard-karyawan', ['user_id' => Auth::user()->user_id]) }}"
                     >
                         <span class="menu-icon">
                             <!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->

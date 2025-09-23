@@ -257,7 +257,8 @@ class WorkPackageVolumeSeeder extends Seeder
             [
                 'wp_id' => 25,'volume_number' => 2,
                 'execution_year' => 2025,'wo_id' => 7,
-                'start_date' => '2025-03-04','end_date' => '2025-08-20',
+                'start_date' => '2025-03-04','end_date' => '2025-10-15',
+                // 'end_date' => '2025-08-20'
             ],
 
             // 7.1
@@ -348,7 +349,8 @@ class WorkPackageVolumeSeeder extends Seeder
             [
                 'wp_id' => 33,'volume_number' => 1,
                 'execution_year' => 2025,'wo_id' => 11,
-                'start_date' => '2025-03-04','end_date' => '2025-08-13',
+                'start_date' => '2025-03-04','end_date' => '2025-11-01',
+                // 'end_date' => '2025-08-13'
             ],
             [
                 'wp_id' => 33,'volume_number' => 2,

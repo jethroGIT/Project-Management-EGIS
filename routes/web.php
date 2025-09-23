@@ -138,7 +138,7 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
 
 Route::middleware(['auth', 'role:karyawan'])->group(function(){
     // dashboard karyawan
-    Route::get('/dashboard-karyawan', [DashboardKaryawanController::class, 'index'])->name('dashboard-karyawan');
+    Route::get('/dashboard-karyawan/{user_id}', [DashboardKaryawanController::class, 'index'])->name('dashboard-karyawan');
 
     // timesheet activity per user
     Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
