@@ -64,7 +64,7 @@
                                                 {{$wp->name}}
                                             </p>
                                             <!-- Action Button -->
-                                            <button class="btn btn-light-primary btn-sm" onclick="showDetailWP({{ $wp->wp_id }})" data-bs-toggle="modal" data-bs-target="#kt_modal_detail_wp">
+                                            <button class="btn btn-light-primary btn-sm" title="Lihat Detail" onclick="showDetailWP({{ $wp->wp_id }})" data-bs-toggle="modal" data-bs-target="#kt_modal_detail_wp">
                                                 <i class="bi bi-eye ms-2"></i>
                                             </button>
                                         </div>
@@ -135,6 +135,9 @@
 
         // Card Informasi Work Package (tetap seperti sebelumnya)
         let infoCard = `
+            <div class="mb-6 ms-2">
+                <h5>${wp.wp_number}. ${wp.name}</h5>
+            </div>
             <div class="card card-flush shadow-sm mb-6">
                 <div class="card-header py-0" style="padding-bottom: 8px;">
                     <h3 class="card-title">
