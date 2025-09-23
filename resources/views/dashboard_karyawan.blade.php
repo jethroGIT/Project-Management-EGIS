@@ -91,6 +91,123 @@
             </div>
         </div>
     </div>
+    {{-- timeline --}}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card h-md-100 card-flush shadow-sm mb-8">
+                <!--begin::Card header-->
+                <div class="card-header position-relative py-0 border-bottom border-bottom-1">
+                    <h2 class="card-title fw-bold">Periode Project</h2>
+                </div>
+                <!--end::Card header-->
+
+                <!--begin::Card body-->
+                <div class="card-body pb-0">
+                    <div class="table-responsive pb-10" style="overflow: auto; max-height: 350px;">
+                        <div class="position-relative" style="min-width:700px; height:340px;">
+                            @php
+                                $bulanIndonesia = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                                $lebarBulan = 160; // px per bulan
+                                $totalLebar = count($bulanIndonesia) * $lebarBulan;
+                                $tinggiDiagram = 340; // px tinggi diagram
+                                $wpLabels = ['WP 1.1','WP 1.2','WP 2.1','WP 2.2','WP 2.3','WP 2.4','WP 2.5'];
+                            @endphp
+                            <div style="display: flex;">
+                                <!-- Sumbu Y (Label) sticky di kiri, mulai dari atas -->
+                                <div style="position: sticky; left: 0; top: 0; z-index: 2; background: #fff; width: 110px;">
+                                    <!-- Header bulan, kosong agar sejajar dan tetap sticky -->
+                                    <div style="height: 40px;"></div>
+                                    @foreach($wpLabels as $label)
+                                        <div class="d-flex align-items-center" style="height:60px;">
+                                            <span class="text-dark fw-bold fs-4 me-2">{{ $label }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <!-- Sumbu X dan Item Diagram -->
+                                <div style="position: relative; width:780px; height: {{ $tinggiDiagram }}px;">
+                                    <!-- Sumbu X (Bulan Indonesia) sticky di atas, teks bulan di tengah-tengah garis -->
+                                    <div style="position: sticky; top: 0; z-index: 3; background: #fff;">
+                                        <div style="position: relative; height: 40px;">
+                                            @for($i = 0; $i < count($bulanIndonesia); $i++)
+                                                <div style="
+                                                    position: absolute;
+                                                    left: {{ $i * $lebarBulan }}px;
+                                                    width: {{ $lebarBulan }}px;
+                                                    height: 40px;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                ">
+                                                    <span class="fw-bold text-gray-700" style="width:100%; text-align:center;">{{ $bulanIndonesia[$i] }}</span>
+                                                </div>
+                                            @endfor
+                                            <!-- Garis vertikal pembatas bulan (absolute, membentang ke bawah) -->
+                                            @for($i = 0; $i <= count($bulanIndonesia); $i++)
+                                                <div style="
+                                                    position: absolute;
+                                                    left: {{ $i * $lebarBulan }}px;
+                                                    top: 0;
+                                                    height: {{ $tinggiDiagram }}px;
+                                                    width: 0;
+                                                    z-index: 2;
+                                                ">
+                                                    <div style="border-right:1px solid #eee; height: 100%;"></div>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    <!-- Item Diagram -->
+                                    <!-- Baris WP 1.1 -->
+                                    <div class="d-flex align-items-center" style="position: absolute; top: 40px; left: 0; height:60px;">
+                                        <div class="bg-light-primary rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan * 3 }}px;">
+                                            <span class="fw-bold text-primary">Januari - Maret</span>
+                                        </div>
+                                    </div>
+                                    <!-- Baris WP 1.2 -->
+                                    <div class="d-flex align-items-center" style="position: absolute; top: 100px; left: {{ $lebarBulan * 3 }}px; height:60px;">
+                                        <div class="bg-light-success rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan * 2 }}px;">
+                                            <span class="fw-bold text-success">April - Mei</span>
+                                        </div>
+                                    </div>
+                                    <!-- Baris WP 2.1 -->
+                                    <div class="d-flex align-items-center" style="position: absolute; top: 160px; left: {{ $lebarBulan * 5 }}px; height:60px;">
+                                        <div class="bg-light-danger rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
+                                            <span class="fw-bold text-danger">Juni</span>
+                                        </div>
+                                    </div>
+                                    <!-- Baris WP 2.2 -->
+                                    <div class="d-flex align-items-center" style="position: absolute; top: 220px; left: {{ $lebarBulan * 6 }}px; height:60px;">
+                                        <div class="bg-light-info rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan * 3 }}px;">
+                                            <span class="fw-bold text-info">Juli - September</span>
+                                        </div>
+                                    </div>
+                                    <!-- Baris WP 2.3 -->
+                                    <div class="d-flex align-items-center" style="position: absolute; top: 280px; left: {{ $lebarBulan * 9 }}px; height:60px;">
+                                        <div class="bg-light-warning rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
+                                            <span class="fw-bold text-warning">Oktober</span>
+                                        </div>
+                                    </div>
+                                    <!-- Baris WP 2.4 -->
+                                    <div class="d-flex align-items-center" style="position: absolute; top: 340px; left: {{ $lebarBulan * 10 }}px; height:60px;">
+                                        <div class="bg-light-secondary rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
+                                            <span class="fw-bold text-secondary">November</span>
+                                        </div>
+                                    </div>
+                                    <!-- Baris WP 2.5 -->
+                                    <div class="d-flex align-items-center" style="position: absolute; top: 400px; left: {{ $lebarBulan * 11 }}px; height:60px;">
+                                        <div class="bg-light-dark rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
+                                            <span class="fw-bold text-dark">Desember</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card body-->
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -151,7 +268,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         fetchStatusTimesheet();
         // Optionally, refresh setiap 30 detik
-        setInterval(fetchStatusTimesheet, 30000);
+        // setInterval(fetchStatusTimesheet, 30000);
     });
 </script>
 
