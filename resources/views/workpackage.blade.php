@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="">
     <h1 class="mt-0 mb-5">Work Package</h1>
 
     <!-- Title Section -->
@@ -16,6 +16,19 @@
                         Belum Tersedia
                     @endif
                 </p>
+
+                <!-- Informasi Volume Group -->
+                @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+                    <div class="d-flex align-items-center">
+                        <span class="badge badge-light-info badge-lg">
+                            <i class="bi bi-collection me-1"></i>
+                            {{ $volumeGroupInfo['total_volumes'] }} Volume Dikelompokkan
+                        </span>
+                        <small class="text-muted ms-2">
+                            Vol {{ implode(', ', $volumeGroupInfo['volume_numbers']) }}
+                        </small>
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -33,6 +46,20 @@
             </div>
         @endif
     </div>
+
+    <!-- Volume Group Alert -->
+    <!-- @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+        <div class="alert alert-light-info d-flex align-items-center mb-6">
+            <i class="bi bi-info-circle fs-4 me-3"></i>
+            <div>
+                <div class="fw-bold">Volume Grouped Management</div>
+                <div class="small text-muted">
+                    Volume ini tergabung dengan {{ $volumeGroupInfo['total_volumes'] - 1 }} volume lain yang memiliki 
+                    periode dan Work Order yang sama. Perubahan completion akan tersinkronisasi ke semua volume dalam grup.
+                </div>
+            </div>
+        </div>
+    @endif -->
 
     <!-- Card Kuantitas -->
     <div class="card card-flush shadow-sm mb-8">

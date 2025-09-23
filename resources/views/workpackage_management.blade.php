@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="">
     <h1 class="mt-0 mb-5">Management Kategori Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-6">

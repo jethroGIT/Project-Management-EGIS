@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="">
     <div class="mt-0 mb-5">
         <h1 class="mt-0 mb-5">Work Order</h1>
         <h4>WO {{ $workOrder->wo_number }}</h4>
@@ -14,7 +14,8 @@
                 <h3 class="fw-bold m-0">Daftar Work Package</h3>
             </div>
             <div class="card-toolbar">
-                <span class="badge badge-light-success badge-lg">{{ $volumesData->count() }} Volume</span>
+                <!-- <span class="badge badge-light-success badge-lg">{{ $volumesData->count() }} Volume</span> -->
+                <span class="badge badge-light-success badge-lg">Total Volume {{ $volumesData->sum('volume_count') }}</span>
             </div>
         </div>
         <div class="card-body py-0">
@@ -51,7 +52,21 @@
                                     <h5 class="card-title fw-bold mb-2">
                                         WP {{ $volume['wp_number'] }} {{ $volume['wp_name'] }}
                                     </h5>
-                                    <p class="badge badge-light-info badge-lg mb-3">Volume {{ $volume['volume_number'] }}</p>
+
+                                    @if($volume['volume_count'] > 1)
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge badge-light-info badge-lg me-2">
+                                                {{ $volume['volume_count'] }} Volume
+                                            </span>
+                                            <!-- <small class="text-muted">
+                                                Vol {{ implode(', ', $volume['volume_numbers']) }}
+                                            </small> -->
+                                        </div>
+                                    @else
+                                        <p class="badge badge-light-info badge-lg mb-3">
+                                            Volume ke-{{ $volume['volume_numbers'][0] }}
+                                        </p>
+                                    @endif
                                     
                                     <!-- Period -->
                                     <div class="mb-3">
@@ -66,7 +81,7 @@
                                     </div>
                                     
                                     <!-- Action Button -->
-                                    <button class="btn btn-light-primary w-100" onClick="viewVolumeDetail({{ $volume['volume_id'] }})">
+                                    <button class="btn btn-light-primary w-100" onClick="viewVolumeDetail({{ json_encode($volume['volume_ids']) }}, '{{ $volume['wp_number'] }}')">
                                         <i class="bi bi-eye me-1"></i>
                                         Lihat Detail
                                     </button>
@@ -142,9 +157,20 @@
 
 @push('scripts')
 <script>
-function viewVolumeDetail(volumeId) {
+// function viewVolumeDetail(volumeId) {
+//     // Redirect ke halaman detail volume
+//     window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId);
+// }
+function viewVolumeDetail(volumeIds, wpNumber) {
+    if (volumeIds.lenght === 1) {
+        // Jika hanya 1 volume, redirect ke halaman detail volume
+        window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeIds[0]);
+    } else {
+        // jika multiple volume, redirect ke volume pertama dengan informasi grup
+        window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeIds[0]);
+    }
     // Redirect ke halaman detail volume
-    window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId);
+    // window.location.href = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId);
 }
 
 $(document).ready(function() {

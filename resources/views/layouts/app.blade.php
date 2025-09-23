@@ -115,6 +115,7 @@ License: For each use you must have a valid license purchased only from above li
 		{{-- <script src="{{ asset('assets/js/custom/modals/create-campaign.js') }}"></script> --}}
 		<script src="{{ asset('assets/js/custom/modals/users-search.js') }}"></script>
 		<!--end::Page Custom Javascript-->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 		<!--end::Javascript-->
 		@stack('scripts')
 	</body>

@@ -41,6 +41,9 @@ class WorkPackageController extends Controller
 
     }
 
+    /**
+     * Display the detail of specific resource
+     */
     public function detail($volume_id, Request $request)
     {
         $volume = WorkPackageVolume::with([
@@ -53,6 +56,9 @@ class WorkPackageController extends Controller
         ])->findOrFail($volume_id);
 
         $workPackage = $volume->workPackage;
+
+        // Cari volume lain dalam grup yang sama
+        $volumeGroupInfo = $this->getVolumeGroupInfo($volume);
 
         $humanResources = HumanResource::with('role')
             ->where('wp_id', $workPackage->wp_id)
@@ -256,6 +262,7 @@ class WorkPackageController extends Controller
             return $task;
         });
 
+        $totalCompletion = 0;
         if ($tasksWithUtilization->count() > 0) {
             $totalCompletion = round($tasksWithUtilization->avg('utilization'), 2);
         }
@@ -344,8 +351,40 @@ class WorkPackageController extends Controller
             'availableUsersDropdown',
             'humanResourcesByRole',
             'roleCapacity',
-            'currentAssignments'
+            'currentAssignments',
+            'volumeGroupInfo'
         ));
+    }
+
+    /**
+     * Get volume group information
+     */
+    private function getVolumeGroupInfo($volume)
+    {
+        $relatedVolumes = WorkPackageVolume::where('volume_id', '!=', $volume->volume_id)
+            ->where('wo_id', $volume->wo_id)
+            ->where('start_date', $volume->start_date)
+            ->where('end_date', $volume->end_date)
+            ->where('execution_year', $volume->execution_year)
+            ->orderBy('volume_number')
+            ->get();
+
+        $allVolumeNumbers = collect([$volume->volume_number])
+            ->merge($relatedVolumes->pluck('volume_number'))
+            ->sort()
+            ->values()
+            ->toArray();
+
+        return [
+            'is_grouped' => $relatedVolumes->count() > 0,
+            'total_volumes' => $relatedVolumes->count() + 1,
+            'volume_numbers' => $allVolumeNumbers,
+            'related_volume_ids' => $relatedVolumes->pluck('volume_id')->toArray(),
+            'wo_number' => optional($volume->workOrder)->wo_number,
+            'period_formatted' => $volume->start_date && $volume->end_date ? 
+                Carbon::parse($volume->start_date)->format('d M Y') . ' - ' . Carbon::parse($volume->end_date)->format('d M Y') : 
+                'Belum tersedia'
+        ];
     }
 
     /**
@@ -1013,30 +1052,6 @@ class WorkPackageController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     // public function editHResource(Request $request, $volume_id)
@@ -1076,11 +1091,44 @@ class WorkPackageController extends Controller
     // }
 
     /**
-     * Update the specified resource in storage.
+     * Synchronize completion for same volume group.
      */
-    public function update(Request $request, string $id)
+    private function synchronizeVolumeGroupCompletion($volumeId, $newCompletion)
     {
-        //
+        try {
+            // Ambil volume yang akan di-sync
+            $sourceVolume = WorkPackageVolume::findOrFail($volumeId);
+
+            // Cari volume lain yang memiliki kriteria sama
+            $relatedVolumes = WorkPackageVolume::where('volume_id', '!=', $volumeId)
+                ->where('wo_id', $sourceVolume->wo_id)
+                ->where('start_date', $sourceVolume->start_date)
+                ->where('end_date', $sourceVolume->end_date)
+                ->where('execution_year', $sourceVolume->execution_year)
+                ->get();
+            
+            if ($relatedVolumes->count() > 0) {
+                foreach ($relatedVolumes as $relatedVolume) {
+                    // Update completion untuk semua task di volume terkait
+                    $tasks = Task::where('volume_id', $relatedVolume->volume_id)->get();
+
+                    foreach ($tasks as $task) {
+                        // Update sub tasks dengan completion yang sama
+                        SubTask::where('task_id', $task->task_id)
+                            ->update(['completeness' => $newCompletion]);
+
+                            // Update task status
+                            $task->status = $newCompletion >= 100 ? 'closed' : 'open';
+                            $task->save();
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            Log::error('Error synchronizing volume group completion', [
+                'volume_id' => $volumeId,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
