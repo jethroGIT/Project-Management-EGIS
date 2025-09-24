@@ -110,7 +110,7 @@
                                     <td>{{ $wp['category_number'] }}. {{ $wp['category_name'] }}</td>
                                     <td>{{ $wp['wp_number'] }}</td>
                                     <td>{{ $wp['name'] }}</td>
-                                    <td class="text-center">{{ $wp['volume_count'] }}</td>
+                                    <td class="text-center">{{ $wp['volume_qty'] }}</td>
                                     <td class="text-center">{{ $wp['duration'] }} hari</td>
                                     <td>{{ $wp['actual_scope_contract'] ?? 'Belum ada actual scope' }}</td>
                                     <td>

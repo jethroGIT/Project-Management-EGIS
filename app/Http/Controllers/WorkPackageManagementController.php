@@ -71,6 +71,7 @@ class WorkPackageManagementController extends Controller
                     'wp_number' => $wp->wp_number,
                     'name' => $wp->name,
                     'volume_count' => $volumeCount,
+                    'volume_qty' => $wp->volume_qty,
                     'duration' => $wp->duration,
                     'actual_scope_contract' => $wp->actual_scope_contract,
                     'deliverable' => $wp->deliverable,

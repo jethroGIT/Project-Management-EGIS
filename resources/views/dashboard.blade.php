@@ -24,8 +24,8 @@
             <div class="card shadow-sm">
                 <div class="card-body my-2">
                     <div class="d-flex align-items-center gap-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-earmark-fill text-info" viewBox="0 0 16 16">
-                            <path d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-text-fill text-info" viewBox="0 0 16 16">
+                            <path d="M12 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2M5 4h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1m-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5M5 8h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1m0 2h3a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1"/>
                         </svg>
                         <div>
                             <h3 class="card-title fw-bold m-0">Total Work Order</h3>
@@ -41,15 +41,12 @@
             <div class="card shadow-sm">
                 <div class="card-body my-2">
                     <div class="d-flex align-items-center gap-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-journal-check text-success" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 8.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
-                            <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
-                            <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-earmark-check-fill text-success" viewBox="0 0 16 16">
+                            <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m1.354 4.354-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
                         </svg>
                         <div>
                             <h3 class="card-title fw-bold m-0">Work Package Selesai</h3>
                             <div class="fs-6 text-muted">Progres pengerjaan WP</div>
-                            <!-- <h2 class="fs-2hx fw-bold text-success">20 / 47 (47%)</h2> -->
                             <div class="d-flex align-items-end">
                                 <div class="d-flex align-items-baseline">
                                     <span class="fs-2hx fw-bold text-success me-2">20</span>
@@ -100,9 +97,6 @@
                         <div class="fs-1 fw-bold text-primary">{{ $pieChartDataWo['total'] ?? 0 }}</div>
                     </div>
                     <canvas id="wo_pie_chart" class="mh-400px"></canvas>
-                    <!-- <div style="position: relative; height: 240px; width: 100%;">
-                        <canvas id="pie_chart"></canvas>
-                    </div> -->
                 </div>
             </div>
         </div>
@@ -128,9 +122,6 @@
                             </select>
                         </div>
                     </div>
-                    <!-- <div style="position: relative; height: 240px; width: 100%;">
-                        <canvas id="horizontal_bar_chart"></canvas>
-                    </div> -->
                     <canvas id="wp_progres_bar_chart" class="mh-400px"></canvas>
                 </div>
             </div>
@@ -205,6 +196,10 @@
 
 @push('scripts')
 <script>
+$(document).ready(function () {
+    initTabelWPProgres();
+});
+
 /**
  * Generate Color
  */
@@ -350,10 +345,6 @@ const configBarWpProgres = {
 };
 
 var myWpBarChart = new Chart(ctxBarWpProgres, configBarWpProgres);
-
-$(document).ready(function () {
-    initTabelWPProgres();
-});
 
 function initTabelWPProgres() {
     const table = $('#wp_progres_table').DataTable({
