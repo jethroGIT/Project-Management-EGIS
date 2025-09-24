@@ -18,22 +18,55 @@
                 <div class="card-footer border-top border-gray-400 py-2 edit-profile-footer">
                     <div class="d-flex justify-content-between align-items-center">
                         <span>Edit Profil</span>
-                        <i class="bi bi-arrow-right-circle icon-edit-profile" onclick="window.location.href='{{route('profile')}}'" style="cursor: pointer"></i>
+                        <i class="bi bi-arrow-right-circle icon-edit-profile" onclick="window.location.href='{{route('profile')}}'" style="cursor: pointer; font-size: 1.3rem;"></i>
                     </div>
                 </div>
             </div>
             {{-- work package --}}
-            <div class="card card-flush shadow-sm mb-8 wp-card">
+            <div class="card card-flush shadow-sm mb-8 wp-card position-relative">
                 <div class="card-body ms-7">
                     <div class="d-flex align-items-center">
                         <span>
                             <i class="bi bi-journal-bookmark-fill" style="font-size: 4.5rem;"></i>
                         </span>
-                        <div class="ms-10">
+                        <div class="ms-10 position-relative wp-info-card" style="min-width:180px;">
                             <span class="fw-bold m-0 mt-3">Jumlah Work Package</span></br>
                             <span class="text-normal m-0 mt-3">yang dikerjakan</span></br>
-                            <h1 class="text-bolder mt-3 wp-highlight">{{$wpCount}}</h1>
+                            <div style="position: relative;">
+                                <h1 class="text-bolder mt-3 wp-highlight mb-0">{{$wpCount}}</h1>
+                                <i class="bi bi-info-circle icon-detail-wp"
+                                title="Lihat Detail WP"
+                                onclick="toggleWpInfoSummary(event);"
+                                style="cursor: pointer; position: absolute; top: 0; right: 0; font-size: 1.3rem;"
+                                ></i>
+                            </div>
                         </div>
+                    </div>
+                </div>
+                <!-- Ringkasan WP, awalnya hidden -->
+                <div id="wp-info-summary" class="card-body border-top pt-3" style="display: none;">
+                    <div class="fw-bold mb-2">Ringkasan WP Anda:</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr style="font-size: 0.93rem;">
+                                    <th class="fw-bold">No. WP</th>
+                                    <th class="text-center fw-bold">Jumlah Volume</th>
+                                    <th class="text-center fw-bold">Tahun Eksekusi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($workPackages as $wp)
+                                    <tr style="font-size: 0.93rem;">
+                                        <td>WP {{ $wp->wp_number }}</td>
+                                        <td class="text-center">{{ $wp->volumes_count ?? ($wp->volumes->count() ?? '-') }}</td>
+                                        <td class="text-center">
+                                            {{$wp->execution_year ?: '-'}}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -41,7 +74,7 @@
         <div class="col-md-7">
             {{-- timesheet --}}
             <div class="card card-flush shadow-sm mb-8">
-                <div class="card-body py-5" style="min-height: 345px;">
+                <div class="card-body py-5" style="min-height: 340px;">
                     <div class="card-title mb-4 border-bottom">
                         <h3 class="fw-bold py-1">Work Package yang sedang dikerjakan</h3>
                     </div>
@@ -175,18 +208,29 @@
                                     </div>
                                     <!-- Diagram WPV -->
                                     <div style="position: relative;">
+                                        @php
+                                            $colorList = [
+                                                ['bg' => 'bg-light-primary', 'text' => 'text-primary'],
+                                                ['bg' => 'bg-light-success', 'text' => 'text-success'],
+                                                ['bg' => 'bg-light-info',    'text' => 'text-info'],
+                                                ['bg' => 'bg-light-danger',  'text' => 'text-danger'],
+                                            ];
+                                            $colorCount = count($colorList);
+                                        @endphp
                                         @foreach($wpvWithPeriod as $wpv)
                                             @php
                                                 \Carbon\Carbon::setLocale('id');
-                                                $startMonth = \Carbon\Carbon::parse($wpv->start_date)->month; // 1-12
-                                                $endMonth = \Carbon\Carbon::parse($wpv->end_date)->month; // 1-12
-                                                $topPosition = ($loop->index * 60); // 60px per baris, mulai dari top 0px (karena header sudah di atas)
-                                                $leftPosition = ($startMonth - 1) * $lebarBulan; // posisi kiri berdasarkan bulan mulai
-                                                $width = ($endMonth - $startMonth + 1) * $lebarBulan; // lebar berdasarkan durasi bulan
+                                                $startMonth = \Carbon\Carbon::parse($wpv->start_date)->month;
+                                                $endMonth = \Carbon\Carbon::parse($wpv->end_date)->month;
+                                                $topPosition = ($loop->index * 60);
+                                                $leftPosition = ($startMonth - 1) * $lebarBulan;
+                                                $width = ($endMonth - $startMonth + 1) * $lebarBulan;
+                                                $color = $colorList[$loop->index % $colorCount];
                                             @endphp
-                                            <div class="d-flex align-items-center" style="position: absolute; top: {{ $topPosition }}px; left: {{ $leftPosition }}px; height:60px; z-index:2;">
-                                                <div class="bg-light-primary rounded-pill d-flex align-items-center px-2" style="width: {{ $width }}px;">
-                                                    <span class="fw-bold text-primary ms-3">
+                                            <div class="d-flex align-items-center"
+                                                style="position: absolute; top: {{ $topPosition }}px; left: {{ $leftPosition }}px; height:60px; z-index:2;">
+                                                <div class="{{ $color['bg'] }} rounded-pill d-flex align-items-center px-2" style="width: {{ $width }}px;">
+                                                    <span class="fw-bold {{ $color['text'] }} ms-3">
                                                         {{ \Carbon\Carbon::parse($wpv->start_date)->translatedFormat('d F') }} - {{ \Carbon\Carbon::parse($wpv->end_date)->translatedFormat('d F') }}
                                                     </span>
                                                 </div>
@@ -232,6 +276,14 @@
     //     });
     // });
 
+    function toggleWpInfoSummary(event) {
+        const card = event.target.closest('.wp-card');
+        const info = card.querySelector('#wp-info-summary');
+        if (info) {
+            info.style.display = (info.style.display === 'none' || info.style.display === '') ? 'block' : 'none';
+        }
+    }
+
     function updateStatusTimesheetUI(data) {
         data.workPackagesActive.forEach(function(wp) {
             const el = document.getElementById('status-timesheet-' + wp.wp_id);
@@ -258,9 +310,11 @@
     }
 
     function fetchStatusTimesheet() {
-        fetch('/dashboard-karyawan/{{ Auth::user()->user_id }}')
-            .then(response => response.json())
-            .then(data => updateStatusTimesheetUI(data));
+        fetch('/dashboard-karyawan/{{ Auth::user()->user_id }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => updateStatusTimesheetUI(data));
     }
 
     // Saat halaman dibuka, langsung fetch data terbaru
@@ -273,6 +327,11 @@
 
 <style>
     .edit-profile-footer .icon-edit-profile:hover{
+        font-size: 1.1rem;
+        color: #19191a;
+        transition: transform 0.25s cubic-bezier(.4,2,.6,1), color 0.25s;
+    }
+    .wp-info-card .icon-detail-wp:hover{
         font-size: 1.1rem;
         color: #19191a;
         transition: transform 0.25s cubic-bezier(.4,2,.6,1), color 0.25s;

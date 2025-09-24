@@ -20,6 +20,30 @@ class DashboardKaryawanController extends Controller
             ->get();
         $wpCount = $workPackages->count();
 
+        foreach ($workPackages as $wp) {
+            // 1. Cari volume_id yang dikerjakan user pada WP ini
+            $userVolumeIds = Work::where('user_id', $user_id)
+                ->pluck('volume_id');
+            $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $userVolumeIds)->first();
+
+            // 2. Ambil wo_id dari volume tersebut
+            $woId = $userVolume ? $userVolume->wo_id : null;
+
+            // 3. Hitung jumlah volume pada WP ini yang memiliki wo_id yang sama
+            if ($woId) {
+                $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);
+                $wp->volumes_count = $volumesWithSameWo->count();
+
+                // Ambil execution_year unik dari volume yang wo_id-nya sama
+                $executionYears = $volumesWithSameWo->pluck('execution_year')->unique()->filter();
+                $wp->execution_year = $executionYears->count() === 1
+                    ? $executionYears->first()
+                    : $executionYears->implode(', ');
+            } else {
+                $wp->volumes_count = 0;
+                $wp->execution_year = '-';
+            }
+        }
 
         // Ambil volume yang sedang berjalan (start_date <= today && (end_date >= today || end_date IS NULL))
         $activeVolumeIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)
@@ -122,6 +146,6 @@ class DashboardKaryawanController extends Controller
             ]);
         }
 
-        return view('dashboard_karyawan', compact('wpCount', 'workPackagesActive', 'executionYear', 'wpvWithPeriod', 'selectedYear'));
+        return view('dashboard_karyawan', compact('workPackages', 'wpCount', 'workPackagesActive', 'executionYear', 'wpvWithPeriod', 'selectedYear'));
     }
 }

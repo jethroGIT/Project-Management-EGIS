@@ -99,34 +99,45 @@
                             </div>
                         </div>
                     @else
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 duration-card">
-                                <div class="card-header title-mandays">
-                                    <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
-                                </div>
-                                <div class="card-body p-1">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        @if(isset($assignedUsers) && ($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
+                        @if(isset($assignedUsers) && ($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
+                            <div class="col-md-4">
+                                <div class="card card-flush shadow-sm mb-4 my-mandays-card">
+                                    <div class="card-header title-mandays">
+                                        <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
+                                    </div>
+                                    <div class="card-body p-1">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
                                             @php
                                                 $currentUser = $assignedUsers->firstWhere('user_id', auth()->user()->user_id);
                                             @endphp
-                                            <div class="mini-mandays-card h-100 mb-3">
+                                            <div class="mini-mandays-card h-100 mb-4">
                                                 <div class="mb-1" style="font-size: 1.1rem;">Rencana</div>
                                                 <div class="fs-2 text-success">{{ $currentUser['jhk'] ?? 0 }}</div>
                                             </div>
-                                            <div class="mini-mandays-card h-100 mb-3">
+                                            <div class="mini-mandays-card h-100 mb-4">
                                                 <div class="mb-1" style="font-size: 1.1rem;">Realisasi</div>
                                                 <div class="fs-2 text-success">{{ $currentUser['timesheets_count'] ?? 0 }}</div>
                                             </div>
-                                        @else
-                                            <div style="height: 80px">
-                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->wp_number }}</span>
-                                            </div>
-                                        @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @else
+                            <div class="col-md-4">
+                                <div class="card card-flush shadow-sm mb-4 my-mandays-card">
+                                    <div class="card-header title-mandays">
+                                        <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <div style="height: 80px">
+                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->wp_number }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @endif
 
                     <!-- Timesheet Button -->
@@ -2418,6 +2429,10 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .duration-card:hover .duration-highlight {
     transform: scale(1.18);
+}
+
+.my-mandays-card .card-body{
+    min-height: 83px;
 }
 
 /* HOVER EFFECT UNTUK RESOURCE NAMES CARDS */

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\WorkPackage;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class ProfileUserController extends Controller
 {
@@ -15,7 +16,16 @@ class ProfileUserController extends Controller
     {
         //ambil resource cost dan hitung user terlibat di berapa work package
         $user = auth()->user();
-        $resourceCost = $user->roles->get(1)->resource_cost ?? 0;
+        // Ambil semua role_id dari relasi work user
+        $roleIds = $user->work->pluck('role_id')->filter()->unique();
+
+        // Ambil resource cost dari role-role tersebut (misal ambil dari role pertama yang ditemukan)
+        $resourceCost = 0;
+        if ($roleIds->count()) {
+            $role = Role::find($roleIds->first());
+            $resourceCost = $role ? $role->resource_cost : 0;
+        }
+        
         $workPackagesUserCount = $user->work()
             ->with('volume')
             ->get()

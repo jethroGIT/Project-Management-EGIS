@@ -207,6 +207,7 @@
 
 @push('scripts')
 <script>
+    console.log('resourceCost', {{$resourceCost}});
     function submitEditProfile() {
         const form = document.getElementById('editProfileForm');
         const passwordInput = document.getElementById('editPassword');
