@@ -18,13 +18,17 @@ class WorkPackageVolumeSeeder extends Seeder
             // 1.1
             [
                 'wp_id' => 1,'volume_number' => 1,
-                'execution_year' => null,'wo_id' => null,
-                'start_date' => null,'end_date' => null,
+                'execution_year' => 2024,'wo_id' => null,
+                'start_date' =>'2024-01-13','end_date' => '2024-06-21',
+                // 'execution_year' => null,'wo_id' => null,
+                // 'start_date' => null,'end_date' => null,
             ],
             [
                 'wp_id' => 1,'volume_number' => 2,
-                'execution_year' => null,'wo_id' => null,
-                'start_date' => null,'end_date' => null,
+                'execution_year' => 2025,'wo_id' => null,
+                'start_date' => '2025-01-01','end_date' => '2025-12-31',
+                // 'execution_year' => null,'wo_id' => null,
+                // 'start_date' => null,'end_date' => null,
             ],
             // 1.2
             [

@@ -37,7 +37,7 @@ class AuthController extends Controller
             $request->session()->regenerate(); // untuk keamanan session
 
             $user = auth()->user();
-            if($user->is_admin) {
+            if($user->hasRole('admin')) {
                 return response()->json([
                     'success' => true,
                     'redirect' => '/dashboard',

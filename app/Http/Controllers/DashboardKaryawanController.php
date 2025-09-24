@@ -81,12 +81,47 @@ class DashboardKaryawanController extends Controller
             }
         }
 
+        // ambil wpv yang udah ada periode pengerjaannya
+        $executionYear = WorkPackageVolume::whereNotNull('execution_year')
+            ->distinct()
+            ->orderBy('execution_year', 'asc')
+            ->pluck('execution_year');
+
+        // Ambil tahun yang dipilih, default ke tahun terbaru
+        $currentYear = date('Y');
+        $selectedYear = $request->input('execution_year', $executionYear->contains($currentYear) ? $currentYear : $executionYear->first());
+
+        // Ambil semua WorkPackageVolume yang start_date dan end_date tidak null, sekaligus relasi WorkPackage-nya
+        $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
+            ->whereNotNull('end_date')
+            ->where('execution_year', $selectedYear)
+            ->with('workPackage')
+            ->get();
+
+        // AJAX untuk filter tahun diagram (kembalikan hanya isi diagram-wpv)
+        // if($request->ajax() && $request->has('execution_year')){
+        //     $view = view('dashboard_karyawan', [
+        //         'wpCount' => $wpCount,
+        //         'workPackagesActive' => $workPackagesActive,
+        //         'executionYear' => $executionYear,
+        //         'wpvWithPeriod' => $wpvWithPeriod,
+        //         'selectedYear' => $selectedYear,
+        //     ])->render();
+
+        //     // Ambil hanya isi #diagram-wpv
+        //     preg_match('/<div id="diagram-wpv">(.*?)<\/div>/s', $view, $matches);
+        //     $diagramHtml = $matches[1] ?? '';
+
+        //     return response($diagramHtml);
+        // }
+
+        // AJAX untuk status timesheet (JSON)
         if($request->ajax()){
             return response()->json([
                 'workPackagesActive' => $workPackagesActive,
             ]);
         }
 
-        return view('dashboard_karyawan', compact('wpCount', 'workPackagesActive'));
+        return view('dashboard_karyawan', compact('wpCount', 'workPackagesActive', 'executionYear', 'wpvWithPeriod', 'selectedYear'));
     }
 }

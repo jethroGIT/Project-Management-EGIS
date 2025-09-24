@@ -91,7 +91,7 @@
             </div>
         </div>
     </div>
-    {{-- timeline --}}
+    {{-- timeline fro project period--}}
     <div class="row">
         <div class="col-md-12 mb-10">
             <div class="card h-md-100 card-flush shadow-sm mb-8">
@@ -103,106 +103,113 @@
 
                 <!--begin::Card body-->
                 <div class="card-body pb-0">
-                    <div class="table-responsive pb-10" style="overflow: auto; max-height: 350px;">
-                        {{-- <div class="position-relative" style="min-width:700px; height:340px;"> --}}
+                    <div class="mb-5" style="max-width: 200px;">
+                        <form method="GET" id="filterYearForm">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-funnel-fill text-dark"></i>
+                                </span>
+                                <select name="execution_year"
+                                        id="execution_year"
+                                        class="form-control"
+                                        required
+                                        style="appearance: none; -webkit-appearance: none; background: transparent; padding-right: 2rem;"
+                                        onchange="document.getElementById('filterYearForm').submit()"
+                                >
+                                    <option value="" disabled>Pilih Tahun</option>
+                                    @foreach ($executionYear as $year)
+                                        <option value="{{ $year }}"
+                                            {{ (request('execution_year', $selectedYear) == $year) ? 'selected' : '' }}>
+                                            {{ $year }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 1.5rem; color: #444; line-height: 1;">
+                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="display: block;">
+                                        <path d="M5 8L10 13L15 8" stroke="#444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </form>
+                    </div>
+                    {{-- <div id="diagram-wpv"> --}}
+                        <div class="table-responsive pb-10" style="overflow-x: auto; max-height: 350px;">
                             @php
                                 $bulanIndonesia = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
                                 $lebarBulan = 160; // px per bulan
-                                // $totalLebar = count($bulanIndonesia) * $lebarBulan;
                                 $tinggiDiagram = 340; // px tinggi diagram
-                                $wpLabels = ['WP 1.1','WP 1.2','WP 2.1','WP 2.2','WP 2.3','WP 2.4','WP 2.5'];
                             @endphp
                             <div style="display: flex;">
                                 <!-- Sumbu Y (Label) sticky di kiri, mulai dari atas -->
-                                <div style="position: sticky; left: 0; top: 0; z-index: 2; background: #fff; width: 110px;">
+                                <div style="
+                                    position: sticky;
+                                    left: 0;
+                                    top: 0;
+                                    background: #fff;
+                                    width: 110px;
+                                    min-width: 110px;
+                                    max-width: 110px;
+                                    z-index: 3;
+                                    flex-shrink: 0;
+                                    box-shadow: 2px 0 4px -2px #eee;
+                                ">
                                     <!-- Header bulan, kosong agar sejajar dan tetap sticky -->
                                     <div style="height: 40px;"></div>
-                                    @foreach($wpLabels as $label)
+                                    @foreach($wpvWithPeriod as $wpv)
                                         <div class="d-flex align-items-center" style="height:60px;">
-                                            <span class="text-dark fw-bold fs-4 me-2">{{ $label }}</span>
+                                            <span class="text-dark fw-bold fs-4 me-2">WP {{ $wpv->workPackage->wp_number }}</span>
                                         </div>
                                     @endforeach
                                 </div>
-                                <!-- Sumbu X dan Item Diagram -->
-                                <div style="position: relative; width:780px; height: {{ $tinggiDiagram }}px;">
-                                    <!-- Sumbu X (Bulan Indonesia) sticky di atas, teks bulan di tengah-tengah garis -->
-                                    <div style="position: sticky; top: 0; z-index: 3; background: #fff;">
-                                        <div style="position: relative; height: 40px;">
-                                            @for($i = 0; $i < count($bulanIndonesia); $i++)
-                                                <div style="
-                                                    position: absolute;
-                                                    left: {{ $i * $lebarBulan }}px;
-                                                    width: {{ $lebarBulan }}px;
-                                                    height: 40px;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                ">
-                                                    <span class="fw-bold text-gray-700" style="width:100%; text-align:center;">{{ $bulanIndonesia[$i] }}</span>
+                                <!-- Kolom diagram (bulan & item) -->
+                                <div style="position: relative; min-width: {{ count($bulanIndonesia) * $lebarBulan }}px; height: {{ $tinggiDiagram }}px; flex: 1;">
+                                    <!-- Sumbu X (Bulan Indonesia) sticky di atas -->
+                                    <div style="position: sticky; top: 0; z-index: 1; background: #fff;">
+                                        <div style="display: flex;">
+                                            @foreach($bulanIndonesia as $bulan)
+                                                <div style="width: {{ $lebarBulan }}px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                    <span class="fw-bold text-gray-700" style="width:100%; text-align:center;">{{ $bulan }}</span>
                                                 </div>
-                                            @endfor
-                                            <!-- Garis vertikal pembatas bulan (absolute, membentang ke bawah) -->
-                                            @for($i = 0; $i <= count($bulanIndonesia); $i++)
-                                                <div style="
-                                                    position: absolute;
-                                                    left: {{ $i * $lebarBulan }}px;
-                                                    top: 0;
-                                                    height: {{ $tinggiDiagram }}px;
-                                                    width: 0;
-                                                    z-index: 2;
-                                                ">
-                                                    <div style="border-right:1px solid #eee; height: 100%;"></div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <!-- Diagram WPV -->
+                                    <div style="position: relative;">
+                                        @foreach($wpvWithPeriod as $wpv)
+                                            @php
+                                                \Carbon\Carbon::setLocale('id');
+                                                $startMonth = \Carbon\Carbon::parse($wpv->start_date)->month; // 1-12
+                                                $endMonth = \Carbon\Carbon::parse($wpv->end_date)->month; // 1-12
+                                                $topPosition = ($loop->index * 60); // 60px per baris, mulai dari top 0px (karena header sudah di atas)
+                                                $leftPosition = ($startMonth - 1) * $lebarBulan; // posisi kiri berdasarkan bulan mulai
+                                                $width = ($endMonth - $startMonth + 1) * $lebarBulan; // lebar berdasarkan durasi bulan
+                                            @endphp
+                                            <div class="d-flex align-items-center" style="position: absolute; top: {{ $topPosition }}px; left: {{ $leftPosition }}px; height:60px; z-index:2;">
+                                                <div class="bg-light-primary rounded-pill d-flex align-items-center px-2" style="width: {{ $width }}px;">
+                                                    <span class="fw-bold text-primary ms-3">
+                                                        {{ \Carbon\Carbon::parse($wpv->start_date)->translatedFormat('d F') }} - {{ \Carbon\Carbon::parse($wpv->end_date)->translatedFormat('d F') }}
+                                                    </span>
                                                 </div>
-                                            @endfor
-                                        </div>
+                                            </div>
+                                        @endforeach
                                     </div>
-                                    <!-- Item Diagram -->
-                                    <!-- Baris WP 1.1 -->
-                                    <div class="d-flex align-items-center" style="position: absolute; top: 40px; left: 0; height:60px;">
-                                        <div class="bg-light-primary rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan * 3 }}px;">
-                                            <span class="fw-bold text-primary">Januari - Maret</span>
+                                    <!-- Garis vertikal pembatas bulan -->
+                                    @for($i = 0; $i <= count($bulanIndonesia); $i++)
+                                        <div style="
+                                            position: absolute;
+                                            left: {{ $i * $lebarBulan }}px;
+                                            top: 0;
+                                            height: {{ $tinggiDiagram }}px;
+                                            width: 0;
+                                            z-index: 1;
+                                        ">
+                                            <div style="border-right:1px solid #eee; height: 100%;"></div>
                                         </div>
-                                    </div>
-                                    <!-- Baris WP 1.2 -->
-                                    <div class="d-flex align-items-center" style="position: absolute; top: 100px; left: {{ $lebarBulan * 3 }}px; height:60px;">
-                                        <div class="bg-light-success rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan * 2 }}px;">
-                                            <span class="fw-bold text-success">April - Mei</span>
-                                        </div>
-                                    </div>
-                                    <!-- Baris WP 2.1 -->
-                                    <div class="d-flex align-items-center" style="position: absolute; top: 160px; left: {{ $lebarBulan * 5 }}px; height:60px;">
-                                        <div class="bg-light-danger rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
-                                            <span class="fw-bold text-danger">Juni</span>
-                                        </div>
-                                    </div>
-                                    <!-- Baris WP 2.2 -->
-                                    <div class="d-flex align-items-center" style="position: absolute; top: 220px; left: {{ $lebarBulan * 6 }}px; height:60px;">
-                                        <div class="bg-light-info rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan * 3 }}px;">
-                                            <span class="fw-bold text-info">Juli - September</span>
-                                        </div>
-                                    </div>
-                                    <!-- Baris WP 2.3 -->
-                                    <div class="d-flex align-items-center" style="position: absolute; top: 280px; left: {{ $lebarBulan * 9 }}px; height:60px;">
-                                        <div class="bg-light-warning rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
-                                            <span class="fw-bold text-warning">Oktober</span>
-                                        </div>
-                                    </div>
-                                    <!-- Baris WP 2.4 -->
-                                    <div class="d-flex align-items-center" style="position: absolute; top: 340px; left: {{ $lebarBulan * 10 }}px; height:60px;">
-                                        <div class="bg-light-secondary rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
-                                            <span class="fw-bold text-secondary">November</span>
-                                        </div>
-                                    </div>
-                                    <!-- Baris WP 2.5 -->
-                                    <div class="d-flex align-items-center" style="position: absolute; top: 400px; left: {{ $lebarBulan * 11 }}px; height:60px;">
-                                        <div class="bg-light-dark rounded-pill d-flex align-items-center px-2 me-2" style="width: {{ $lebarBulan }}px;">
-                                            <span class="fw-bold text-dark">Desember</span>
-                                        </div>
-                                    </div>
+                                    @endfor
                                 </div>
                             </div>
-                        {{-- </div> --}}
-                    </div>
+                        </div>
+                    {{-- </div> --}}
                 </div>
                 <!--end::Card body-->
             </div>
@@ -214,22 +221,14 @@
 @push('scripts')
 <script>
     // console.log('workPackagesActive', @json($workPackagesActive));
-    // document.addEventListener('DOMContentLoaded', function () {
-    //     document.querySelectorAll('.status-timesheet').forEach(function(el) {
-    //         // Cari wrapper dan bullet terdekat
-    //         const wrapper = el.closest('.d-flex.align-items-center.mb-6.rounded.px-0');
-    //         const bullet = wrapper.querySelector('[data-kt-element="bullet"]');
-    //         if (el.textContent.trim() === 'Belum mengisi Timesheet') {
-    //             wrapper.classList.remove('bg-light-warning');
-    //             wrapper.classList.add('bg-light-danger');
-    //             bullet.classList.remove('bg-warning');
-    //             bullet.classList.add('bg-danger');
-    //         } else if (el.textContent.trim() === 'Sudah mengisi Timesheet') {
-    //             wrapper.classList.remove('bg-light-warning');
-    //             wrapper.classList.add('bg-light-primary');
-    //             bullet.classList.remove('bg-warning');
-    //             bullet.classList.add('bg-primary');
-    //         }
+    // document.getElementById('execution_year').addEventListener('change', function() {
+    //     const year = this.value;
+    //     fetch(`{{ url()->current() }}?execution_year=${year}`, {
+    //         headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    //     })
+    //     .then(res => res.text())
+    //     .then(html => {
+    //         document.getElementById('diagram-wpv').innerHTML = html;
     //     });
     // });
 

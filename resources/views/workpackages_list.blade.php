@@ -156,11 +156,11 @@
                                         <td>${wp.wp_category?.name ?? 'Tidak Berkategori'}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold text-muted">Volume</td>
+                                        <td class="fw-bold text-muted">Total Volume</td>
                                         <td class="fw-bold text-muted">:</td>
                                         <td>
                                             <span class="badge badge-light-info badge-lg">${wp.volume_qty} Volume</span>
-                                            <span class="text-muted">(${wp.work_package_volumes ? wp.work_package_volumes.filter(v => v.wo_id === null).length : 0} volume tersisa)</span>
+                                            <span class="text-muted">(Tersisa ${wp.work_package_volumes ? wp.work_package_volumes.filter(v => v.wo_id === null).length : 0} volume untuk di-assign ke WO)</span>
                                         </td>
                                     </tr>
                                     <tr>
