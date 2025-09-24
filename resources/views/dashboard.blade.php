@@ -133,17 +133,31 @@
             <h3 class="card-title fw-bold m-0">Project Berjalan</h3>
             <div class="card-toolbar">
                 <span class="badge badge-light-info badge-lg">
-                    
+                    {{ $projectBerjalanData->count() }} Project
                 </span>
             </div>
         </div>
         <div class="card-body">
+            <!-- Search Form -->
+            <div>
+                <form class="d-flex justify-content-end mb-4">
+                    <label class="me-5 mt-3" for="searchWOandWP">Cari: </label>
+                    <input 
+                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                        style="width:200px" 
+                        type="search" 
+                        id="searchWOandWP"
+                        placeholder="Cari Data" 
+                        aria-label="Search"
+                    >                    
+                </form>
+            </div>
+
             <div class="table-responsive">
                 <table id="wp_progres_table" class="table border table-row-dashed border-gray-300 table-row-gray-300 gy-5 gs-7 rounded w-100">
                     <thead class="align-middle text-center">
                         <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th>Nomor Work Order</th>
-                            <!-- <th></th> -->
                             <th class="align-middle border-bottom">No</th>
                             <th class="align-middle border-bottom min-w-200px">Work Package</th>
                             <th class="align-middle border-bottom">Volume (Qty)</th>
@@ -151,27 +165,47 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="task-row">
-                            <td>WO 1</td>
-                            <td>1.</td>
-                            <td>WP 1.1 Merger & Acquisition (M&A) - Information Security Due Dilligence</td>
-                            <td class="text-center">2</td>
-                            <td class="text-center">75 %</td>
-                        </tr>
-                        <tr class="task-row">
-                            <td>WO 1</td>
-                            <td>2.</td>
-                            <td>WP 1.2 Merger & Acquisition (M&A) - In-Depth/ Combination Assessment</td>
-                            <td class="text-center">2</td>
-                            <td class="text-center">60 %</td>
-                        </tr>
-                        <tr class="task-row">
-                            <td>WO 2</td>
-                            <td>3.</td>
-                            <td>WP 2.1 Control/Framework Assessment</td>
-                            <td class="text-center">2</td>
-                            <td class="text-center">45 %</td>
-                        </tr>
+                        @if($projectBerjalanData->count() > 0)
+                            @foreach($projectBerjalanData as $index => $project)
+                                <tr class="task-row">
+                                    <td>WO {{ $project['wo_number'] }}</td>
+                                    <td>{{ $index + 1 }}.</td>
+                                    <td>
+                                        <span>WP {{ $project['wp_number'] }}</span>
+                                        <span>{{ $project['wp_name'] }}</span>
+                                    </td>
+                                    <td class="text-center">{{ $project['volume_qty'] }}</td>
+                                    <td class="text-center">
+                                        <div class="d-flex flex-column align-items-center gap-2">
+                                            <span class="fw-bold badge badge-lg
+                                                @if($project['completion'] >= 80) badge-light-success
+                                                @elseif($project['completion'] >= 60) badge-light-primary
+                                                @elseif($project['completion'] >= 40) badge-light-warning
+                                                @else badge-light-danger
+                                                @endif
+                                            ">
+                                                {{ number_format($project['completion'], 1) }}%
+                                            </span>
+                                            <div class="progress progress-sm w-100" style="height: 6px;">
+                                                <div class="progress-bar
+                                                    @if($project['completion'] >= 80) bg-success
+                                                    @elseif($project['completion'] >= 60) bg-primary
+                                                    @elseif($project['completion'] >= 40) bg-warning
+                                                    @else bg-danger
+                                                    @endif
+                                                "
+                                                    role="progressbar"
+                                                    style="width: {{ $project['completion'] }}%"
+                                                    aria-valuenow="{{ $project['completion'] }}"
+                                                    aria-valuemin="0"
+                                                    aria-valuemax="100"
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -350,19 +384,22 @@ function initTabelWPProgres() {
     const table = $('#wp_progres_table').DataTable({
         'scrollY': '300px',
         "scrollX": true,
-        "paging": false,
+        "paging": true,
+        "searching": true,
         "language": {
-            "emptyTable": "Tidak ada data work package yang sedang berjalan"
+            "emptyTable": "Tidak ada data work package yang sedang berjalan",
+            "search": "Cari Project:",
+            "searchPlaceholder": "Cari berdasarkan WO atau WP"
         },
-        "fixedHeader": {
-            "header":true,
-            "headerOffset": 70
-        },
+        // "fixedHeader": {
+        //     "header":true,
+        //     "headerOffset": 70
+        // },
         rowGroup: {
             dataSrc: 0,
             startRender: function (rows, group) {
                 return $('<tr/>')
-                    .append('<td colspan="10" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>');
+                    .append('<td colspan="5" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>');
             }
         },
         columnDefs: [
@@ -370,8 +407,44 @@ function initTabelWPProgres() {
                 targets: 0,
                 visible: false, // Kolom kategori disembunyikan karena sudah ditampilkan sebagai grup
                 searchable: true
+            },
+            {
+                targets: 4, // Kolom progress
+                orderable: true,
+                type: 'num' // Enable numeric sorting for progress
             }
-        ]
+        ],
+        order: [[4, 'asc']]
+    });
+
+    // Setup search
+    setupWOandWPSearch(table);
+}
+
+/**
+ * Function untuk search pada tabel
+ */
+function setupWOandWPSearch(table) {
+    const searchInput = $('#searchWOandWP');
+
+    searchInput.on('keyup change input', function() {
+        const searchValue = this.value.trim();
+        table.search(searchValue).draw();
+    });
+
+    searchInput.on('search', function() {
+        if (this.value === '') {
+            table.search('').draw();
+        }
+    });
+
+    searchInput.on('keydown', function(e) {
+        if (e.which === 27) { // ESC key
+            e.preventDefault();
+            this.value = '';
+            $(this).trigger('input');
+            this.focus();
+        }
     });
 }
 
