@@ -152,13 +152,13 @@
                             </tr>
                         </thead>
                         <tbody style="font-size: 0.97rem;">
-                            @foreach($assignedUsers as $personil)
+                            @foreach($assignedUsers as $personel)
                             <tr>
-                                <td class="align-middle">{{$personil['role_name']}}</td>
-                                <td class="align-middle">{{$personil['name']}}</td>
-                                <td class="text-center align-middle" style="color:gray">{{$personil['jhk']}}</td>
+                                <td class="align-middle">{{$personel['role_name']}}</td>
+                                <td class="align-middle">{{$personel['name']}}</td>
+                                <td class="text-center align-middle" style="color:gray">{{$personel['jhk']}}</td>
                                 <td class="text-center align-middle">
-                                    {!! mandaysLabel($personil['jhk'], $personil['realisasiMandays']) !!}
+                                    {!! mandaysLabel($personel['jhk'], $personel['realisasiMandays']) !!}
                                 </td>
                             </tr>
                             @endforeach
