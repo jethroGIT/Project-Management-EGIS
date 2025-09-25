@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Work;
 use App\Models\WorkOrder;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 use DB;
 use Exception;
 
@@ -19,13 +20,23 @@ class DashboardController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Hitung total Work Order yang tersedia
         $totalWorkOrders = WorkOrder::count();
 
+        // Data untuk card Work Package Selesai
+        $workPackageCompletionData = $this->getWorkPackageCompletionData();
+
         // Data untuk pie chart WO
         $pieChartDataWo = $this->countWPAsociatedWithWO();
+
+        // Data untuk dropdown tahun
+        $availableYears = $this->getAvailableYears();
+        // Dapatkan selected year (default current year)
+        $selectedYear = $request->get('year', Carbon::now()->year);
+        // Data untuk WP Progress Bar Chart berdasarkan kombinasi WO dan WP
+        $wpProgressBarChartData = $this->getWPProgressByWOChartData($selectedYear);
 
         // Data Bar chart total work package dari SDM (User)
         $userWorkPackageData = $this->getUserWithWorkPackage();
@@ -42,10 +53,92 @@ class DashboardController extends Controller
 
         return view('dashboard', compact(
             'totalWorkOrders',
+            'workPackageCompletionData',
             'pieChartDataWo',
+            'availableYears',
+            'selectedYear',
+            'wpProgressBarChartData',
             'barChartWpSDMData',
             'projectBerjalanData'
         ));
+    }
+
+    /**
+     * Get Work Package completion data
+     */
+    private function getWorkPackageCompletionData()
+    {
+        try {
+            // Ambil semua Work Package yang memiliki volume
+            $workPackagesWithVolumes = WorkPackage::with([
+                'workPackageVolumes.task.subTask'
+            ])
+            ->whereHas('workPackageVolumes')
+            ->get();
+
+            $completedWorkPackages = 0;
+            $totalWorkPackages = $workPackagesWithVolumes->count();
+            $wpCompletionDetails = [];
+
+            foreach ($workPackagesWithVolumes as $wp) {
+                $volumeCompletions = [];
+                $totalVolumeCompletion = 0;
+                $volumeCount = $wp->workPackageVolumes->count();
+
+                // Hitung completion untuk setiap volume dalam WP ini
+                foreach ($wp->workPackageVolumes as $volume) {
+                    $volumeCompletion = $this->calculateVolumeCompletion($volume->volume_id);
+                    $volumeCompletions[] = $volumeCompletion;
+                    $totalVolumeCompletion += $volumeCompletion;
+                }
+
+                // Rata - rata completion untuk WP ini
+                $avgWpCompletion = $volumeCount > 0 ? round($totalVolumeCompletion / $volumeCount, 2) : 0;
+
+                // WP dianggap selesai jika semua volume memiliki completion 100%
+                $isCompleted = count($volumeCompletions) > 0 && min($volumeCompletions) >= 100;
+
+                if ($isCompleted) {
+                    $completedWorkPackages++;
+                }
+
+                $wpCompletionDetails[] = [
+                    'wp_id' => $wp->wp_id,
+                    'wp_number' => $wp->wp_number,
+                    'wp_name' => $wp->name,
+                    'volume_count' => $volumeCount,
+                    'volume_completions' => $volumeCompletions,
+                    'avg_completions' => $avgWpCompletion,
+                    'is_completed' => $isCompleted,
+                    'min_volume_completion' => count($volumeCompletions) > 0 ? min($volumeCompletions) : 0
+                ];
+            }
+
+            // Hitung persentase completion
+            $completionPercentage = $totalWorkPackages > 0 ? round(($completedWorkPackages / $totalWorkPackages) * 100, 1) : 0;
+
+            return [
+                'completed' => $completedWorkPackages,
+                'total' => $totalWorkPackages,
+                'remaining' => $totalWorkPackages - $completedWorkPackages,
+                'completion_percentage' => $completionPercentage,
+                'details' => $wpCompletionDetails
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getWorkPackageCompletionData', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'completed' => 0,
+                'total' => 0,
+                'remaining' => 0,
+                'completion_percentage' => 0,
+                'details' => []
+            ];
+        }
     }
 
     /**
@@ -67,6 +160,206 @@ class DashboardController extends Controller
             'data' => [$wpWithWorkOrder, $wpWithoutWorkOrder],
             'total' => $totalWorkPackages
         ];
+    }
+
+    /**
+     * Get WP Progress data based on WO and WP combination
+     */
+    private function getWPProgressByWOChartData($year = null)
+    {
+        try {
+            // Default ke tahun saat ini jika tidak ada parameter
+            if (!$year) {
+                $year = Carbon::now()->year;
+            }
+
+            // Ambil semua volume yang memiliki WO dan WP
+            $volumes = WorkPackageVolume::with([
+                'workPackage',
+                'workOrder',
+                'task.subTask',
+            ])
+            ->whereNotNull('work_package_volume.wo_id')
+            ->whereHas('workPackage')
+            ->whereHas('workOrder')
+            ->where('execution_year', $year)
+            ->orderByRaw('
+                CAST(wo_number_from_wo.wo_number AS INTEGER) ASC,
+                CAST(SPLIT_PART(wp_number_from_wp.wp_number, \'.\', 1) AS INTEGER) ASC,
+                CAST(SPLIT_PART(wp_number_from_wp.wp_number, \'.\', 2) AS INTEGER) ASC,
+                work_package_volume.volume_number ASC
+            ')
+            ->join('work_order as wo_number_from_wo', 'work_package_volume.wo_id', '=', 'wo_number_from_wo.wo_id')
+            ->join('work_package as wp_number_from_wp', 'work_package_volume.wp_id', '=', 'wp_number_from_wp.wp_id')
+            ->select('work_package_volume.*')
+            ->get();
+
+            if ($volumes->isEmpty()) {
+                return [
+                    'labels' => ['No Data'],
+                    'data' => [0],
+                    'chart_details' => [],
+                    'total_combinations' => 0
+                ];
+            }
+
+            $chartData =[];
+            $labels =[];
+            $data =[];
+
+            // Group volumes berdasarkan kombinasi WO dan WP
+            $groupedVolumes = $volumes->groupBy(function($volume) {
+                return $volume->workOrder->wo_number . '_' . $volume->workPackage->wp_number;
+            });
+
+            foreach ($groupedVolumes as $groupKey => $volumeGroup) {
+                $firstVolume = $volumeGroup->first();
+                $woNumber = $firstVolume->workOrder->wo_number;
+                $wpNumber = $firstVolume->workPackage->wp_number;
+                $wpName = $firstVolume->workPackage->name;
+
+                // Hitung rata-rata completion dari semua volume dalam grup ini
+                $completions = [];
+                foreach ($volumeGroup as $volume) {
+                    $completion = $this->calculateVolumeCompletion($volume->volume_id);
+                    $completions[] = $completion;
+                }
+                $avgCompletion = round(array_sum($completions) / count($completions), 1);
+
+                // Buat label yang unik
+                $volumeCount = $volumeGroup->count();
+                $label = "WP {$wpNumber} (WO {$woNumber})";
+
+                // Jika WP ini ada di multiple WO, tambahkan info WO
+                // $wpInMultipleWO = $volumes->where('workPackage.wp_number', $wpNumber)
+                //     ->groupBy('wo_id')->count() > 1;
+                
+                // if ($wpInMultipleWO) {
+                //     $label .= " (WO {$woNumber})";
+                // }
+
+                // Tambahkan info volume jika lebih dari 1
+                // if ($volumeCount > 1) {
+                //     $label .= " - {$volumeCount} vol";
+                // }
+
+                $labels[] = $label;
+                $data[] = $avgCompletion;
+
+                // Simpan detail
+                $chartData[$label] = [
+                    'wo_number' => $woNumber,
+                    'wp_number' => $wpNumber,
+                    'wp_name' => $wpName,
+                    'volume_count' => $volumeCount,
+                    'completion' => $avgCompletion,
+                    'volume_ids' => $volumeGroup->pluck('volume_id')->toArray(),
+                    'volume_numbers' => $volumeGroup->pluck('volume_number')->sort()->values()->toArray(),
+                    'execution_year' => $firstVolume->execution_year,
+                    'start_date' => $firstVolume->start_date,
+                    'end_date' => $firstVolume->end_date
+                ];
+            }
+
+            Log::info('WP Progress By WO Chart Data Generated', [
+                'total_combinations' => count($labels),
+                'unique_wo_count' => $volumes->pluck('wo_id')->unique()->count(),
+                'unique_wp_count' => $volumes->pluck('wp_id')->unique()->count()
+            ]);
+
+            return [
+                'labels' => $labels,
+                'data' => $data,
+                'chart_details' => $chartData,
+                'total_combinations' => count($labels),
+                'selected_year' => $year
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getWPProgressByWOChartData', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'labels' => ['No Data'],
+                'data' => [0],
+                'chart_details' => [],
+                'total_combinations' => 0,
+                'selected_year' => $year ?? Carbon::now()->year
+            ];
+        }
+    }
+
+    /**
+     * Get available years from volume execution
+     */
+    private function getAvailableYears()
+    {
+        try {
+            $years = WorkPackageVolume::whereNotNull('execution_year')
+                ->whereNotNull('wo_id')
+                ->whereHas('workPackage')
+                ->whereHas('workOrder')
+                ->select('execution_year')
+                ->distinct()
+                ->orderBy('execution_year', 'asc')
+                ->pluck('execution_year')
+                ->toArray();
+
+            // Jika tidak ada data, return current year
+            if (empty($years)) {
+                return [Carbon::now()->year];
+            }
+
+            return $years;
+
+        } catch (Exception $e) {
+            Log::error('Error in getAvailableYears', [
+                'error' => $e->getMessage(),
+            ]);
+
+            // Fallback ke current year
+            return [Carbon::now()->year];
+        }
+    }
+
+    /**
+     * Method for filter year
+     */
+    public function getWPProgressDataByYear(Request $request)
+    {
+        try{
+            $year = $request->get('year', Carbon::now()->year);
+            
+            // Validate year
+            if (!is_numeric($year) || $year < 2020 || $year > 2030) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid year parameter'
+                ], 400);
+            }
+
+            // Get chart data for the selected year
+            $wpProgressBarChartData = $this->getWPProgressByWOChartData($year);
+
+            return response()->json([
+                'success' => true,
+                'data' => $wpProgressBarChartData,
+                'year' => $year
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error in getWPProgressDataByYear', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data'
+            ], 500);
+        }
     }
 
     /**

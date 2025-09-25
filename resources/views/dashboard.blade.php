@@ -49,10 +49,10 @@
                             <div class="fs-6 text-muted">Progres pengerjaan WP</div>
                             <div class="d-flex align-items-end">
                                 <div class="d-flex align-items-baseline">
-                                    <span class="fs-2hx fw-bold text-success me-2">20</span>
+                                    <span class="fs-2hx fw-bold text-success me-2">{{ $workPackageCompletionData['completed'] }}</span>
                                     <span class="fs-4 text-muted fw-semibold">/</span>
-                                    <span class="fs-3 text-muted fw-semibold ms-1">42</span>
-                                    <span class="ms-2 badge badge-light-success fs-7 fw-bold">47% completed</span>
+                                    <span class="fs-3 text-muted fw-semibold ms-1">{{ $workPackageCompletionData['total'] }}</span>
+                                    <span class="ms-2 badge badge-light-success fs-7 fw-bold">{{ $workPackageCompletionData['completion_percentage'] }}% completed</span>
                                 </div>
                             </div>
                         </div>
@@ -116,13 +116,31 @@
                             </span>
                             <select class="form-select" id="tahunFilter">
                                 <option value="">Pilih Tahun</option>
-                                <option value="">2024</option>
-                                <option value="">2025</option>
-                                <option value="">2026</option>
+                                @if(isset($availableYears) && !empty($availableYears))
+                                    @foreach($availableYears as $year)
+                                        <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
+                                            {{ $year }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
                         </div>
                     </div>
-                    <canvas id="wp_progres_bar_chart" class="mh-400px"></canvas>
+                    <div class="position-relative">
+                        <canvas id="wp_progres_bar_chart" class="mh-400px"></canvas>
+
+                        <!-- Loading Overlay -->
+                        <div id="chartLoadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75 d-none">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">Memuat data tahun...</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -232,6 +250,75 @@
 <script>
 $(document).ready(function () {
     initTabelWPProgres();
+
+    $('#tahunFilter').on('change', function() {
+        const selectedYear = this.value;
+
+        if (selectedYear) {
+            // Show loading state
+            showChartLoading();
+
+            // Redirect dengan parameter year
+            // const currentUrl = new URL(window.location.href);
+            // currentUrl.searchParams.set('year', selectedYear);
+            // window.location.href = currentUrl.toString();
+            
+            // AJAX call to get new data
+            $.ajax({
+                url: '{{ route("dashboard.wp-progress-data") }}',
+                type: 'GET',
+                data: {
+                    year: selectedYear
+                },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update chart data
+                        wpProgressBarChartData = response.data;
+                        initWpProgressChart(response.data);
+                        
+                        // Update badges and info
+                        // updateFilterInfo(response.data, response.year);
+                        
+                        // Hide loading
+                        hideChartLoading();
+                        
+                        // Optional: Show success message
+                        // Toastr.success(`Data berhasil dimuat untuk tahun ${response.year}`, 'Berhasil');
+                    } else {
+                        hideChartLoading();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Memuat Data',
+                            text: response.message || 'Terjadi kesalahan saat memuat data',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    hideChartLoading();
+                    console.error('AJAX Error:', error);
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: 'Gagal memuat data. Silakan coba lagi.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        } else {
+            // Remove year parameter dan redirect ke default (current year)
+            // const currentUrl = new URL(window.location.href);
+            // currentUrl.searchParams.delete('year');
+            // window.location.href = currentUrl.toString();
+
+            // Reset default
+            location.reload();
+        }
+    });
 });
 
 /**
@@ -316,70 +403,177 @@ var myWoPieChart = new Chart(ctxWoPie, configWoPie);
  * Horizontal Bar Chart
  * 
  */
+let wpProgressBarChartData = @json($wpProgressBarChartData ?? ['labels' => ['No Data'], 'data' => [0], 'chart_details' => []]);
+let myWpBarChart;
+
 var ctxBarWpProgres = document.getElementById('wp_progres_bar_chart');
 
-const labelsBarWp = ['WP 1.1', 'WP 2.1', 'WP 3.1', 'WP 4.1', 'WP 5.1', 'WP 6.1', 'WP 7.1'];
-const dataBarWpProgres = {
-  labels: labelsBarWp,
-  datasets: [{
-    axis: 'y',
-    label: 'Completeness (%)',
-    data: [65, 59, 80, 81, 56, 55, 40],
-    fill: false,
-    backgroundColor: [
-      'rgba(255, 99, 132, 1)',
-      'rgba(255, 159, 64, 1)',
-      'rgba(255, 205, 86, 1)',
-      'rgba(75, 192, 192, 1)',
-      'rgba(54, 162, 235, 1)',
-      'rgba(153, 102, 255, 1)',
-      'rgba(201, 203, 207, 1)'
-    ],
-    borderColor: [
-      'rgb(255, 99, 132)',
-      'rgb(255, 159, 64)',
-      'rgb(255, 205, 86)',
-      'rgb(75, 192, 192)',
-      'rgb(54, 162, 235)',
-      'rgb(153, 102, 255)',
-      'rgb(201, 203, 207)'
-    ],
-    borderWidth: 1
-  }]
-};
+// Initialize chart
+function initWpProgressChart(charData) {
 
-const configBarWpProgres = {
-    type: 'bar',
-    data: dataBarWpProgres,
-    options: {
-        indexAxis: 'y',
-        plugins: {
-            title: {
-                display: false
-            },
-            legend: {
-                display: false
-            }
-        },
-        responsive: true,
-        scales: {
-            x: {
-                beginAtZero: true,
-                max: 100,
-                stacked: true
-            },
-            y: {
-                grid: {
+    const dataBarWpProgres = {
+        labels: wpProgressBarChartData.labels,
+        datasets: [{
+            label: 'Completion Percentage (%)',
+            data: wpProgressBarChartData.data,
+            backgroundColor: generateHSLColors(wpProgressBarChartData.labels.length),
+            borderColor: generateHSLColors(wpProgressBarChartData.labels.length).map(color => 
+                color.replace('50%', '40%') // Darker border
+            ),
+            borderWidth: 1
+        }]
+    };
+    
+    const configBarWpProgres = {
+        type: 'bar',
+        data: dataBarWpProgres,
+        options: {
+            indexAxis: 'y',
+            plugins: {
+                title: {
                     display: false
                 },
-                stacked: true
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const label = context.label;
+                            const value = context.parsed.x;
+                            const details = wpProgressBarChartData.chart_details[label];
+                            
+                            if (!details) {
+                                return `Completion: ${value}%`;
+                            }
+    
+                            // Format tooltip dengan informasi volume/quantity
+                            let tooltipText = `Completion: ${value}%`;
+                            
+                            if (details.volume_count > 1) {
+                                tooltipText += ` (${details.volume_count} volumes)`;
+                            } else {
+                                tooltipText += ` (1 volume)`;
+                            }
+    
+                            return tooltipText;
+                        }
+                        // afterLabel: function(context) {
+                        //     const label = context.label;
+                        //     const details = wpProgressBarChartData.chart_details[label];
+                            
+                        //     if (!details) return [];
+    
+                        //     let afterLabels = [];
+                            
+                        //     // Work Package name
+                        //     afterLabels.push(`WP Name: ${details.wp_name}`);
+                            
+                        //     // ✅ TAMBAHAN: Volume details
+                        //     if (details.volume_count > 1) {
+                        //         afterLabels.push(`Volume Numbers: ${details.volume_numbers.join(', ')}`);
+                        //     } else {
+                        //         afterLabels.push(`Volume Number: ${details.volume_numbers[0] || 'N/A'}`);
+                        //     }
+                            
+                        //     // Execution year
+                        //     if (details.execution_year) {
+                        //         afterLabels.push(`Year: ${details.execution_year}`);
+                        //     }
+                            
+                        //     // Period information
+                        //     if (details.start_date && details.end_date) {
+                        //         const startDate = new Date(details.start_date).toLocaleDateString('id-ID');
+                        //         const endDate = new Date(details.end_date).toLocaleDateString('id-ID');
+                        //         afterLabels.push(`Period: ${startDate} - ${endDate}`);
+                        //     }
+    
+                        //     return afterLabels;
+                        // }
+                    }
+                }
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Completion Percentage (%)',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Work Package',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 10 // Slightly smaller for better readability
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 1500,
+                easing: 'easeInOutCubic'
             }
         }
+    };
+
+    // Destroy existing chart if exists
+    if (myWpBarChart) {
+        myWpBarChart.destroy();
     }
-};
+    
+    myWpBarChart = new Chart(ctxBarWpProgres, configBarWpProgres);
+}
+// Initialize chart with default data
+initWpProgressChart(wpProgressBarChartData);
 
-var myWpBarChart = new Chart(ctxBarWpProgres, configBarWpProgres);
+/**
+ * Show loading state for chart
+ */
+function showChartLoading() {
+     $('#chartLoadingOverlay').removeClass('d-none').addClass('d-flex');
+    $('#tahunFilter').prop('disabled', true);
+}
 
+/**
+ * Hide loading state
+ */
+function hideChartLoading() {
+    $('#chartLoadingOverlay').removeClass('d-flex').addClass('d-none');
+    $('#tahunFilter').prop('disabled', false);
+}
+
+/**
+ * Initialize table WP Progress
+ */
 function initTabelWPProgres() {
     const table = $('#wp_progres_table').DataTable({
         'scrollY': '300px',
@@ -391,10 +585,6 @@ function initTabelWPProgres() {
             "search": "Cari Project:",
             "searchPlaceholder": "Cari berdasarkan WO atau WP"
         },
-        // "fixedHeader": {
-        //     "header":true,
-        //     "headerOffset": 70
-        // },
         rowGroup: {
             dataSrc: 0,
             startRender: function (rows, group) {

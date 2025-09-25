@@ -111,6 +111,7 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
     Route::put('/profile/{userId}', [ProfileUserController::class, 'edit'])->name('profile.edit');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/wp-progress-data', [DashboardController::class, 'getWpProgressDataByYear'])->name('dashboard.wp-progress-data');
 
     // performance task
     Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
