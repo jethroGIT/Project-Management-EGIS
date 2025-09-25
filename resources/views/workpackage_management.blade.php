@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="">
     <h1 class="mt-0 mb-5">Management Kategori Work Package</h1>
 
     <div class="card card-flush shadow-sm mb-6">
@@ -110,7 +110,7 @@
                                     <td>{{ $wp['category_number'] }}. {{ $wp['category_name'] }}</td>
                                     <td>{{ $wp['wp_number'] }}</td>
                                     <td>{{ $wp['name'] }}</td>
-                                    <td class="text-center">{{ $wp['volume_count'] }}</td>
+                                    <td class="text-center">{{ $wp['volume_qty'] }}</td>
                                     <td class="text-center">{{ $wp['duration'] }} hari</td>
                                     <td>{{ $wp['actual_scope_contract'] ?? 'Belum ada actual scope' }}</td>
                                     <td>
@@ -455,7 +455,8 @@ function initTabelWPDetail() {
                 visible: false, // Kolom kategori disembunyikan karena sudah ditampilkan sebagai grup
                 searchable: true
             }
-        ]
+        ],
+        order: [[1, 'asc']]
     });
 
     // Setup search
