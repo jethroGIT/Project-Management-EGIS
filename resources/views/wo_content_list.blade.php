@@ -11,7 +11,7 @@
     <div class="card card-flush shadow-sm mb-8">
         <div class="card-header py-0">
             <div class="card-title">
-                <h3 class="fw-bold m-0">Daftar Work Package</h3>
+                <h3 class="fw-bold m-0">Daftar Kategori Work Package</h3>
             </div>
             <div class="card-toolbar">
                 <!-- <span class="badge badge-light-success badge-lg">{{ $volumesData->count() }} Volume</span> -->

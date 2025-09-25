@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="">
-    <h1 class="mt-0 mb-5">Work Package</h1>
+    <h1 class="mt-0 mb-5">Work Package Volume</h1>
 
     <!-- Title Section -->
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
@@ -63,11 +63,11 @@
 
     <!-- Card Kuantitas -->
     <div class="card card-flush shadow-sm mb-8">
-        <div class="card-header py-0">
+        {{-- <div class="card-header py-0">
             <h3 class="card-title">Kuantitas</h3>
-        </div>
-        <div class="card-body py-0">
-            <div class="mb-6">
+        </div> --}}
+        <div class="card-body">
+            <div class="mb-0">
                 <div class="row">
                     <!-- Duration Section -->
                     <div class="col-md-4">
@@ -126,38 +126,49 @@
                             </div>
                         </div>
                     @else
-                        <div class="col-md-4">
-                            <div class="card card-flush shadow-sm mb-4 duration-card">
-                                <div class="card-header title-mandays">
-                                    <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
-                                </div>
-                                <div class="card-body p-1">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        @if(isset($assignedUsers) && ($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
+                        @if(isset($assignedUsers) && ($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
+                            <div class="col-md-4">
+                                <div class="card card-flush shadow-sm mb-4 my-mandays-card">
+                                    <div class="card-header title-mandays">
+                                        <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
+                                    </div>
+                                    <div class="card-body p-1">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
                                             @php
                                                 $currentUser = $assignedUsers->firstWhere('user_id', auth()->user()->user_id);
                                             @endphp
-                                            <div class="mini-mandays-card h-100 mb-3">
+                                            <div class="mini-mandays-card h-100 mb-4">
                                                 <div class="mb-1" style="font-size: 1.1rem;">Rencana</div>
                                                 <div class="fs-2 text-success">{{ $currentUser['jhk'] ?? 0 }}</div>
                                             </div>
-                                            <div class="mini-mandays-card h-100 mb-3">
+                                            <div class="mini-mandays-card h-100 mb-4">
                                                 <div class="mb-1" style="font-size: 1.1rem;">Realisasi</div>
                                                 <div class="fs-2 text-success">{{ $currentUser['timesheets_count'] ?? 0 }}</div>
                                             </div>
-                                        @else
-                                            <div style="height: 80px">
-                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->wp_number }}</span>
-                                            </div>
-                                        @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @else
+                            <div class="col-md-4">
+                                <div class="card card-flush shadow-sm mb-4 my-mandays-card">
+                                    <div class="card-header title-mandays">
+                                        <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <div style="height: 80px">
+                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->wp_number }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @endif
 
                     <!-- Timesheet Button -->
-                    <div class="d-flex justify-content-end mb-4">
+                    <div class="d-flex justify-content-end align-items-end col-12 mt-3">
                         @if(auth()->user()->hasRole('admin') || isset($assignedUsers) && !($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
                             <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
                                 Timesheet
@@ -182,7 +193,7 @@
     <!-- Card Task List -->
     <div class="card card-flush shadow-sm mb-8">
         <div class="card-header py-0">
-            <h3 class="card-title">Task List</h3>
+            <h3 class="card-title">Daftar Task</h3>
         </div>
         <div class="card-body py-0">
             <div class="d-flex justify-content-between align-items-center">
@@ -204,7 +215,7 @@
                         style="width:200px" 
                         type="search"
                         id="searchTaskInput" 
-                        placeholder="Cari Task" 
+                        placeholder="Cari Data" 
                         aria-label="Search"
                     >                    
                 </form>
@@ -478,7 +489,7 @@
     <div class="card card-flush shadow mb-6">
         <div class="card-header py-0">
             <h3 class="card-title">
-                Detail Informasi
+                Informasi Work Package Volume
             </h3>
         </div>
         <div class="card-body py-0">
@@ -536,7 +547,7 @@
                                         <div class="mb-1">
                                             <div class="row g-2">
                                                 <div class="col-md-8">
-                                                    <label class="form-label fw-bold">Resource Names</label>
+                                                    <label class="form-label fw-bold">Tenaga Kerja</label>
                                                 </div>
                                                 <div class="col-md-2">
                                                     <label class="form-label fw-bold">JHK</label>
@@ -548,7 +559,7 @@
                                         </div>
                                         <button type="button" class="btn btn-light-primary" id="addEditResourceBtn">
                                             <i class="bi bi-plus-lg"></i>
-                                            Tambah Resource
+                                            Tambah Tenaga Kerja
                                         </button>
                                     </div>
                                 </form>
@@ -645,7 +656,7 @@
                                         <i class="bi bi-people text-warning fs-2"></i>
                                     </div>
                                 </div>
-                                <h3 class="card-title fw-bold">Resource Names</h3>
+                                <h3 class="card-title fw-bold">Tenaga Kerja</h3>
                                 <span class="badge badge-light-success ms-auto">{{ isset($assignedUsers) ? $assignedUsers->count() : 0 }} Members</span>
                             </div>
                             <div class="row g-3 justify-content-center mb-4">
@@ -707,15 +718,15 @@
                                                     <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
                                                 </svg>
                                             </div>
-                                            <h5 class="text-muted fw-bold mb-2">Belum Ada Resource Yang Ditugaskan</h5>
+                                            <h5 class="text-muted fw-bold mb-2">Belum Ada Tenaga Kerja Yang Ditugaskan</h5>
                                             <p class="text-muted mb-4 text-center">
-                                                Resource belum ditugaskan untuk work package ini.<br>
-                                                Silakan assign resource terlebih dahulu.
+                                                Tenaga Kerja belum ditugaskan untuk work package ini.<br>
+                                                Silakan assign tenaga kerja terlebih dahulu.
                                             </p>
                                             @if(auth()->user() && auth()->user()->hasRole('admin'))
                                                 <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
                                                     <i class="bi bi-plus-circle me-2"></i>
-                                                    Assign Resource
+                                                    Assign Tenaga Kerja
                                                 </button>
                                             @endif
                                         </div>
@@ -877,7 +888,7 @@ function initializeEditModal() {
                 <div class="d-flex align-items-center mb-3">
                     <i class="bi bi-info-circle me-2 text-info"></i>
                     <div>
-                        <div>User dengan role berdasarkan Work Package ini: <strong>${uniqueRoles.join(', ')}</strong></div>
+                        <div>Personel dengan jabatan berdasarkan Work Package ini: <strong>${uniqueRoles.join(', ')}</strong></div>
                     </div>
                 </div>
                 <div class="alert alert-info" id="roleCapacityInfo">
@@ -885,7 +896,7 @@ function initializeEditModal() {
                     <div class="">${roleCapacityInfo}</div>
                     <div class="small mt-2">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        User dengan role yang sudah penuh tidak dapat dipilih
+                        Personel dengan jabatan yang sudah penuh tidak dapat dipilih
                     </div>
                 </div>
             </div>
@@ -897,8 +908,8 @@ function initializeEditModal() {
             <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
                 <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
                 <div>
-                    <strong>Tidak ada user tersedia:</strong> 
-                    Tidak ada user dengan role yang sesuai dengan Human Resources pada Work Package ini.
+                    <strong>Tidak ada personel tersedia:</strong> 
+                    Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.
                 </div>
             </div>
         `;
@@ -1148,16 +1159,16 @@ function addEditResource(selectedUserId = null) {
             <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="noUsersAlert">
                 <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
                 <div>
-                    Tidak ada user dengan role yang sesuai dengan Human Resources pada Work Package ini.<br>
-                    <small class="text-muted">Pastikan ada user dengan role yang sudah di-assign di work package ini.</small>
+                    Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.<br>
+                    <small class="text-muted">Pastikan ada personel dengan jabatan yang sudah di-assign di work package ini.</small>
                 </div>
             </div>
         `;
         $('#addEditResourceBtn').after(alertHtml);
 
         Swal.fire({
-            text: "Tidak Ada User Tersedia.",
-            text: "Tidak ada data user dengan role yang sesuai. Pastikan ada user dengan role yang sudah di-assign pada Work Package ini.",
+            text: "Tidak Ada Personel Tersedia.",
+            text: "Tidak ada data personel dengan jabatan yang sesuai. Pastikan ada personel dengan jabatan yang sudah di-assign pada Work Package ini.",
             icon: "warning",
             buttonsStyling: false,
             confirmButtonText: "OK",
@@ -1180,7 +1191,7 @@ function addEditResource(selectedUserId = null) {
     const currentResourceCount = $('#editResourceContainer .input-group').length;
     const resourceIndex = currentResourceCount;
 
-    let optionsHtml = '<option value="">Pilih Resource</option>';
+    let optionsHtml = '<option value="">Pilih Tenaga Kerja</option>';
     let defaultJhk = 0; 
     
     // Group users berdasarkan role untuk pengecekan kapasitas
@@ -1338,7 +1349,7 @@ function handleResourceChange(selectElement) {
     
     if (duplicateCount > 1) {
         Swal.fire({
-            text: "User ini sudah dipilih di resource lain!",
+            text: "Personel ini sudah dipilih di penugasan tenaga kerja lain!",
             icon: "warning",
             buttonsStyling: false,
             confirmButtonText: "OK",
@@ -1373,10 +1384,10 @@ function handleResourceChange(selectElement) {
             // Check if adding this user would exceed capacity
             if (currentSelectionCount >= capacity.jtk) {
                 Swal.fire({
-                    title: "Kapasitas Role Penuh",
+                    title: "Kapasitas Jabatan Penuh",
                     html: `
                         <div class="text-center">
-                            <p class="mb-3">Role <strong>${capacity.role_name}</strong> sudah mencapai batas maksimum!</p>
+                            <p class="mb-3">Jabatan <strong>${capacity.role_name}</strong> sudah mencapai batas maksimum!</p>
                             <div class="alert alert-light-warning py-2">
                                 <div class="small">
                                     <strong>Kapasitas:</strong> ${capacity.jtk} orang<br>
@@ -1385,7 +1396,7 @@ function handleResourceChange(selectElement) {
                                 </div>
                             </div>
                             <p class="small text-muted">
-                                Untuk menambah user dengan role ini, hapus salah satu user dengan role yang sama terlebih dahulu.
+                                Untuk menambah personel dengan jabatan ini, hapus salah satu personel dengan jabatan yang sama terlebih dahulu.
                             </p>
                         </div>
                     `,
@@ -2445,6 +2456,10 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .duration-card:hover .duration-highlight {
     transform: scale(1.18);
+}
+
+.my-mandays-card .card-body{
+    min-height: 83px;
 }
 
 /* HOVER EFFECT UNTUK RESOURCE NAMES CARDS */

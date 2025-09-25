@@ -35,11 +35,21 @@ class AuthController extends Controller
         if (auth()->attempt($credentials)) {
             // Jika sukses login
             $request->session()->regenerate(); // untuk keamanan session
-            return response()->json([
-                'success' => true,
-                'redirect' => '/dashboard',
-                'email' => $request->email,
-            ]);
+
+            $user = auth()->user();
+            if($user->hasRole('admin')) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => '/dashboard',
+                    'email' => $request->email,
+                ]);
+            }else{
+                return response()->json([
+                    'success' => true,
+                    'redirect' => '/dashboard-karyawan/' . $user->user_id,
+                    'email' => $request->email,
+                ]);
+            }
         }
         return response()->json([
             'success' => false,
@@ -86,7 +96,11 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
-        return redirect()->route('dashboard');
+        if($user->is_admin) {
+            return redirect()->route('dashboard');
+        }else{
+            return redirect()->route('dashboard-karyawan', ['user_id' => $user->user_id]);
+        }
     }
 
     /**

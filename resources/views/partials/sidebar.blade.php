@@ -37,6 +37,7 @@
                     </div>
                 </div>
                 <div class="menu-item">
+                    @if(auth()->user() && auth()->user()->hasRole('admin'))
                     <a
                         class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                         href="{{ route('dashboard') }}"
@@ -92,6 +93,63 @@
                         </span>
                         <span class="menu-title">Dashboard</span>
                     </a>
+                    @else
+                    <a
+                        class="menu-link {{ request()->routeIs('dashboard-karyawan', ['user_id' => Auth::user()->user_id]) ? 'active' : '' }}"
+                        href="{{ route('dashboard-karyawan', ['user_id' => Auth::user()->user_id]) }}"
+                    >
+                        <span class="menu-icon">
+                            <!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+                            <span class="svg-icon svg-icon-2">
+                                <svg
+                                    fill="none"
+                                    height="24"
+                                    viewbox="0 0 24 24"
+                                    width="24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        rx="2"
+                                        width="9"
+                                        x="2"
+                                        y="2"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="13"
+                                        y="2"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="13"
+                                        y="13"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="2"
+                                        y="13"
+                                    ></rect>
+                                </svg>
+                            </span>
+                            <!--end::Svg Icon-->
+                        </span>
+                        <span class="menu-title">Dashboard</span>
+                    </a>
+                    @endif
                 </div>
                 
                 <div class="menu-item">
@@ -102,7 +160,7 @@
                         >
                     </div>
                 </div>
-                <div class="menu-item">
+                {{-- <div class="menu-item">
                     <a
                         class="menu-link {{ request()->routeIs('task') ? 'active' : '' }}"
                         href="{{ route('task') }}"
@@ -117,6 +175,23 @@
                             </span>
                         </span>
                         <span class="menu-title">Task</span>
+                    </a>
+                </div> --}}
+                <div class="menu-item">
+                    <a
+                        class="menu-link {{ request()->routeIs('workpackages-list') ? 'active' : '' }}"
+                        href="{{ route('workpackages-list') }}"
+                    >
+                        <span class="menu-icon">
+                            <span class="svg-icon svg-icon-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-journal-bookmark-fill" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M6 1h6v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8z"/>
+                                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+                                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                                </svg>
+                            </span>
+                        </span>
+                        <span class="menu-title">Work Packages</span>
                     </a>
                 </div>
                 <!-- <div
@@ -168,16 +243,14 @@
                 >
                     <span class="menu-link">
                         <span class="menu-icon">
-                            <span class="svg-icon svg-icon-muted svg-icon-2">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M11.2929 2.70711C11.6834 2.31658 12.3166 2.31658 12.7071 2.70711L15.2929 5.29289C15.6834 5.68342 15.6834 6.31658 15.2929 6.70711L12.7071 9.29289C12.3166 9.68342 11.6834 9.68342 11.2929 9.29289L8.70711 6.70711C8.31658 6.31658 8.31658 5.68342 8.70711 5.29289L11.2929 2.70711Z" fill="currentColor"/>
-                                    <path d="M11.2929 14.7071C11.6834 14.3166 12.3166 14.3166 12.7071 14.7071L15.2929 17.2929C15.6834 17.6834 15.6834 18.3166 15.2929 18.7071L12.7071 21.2929C12.3166 21.6834 11.6834 21.6834 11.2929 21.2929L8.70711 18.7071C8.31658 18.3166 8.31658 17.6834 8.70711 17.2929L11.2929 14.7071Z" fill="currentColor"/>
-                                    <path opacity="0.3" d="M5.29289 8.70711C5.68342 8.31658 6.31658 8.31658 6.70711 8.70711L9.29289 11.2929C9.68342 11.6834 9.68342 12.3166 9.29289 12.7071L6.70711 15.2929C6.31658 15.6834 5.68342 15.6834 5.29289 15.2929L2.70711 12.7071C2.31658 12.3166 2.31658 11.6834 2.70711 11.2929L5.29289 8.70711Z" fill="currentColor"/>
-                                    <path opacity="0.3" d="M17.2929 8.70711C17.6834 8.31658 18.3166 8.31658 18.7071 8.70711L21.2929 11.2929C21.6834 11.6834 21.6834 12.3166 21.2929 12.7071L18.7071 15.2929C18.3166 15.6834 17.6834 15.6834 17.2929 15.2929L14.7071 12.7071C14.3166 12.3166 14.3166 11.6834 14.7071 11.2929L17.2929 8.70711Z" fill="currentColor"/>
+                            <span class="svg-icon svg-icon-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 16 16">
+                                    <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0L6 9.707a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                    <path d="M8 1.5a1.5 1.5 0 0 1 1.415 1H12a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1h2.585A1.5 1.5 0 0 1 8 1.5m0-1A2.5 2.5 0 0 0 5.5 3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1.5A2.5 2.5 0 0 0 8 .5"/>
                                 </svg>
                             </span>
                         </span>
-                        <span class="menu-title">Work Order</span>
+                        <span class="menu-title">Work Orders</span>
                         <span class="menu-arrow"></span>
                     </span>
                     <div class="menu-sub menu-sub-accordion menu-active-bg">
@@ -353,7 +426,7 @@
                 @endif
             
                 <!-- Section Board -->
-                <div class="menu-item">
+                {{-- <div class="menu-item">
                     <div class="menu-content pt-8 pb-2">
                         <span
                             class="menu-section text-muted text-uppercase fs-8 ls-1"
@@ -379,7 +452,7 @@
                         </span>
                         <span class="menu-title">Kanban</span>
                     </a>
-                </div>
+                </div> --}}
             </div>
             <!--end::Menu-->
 

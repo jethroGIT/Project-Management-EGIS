@@ -107,7 +107,7 @@
                                     style="width:200px" 
                                     type="search"
                                     id="searchActivityUser" 
-                                    placeholder="Cari aktivitas" 
+                                    placeholder="Cari Data" 
                                     aria-label="Search"
                                 >                    
                             </form>
@@ -179,7 +179,7 @@
                 <h3 class="modal-title">Tambah Aktivitas Timesheet</h3>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{{route('timesheet.user.add', [$volume->volume_id,1])}}" id="addActivityForm">
+                <form method="POST" action="{{route('timesheet.user.add', [$volume->volume_id, Auth::user()->user_id])}}" id="addActivityForm">
                     @csrf
                     @method('POST')
 
@@ -227,7 +227,7 @@
                 <h3 class="modal-title">Edit Aktivitas Timesheet</h3>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id,1])}}" id="editActivityForm">
+                <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id, Auth::user()->user_id])}}" id="editActivityForm">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="timesheet_id" id="form_timesheet_id">
@@ -378,6 +378,9 @@
                 }).then(() => {
                     addActivityModal.hide(); // Sembunyikan modal
                     location.reload(); // Reload halaman untuk melihat perubahan
+                    // if (window.refreshStatusTimesheet) {
+                    //     window.refreshStatusTimesheet();
+                    // }
                     // ATAU update UI tanpa reload:
                     // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
                 });
