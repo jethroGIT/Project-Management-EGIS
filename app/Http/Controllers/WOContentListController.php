@@ -210,6 +210,12 @@ class WOContentListController extends Controller
             }
 
             $tasksWithUtilization = $volumeTasks->map(function ($task) {
+                // Jika task memiliki completeness langsung
+                if ($task->completeness !== null) {
+                    return round($task->completeness, 2);
+                } 
+                
+                // Jika tidak, hitung dari sub tasks
                 $subTasks = $task->subTask;
                 if ($subTasks->count() > 0) {
                     $avgCompleteness = $subTasks->avg('completeness');
