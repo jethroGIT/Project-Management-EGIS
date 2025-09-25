@@ -12,7 +12,7 @@
                 <div class="d-flex justify-content-start mb-4">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_category">
                         <i class="bi bi-plus-lg fs-2 me-1"></i>
-                        Tambah Kategori WP
+                        Tambah Work Package
                     </button>
                 </div>
 
@@ -24,7 +24,7 @@
                         style="width:200px" 
                         type="search"
                         id="searchCategory" 
-                        placeholder="Cari Kategori" 
+                        placeholder="Cari Data" 
                         aria-label="Search"
                     >                    
                 </form>
@@ -36,8 +36,8 @@
                     <thead>
                         <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th class="align-middle border-bottom text-center">No</th>
-                            <th class="align-middle border-bottom" style="min-width: 110px">No. Kategori</th>
-                            <th class="align-middle border-bottom">Kategori</th>
+                            <th class="align-middle border-bottom text-center" style="min-width: 110px">No. WP</th>
+                            <th class="align-middle border-bottom">Work Package</th>
                             <th class="align-middle border-bottom" style="width: 140px">Action</th>
                         </tr>
                     </thead>
@@ -74,8 +74,8 @@
                             <td colspan="5" class="text-center text-muted py-4">
                                 <div class="d-flex flex-column align-items-center justify-content-center">
                                     <i class="bi bi-people fs-1 text-muted mb-2"></i>
-                                    <h6 class="text-muted">Belum Ada Kategori WP</h6>
-                                    <p class="text-muted">Tidak ada data kategori WP dalam sistem</p>
+                                    <h6 class="text-muted">Belum Ada Work Package</h6>
+                                    <p class="text-muted">Tidak ada data Work Package dalam sistem</p>
                                 </div>
                             </td>
                         </tr>
@@ -93,20 +93,20 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Tambah Kategori WP</h3>
+                <h3 class="modal-title">Tambah Work Package</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.add')}}" id="addCategoryForm">
                     @csrf
                     @method('POST')   
                     <div class="row">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bolder">No. Kategori</label>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bolder">No. WP</label>
                             <input type="number" class="form-control" id="category_number" name="category_number" min="1"></input>
                         </div>                
-                        <div class="col-md-9">
-                            <label class="form-label fw-bolder">Kategori WP</label>
-                            <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                        <div class="col-md-10">
+                            <label class="form-label fw-bolder">Work Package</label>
+                            <input class="form-control" id="name" name="name" placeholder="Work Package"></input>
                         </div>
                     </div>
                 </form>
@@ -124,7 +124,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Edit Kategori WP</h3>
+                <h3 class="modal-title">Edit Work Package</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.edit')}}" id="editCategoryForm">
@@ -132,13 +132,13 @@
                     @method('PUT') 
                     <input type="hidden" name="category_id" id="form_category_id">
                     <div class="row">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bolder">No. Kategori</label>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bolder">No. WP</label>
                             <input type="number" class="form-control" id="categoryNumber" name="category_number" min="1"></input>
                         </div>                
-                        <div class="col-md-9">
-                            <label class="form-label fw-bolder">Kategori WP</label>
-                            <input class="form-control" id="categoryName" name="name" placeholder="Kategori"></input>
+                        <div class="col-md-10">
+                            <label class="form-label fw-bolder">Work Package</label>
+                            <input class="form-control" id="categoryName" name="name" placeholder="Work Package"></input>
                         </div>
                     </div>
                 </form>
@@ -215,7 +215,7 @@
             if (!categoryNumber || !categoryName) {
                 Swal.fire({
                     title: "Data Belum Lengkap",
-                    text: "Nomor Kategori & Kategori Work Package wajib diisi.",
+                    text: "Nomor WP & Work Package wajib diisi.",
                     icon: "info",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
@@ -225,8 +225,8 @@
             }
             if (parseInt(categoryNumber) <= 0) {
                 Swal.fire({
-                    title: "Nomor Kategori Tidak Valid",
-                    text: "Nomor Kategori harus berupa angka positif.",
+                    title: "Nomor WP Tidak Valid",
+                    text: "Nomor WP harus berupa angka positif.",
                     icon: "info",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
@@ -252,8 +252,8 @@
                     addCategoryForm.find('input, button').prop('disabled', true);
 
                     Swal.fire({
-                        title: 'Menambahkan Kategori...',
-                        text: 'Sedang memproses penambahan kategori baru',
+                        title: 'Menambahkan Work Package...',
+                        text: 'Sedang memproses penambahan Work Package baru',
                         allowOutsideClick: false,
                         allowEscapeKey: false,
                         showConfirmButton: false,
@@ -277,7 +277,7 @@
                     } else {
                         Swal.fire({
                             title: "Gagal",
-                            text: response.message || "Gagal menambahkan kategori",
+                            text: response.message || "Gagal menambahkan Work Package",
                             icon: "error",
                             buttonsStyling: false,
                             confirmButtonText: "Tutup",
@@ -286,12 +286,12 @@
                     }
                 },
                 error: function (xhr) {
-                    let errorMessage = "Terjadi kesalahan saat menambahkan kategori";
+                    let errorMessage = "Terjadi kesalahan saat menambahkan Work Package";
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
                     }
                     Swal.fire({
-                        title: "Gagal Menambahkan Kategori",
+                        title: "Gagal Menambahkan Work Package",
                         text: errorMessage,
                         icon: "error",
                         buttonsStyling: false,
@@ -368,7 +368,7 @@
                         });
                     })
                     .catch(error => {
-                        console.error('Error adding category:', error);
+                        console.error('Error adding Work Package:', error);
                         Swal.fire({
                             text: error.message || "Terjadi kesalahan yang tidak terduga.",
                             icon: "error",
@@ -388,9 +388,9 @@
         const categoryName = $(this).data('category-name');
 
         Swal.fire({
-            title: "Konfirmasi Hapus Kategori WP",
+            title: "Konfirmasi Hapus Work Package",
             html: `
-                <span>Apakah Anda yakin ingin menghapus kategori:</span>
+                <span>Apakah Anda yakin ingin menghapus Work Package:</span>
                 <p>${categoryName}?</p>
                 <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
             `,

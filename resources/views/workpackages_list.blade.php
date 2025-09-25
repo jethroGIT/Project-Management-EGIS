@@ -10,10 +10,10 @@
     <div class="card card-flush shadow-sm mb-8">
         <div class="card-header py-0">
             <div class="card-title">
-                <h3 class="fw-bold m-0">Daftar Work Packages</h3>
+                <h3 class="fw-bold m-0">Daftar Work Package</h3>
             </div>
             <div class="card-toolbar">
-                <span class="badge badge-light-success badge-lg">{{$countWPs}} WPs</span>
+                <span class="badge badge-light-success badge-lg">{{$countWPs}} Work Package Categories</span>
             </div>
         </div>
         <div class="card-body py-0">

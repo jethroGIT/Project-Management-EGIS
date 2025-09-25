@@ -107,7 +107,7 @@
                                     style="width:200px" 
                                     type="search"
                                     id="searchActivityUser" 
-                                    placeholder="Cari aktivitas" 
+                                    placeholder="Cari Data" 
                                     aria-label="Search"
                                 >                    
                             </form>

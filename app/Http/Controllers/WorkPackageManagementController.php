@@ -96,7 +96,7 @@ class WorkPackageManagementController extends Controller
                     'duration' => $wp->duration,
                     'actual_scope_contract' => $wp->actual_scope_contract,
                     'deliverable' => $wp->deliverable,
-                    'resource_names' => $uniqueResources->implode(', ') ?: 'Belum ada resource'
+                    'resource_names' => $uniqueResources->implode(', ') ?: 'Belum ada tenaga kerja'
                 ];
             });
 
@@ -181,7 +181,7 @@ class WorkPackageManagementController extends Controller
                     'execution_year' => $volume->execution_year,
                     'period_formatted' => $periodFormatted,
                     'duration_days' => $workPackage->duration,
-                    'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada resource',
+                    'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada tenaga kerja',
                     'resource_count' => $resourceNames->count(),
                     'wo_id' => $volume->wo_id,
                     'wo_number' => $woNumber,
@@ -486,7 +486,7 @@ class WorkPackageManagementController extends Controller
                         'over_limit' => $overLimit,
                         'role_details' => $roleJhkDetails
                     ],
-                    'suggestion' => 'Kurangi JHK pada beberapa role atau tingkatkan durasi work package'
+                    'suggestion' => 'Kurangi JHK pada beberapa jabatan atau tingkatkan durasi pengerjaan kategori work package'
                 ], 422);
             }
 

@@ -33,9 +33,9 @@
                      <div class="card-body py-5">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label fw-bold">Work Package</label>
+                                <label class="form-label fw-bold">Kategori Work Package</label>
                                 <select class="form-select form-select-solid" id="workPackageFilter">
-                                    <option value="">Pilih Work Package</option>
+                                    <option value="">Pilih Kategori Work Package</option>
                                     @if(isset($workPackagesFilter) && $workPackagesFilter->count() > 0)
                                         @foreach($workPackagesFilter as $wp)
                                             <option value="{{ $wp->wp_id }}">
@@ -77,7 +77,7 @@
                         style="width:200px" 
                         type="search"
                         id="searchActivity" 
-                        placeholder="Cari Aktivitas" 
+                        placeholder="Cari Data" 
                         aria-label="Search"
                     >                    
                 </form>
@@ -90,7 +90,7 @@
                         <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping --}}
                             <th scope="col" style="width: 30px;">No</th>
-                            <th scope="col" style="width: 30px;">Vol</th>
+                            <th scope="col">Vol Ke-</th>
                             <th scope="col" style="width: 75px; min-width: 35px;">Tanggal</th>
                             @foreach($users as $user)
                                 <th scope="col">
@@ -243,13 +243,22 @@
                     @method('POST')
 
                     <div class="form-group mb-6">
-                        <label for="work_package_select" class="form-label fw-bold">Work Package</label>
+                        <label for="work_package_select" class="form-label fw-bold">Kategori Work Package</label>
                         <div class="input-group">
+                            @php
+                                function wpOptionText($wp) {
+                                    $maxLength = 100; // atur sesuai kebutuhan
+                                    $text = trim($wp->wp_number . ' ' . $wp->name);
+                                    return strlen($text) > $maxLength
+                                        ? mb_substr($text, 0, $maxLength) . '...'
+                                        : $text;
+                                }
+                            @endphp
                             <select class="form-select form-select-solid" name="wp_id" id="work_package_select" required>
-                                <option value="">Pilih Work Package</option>
+                                <option value="">Pilih Kategori Work Package</option>
                                 {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
                                 @foreach($workPackages as $wp)
-                                    <option value="{{ $wp->wp_id }}">{{ $wp->wp_number }} {{ $wp->name }}</option>
+                                    <option value="{{ $wp->wp_id }}">{{ wpOptionText($wp) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -345,10 +354,10 @@
                     <div id="edit_timesheet_ids_container"></div>
                     <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value="">
                     <div class="form-group mb-6">
-                        <label for="edit_work_package_select" class="form-label fw-bold">Work Package</label>
+                        <label for="edit_work_package_select" class="form-label fw-bold">Kategori Work Package</label>
                         <div class="input-group">
                             <select class="form-select form-select-solid" name="wp_id" id="edit_work_package_select" required>
-                                <option value="">Pilih Work Package</option>
+                                <option value="">Pilih Kategori Work Package</option>
                                 {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
                                 @foreach($workPackages as $wp)
                                     <option value="{{ $wp->wp_id }}">{{ $wp->wp_number }} {{ $wp->name }}</option>
@@ -812,7 +821,7 @@
         if (!wp || !vol || !date) {
             Swal.fire({
                 title: "Data Belum Lengkap",
-                text: "Work Package, Volume, Tanggal, Personel, Durasi, dan aktivitas wajib diisi.",
+                text: "Kategori Work Package, Volume, Tanggal, Personel, Durasi, dan aktivitas wajib diisi.",
                 icon: "info",
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
@@ -934,7 +943,7 @@
                 const activities = data.data;
                 console.log('Edit data:', activities);
                 if (!activities.length || !activities[0].volume || !activities[0].volume.work_package) {
-                    Swal.fire('Error', 'Data work package tidak tersedia.', 'error');
+                    Swal.fire('Error', 'Data Kategori work package tidak tersedia.', 'error');
                     return;
                 }
                 const wpId = activities[0].volume.work_package.wp_id;

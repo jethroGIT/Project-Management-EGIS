@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         <div>
-            <h1 class="mt-0 mb-5">Detail Work Package</h1>
+            <h1 class="mt-0 mb-5">Detail Kategori Work Package</h1>
             <h4 class="">{{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
         </div>
         <div class="text-end">
@@ -22,7 +22,7 @@
         <div class="card-header py-0">
             <h3 class="card-title">
                 <i class="bi bi-info-circle text-primary me-2"></i>
-                Informasi Work Package
+                Informasi Kategori Work Package
             </h3>
         </div>
         <div class="card-body py-0">
@@ -41,7 +41,7 @@
                                 <td class="fw-bold">{{ $workPackage->name }}</td>
                             </tr> -->
                             <tr>
-                                <td class="fw-bold text-muted">Kategori</td>
+                                <td class="fw-bold text-muted">Work Package</td>
                                 <td class="fw-bold text-muted">:</td>
                                 <td>{{ $workPackage->wpCategory->name ?? 'Tidak Berkategori' }}</td>
                             </tr>
@@ -265,8 +265,8 @@
                         <thead>
                             <tr class="fw-bold fs-4 text-gray-1000 bg-light">
                                 <th></th>
-                                <th style="width: 170px;">Peran</th>
-                                <th style="width: 170px;">SDM</th>
+                                <th style="width: 170px;">Jabatan</th>
+                                <th style="width: 170px;">Personel</th>
                                 <th class="text-center">JTK (Jumlah Tenaga Kerja)</th>
                                 <th class="text-center">JHK (Jumlah Hari Kerja)</th>
                             </tr>
@@ -312,7 +312,7 @@
                                         <td></td>
                                         <td colspan="4" class="text-center text-muted py-3">
                                             <i class="bi bi-person-x me-2"></i>
-                                            Belum ada SDM yang di-assign untuk jabatan ini
+                                            Belum ada personel yang di-assign untuk jabatan ini
                                         </td>
                                     </tr>
                                 @endif
@@ -324,7 +324,7 @@
                 <div class="text-center py-5">
                     <i class="bi bi-people fs-1 text-muted mb-3"></i>
                     <h6 class="text-muted">Belum ada data kebutuhan tenaga kerja</h6>
-                    <p class="text-muted">Data akan tersedia setelah resource ditugaskan</p>
+                    <p class="text-muted">Data akan tersedia setelah tenaga kerja ditugaskan</p>
                 </div>
             @endif
         </div>

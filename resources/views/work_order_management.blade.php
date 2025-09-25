@@ -42,16 +42,16 @@
                                 <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
                             </svg>
                             <div class="m-2">
-                                Filter Data berdasarkan Kategori
+                                Filter Data
                             </div>
                         </h3>
                     </div>
                     <div class="card-body py-5">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label fw-bold">Kategori WP</label>
+                                <label class="form-label fw-bold">Work Package</label>
                                 <select class="form-select form-select-solid" id="kategoriFilter">
-                                    <option value="">Pilih Kategori WP</option>
+                                    <option value="">Pilih Work Package</option>
                                     @foreach($categories as $category)
                                         @if($category->workPackage && $category->workPackage->count() > 0)
                                             <option value="{{ $category->category_id }}">
@@ -86,7 +86,7 @@
                     <thead>
                         <tr class="text-center fw-bolder fs-6 text-gray-800 px-7">
                             <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping WP category --}}
-                            <th scope="col" rowspan="2" class="align-middle border-bottom" style="min-width:50px">No. WP</th>
+                            <th scope="col" rowspan="2" class="align-middle border-bottom" style="min-width:50px">No.</th>
                             <th scope="col" rowspan="2" class="align-middle border-bottom">Work Package</th>
                             <th scope="col" colspan="2" class="align-middle border-bottom"  style="min-width:100px">No. WO</th>
                             <th scope="col" colspan="3" class="align-middle border-bottom">Volume (Qty)</th>
@@ -178,8 +178,8 @@
                         <thead style="font-size: 1.1rem;">
                             <tr>
                                 <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping WP category --}}
-                                <th scope="col" class="fw-bold align-middle">No. WP</th>
-                                <th scope="col" class="fw-bold align-middle">Work Package</th>
+                                <th scope="col" class="fw-bold align-middle">No.</th>
+                                <th scope="col" class="fw-bold align-middle">Kategori WP</th>
                                 <th scope="col" class="fw-bold text-center align-middle">Volume (QTY)</th>
                             </tr>
                         </thead>
@@ -252,7 +252,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Assign Work Package ke Work Order</h3>
+                <h3 class="modal-title">Assign Kategori Work Package ke Work Order</h3>
             </div>
             <div class="modal-body">
                 <form id="assignWoForm">
@@ -374,7 +374,7 @@
 <template id="volumeSelectionTemplate">
     <div class="card card-flush shadow-sm border-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
         <div class="card-header py-2">
-            <h3 class="card-title title-template fw-bold fs-5">Work Package Assignment #</h3>
+            <h3 class="card-title title-template fw-bold fs-5">Assignment #</h3>
             <div class="card-toolbar">
                 <button type="button" class="btn btn-sm btn-light-danger remove-wpvolume-btn">
                     <i class="bi bi-trash fs-5"></i> Hapus
@@ -385,14 +385,23 @@
             <div class="mb-10">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-info-circle text-primary me-2 fs-3"></i>
-                    <h6 class="mb-0">Work Package</h6>
+                    <h6 class="mb-0">Kategori Work Package</h6>
                 </div>
+                @php
+                    function wpOptionText($wp) {
+                        $maxLength = 100; // atur sesuai kebutuhan
+                        $text = trim($wp->wp_number . ' ' . $wp->name);
+                        return strlen($text) > $maxLength
+                            ? mb_substr($text, 0, $maxLength) . '...'
+                            : $text;
+                    }
+                @endphp
                 <select name="wp_id" class="form-select wpSelect mb-2" required>
-                    <option value="">Pilih Work Package</option>
+                    <option value="">Pilih Kategori Work Package</option>
                     @foreach($workPackages as $wp)
                         @if($wp->remaining != 0)
                             <option value="{{ $wp->wp_id }}">
-                                {{ $wp->wp_number }} - {{ $wp->name }}
+                                {{ wpOptionText($wp) }}
                             </option>
                         @endif
                     @endforeach
@@ -404,7 +413,7 @@
             </div>
             <div class="mb-6 volume-section">
                 <div class="alert alert-warning py-2 px-3 mb-0 volume-warning" role="alert" style="display:block;">
-                    silakan pilih work package terlebih dahulu
+                    silakan pilih kategori Work Package terlebih dahulu
                 </div>
                 <div class="volume-options" style="display:none;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -699,7 +708,7 @@
             const removeBtn = card.querySelector('.remove-wpvolume-btn');
 
             if (title) {
-                title.textContent = `Work Package Assignment #${idx + 1}`;
+                title.textContent = `Assignment #${idx + 1}`;
             }
             // Event hapus card
             if (removeBtn) {
@@ -720,7 +729,7 @@
                     const updatedCards = container.querySelectorAll('.card.card-flush.shadow-sm.border-0.mb-5');
                     updatedCards.forEach((c, i) => {
                         const t = c.querySelector('.title-template');
-                        if (t) t.textContent = `Work Package Assignment #${i + 1}`;
+                        if (t) t.textContent = `Assignment #${i + 1}`;
                     });
                     // Enable tombol jika card kurang dari wp available
                     const addBtn = document.getElementById('addWPVolumeBtn');
@@ -905,7 +914,7 @@
                 valid = false;
                 Swal.fire({
                     title: "Volume belum dipilih",
-                    text: `Silakan pilih minimal satu volume pada card Volume Work Package ${idx + 1}`,
+                    text: `Silakan pilih minimal satu volume pada card Assignment #${idx + 1}`,
                     icon: "warning",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",

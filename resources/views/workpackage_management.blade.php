@@ -34,7 +34,7 @@
                             <div class="form-group">
                                 <label class="form-label fw-bold">Kategori WP</label>
                                 <select class="form-select form-select-solid" id="kategoriFilter">
-                                    <option value="">Pilih Work Package</option>
+                                    <option value="">Pilih Kategori WP</option>
                                     @if(isset($categories) && $categories->count() > 0)
                                         @foreach($categories as $category)
                                             <option value="{{ $category->category_id }}">
@@ -67,7 +67,7 @@
                 <div class="d-flex justify-content-start mb-4">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_wp">
                         <i class="bi bi-plus-lg fs-2 me-1"></i>
-                        Tambah Work Package
+                        Tambah Kategori WP
                     </button>
                 </div>
 
@@ -94,12 +94,12 @@
                             <th>Kategori</th>
                             <!-- <th></th> -->
                             <th class="align-middle border-bottom">No</th>
-                            <th class="align-middle border-bottom min-w-200px">Work Package</th>
+                            <th class="align-middle border-bottom min-w-200px">Kategori WP</th>
                             <th class="align-middle border-bottom">Volume (Qty)</th>
                             <th class="align-middle border-bottom min-w-100px">Durasi Kerja (Hari Kerja)</th>
                             <th class="align-middle border-bottom min-w-200px">Actual Scope</th>
                             <th class="align-middle border-bottom min-w-500px">Deliverables</th>
-                            <th class="align-middle border-bottom min-w-200px">Resource Names</th>
+                            <th class="align-middle border-bottom min-w-200px">Tenaga Kerja</th>
                             <th class="align-middle border-bottom">Action</th>
                         </tr>
                     </thead>
@@ -263,7 +263,7 @@
                                                     <input type="number" name="wp_sequence" id="wp_sequence" class="form-control" placeholder="1" min="1" required/>
                                                 </div>
                                                 <div class="form-text">
-                                                    Nomor urut dalam kategori (contoh: untuk kategori 3, input 2 akan menghasilkan 3.2)
+                                                    Nomor urut dalam WP (contoh: untuk WP 3, input 2 akan menghasilkan 3.2)
                                                 </div>
                                                 <div class="invalid-feedback">
                                                     Nomor Work Package ini sudah digunakan
@@ -283,7 +283,7 @@
                                             <div class="form-group mb-4">
                                                 <label class="form-label fw-bold required">Volume Quantity</label>
                                                 <input type="number" name="volume_qty" class="form-control" placeholder="0" min="1" value="1" required/>
-                                                <div class="form-text">Jumlah volume untuk work package ini</div>
+                                                <div class="form-text">Jumlah volume untuk kategori Work Package ini</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -312,9 +312,9 @@
                                         <div class="col-md-12">
                                             <h4 class="mb-4">
                                                 <i class="bi bi-people text-primary me-2"></i>
-                                                Assign Resources
+                                                Assign Kebutuhan Tenaga Kerja
                                             </h4>
-                                            <p class="text-muted mb-4">Pilih jabatan beserta jumlah hari kerja, dan pilih user untuk ditugaskan pada work package ini.</p>
+                                            <p class="text-muted mb-4">Pilih jabatan beserta jumlah hari kerja, dan pilih personel untuk ditugaskan pada kategori work package ini.</p>
                                         </div>
                                     </div>
 
@@ -323,7 +323,7 @@
                                     </div>
 
                                     <button type="button" class="btn btn-light-primary mb-4" id="addRoleAssignmentBtn">
-                                        <i class="bi bi-plus-circle"></i> Tambah Resource
+                                        <i class="bi bi-plus-circle"></i> Tambah Tenaga Kerja
                                     </button>
 
                                     <!-- Summary Table -->
@@ -342,13 +342,13 @@
                                                             <th>Jabatan</th>
                                                             <th class="text-center">JTK (Jumlah Tenaga Kerja)</th>
                                                             <th class="text-center">JHK (Jumlah Hari Kerja)</th>
-                                                            <th>Users yang Di-assign</th>
+                                                            <th>Personel yang Di-assign</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="roleAssignmentSummaryBody">
                                                         <tr id="noRoleAssignmentSummary">
                                                             <td colspan="4" class="text-center text-muted py-3">
-                                                                Belum ada resource yang di-assign
+                                                                Belum ada tenaga kerja yang di-assign
                                                             </td>
                                                         </tr>
                                                     </tbody>
@@ -367,7 +367,7 @@
                                                 <i class="bi bi-list-task text-primary me-2"></i>
                                                 Tasks & Sub Tasks (Opsional)
                                             </h4>
-                                            <p class="text-muted mb-4">Tambahkan tasks dan sub tasks untuk work package ini.</p>
+                                            <p class="text-muted mb-4">Tambahkan tasks dan sub tasks untuk kategori work package ini.</p>
                                         </div>
                                     </div>
 
@@ -381,7 +381,7 @@
 
                                     <div class="alert alert-info mt-4">
                                         <i class="bi bi-info-circle me-2"></i>
-                                        <strong>Info:</strong> Tasks dan sub tasks yang ditambahkan di sini akan tersedia di halaman detail work package.
+                                        <strong>Info:</strong> Tasks dan sub tasks yang ditambahkan di sini akan tersedia di halaman detail work package volume.
                                     </div>
                                 </div>
                             </form>
@@ -754,8 +754,8 @@ function validateCurrentStep() {
         
         if (roleCards.length === 0) {
             Swal.fire({
-                title: "Resource Diperlukan",
-                text: "Minimal harus ada 1 resource assignment",
+                title: "Tenaga Kerja Diperlukan",
+                text: "Minimal harus ada 1 penugasan tenaga kerja",
                 icon: "error",
                 buttonsStyling: false,
                 confirmButtonText: "OK",
@@ -790,12 +790,12 @@ function loadUsersAndRolesForResources() {
                 // updateResourceSelects();
                 updateRoleSelects();
             } else {
-                showErrorAlert('Gagal memuat data user dan role untuk resource selection');
+                showErrorAlert('Gagal memuat data personel dan jabatan untuk pemilihan tenaga kerja');
             }
         },
         error: function(xhr) {
             console.error('Failed to load users and roles for:', xhr);
-            showErrorAlert('Gagal memuat data user dan role');
+            showErrorAlert('Gagal memuat data personel dan jabatan');
         }
     });
 }
@@ -809,7 +809,7 @@ function getInitialRoleAssignmentsHTML() {
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0 text-info">
                     <i class="bi bi-person-badge me-2"></i>
-                    Resource Assignment #1
+                    Penugasan Tenaga Kerja #1
                 </h5>
                 <button type="button" class="btn btn-light-danger btn-sm remove-role-assignment" style="display: none;">
                     <i class="bi bi-trash"></i> Hapus
@@ -830,7 +830,7 @@ function getInitialRoleAssignmentsHTML() {
                     <div class="form-group">
                         <label class="form-label fw-bold required">Jumlah Hari Kerja (JHK)</label>
                         <input type="number" name="role_assignments[0][jhk]" class="form-control jhk-input" placeholder="0" min="1" required/>
-                        <div class="form-text">JHK berlaku untuk semua user dalam role ini</div>
+                        <div class="form-text">JHK berlaku untuk semua personel dalam jabatan ini</div>
                     </div>
                 </div>
             </div>
@@ -838,7 +838,7 @@ function getInitialRoleAssignmentsHTML() {
             <!-- Users Container -->
             <div class="users-container" data-role-index="0">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label fw-bold">Users untuk Role ini:</label>
+                    <label class="form-label fw-bold">Personel untuk jabatan ini:</label>
                 </div>
                 
                 <div class="users-list" id="users-list-0">
@@ -846,11 +846,11 @@ function getInitialRoleAssignmentsHTML() {
                 </div>
 
                 <button type="button" class="btn btn-light-success btn-sm add-user-to-role" data-role-index="0">
-                    <i class="bi bi-person-plus"></i> Tambah User
+                    <i class="bi bi-person-plus"></i> Tambah Personel
                 </button>
                 
                 <div class="no-users-message text-muted text-start py-3" id="no-users-0">
-                    <small>Klik "Tambah User" untuk menambahkan user ke role ini</small>
+                    <small>Klik "Tambah Personel" untuk menambahkan personel ke jabatan ini</small>
                 </div>
             </div>
         </div>
@@ -902,7 +902,7 @@ function addRoleAssignment() {
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0 text-info">
                     <i class="bi bi-person-badge me-2"></i>
-                    Resource Assignment #${roleAssignmentCounter + 1}
+                    Penugasan Tenaga Kerja #${roleAssignmentCounter + 1}
                 </h5>
                 <button type="button" class="btn btn-light-danger btn-sm remove-role-assignment">
                     <i class="bi bi-trash"></i> Hapus
@@ -923,7 +923,7 @@ function addRoleAssignment() {
                     <div class="form-group">
                         <label class="form-label fw-bold required">Jumlah Hari Kerja (JHK)</label>
                         <input type="number" name="role_assignments[${roleAssignmentCounter}][jhk]" class="form-control jhk-input" placeholder="0" min="1" required/>
-                        <div class="form-text">JHK berlaku untuk semua user dalam role ini</div>
+                        <div class="form-text">JHK berlaku untuk semua personel dalam jabatan ini</div>
                     </div>
                 </div>
             </div>
@@ -931,7 +931,7 @@ function addRoleAssignment() {
             <!-- Users Container -->
             <div class="users-container" data-role-index="${roleAssignmentCounter}">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label fw-bold">Users untuk Role ini:</label>
+                    <label class="form-label fw-bold">Personel untuk jabatan ini:</label>
                 </div>
                 
                 <div class="users-list" id="users-list-${roleAssignmentCounter}">
@@ -939,11 +939,11 @@ function addRoleAssignment() {
                 </div>
 
                 <button type="button" class="btn btn-light-success btn-sm add-user-to-role" data-role-index="${roleAssignmentCounter}">
-                    <i class="bi bi-person-plus"></i> Tambah User
+                    <i class="bi bi-person-plus"></i> Tambah Personel
                 </button>
                 
                 <div class="no-users-message text-muted text-start py-3" id="no-users-${roleAssignmentCounter}">
-                    <small>Klik "Tambah User" untuk menambahkan user ke role ini</small>
+                    <small>Klik "Tambah Personel" untuk menambahkan personel ke jabatan ini</small>
                 </div>
             </div>
         </div>
@@ -1002,7 +1002,7 @@ function updateRoleAssignmentSummary() {
                 const userId = $(this).val();
                 const userName = $(this).find('option:selected').text();
 
-                if (userId && userName !== 'Pilih User') {
+                if (userId && userName !== 'Pilih Personel') {
                     users.push({
                         userId: userId,
                         userName: userName
@@ -1028,13 +1028,13 @@ function updateRoleAssignmentSummary() {
         summaryBody.append(`
             <tr id="noRoleAssignmentSummary">
                 <td colspan="4" class="text-center text-muted py-3">
-                    Belum ada resource yang di-assign
+                    Belum ada tenaga kerja yang di-assign
                 </td>
             </tr>
         `);
     } else {
         summaryData.forEach(data => {
-            const usersList = data.users.map(user => user.userName).join(', ') || 'Belum ada user';
+            const usersList = data.users.map(user => user.userName).join(', ') || 'Belum ada personel';
             summaryBody.append(`
                 <tr>
                     <td class="fw-bold">${data.roleName}</td>
@@ -1079,13 +1079,13 @@ function validateRoleAssignment() {
         // Validation
         if (!roleId) {
             roleSelect.addClass('is-invalid');
-            problems.push(`Assignment #${index + 1}: Role harus dipilih`);
+            problems.push(`Penugasan Tenaga Kerja #${index + 1}: Jabatan harus dipilih`);
             isValid = false;
         } else {
             // Check for duplicate assignments
             if (usedRoles.includes(roleId)) {
                 roleSelect.addClass('is-invalid');
-                problems.push(`Assignment #${index + 1}: Role ${roleName} sudah digunakan`);
+                problems.push(`Penugasan Tenaga Kerja #${index + 1}: Jabatan ${roleName} sudah digunakan`);
                 isValid = false;
             } else {
                 usedRoles.push(roleId);
@@ -1094,7 +1094,7 @@ function validateRoleAssignment() {
 
         if (jhk <= 0) {
             jhkInput.addClass('is-invalid');
-            problems.push(`Resource Assignment #${index + 1}: JHK harus lebih dari 0`);
+            problems.push(`Penugasan Tenaga Kerja #${index + 1}: JHK harus lebih dari 0`);
             isValid = false;
         } else {
             totalJhk += jhk;
@@ -1116,7 +1116,7 @@ function validateRoleAssignment() {
                 // Check for duplicate user assignments accross all roles
                 if (globalUserAssignments.includes(userId)) {
                     userSelect.addClass('is-invalid');
-                    problems.push(`Resource Assignment #${index + 1}: User sudah di-assign di role lain`);
+                    problems.push(`Penugasan Tenaga Kerja #${index + 1}: Personel sudah di-assign di jabatan lain`);
                     isValid = false;
                 } else {
                     globalUserAssignments.push(userId);
@@ -1126,14 +1126,14 @@ function validateRoleAssignment() {
 
         // There must be at least 1 user per role
         if (roleId && !hasUsers) {
-            problems.push(`Resource Assignment #${index + 1}: Minimal harus ada 1 user untuk role ini`);
+            problems.push(`Penugasan Tenaga Kerja #${index + 1}: Minimal harus ada 1 personel untuk jabatan ini`);
             isValid = false;
         }
     });
 
     // Check minimal requirement
     if ($('.role-assignment-card').length === 0) {
-        problems.push('Minimal harus ada 1 role assignment');
+        problems.push('Minimal harus ada 1 penugasan jabatan');
         isValid = false;
     }
 
@@ -1154,7 +1154,7 @@ function validateRoleAssignment() {
 
     if (!isValid) {
         Swal.fire({
-            title: 'Validasi Resource Assignment Gagal',
+            title: 'Validasi Penugasan Tenaga Kerja Gagal',
             html: `
                 <div class="text-start">
                     <p class="mb-3">Masalah yang ditemukan:</p>
@@ -1223,7 +1223,7 @@ function addUserToRole(roleIndex) {
         <div class="user-assignment-item d-flex align-items-center gap-2 p-2 rounded" data-user-index="${existingUserCount}">
             <div class="flex-grow-1">
                 <select class="form-select user-select-in-role" name="role_assignments[${roleIndex}][users][${existingUserCount}][user_id]" required>
-                    <option value="">Pilih User</option>
+                    <option value="">Pilih Personel</option>
                 </select>
             </div>
             <button type="button" class="btn btn-light-danger btn-sm remove-user-from-role" data-role-index="${roleIndex}">
@@ -1251,7 +1251,7 @@ function updateUserSelectsInRole(roleIndex) {
 
     container.find('.user-select-in-role').each(function() {
         const currentValue = $(this).val();
-        $(this).html('<option value="">Pilih User</option>');
+        $(this).html('<option value="">Pilih Personel</option>');
 
         availableUsers.forEach(user => {
             if (!user.user_id || !user.name) return;
@@ -1270,7 +1270,7 @@ function updateUserSelectsInRole(roleIndex) {
  */
 function updateRoleAssignmentNumbers() {
     $('.role-assignment-card').each(function(index) {
-        $(this).find('h5').text(`Resource Assignment #${index + 1}`);
+        $(this).find('h5').text(`Penugasan Tenaga Kerja #${index + 1}`);
 
         // Update name attributes
         // $(this).find('.user-select').attr('name', `resources[${index}][user_id]`);
@@ -1605,7 +1605,7 @@ function deleteWorkPackage(wpId) {
 function checkWorkPackageAssociations(wpId) {
     Swal.fire({
         title: 'Memeriksa data terkait...',
-        text: 'Sedang memeriksa data yang terhubung dengan Work Package',
+        text: 'Sedang memeriksa data yang terhubung dengan Kategori Work Package',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -1633,7 +1633,7 @@ function checkWorkPackageAssociations(wpId) {
             } else {
                 Swal.fire({
                     title: 'Error',
-                    text: response.message || 'Gagal memeriksa data Work Package',
+                    text: response.message || 'Gagal memeriksa data Kategori Work Package',
                     icon: 'error',
                     buttonsStyling: false,
                     confirmButtonText: 'OK',
@@ -1646,7 +1646,7 @@ function checkWorkPackageAssociations(wpId) {
         error: function(xhr) {
             Swal.close();
 
-            let errorMessage = 'Terjadi kesalahan saat memeriksa data Work Package';
+            let errorMessage = 'Terjadi kesalahan saat memeriksa data Kategori Work Package';
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 errorMessage = xhr.responseJSON.message;
             }
@@ -1693,10 +1693,10 @@ function showWorkPackageAssociationWarning(associations, wpId) {
     const associationsText = associationsList.join('\n');
 
     Swal.fire({
-        title: 'Konfirmasi Hapus Work Package',
+        title: 'Konfirmasi Hapus Kategori Work Package',
         html: `
             <div class="text-start">
-                <p class="mb-3">Work Package ini memiliki data terkait yang akan ikut terhapus:</p>
+                <p class="mb-3">Kategori Work Package ini memiliki data terkait yang akan ikut terhapus:</p>
                 <div class="alert alert-warning py-2 mb-3">
                     <div class="fw-bold mb-2">
                         <i class="bi bi-exclamation-triangle me-2"></i>
@@ -1713,7 +1713,7 @@ function showWorkPackageAssociationWarning(associations, wpId) {
                     </div>
                 </div>
                 <p class="text-muted small mt-3">
-                    <strong>Note:</strong> Relasi dengan user akan diputuskan (data user tidak akan terhapus).
+                    <strong>Note:</strong> Relasi dengan personel akan diputuskan (data personel tidak akan terhapus).
                 </p>
             </div>
         `,
@@ -1739,11 +1739,10 @@ function showWorkPackageAssociationWarning(associations, wpId) {
  * Konfirmasi penghapusan work package
  */
 function confirmDeleteWorkPackage(wpId, isForceDelete = false, associations = null) {
-    const title = isForceDelete ? 'Konfirmasi Hapus Paksa' : 'Konfirmasi Hapus Work Package';
+    const title = isForceDelete ? 'Konfirmasi Hapus Paksa' : 'Konfirmasi Hapus Kategori Work Package';
     const text = isForceDelete ?
-        'Anda yakin ingin menghapus Work Package ini beserta semua data terkait?' :
-        'Apakah Anda yakin ingin menghapus Work Package ini?';
-    
+        'Anda yakin ingin menghapus Kategori Work Package ini beserta semua data terkait?' :
+        'Apakah Anda yakin ingin menghapus Kategori Work Package ini?';
     Swal.fire({
         title: title,
         text: text,
@@ -1769,10 +1768,10 @@ function confirmDeleteWorkPackage(wpId, isForceDelete = false, associations = nu
 function executeWorkPackageDelete(wpId, isForceDelete, associations) {
     // Show loading
     Swal.fire({
-        title: 'Menghapus Work Package...',
+        title: 'Menghapus Kategori Work Package...',
         html: `
             <div class="text-center">
-                <p>Sedang menghapus Work Package dan semua data terkait...</p>
+                <p>Sedang menghapus Kategori Work Package dan semua data terkait...</p>
                 <div class="mt-3">
                     <div class="spinner-border text-danger" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -1808,8 +1807,8 @@ function executeWorkPackageDelete(wpId, isForceDelete, associations) {
                 const deletedData = response.deleted_data;
 
                 Swal.fire({
-                    title: 'Work Package Berhasil Dihapus',
-                    text: `Work Package ${deletedData.work_package.wp_number} berhasil dihapus.`,
+                    title: 'Kategori Work Package Berhasil Dihapus',
+                    text: `Kategori Work Package ${deletedData.work_package.wp_number} berhasil dihapus.`,
                     icon: 'success',
                     buttonsStyling: false,
                     confirmButtonText: 'OK',
@@ -1822,8 +1821,8 @@ function executeWorkPackageDelete(wpId, isForceDelete, associations) {
 
             } else {
                 Swal.fire({
-                    title: 'Gagal menghapus Work Package',
-                    text: response.message || 'Terjadi kesalahan saat menghapus Work Package',
+                    title: 'Gagal menghapus Kategori Work Package',
+                    text: response.message || 'Terjadi kesalahan saat menghapus Kategori Work Package',
                     icon: 'error',
                     buttonsStyling: false,
                     confirmButtonText: 'OK',
@@ -1834,7 +1833,7 @@ function executeWorkPackageDelete(wpId, isForceDelete, associations) {
             }
         },
         error: function(xhr) {
-            let errorMessage = 'Terjadi kesalahan saat menghapus Work Package';
+            let errorMessage = 'Terjadi kesalahan saat menghapus Kategori Work Package';
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 errorMessage = xhr.responseJSON.message;
             }

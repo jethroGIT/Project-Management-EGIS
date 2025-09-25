@@ -9,14 +9,14 @@ use App\Models\WpCategory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
-class WorkOrderController extends Controller
+class WorkOrderManagementController extends Controller
 {
     public function index(){
         $workPackages = WorkPackage::with(['workPackageVolumes.workOrder', 'workPackageVolumes', 'wpCategory'])
             ->get()
             ->sortBy(function($wp) {
                 // Urutkan dulu berdasarkan nomor kategori, lalu nomor WP
-                $catNum = $wp->wpCategory->category_number ?? 9999;
+                $catNum = intval($wp->wpCategory->category_number ?? 9999);
                 $wpNum = is_numeric($wp->wp_number) ? floatval($wp->wp_number) : $wp->wp_number;
                 return sprintf('%04d-%s', $catNum, $wpNum);
             })
@@ -32,7 +32,9 @@ class WorkOrderController extends Controller
         //     return $wo->wo_number . '-' . ($wo->workPackageVolumes->first()->execution_year ?? '');
         // });
         
-        $categories = WpCategory::with('workPackage')->orderBy('category_number', 'asc')->get();
+        $categories = WpCategory::with('workPackage')
+            ->orderByRaw('category_number::integer ASC')
+            ->get();
 
         foreach ($workOrders as $wo) {
             // Hitung jumlah volume yang menggunakan WO ini
@@ -58,7 +60,7 @@ class WorkOrderController extends Controller
             }
         }
 
-        return view('work_order', compact('workPackages', 'categories', 'workOrders', 'remainingWPCount'));
+        return view('work_order_management', compact('workPackages', 'categories', 'workOrders', 'remainingWPCount'));
     }
 
     public function add(Request $request){

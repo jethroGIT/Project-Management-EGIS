@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
             <h1 class="mt-0 mb-2">
-                Edit Work Package
+                Edit Kategori Work Package
             </h1>
         </div>
         <div class="text-end">
@@ -29,14 +29,14 @@
             <div class="card-header py-0">
                 <h3 class="card-title">
                     <i class="bi bi-info-circle text-primary me-2"></i>
-                    Informasi Dasar Work Package
+                    Informasi Kategori Work Package
                 </h3>
             </div>
             <div class="card-body py-0">
                 <div class="row">
                     {{-- Category --}}
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold required">Kategori</label>
+                        <label class="form-label fw-bold required">Work Package</label>
                         <select class="form-select form-select-solid" name="category_id" required>
                             <option value="">Pilih Work Package</option>
                             @if(isset($categories) && $categories->count() > 0)
@@ -53,7 +53,7 @@
                     
                     {{-- Nomor Work Package --}}
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Nomor Work Package</label>
+                        <label class="form-label fw-bold">Nomor Sub Work Package</label>
                         <div class="input-group">
                             <span class="input-group-text" id="edit_wp_number_display" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nomor work package saat ini">
                                 {{ $workPackage->wp_number }}
@@ -61,16 +61,16 @@
                             <input type="number" name="wp_sequence" id="edit_wp_sequence" class="form-control" placeholder="1" min="1" value="{{ explode('.', $workPackage->wp_number)[1] ?? '' }}" required/>
                         </div>
                         <div class="form-text">
-                            Nomor urut dalam kategori (contoh: untuk kategori 3, input 2 akan menghasilkan 3.2)
+                            Nomor urut dalam WP (contoh: untuk WP 3, input 2 akan menghasilkan 3.2)
                         </div>
                         <div class="invalid-feedback">
-                            Nomor Work Package ini sudah digunakan
+                            Nomor Sub Work Package ini sudah digunakan
                         </div>
                     </div>
 
                     {{-- Name --}}
                     <div class="mb-4">
-                        <label class="form-label fw-bold required">Nama Work Package</label>
+                        <label class="form-label fw-bold required">Nama Sub Work Package</label>
                         <input 
                             type="text" 
                             name="name" 
@@ -219,7 +219,7 @@
                                                 @if($volume['resources']->count() > 0)
                                                     {{ $volume['resources']->pluck('role_name')->unique()->implode(', ') }}
                                                 @else
-                                                    Belum ada resource
+                                                    Belum ada tenaga kerja
                                                 @endif
                                             </div>
                                         </div>
@@ -289,7 +289,7 @@
                 </h3>
                 <div class="card-toolbar">
                     <button type="button" class="btn btn-light-primary btn-sm" onclick="addHumanResource()">
-                        <i class="bi bi-plus-circle"></i> Tambah Resource
+                        <i class="bi bi-plus-circle"></i> Tambah Tenaga Kerja
                     </button>
                 </div>
             </div>
@@ -299,7 +299,7 @@
                     @foreach($humanResourcesData as $index => $hr)
                         <div class="human-resource-item mb-6 p-4 border rounded shadow" data-index="{{ $index }}" data-hr-id="{{ $hr['hr_id'] }}">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Resource #{{ $index + 1 }}</h6>
+                                <h6 class="mb-0">Tenaga Kerja #{{ $index + 1 }}</h6>
                                 <button 
                                     type="button" class="btn btn-light-danger"
                                     onclick="removeHumanResource(this)"
@@ -313,9 +313,9 @@
 
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold required">Role/Peran</label>
+                                    <label class="form-label fw-bold required">Jabatan</label>
                                     <select name="resources[{{ $index }}][role_id]" class="form-select role-select" data-index="{{ $index }}" required>
-                                        <option value="">Pilih Role</option>
+                                        <option value="">Pilih Jabatan</option>
                                         @foreach($roles as $role)
                                             @if($role->name !== 'admin' && $role->name !== 'karyawan')
                                                 <option 
@@ -340,7 +340,7 @@
                                         required
                                         data-index="{{ $index }}"
                                     >
-                                    <div class="form-text">Jumlah orang dengan role ini</div>
+                                    <div class="form-text">Jumlah personel dengan jabatan ini</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
@@ -353,14 +353,14 @@
                                         placeholder="20" 
                                         required
                                     >
-                                    <div class="form-text">Total hari kerja untuk role ini</div>
+                                    <div class="form-text">Total hari kerja untuk jabatan ini</div>
                                 </div>
                             </div>
 
                             <!-- SDM Assignment -->
                             <div class="row">
                                 <div class="col-md-12">
-                                    <label class="form-label fw-bold required">SDM</label>
+                                    <label class="form-label fw-bold required">Personel</label>
 
                                     <div class="users-container" id="users-container-{{ $index }}">
                                         @if($hr['assigned_users']->count() > 0)
@@ -369,7 +369,7 @@
                                                     <div class="d-flex align-items-center gap-2">
                                                         <div class="flex-grow-1">
                                                             <select name="resources[{{ $index }}][users][{{ $userIndex }}][user_id]" class="form-select user-select" data-resource-index="{{ $index }}" data-user-index="{{ $userIndex }}">
-                                                                <option value="">Pilih SDM</option>
+                                                                <option value="">Pilih Personel</option>
                                                                 @foreach($users as $availableUser)
                                                                     @if(!$availableUser->hasRole('admin'))
                                                                         <option 
@@ -392,7 +392,7 @@
                                             @endforeach
                                         @else
                                             <div class="no-users-message text-muted text-center py-3" id="no-users-{{ $index }}">
-                                                <small><i class="bi bi-info-circle me-1"></i>Belum ada SDM yang di-assign untuk role ini</small>
+                                                <small><i class="bi bi-info-circle me-1"></i>Belum ada personel yang di-assign untuk jabatan ini</small>
                                             </div>
                                         @endif
                                     </div>
@@ -400,7 +400,7 @@
                             </div>
 
                             <button type="button" class="btn btn-light-success btn-sm" onclick="addUserToResource({{ $index }})">
-                                <i class="bi bi-person-plus"></i> Tambah SDM
+                                <i class="bi bi-person-plus"></i> Tambah Personel
                             </button>
                         </div>
                     @endforeach
@@ -410,7 +410,7 @@
                     <div class="text-center py-4" id="noResourcesMessage">
                         <i class="bi bi-people fs-1 text-muted mb-3"></i>
                         <h6 class="text-muted">Belum ada kebutuhan tenaga kerja</h6>
-                        <p class="text-muted">Klik "Tambah Resource" untuk menambahkan kebutuhan tenaga kerja</p>
+                        <p class="text-muted">Klik "Tambah Tenaga Kerja" untuk menambahkan kebutuhan tenaga kerja</p>
                     </div>
                 @endif
             </div>
@@ -795,8 +795,8 @@ function saveWorkPackage() {
         const resourceElements = document.querySelectorAll('.human-resource-item');
         if (resourceElements.length === 0) {
             Swal.fire({
-                title: 'Resources Diperlukan',
-                text: 'Minimal harus ada 1 resource. Silakan tambah resource terlebih dahulu.',
+                title: 'Tenaga Kerja Diperlukan',
+                text: 'Minimal harus ada 1 tenaga kerja. Silakan tambah tenaga Kerja terlebih dahulu.',
                 icon: 'warning',
                 buttonsStyling: false,
                 confirmButtonText: 'OK',
@@ -951,7 +951,7 @@ function addHumanResource() {
     const resourceHtml = `
         <div class="human-resource-item mb-4 p-4 border rounded" data-index="${humanResourceIndex}">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Resource #${humanResourceIndex + 1}</h6>
+                <h6 class="mb-0">Tenaga Kerja #${humanResourceIndex + 1}</h6>
                 <button type="button" class="btn btn-sm btn-light-danger" onclick="removeHumanResource(this)">
                     <i class="bi bi-trash"></i>
                 </button>
@@ -961,9 +961,9 @@ function addHumanResource() {
 
             <div class="row mb-3">
                 <div class="col-md-4">
-                    <label class="form-label fw-bold required">Role/Peran</label>
+                    <label class="form-label fw-bold required">Jabatan</label>
                     <select name="resources[${humanResourceIndex}][role_id]" class="form-select role-select" data-index="${humanResourceIndex}" required>
-                        <option value="">Pilih Role</option>
+                        <option value="">Pilih Jabatan</option>
                         @foreach($roles as $role)
                             @if ($role->name !== 'admin' && $role->name !== 'karyawan')
                                 <option value="{{ $role->id }}">{{ $role->name }}</option>
@@ -975,24 +975,24 @@ function addHumanResource() {
                     <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jtk]" 
                            class="form-control jtk-input" min="1" placeholder="Contoh: 1" data-index="${humanResourceIndex}" required>
-                    <div class="form-text">Jumlah orang dengan role ini</div>
+                    <div class="form-text">Jumlah personel dengan jabatan ini</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jhk]" 
                            class="form-control" min="1" placeholder="Contoh: 20" required>
-                    <div class="form-text">Total hari kerja untuk role ini</div>
+                    <div class="form-text">Total hari kerja untuk jabatan ini</div>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-12">
-                    <label class="form-label fw-bold required">SDM</label>
+                    <label class="form-label fw-bold required">Personel</label>
                 </div>
 
                 <div class="users-container" id="users-container-${humanResourceIndex}">
                     <div class="no-users-message text-muted text-center py-3" id="no-users-${humanResourceIndex}">
-                        <small><i class="bi bi-info-circle me-1"></i>Belum ada SDM yang di-assign untuk role ini</small>
+                        <small><i class="bi bi-info-circle me-1"></i>Belum ada personel yang di-assign untuk jabatan ini</small>
                     </div>
                 </div>
             </div>
@@ -1026,7 +1026,7 @@ function addUserToResource(resourceIndex) {
             <div class="d-flex align-items-center gap-3">
                 <div class="flex-grow-1">
                     <select name="resources[${resourceIndex}][users][${userIndex}][user_id]" class="form-select user-select" data-resource-index="${resourceIndex}" data-user-index="${userIndex}">
-                        <option value="">Pilih SDM</option>
+                        <option value="">Pilih Personel</option>
                         @foreach($users as $user)
                             @if(!$user->hasRole('admin'))
                                 <option value="{{ $user->user_id }}" data-name="{{ $user->name }}" data-email="{{ $user->email }}">
@@ -1168,7 +1168,7 @@ function updateResourceNumbering() {
     resourceItems.forEach((item, index) => {
         const header = item.querySelector('h6');
         if (header) {
-            header.textContent = `Resource #${index + 1}`;
+            header.textContent = `Tenaga Kerja #${index + 1}`;
         }
 
         // Update data-index
@@ -1287,13 +1287,13 @@ function removeHumanResource(button) {
  * Confirm remove resource with different conditions
  */
 function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, assignmentDetails) {
-    let confirmTitle = 'Konfirmasi Hapus Resource';
+    let confirmTitle = 'Konfirmasi Hapus Tenaga Kerja';
     let confirmHtml = '';
 
     if (hasAssignments && assignmentDetails) {
         confirmHtml = `
             <div class="text-center">
-                <p class="mb-3">Apakah Anda yakin ingin menghapus resource <strong>${selectedRoleText}</strong>?</p>
+                <p class="mb-3">Apakah Anda yakin ingin menghapus tenaga kerja <strong>${selectedRoleText}</strong>?</p>
             </div>
             <div class="text-start">
                 <div class="alert alert-warning py-2 mb-3">
@@ -1302,14 +1302,14 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
                         Peringatan:
                     </div>
                     <div class="text-center small">
-                        User dengan role ini akan dihapus dari semua Volume di Work Package
+                        Personel dengan jabatan ini akan dihapus dari semua Volume di Work Package
                     </div>
                 </div>
                 
                 <div class="alert alert-light-info py-2 mb-3">
                     <div class="fw-bold mb-1">
                         <i class="bi bi-info-circle me-2"></i>
-                        User yang akan terpengaruh:
+                        Personel yang akan terpengaruh:
                     </div>
                     <div class="small">
                         ${assignmentDetails.affected_users.map(user => 
@@ -1322,7 +1322,7 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
     } else if (hasAssignments && !assignmentDetails) {
         confirmHtml = `
             <div class="text-center">
-                <p class="mb-3">Apakah Anda yakin ingin menghapus resource <strong>${selectedRoleText}</strong>?</p>
+                <p class="mb-3">Apakah Anda yakin ingin menghapus tenaga kerja <strong>${selectedRoleText}</strong>?</p>
             </div>
             <div class="text-start">
                 <div class="alert alert-warning py-2 mb-3">
@@ -1331,7 +1331,7 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
                         Peringatan:
                     </div>
                     <div class="text-center small">
-                        User dengan role ini akan dihapus dari semua Volume di Work Package
+                        Personel dengan jabatan ini akan dihapus dari semua Volume di Work Package
                     </div>
                 </div>
             </div>
@@ -1339,7 +1339,7 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
     } else {
         confirmHtml = `
             <div class="text-center">
-                <p class="mb-3">Apakah Anda yakin ingin menghapus resource <strong>${selectedRoleText}</strong>?</p>
+                <p class="mb-3">Apakah Anda yakin ingin menghapus tenaga kerja <strong>${selectedRoleText}</strong>?</p>
             </div>
         `;
     }
@@ -1569,7 +1569,7 @@ function addVolumeCardDOM(volumeData) {
                             Resources (0)
                         </div>
                         <div class="fs-7 text-wrap">
-                            Belum ada resource
+                            Belum ada tenaga kerja
                         </div>
                     </div>
 

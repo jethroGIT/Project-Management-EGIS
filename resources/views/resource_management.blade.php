@@ -7,7 +7,7 @@
     <!-- Card User/Resource -->
     <div class="card card-flush shadow-sm mb-10">
         <div class="card-header py-0">
-            <h3 class="card-title">Tabel User</h3>
+            <h3 class="card-title">Daftar Personel</h3>
         </div>
         <div class="card-body row py-0">
             <div class="d-flex justify-content-between align-items-center">
@@ -15,7 +15,7 @@
                 <div class="d-flex justify-content-start mb-4">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_user">
                         <i class="bi bi-plus-lg fs-2 me-1"></i>
-                        Tambah User
+                        Tambah Personel
                     </button>
                 </div>
 
@@ -27,7 +27,7 @@
                         style="width:200px" 
                         type="search"
                         id="searchResourceInput" 
-                        placeholder="Cari User" 
+                        placeholder="Cari Data" 
                         aria-label="Search"
                     >                    
                 </form>
@@ -48,67 +48,67 @@
                     </thead>
                     <tbody>
                         @forelse($users as $index => $user)
-                        <tr class="align-middle">
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $user->name }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->desc }}</td>
-                            <!-- <td>
-                                @php
-                                    // Menggunakan first() untuk mendapatkan role pertama jika ada
-                                    $userRoles = $user->getRoleNames();
+                            <tr class="align-middle">
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $user->name }}</td>
+                                <td>{{ $user->email }}</td>
+                                <td>{{ $user->desc }}</td>
+                                <!-- <td>
+                                    @php
+                                        // Menggunakan first() untuk mendapatkan role pertama jika ada
+                                        $userRoles = $user->getRoleNames();
 
-                                    if ($userRoles->contains('admin')) {
-                                        $displayRole = 'admin';
-                                    } else {
-                                        $displayRole = $userRoles->filter(function($roleName) {
-                                            return $roleName !== 'karyawan';
-                                        })->first();
-                                    }
-                                @endphp
-                                @if($displayRole)
-                                    <span class="badge badge-light badge-lg">
-                                        {{$displayRole}}
-                                    </span>
-                                @else
-                                    Belum memiliki peran
-                                @endif
-                            </td> -->
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <!-- Edit Button -->
-                                    <button 
-                                        type="button" 
-                                        class="btn btn-warning btn-sm" 
-                                        title="Edit User"
-                                        onClick="editUser({{ $user->user_id }})"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                                        </svg>
-                                    </button>
+                                        if ($userRoles->contains('admin')) {
+                                            $displayRole = 'admin';
+                                        } else {
+                                            $displayRole = $userRoles->filter(function($roleName) {
+                                                return $roleName !== 'karyawan';
+                                            })->first();
+                                        }
+                                    @endphp
+                                    @if($displayRole)
+                                        <span class="badge badge-light badge-lg">
+                                            {{$displayRole}}
+                                        </span>
+                                    @else
+                                        Belum memiliki peran
+                                    @endif
+                                </td> -->
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <!-- Edit Button -->
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-warning btn-sm" 
+                                            title="Edit User"
+                                            onClick="editUser({{ $user->user_id }})"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                                            </svg>
+                                        </button>
 
-                                    <!-- Deactivate Button -->
-                                    <button type="button" class="btn btn-danger btn-sm" title="Nonaktifkan User">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-power" viewBox="0 0 16 16">
-                                            <path d="M7.5 1v7h1V1z"/>
-                                            <path d="M3 8.812a5 5 0 0 1 2.578-4.375l-.485-.874A6 6 0 1 0 11 3.616l-.501.865A5 5 0 1 1 3 8.812"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                                        <!-- Deactivate Button -->
+                                        <button type="button" class="btn btn-danger btn-sm" title="Nonaktifkan User">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-power" viewBox="0 0 16 16">
+                                                <path d="M7.5 1v7h1V1z"/>
+                                                <path d="M3 8.812a5 5 0 0 1 2.578-4.375l-.485-.874A6 6 0 1 0 11 3.616l-.501.865A5 5 0 1 1 3 8.812"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                <div class="d-flex flex-column align-items-center justify-content-center">
-                                    <i class="bi bi-people fs-1 text-muted mb-2"></i>
-                                    <h6 class="text-muted">Belum Ada User</h6>
-                                    <p class="text-muted">Tidak ada data user dalam sistem</p>
-                                </div>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <i class="bi bi-people fs-1 text-muted mb-2"></i>
+                                        <h6 class="text-muted">Belum Ada User</h6>
+                                        <p class="text-muted">Tidak ada data user dalam sistem</p>
+                                    </div>
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -119,7 +119,7 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">Tambah User</h3>
+                            <h3 class="modal-title">Tambah Personel</h3>
                             
                             <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                                 <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
@@ -130,7 +130,7 @@
                             <form id="addUserForm" method="POST" action="{{ route('resource.store') }}">
                                 @csrf
                                 <div class="form-group mb-4">
-                                    <label class="form-label fw-bold">Nama User</label>
+                                    <label class="form-label fw-bold">Nama Personel</label>
                                     <input type="text" name="name" class="form-control" placeholder="Masukkan nama lengkap" required/>
                                 </div>
 
@@ -141,7 +141,7 @@
 
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Deskripsi</label>
-                                    <textarea name="desc" class="form-control" rows="4" placeholder="Masukkan deskripsi user (opsional)" maxlength="1000"></textarea>
+                                    <textarea name="desc" class="form-control" rows="4" placeholder="Masukkan deskripsi personel (opsional)" maxlength="1000"></textarea>
                                     <div class="form-text text-muted">Maksimal 1000 karakter</div>
                                 </div>
                                 
@@ -186,7 +186,7 @@
                                 <input type="hidden" name="user_id" id="editUserId">
 
                                 <div class="form-group mb-4">
-                                    <label class="form-label fw-bold">Nama User</label>
+                                    <label class="form-label fw-bold">Nama Personel</label>
                                     <input type="text" name="name" id="editUserName" class="form-control" placeholder="Masukkan nama lengkap" required/>
                                 </div>
 
@@ -197,7 +197,7 @@
 
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Deskripsi</label>
-                                    <textarea name="desc" id="editUserDesc" class="form-control" rows="4" placeholder="Masukkan deskripsi user (opsional)" maxlength="1000"></textarea>
+                                    <textarea name="desc" id="editUserDesc" class="form-control" rows="4" placeholder="Masukkan deskripsi personel (opsional)" maxlength="1000"></textarea>
                                     <div class="form-text text-muted">Maksimal 1000 karakter</div>
                                 </div>
 
@@ -237,7 +237,7 @@
     <!-- Card Roles -->
     <div class="card card-flush shadow-sm mb-6">
         <div class="card-header py-0">
-            <h3 class="card-title">Tabel Jabatan</h3>
+            <h3 class="card-title">Daftar Jabatan</h3>
         </div>
         <div class="card-body row py-0">
             <div class="d-flex justify-content-between align-items-center">
@@ -245,7 +245,7 @@
                 <div class="d-flex justify-content-start mb-4">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_role">
                         <i class="bi bi-plus-lg fs-2 me-1"></i>
-                        Tambah Peran
+                        Tambah Jabatan
                     </button>
                 </div>
 
@@ -257,7 +257,7 @@
                         style="width:200px" 
                         type="search"
                         id="searchRoleInput" 
-                        placeholder="Cari Peran" 
+                        placeholder="Cari Data" 
                         aria-label="Search"
                     >                    
                 </form>
@@ -269,7 +269,7 @@
                     <thead>
                         <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th class="align-middle border-bottom">No</th>
-                            <th class="align-middle border-bottom min-w-200px">Nama Peran</th>
+                            <th class="align-middle border-bottom min-w-200px">Nama Jabatan</th>
                             <th class="align-middle border-bottom">Singkatan</th>
                             <th class="align-middle border-bottom min-w-200px">Biaya Tenaga Kerja</th>
                             <th class="align-middle border-bottom">Action</th>
@@ -335,7 +335,7 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">Tambah Peran</h3>
+                            <h3 class="modal-title">Tambah Jabatan</h3>
                             
                             <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                                 <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
@@ -346,8 +346,8 @@
                             <form id="addRoleForm" method="POST" action="{{ route('roles.store') }}">
                                 @csrf
                                 <div class="form-group mb-4">
-                                    <label class="form-label fw-bold">Nama Peran</label>
-                                    <input type="text" name="name" id="addRoleName" class="form-control" placeholder="Masukkan nama peran" required maxlength="30"/>
+                                    <label class="form-label fw-bold">Nama Jabatan</label>
+                                    <input type="text" name="name" id="addRoleName" class="form-control" placeholder="Masukkan nama jabatan" required maxlength="30"/>
                                 </div>
 
                                 <div class="form-group mb-4">
@@ -400,8 +400,8 @@
                                 <input type="hidden" name="role_id" id="editRoleId" value="">
                                 
                                 <div class="form-group mb-4">
-                                    <label class="form-label fw-bold">Nama Peran</label>
-                                    <input type="text" name="name" id="editRoleName" class="form-control" placeholder="Masukkan nama peran" required maxlength="30"/>
+                                    <label class="form-label fw-bold">Nama Jabatan</label>
+                                    <input type="text" name="name" id="editRoleName" class="form-control" placeholder="Masukkan nama jabatan" required maxlength="30"/>
                                 </div>
 
                                 <div class="form-group mb-4">
@@ -619,7 +619,7 @@ function editUser(userId) {
         beforeSend: function() {
             Swal.fire({
                 title: 'Memuat Data...',
-                text: 'Sedang mengambil data user',
+                text: 'Sedang mengambil data personel',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
@@ -1103,7 +1103,7 @@ function editRole(roleId) {
         beforeSend: function() {
             Swal.fire({
                 title: 'Memuat Data...',
-                text: 'Sedang mengambil data peran',
+                text: 'Sedang mengambil data jabatan',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
