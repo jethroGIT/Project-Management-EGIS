@@ -18,7 +18,7 @@
                     <div class="d-flex flex-wrap flex-sm-nowrap mb-3">
                         <div class="me-7 mb-4">
                             <div class="symbol symbol-100px symbol-lg-160px symbol-fixed position-relative">
-                                <img src="{{ asset('assets/media/avatars/150-26.jpg') }}" alt="image" />
+                                <img src="{{ asset('assets/media/svg/avatars/blank.svg') }}" alt="image" />
                                 <div class="position-absolute translate-middle bottom-0 start-100 mb-6 bg-success rounded-circle border border-4 border-white h-20px w-20px"></div>
                             </div>
                         </div>
@@ -27,10 +27,10 @@
                                 <div class="d-flex flex-column">
                                     <div class="d-flex align-items-center mb-2">
                                         <a href="#" class="text-gray-900 text-hover-primary fs-2 fw-bolder me-1">{{auth()->user()->name ?? '-'}}</a>
-                                        @php
+                                        {{-- @php
                                             $roles = auth()->user()->getRoleNames();
-                                        @endphp
-                                        <a href="#" class="btn btn-sm btn-light-success fw-bolder ms-2 fs-8 py-1 px-3" data-bs-toggle="modal" data-bs-target="#kt_modal_upgrade_plan">{{$roles->get(1) ?? $roles->first() ?? '-'}}</a>
+                                        @endphp --}}
+                                        <a href="#" class="btn btn-sm btn-light-success fw-bolder ms-2 fs-8 py-1 px-3" data-bs-toggle="modal" data-bs-target="#kt_modal_upgrade_plan">{{$role->name ?? '-'}}</a>
                                     </div>
                                     <div class="d-flex flex-wrap fw-bold fs-6 mb-4 pe-2">
                                         <a href="#" class="d-flex align-items-center text-gray-400 text-hover-primary mb-2">{{auth()->user()->email}}</a>
@@ -101,19 +101,20 @@
                     <div class="row mb-7">
                         <label class="col-lg-4 fw-bold text-muted">Role</label>
                         <div class="col-lg-8">
-                            @php
+                            {{-- @php
                                 $roles = auth()->user()->getRoleNames();
                                 $role0 = $roles->get(0);
                                 $role1 = $roles->get(1);
-                            @endphp
+                            @endphp --}}
                             <span class="fw-bold fs-6 text-gray-800">
-                                @if($role1)
+                                {{-- @if($role1)
                                     {{ $role1 }} ({{ $role0 }})
                                 @elseif($role0)
                                     {{ $role0 }}
                                 @else
                                     -
-                                @endif
+                                @endif --}}
+                                {{$role->name ?? '-'}}
                             </span>
                         </div>
                     </div>

@@ -25,7 +25,7 @@ class ProfileUserController extends Controller
             $role = Role::find($roleIds->first());
             $resourceCost = $role ? $role->resource_cost : 0;
         }
-        
+
         $workPackagesUserCount = $user->work()
             ->with('volume')
             ->get()
@@ -36,7 +36,7 @@ class ProfileUserController extends Controller
             ->unique()
             ->count();
         $workPackagesCount = WorkPackage::count();
-        return view('profile_user', compact('resourceCost', 'workPackagesUserCount', 'workPackagesCount'));
+        return view('profile_user', compact('resourceCost', 'workPackagesUserCount', 'workPackagesCount', 'role'));
     }
 
     /**

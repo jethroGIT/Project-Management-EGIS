@@ -103,7 +103,7 @@
             <!--begin::Topbar-->
             <div class="d-flex align-items-center flex-shrink-0">
                 <!--begin::Search-->
-                <div
+                {{-- <div
                     class="d-flex align-items-stretch"
                     data-kt-menu-overflow="false"
                     data-kt-menu-permanent="true"
@@ -269,7 +269,7 @@
                         <!--end::Wrapper-->
                     </div>
                     <!--end::Menu-->
-                </div>
+                </div> --}}
                 <!--end::Search-->
                 <!--begin::User-->
                 <div
@@ -318,6 +318,8 @@
                         <div class="menu-item px-3">
                             <div
                                 class="menu-content d-flex align-items-center px-3"
+                                {{-- onclick="window.location.href='{{route('profile')}}';" --}}
+                                {{-- style="cursor: pointer;" --}}
                             >
                                 <!--begin::Avatar-->
                                 <div class="symbol symbol-50px me-5">
@@ -334,10 +336,9 @@
                                     >
                                         {{auth()->user()->name ?? '-'}}
                                     </div>
-                                    <a
-                                        class="fw-bold text-muted text-hover-primary fs-7"
-                                        href="#"
-                                        >{{auth()->user()->email ?? '-'}}</a
+                                    <div
+                                        class="fw-bold text-muted fs-7"
+                                        >{{auth()->user()->email ?? '-'}}</div
                                     >
                                 </div>
                                 <!--end::Username-->
@@ -349,32 +350,20 @@
                         <!--end::Menu separator-->
                         <!--begin::Menu item-->
                         <div class="menu-item px-5">
-                            <a
+                            <button
+                                class="menu-link px-5 bg-transparent border-0"
+                                style="background:none;border:none;padding:0;font-weight:500;"
+                                onclick="window.location.href='{{route('profile')}}';"
+                            >My Profile
+                            </button>
+                            {{-- <a
                                 class="menu-link px-5"
                                 href="{{route('profile')}}"
-                                >My Profile</a
-                            >
+                                >My Profile
+                            </a> --}}
                         </div>
                         <!--end::Menu item-->
-                        <!--begin::Menu item-->
-                        <div class="menu-item px-5">
-                            <a
-                                class="menu-link px-5"
-                                href="../../demo14/dist/apps/projects/list.html"
-                            >
-                                <span class="menu-text">My Projects</span>
-                                <span class="menu-badge">
-                                    <span
-                                        class="badge badge-light-danger badge-circle fw-bolder fs-7"
-                                        >3</span
-                                    >
-                                </span>
-                            </a>
-                        </div>
-                        <!--end::Menu item-->
-                        <!--begin::Menu separator-->
                         <div class="separator my-2"></div>
-                        <!--end::Menu separator-->
                         <!--begin::Menu item-->
                         <div class="menu-item px-5">
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
