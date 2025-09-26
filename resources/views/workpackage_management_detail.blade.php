@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="">
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         <div>
             <h1 class="mt-0 mb-5">Detail Kategori Work Package</h1>

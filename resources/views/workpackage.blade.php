@@ -758,8 +758,10 @@ const availableUsers = @json($availableUsersDropdown ?? []);
 console.log('availableUsers:', availableUsers);
 
 // Mendapatkan user saat ini
-const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin'))->pluck('user_id') : []);
-const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin')) : []);
+// const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin'))->pluck('user_id') : []);
+const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
+// const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin')) : []);
+const currentlyAssignedUsersAllData = @json($assignedUsers ?? []);
 console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('roles')->get()));
@@ -867,6 +869,7 @@ function initializeEditModal() {
     // Debug log
     console.log('availableUsers:', availableUsers);
     console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+    console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
     console.log('humanResourcesByRole:', humanResourcesByRole);
     console.log('roleCapacity:', roleCapacity);
 
@@ -917,16 +920,32 @@ function initializeEditModal() {
     }
 
     // Filter untuk exclude admin
-    const filteredAssignedUsers = currentlyAssignedUsers.filter(function(userId) {
-        return availableUsers.some(function(user) {
-            return user.user_id == userId;
+    const filteredAssignedUsers = currentlyAssignedUsersAllData.filter(function(assignedUser) {
+        const userExists = availableUsers.some(function(user) {
+            return user.user_id == assignedUser.user_id;
         });
+
+        // Jika user tidak ada di availableUsers, tambahkan ke availableUsers
+        if (!userExists && assignedUser.user_id) {
+            availableUsers.push({
+                user_id: assignedUser.user_id,
+                name: assignedUser.name,
+                role_name: assignedUser.role_name,
+                role_id: assignedUser.role_id,
+                default_jhk: assignedUser.jhk || 0,
+                is_role_full: false,
+                available_slots: 1,
+                jtk_limit: 999
+            });
+        }
+        
+        return assignedUser.user_id != null;
     });
     
     // Menambahkan assigned user saat ini
     if (filteredAssignedUsers && filteredAssignedUsers.length > 0) {
-        filteredAssignedUsers.forEach(function(userId, index) {
-            addEditResource(userId);
+        filteredAssignedUsers.forEach(function(assignedUser, index) {
+            addEditResource(assignedUser.user_id);
         });
     } else {
         // Menambahkan setidaknya 1 field kosong
