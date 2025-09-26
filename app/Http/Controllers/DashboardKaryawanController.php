@@ -136,7 +136,6 @@ class DashboardKaryawanController extends Controller
     public function getPeriodAllWPByYear(Request $request)
     {
         $year = $request->get('year', Carbon::now()->year);
-        $user_id = $request->get('user_id') ?? auth()->id();
 
         // Ambil semua WorkPackageVolume yang memiliki periode untuk tahun yang dipilih
         $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
