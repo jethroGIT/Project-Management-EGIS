@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">    
+<div class="">    
+    <h1 class="mt-0 mb-5">Dashboard</h1>
     <div class="row">
         <div class="col-md-5">
             <!-- profile -->
@@ -26,9 +27,9 @@
             <div class="card card-flush shadow-sm mb-8 wp-card position-relative">
                 <div class="card-body ms-7">
                     <div class="d-flex align-items-center">
-                        <span>
-                            <i class="bi bi-journal-bookmark-fill" style="font-size: 4.5rem;"></i>
-                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-earmark-check-fill text-success" viewBox="0 0 16 16">
+                            <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m1.354 4.354-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                        </svg>
                         <div class="ms-10 position-relative wp-info-card" style="min-width:180px;">
                             <span class="fw-bold m-0 mt-3">Jumlah Work Package</span></br>
                             <span class="text-normal m-0 mt-3">yang dikerjakan</span></br>
@@ -136,36 +137,51 @@
 
                 <!--begin::Card body-->
                 <div class="card-body pb-0">
-                    <div class="mb-5" style="max-width: 200px;">
-                        <form method="GET" id="filterYearForm">
+                    <div class="col-md-2 mb-5">
+                        {{-- <form method="GET" id="filterYearForm"> --}}
                             <div class="input-group">
                                 <span class="input-group-text">
-                                    <i class="bi bi-funnel-fill text-dark"></i>
-                                </span>
-                                <select name="execution_year"
-                                        id="execution_year"
-                                        class="form-control"
-                                        required
-                                        style="appearance: none; -webkit-appearance: none; background: transparent; padding-right: 2rem;"
-                                        onchange="document.getElementById('filterYearForm').submit()"
-                                >
-                                    <option value="" disabled>Pilih Tahun</option>
-                                    @foreach ($executionYear as $year)
-                                        <option value="{{ $year }}"
-                                            {{ (request('execution_year', $selectedYear) == $year) ? 'selected' : '' }}>
-                                            {{ $year }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 1.5rem; color: #444; line-height: 1;">
-                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="display: block;">
-                                        <path d="M5 8L10 13L15 8" stroke="#444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                                        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
                                     </svg>
                                 </span>
+                                <select name="execution_year"
+                                        id="tahunFilter"
+                                        class="form-select"
+                                        {{-- required
+                                        style="appearance: none; -webkit-appearance: none; background: transparent; padding-right: 2rem;"
+                                        onchange="document.getElementById('filterYearForm').submit()" --}}
+                                >
+                                    <option value="">Pilih Tahun</option>
+                                    @if(isset($executionYear) && !empty($executionYear))
+                                        @foreach ($executionYear as $year)
+                                            <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
                             </div>
-                        </form>
+                        {{-- </form> --}}
                     </div>
-                    {{-- <div id="diagram-wpv"> --}}
+                    <!-- Loading indicator -->
+                    <div id="chartLoadingOverlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 justify-content-center align-items-center" style="z-index: 10;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                    
+                    <!-- Diagram WPV Container -->
+                    <div id="diagram-wpv">
+                        @include('partials.diagram_wpv', [
+                            'wpvWithPeriod' => $wpvWithPeriod,
+                            'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+                            'lebarBulan' => 160,
+                            'tinggiDiagram' => 340
+                        ])
+                    </div>
+                    {{-- <div id="chartLoadingOverlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 justify-content-center align-items-center" style="z-index: 10;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div> --}}
+                    {{-- <div id="diagram-wpv">
                         <div class="table-responsive pb-10" style="overflow-x: auto; max-height: 350px;">
                             @php
                                 $bulanIndonesia = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -253,7 +269,7 @@
                                 </div>
                             </div>
                         </div>
-                    {{-- </div> --}}
+                    </div> --}}
                 </div>
                 <!--end::Card body-->
             </div>
@@ -264,17 +280,56 @@
 
 @push('scripts')
 <script>
-    // console.log('workPackagesActive', @json($workPackagesActive));
-    // document.getElementById('execution_year').addEventListener('change', function() {
-    //     const year = this.value;
-    //     fetch(`{{ url()->current() }}?execution_year=${year}`, {
-    //         headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    //     })
-    //     .then(res => res.text())
-    //     .then(html => {
-    //         document.getElementById('diagram-wpv').innerHTML = html;
-    //     });
-    // });
+    document.addEventListener('DOMContentLoaded', function () {
+        const tahunFilter = document.getElementById('tahunFilter');
+        if (!tahunFilter) {
+            console.error('Element #tahunFilter tidak ditemukan di DOM!');
+            return;
+        }
+        
+        tahunFilter.addEventListener('change', function() {
+            const selectedYear = this.value;
+            console.log('Tahun dipilih:', selectedYear);
+            
+            if (selectedYear) {
+                showChartLoading();
+                const url = '{{ route("dashboard-karyawan.period-data") }}?year=' + selectedYear + '&user_id={{ Auth::user()->user_id }}';
+                console.log('URL AJAX:', url);
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => {
+                    console.log('Status response:', response.status);
+                    return response.json();
+                })
+                .then(function(response) {
+                    console.log('Response JSON:', response);
+                    if (response.success && response.html) {
+                        document.getElementById('diagram-wpv').innerHTML = response.html;
+                    } else {
+                        document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                    }
+                    hideChartLoading();
+                })
+                .catch(function(error) {
+                    console.error('AJAX error:', error);
+                    document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                    hideChartLoading();
+                });
+            }
+        });
+    });
+    
+    function showChartLoading() {
+        $('#chartLoadingOverlay').removeClass('d-none').addClass('d-flex');
+        $('#tahunFilter').prop('disabled', true);
+    }
+
+    function hideChartLoading() {
+        $('#chartLoadingOverlay').removeClass('d-flex').addClass('d-none');
+        $('#tahunFilter').prop('disabled', false);
+    }
 
     function toggleWpInfoSummary(event) {
         const card = event.target.closest('.wp-card');
@@ -308,21 +363,6 @@
             }
         });
     }
-
-    function fetchStatusTimesheet() {
-        fetch('/dashboard-karyawan/{{ Auth::user()->user_id }}', {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => updateStatusTimesheetUI(data));
-    }
-
-    // Saat halaman dibuka, langsung fetch data terbaru
-    document.addEventListener('DOMContentLoaded', function () {
-        fetchStatusTimesheet();
-        // Optionally, refresh setiap 30 detik
-        // setInterval(fetchStatusTimesheet, 30000);
-    });
 </script>
 
 <style>

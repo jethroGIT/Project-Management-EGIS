@@ -33,6 +33,10 @@ Route::get('/', function () {
 // });
 
 Route::middleware(['auth', 'role:admin'])->group(function(){
+    // dashboard admin
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/wp-progress-data', [DashboardController::class, 'getWpProgressDataByYear'])->name('dashboard.wp-progress-data');
+
     // Manajemen Work Package
     Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
     Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
@@ -113,8 +117,6 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     });
     Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
     Route::put('/profile/{userId}', [ProfileUserController::class, 'edit'])->name('profile.edit');
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/wp-progress-data', [DashboardController::class, 'getWpProgressDataByYear'])->name('dashboard.wp-progress-data');
 
     // performance task
     Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
@@ -141,6 +143,7 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
 Route::middleware(['auth', 'role:karyawan'])->group(function(){
     // dashboard karyawan
     Route::get('/dashboard-karyawan/{user_id}', [DashboardKaryawanController::class, 'index'])->name('dashboard-karyawan');
+    Route::get('/dashboard-karyawan-data', [DashboardKaryawanController::class, 'getPeriodAllWPByYear'])->name('dashboard-karyawan.period-data');
 
     // timesheet activity per user
     Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');

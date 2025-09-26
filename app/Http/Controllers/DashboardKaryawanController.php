@@ -6,6 +6,7 @@ use App\Models\Timesheet;
 use App\Models\Work;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DashboardKaryawanController extends Controller
@@ -122,23 +123,6 @@ class DashboardKaryawanController extends Controller
             ->with('workPackage')
             ->get();
 
-        // AJAX untuk filter tahun diagram (kembalikan hanya isi diagram-wpv)
-        // if($request->ajax() && $request->has('execution_year')){
-        //     $view = view('dashboard_karyawan', [
-        //         'wpCount' => $wpCount,
-        //         'workPackagesActive' => $workPackagesActive,
-        //         'executionYear' => $executionYear,
-        //         'wpvWithPeriod' => $wpvWithPeriod,
-        //         'selectedYear' => $selectedYear,
-        //     ])->render();
-
-        //     // Ambil hanya isi #diagram-wpv
-        //     preg_match('/<div id="diagram-wpv">(.*?)<\/div>/s', $view, $matches);
-        //     $diagramHtml = $matches[1] ?? '';
-
-        //     return response($diagramHtml);
-        // }
-
         // AJAX untuk status timesheet (JSON)
         if($request->ajax()){
             return response()->json([
@@ -147,5 +131,32 @@ class DashboardKaryawanController extends Controller
         }
 
         return view('dashboard_karyawan', compact('workPackages', 'wpCount', 'workPackagesActive', 'executionYear', 'wpvWithPeriod', 'selectedYear'));
+    }
+
+    public function getPeriodAllWPByYear(Request $request)
+    {
+        $year = $request->get('year', Carbon::now()->year);
+        $user_id = $request->get('user_id') ?? auth()->id();
+
+        // Ambil semua WorkPackageVolume yang memiliki periode untuk tahun yang dipilih
+        $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
+            ->whereNotNull('end_date')
+            ->where('execution_year', $year)
+            ->with('workPackage')
+            ->get();
+        
+        // Render hanya partial view diagram
+        $html = view('partials.diagram_wpv', [
+            'wpvWithPeriod' => $wpvWithPeriod,
+            'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+            'lebarBulan' => 160,
+            'tinggiDiagram' => 340,
+        ])->render();
+
+        return response()->json([
+            'success' => true,
+            'html' => $html,
+            'year' => $year
+        ]);
     }
 }
