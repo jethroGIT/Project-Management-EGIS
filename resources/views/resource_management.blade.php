@@ -358,7 +358,7 @@
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Singkatan (Opsional)</label>
                                     <input type="text" name="desc" id="addRoleDesc" class="form-control" placeholder="Contoh: PM" maxlength="10"/>
-                                    <div class="form-text text-muted">Singkatan atau kode peran (maksimal 10 karakter)</div>
+                                    <div class="form-text text-muted">Singkatan atau kode jabatan (maksimal 10 karakter)</div>
                                 </div>
 
                                 <div class="form-group mb-4">
@@ -412,7 +412,7 @@
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Singkatan (Opsional)</label>
                                     <input type="text" name="desc" id="editRoleDesc" class="form-control" placeholder="Contoh: PM" maxlength="10"/>
-                                    <div class="form-text text-muted">Singkatan atau kode peran (maksimal 10 karakter)</div>
+                                    <div class="form-text text-muted">Singkatan atau kode jabatan (maksimal 10 karakter)</div>
                                 </div>
 
                                 <div class="form-group mb-4">
