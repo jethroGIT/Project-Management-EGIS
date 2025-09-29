@@ -106,8 +106,8 @@
                 <div class="card-header py-0">
                     <h3 class="card-title fw-bold m-0">Persentase Progres Work Package</h3>
                 </div>
-                <div class="card-body">
-                    <div class="col-md-4">
+                <div class="card-body pb-4">
+                    <div class="col-md-3">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
@@ -136,7 +136,7 @@
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
                                 <div class="mt-2">
-                                    <small class="text-muted">Memuat data tahun...</small>
+                                    <small class="text-muted">Memuat data...</small>
                                 </div>
                             </div>
                         </div>
@@ -231,6 +231,61 @@
     </div>
 
     <div class="card shadow-sm mb-6">
+         <!--begin::Card header-->
+        <div class="card-header position-relative py-0 border-bottom border-bottom-1">
+            <h2 class="card-title fw-bold">Periode Project</h2>
+        </div>
+        <!--end::Card header-->
+
+        <!--begin::Card body-->
+        <div class="card-body pb-0">
+            <div class="col-md-2 mb-5">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                            <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+                        </svg>
+                    </span>
+                    <select name="execution_year"
+                            id="tahunFilterPeriod"
+                            class="form-select"
+                    >
+                        <option value="">Pilih Tahun</option>
+                        @if(isset($executionYear) && !empty($executionYear))
+                            @foreach ($executionYear as $year)
+                                <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
+                                    {{ $year }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+            </div>
+            <!-- Loading indicator -->
+            <div id="periodChartLoadingOverlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 justify-content-center align-items-center" style="z-index: 10;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Memuat data...</small>
+                    </div>
+                </div>
+            </div>
+            <!-- Diagram WPV Container -->
+            <div id="diagram-wpv">
+                @include('partials.diagram_wpv', [
+                    'wpvWithPeriod' => $wpvWithPeriod,
+                    'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+                    'lebarBulan' => 160,
+                    'tinggiDiagram' => 340
+                ])
+            </div>
+        </div>
+        <!--end::Card body-->
+    </div>
+
+    <div class="card shadow-sm mb-6">
         <div class="card-header py-0">
             <h3 class="card-title fw-bold m-0">Jumlah Work Package dari Setiap SDM</h3>
             <div class="card-toolbar">
@@ -320,6 +375,57 @@ $(document).ready(function () {
         }
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const tahunFilterPeriod = document.getElementById('tahunFilterPeriod');
+    if (!tahunFilterPeriod) {
+        console.error('Element #tahunFilterPeriod tidak ditemukan di DOM!');
+        return;
+    }
+    
+    tahunFilterPeriod.addEventListener('change', function() {
+        const selectedYear = this.value;
+        console.log('Tahun dipilih:', selectedYear);
+        
+        if (selectedYear) {
+            showPeriodChartLoading();
+            const url = '{{ route("dashboard.period-data") }}?year=' + selectedYear;
+            console.log('URL AJAX:', url);
+
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                console.log('Status response:', response.status);
+                return response.json();
+            })
+            .then(function(response) {
+                console.log('Response JSON:', response);
+                if (response.success && response.html) {
+                    document.getElementById('diagram-wpv').innerHTML = response.html;
+                } else {
+                    document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                }
+                hidePeriodChartLoading();
+            })
+            .catch(function(error) {
+                console.error('AJAX error:', error);
+                document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                hidePeriodChartLoading();
+            });
+        }
+    });
+});
+
+function showPeriodChartLoading() {
+    $('#periodChartLoadingOverlay').removeClass('d-none').addClass('d-flex');
+    $('#tahunFilterPeriod').prop('disabled', true);
+}
+
+function hidePeriodChartLoading() {
+    $('#periodChartLoadingOverlay').removeClass('d-flex').addClass('d-none');
+    $('#tahunFilterPeriod').prop('disabled', false);
+}
 
 /**
  * Generate Color

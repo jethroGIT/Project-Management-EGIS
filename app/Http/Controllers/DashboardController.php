@@ -51,6 +51,19 @@ class DashboardController extends Controller
         // Data untuk tabel Project Berjalan
         $projectBerjalanData = $this->getProjectBerjalanData();
 
+         // Get execution years for the period diagram filter
+        $executionYear = WorkPackageVolume::whereNotNull('execution_year')
+            ->distinct()
+            ->orderBy('execution_year', 'asc')
+            ->pluck('execution_year');
+            
+        // Fetch the WPV period data for initial view
+        $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
+            ->whereNotNull('end_date')
+            ->where('execution_year', $selectedYear)
+            ->with('workPackage')
+            ->get();
+
         return view('dashboard', compact(
             'totalWorkOrders',
             'workPackageCompletionData',
@@ -59,7 +72,9 @@ class DashboardController extends Controller
             'selectedYear',
             'wpProgressBarChartData',
             'barChartWpSDMData',
-            'projectBerjalanData'
+            'projectBerjalanData',
+            'executionYear',
+            'wpvWithPeriod',
         ));
     }
 
@@ -515,51 +530,29 @@ class DashboardController extends Controller
         return round($tasksWithUtilization->avg(), 2);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function getPeriodAllWPByYear(Request $request)
     {
-        //
-    }
+        $year = $request->get('year', Carbon::now()->year);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        // Ambil semua WorkPackageVolume yang memiliki periode untuk tahun yang dipilih
+        $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
+            ->whereNotNull('end_date')
+            ->where('execution_year', $year)
+            ->with('workPackage')
+            ->get();
+        
+        // Render hanya partial view diagram
+        $html = view('partials.diagram_wpv', [
+            'wpvWithPeriod' => $wpvWithPeriod,
+            'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+            'lebarBulan' => 160,
+            'tinggiDiagram' => 340,
+        ])->render();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json([
+            'success' => true,
+            'html' => $html,
+            'year' => $year
+        ]);
     }
 }
