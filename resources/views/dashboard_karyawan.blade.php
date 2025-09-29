@@ -161,7 +161,14 @@
                     </div>
                     <!-- Loading indicator -->
                     <div id="periodChartLoadingOverlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 justify-content-center align-items-center" style="z-index: 10;">
-                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">Memuat data...</small>
+                            </div>
+                        </div>
                     </div>
                     <!-- Diagram WPV Container -->
                     <div id="diagram-wpv">
