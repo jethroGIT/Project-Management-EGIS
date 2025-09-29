@@ -77,43 +77,73 @@ class WorkPackageController extends Controller
             ];
         });
 
-        $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
-            $query->where('volume_id', $volume_id);
-        })->with([
-            'work' => function($query) use ($volume_id) {
-                $query->where('volume_id', $volume_id)->with('role');
-            },
-            'timesheets' => function($query) use ($volume_id) {
-                $query->where('volume_id', $volume_id);
-            }
-        ])->get()
-        ->map(function ($user) use ($workPackage, $volume_id) {
-            $workRecord = $user->work->where('volume_id', $volume_id)->first();
-            $roleId = $workRecord->role_id ?? null;
-            $roleName = $workRecord->role->name ?? 'No Role';
+        $assignedUsers = $volume->work()
+            ->with(['user', 'role'])
+            ->get()
+            ->map(function ($work) use ($workPackage, $volume_id) {
+                // Ambil role_id dari tabel work, bukan dari user roles
+                $roleId = $work->role_id;
+                $roleName = $work->role ? $work->role->name : 'No Role';
 
-            $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
-                ->where('role_id', $roleId)
-                ->first();
+                // Ambil human resource berdasarkan role_id dan wp_id
+                $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+                    ->where('role_id', $roleId)
+                    ->first();
+                
+                // Hitung timesheet untuk suatu user di volume ini
+                $timesheetsCount = Timesheet::where('user_id', $work->user->user_id)
+                    ->where('volume_id', $volume_id)
+                    ->sum('duration');
 
-            $timesheetsCount = $user->timesheets->sum('duration');
+                return [
+                    'user_id' => $work->user->user_id,
+                    'name' => $work->user->name,
+                    'role_name' => $roleName,
+                    'role_id' => $roleId,
+                    'jhk' => $humanResource ? $humanResource->jhk : null,
+                    'timesheets_count' => $timesheetsCount,
+                    'roles' => $work->user->roles
+                ];
+            })
+            ->sortBy(['role_id', 'user_id'])
+            ->values();
+        // $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
+        //     $query->where('volume_id', $volume_id);
+        // })->with([
+        //     'work' => function($query) use ($volume_id) {
+        //         $query->where('volume_id', $volume_id)->with('role');
+        //     },
+        //     'timesheets' => function($query) use ($volume_id) {
+        //         $query->where('volume_id', $volume_id);
+        //     }
+        // ])->get()
+        // ->map(function ($user) use ($workPackage, $volume_id) {
+        //     $workRecord = $user->work->where('volume_id', $volume_id)->first();
+        //     $roleId = $workRecord->role_id ?? null;
+        //     $roleName = $workRecord->role->name ?? 'No Role';
 
-            return [
-                'user_id' => $user->user_id,
-                'name' => $user->name,
-                'role_name' => $roleName,
-                'role_id' => $roleId,
-                'jhk' => $humanResource ? $humanResource->jhk : null,
-                'timesheets_count' => $timesheetsCount,
-            ];
-        })
-        ->groupBy('role_id')
-        ->sortKeys() // urutkan role_id ascending
-        ->map(function($group) {
-            return $group->sortBy('user_id')->values(); // urutkan user_id ascending di setiap role
-        })
-        ->flatten(1) // gabungkan semua group jadi satu array
-        ->values();
+        //     $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+        //         ->where('role_id', $roleId)
+        //         ->first();
+
+        //     $timesheetsCount = $user->timesheets->sum('duration');
+
+        //     return [
+        //         'user_id' => $user->user_id,
+        //         'name' => $user->name,
+        //         'role_name' => $roleName,
+        //         'role_id' => $roleId,
+        //         'jhk' => $humanResource ? $humanResource->jhk : null,
+        //         'timesheets_count' => $timesheetsCount,
+        //     ];
+        // })
+        // ->groupBy('role_id')
+        // ->sortKeys() // urutkan role_id ascending
+        // ->map(function($group) {
+        //     return $group->sortBy('user_id')->values(); // urutkan user_id ascending di setiap role
+        // })
+        // ->flatten(1) // gabungkan semua group jadi satu array
+        // ->values();
 
         // Logging korelasi role_id dengan user_id
         foreach ($assignedUsers as $au) {
@@ -125,8 +155,9 @@ class WorkPackageController extends Controller
             ]);
         }
 
-        // Ambil assigned role ID dari Human Resources untuk work package ini
-        $assignedRoleIds = $humanResources->pluck('role_id')->unique()->values()->toArray();
+        // Ambil assigned role ID dari Work table untuk work package ini
+        // $assignedRoleIds = $humanResources->pluck('role_id')->unique()->values()->toArray();
+        $assignedRoleIds = $volume->work()->distinct()->pluck('role_id')->filter()->toArray();
 
         // Buat data kapasitas role
         $roleCapacity = $humanResources->keyBy('role_id')->map(function($hr) use ($currentAssignments) {
@@ -144,26 +175,23 @@ class WorkPackageController extends Controller
             ];
         });
 
-        // Filter users untuk dropdown (kecuali admin)
+        // Filter users berdasarkan role yang ada di Work table untuk volume ini
         $availableUsersDropdown = User::with('roles')
             ->whereDoesntHave('roles', function($query) {
                 $query->where('name', 'admin');
             })
-            ->whereHas('roles', function($query) use ($assignedRoleIds) {
-                $query->whereIn('id', $assignedRoleIds);
-            })
             ->get()
             ->map(function($user) use ($workPackage, $assignedRoleIds) {
-                // $userRoles = $user->getRoleNames();
                 $roleId = null;
                 $roleName = 'No Role';
 
-                // Ambil role yang sesuai dengan assigned roles di work package
+                // Ambil role yang sesuai dengan assign role dari human resources
                 $userRoleIds = $user->roles->pluck('id')->toArray();
-                $matchingRoleIds = array_intersect($userRoleIds, $assignedRoleIds);
+                $hrRoleIds = HumanResource::where('wp_id', $workPackage->wp_id)->pluck('role_id')->toArray();
+                $matchingRoleIds = array_intersect($userRoleIds, $hrRoleIds);
 
                 if (!empty($matchingRoleIds)) {
-                    // Prioritaskan role turunan karyawan
+                    // Prioritaskan role turunan (bukan admin/karyawan)
                     $adminRoleId = Role::where('name', 'admin')->first()?->id;
                     $karyawanRoleId = Role::where('name', 'karyawan')->first()?->id;
 
@@ -177,59 +205,39 @@ class WorkPackageController extends Controller
                         $roleId = reset($matchingRoleIds);
                     }
 
-                    // Ambil role pertama yang match dengan assigned roles
-                    // $matchingRoleId = collect($matchingRoleIds)->first();
-                    // $matchingRole = $user->roles->where('id', $matchingRoleId)->first();
                     $matchingRole = $user->roles->where('id', $roleId)->first();
-                    
                     if ($matchingRole) {
-                        // $roleId = $matchingRole->id;
                         $roleName = $matchingRole->name;
                     }
-                } 
-                // else {
-                //     // Fallback jika tidak ada matching role (seharusnya tidak terjadi karena sudah di-filter)
-                //     $karyawanRoles = $userRoles->filter(function($roleName) {
-                //         return $roleName !== 'karyawan' && $roleName !== 'admin';
-                //     });
+                }
 
-                //     if ($karyawanRoles->isNotEmpty()) {
-                //         $roleName = $karyawanRoles->first();
-                //         $roleId = $user->roles->where('name', $roleName)->first()?->id;
-                //     } else if ($userRoles->contains('karyawan')) {
-                //         $roleName = 'karyawan';
-                //         $roleId = $user->roles->where('name', 'karyawan')->first()?->id;
-                //     }
-                // }
-
-                // Ambil JHK dari Human Resource untuk role ini
-                $humanResource = null;
-                if ($roleId) {
+                // Hanya return user yang memiliki role yang sesuai dengan human resources
+                if ($roleId && in_array($roleId, $hrRoleIds)) {
+                    // Ambil JHK dari Human Resource untuk role ini
                     $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
                         ->where('role_id', $roleId)
                         ->first();
+
+                    // Tambah informasi kapasitas
+                    $capacity = isset($roleCapacity[$roleId]) ? $roleCapacity[$roleId] : null;
+                    $isRoleFull = $capacity ? $capacity['is_full'] : false;
+                    $availableSlots = $capacity ? $capacity['available_slots'] : 0;
+
+                    return [
+                        'user_id' => $user->user_id,
+                        'name' => $user->name,
+                        'role_name' => $roleName,
+                        'role_id' => $roleId,
+                        'default_jhk' => $humanResource ? $humanResource->jhk : 0,
+                        'is_role_full' => $isRoleFull,
+                        'available_slots' => $availableSlots,
+                        'jtk_limit' => $capacity ? $capacity['jtk'] : 0
+                    ];
                 }
 
-                // Tambah informasi kapasitas
-                $capacity = isset($roleCapacity[$roleId]) ? $roleCapacity[$roleId] : null;
-                $isRoleFull = $capacity ? $capacity['is_full'] : false;
-                $availableSlots = $capacity ? $capacity['available_slots'] : 0;
-
-                return [
-                    'user_id' => $user->user_id,
-                    'name' => $user->name,
-                    'role_name' => $roleName,
-                    'role_id' => $roleId,
-                    'default_jhk' => $humanResource ? $humanResource->jhk : 0,
-                    'is_role_full' => $isRoleFull,
-                    'available_slots' => $availableSlots,
-                    'jtk_limit' => $capacity ? $capacity['jtk'] : 0
-                ];
+                return null;
             })
-            ->filter(function($user) {
-                $isValid = $user['role_id'] !== null && $user['role_name'] !== 'No Role';
-                return $isValid;
-            })
+            ->filter()
             ->values();
 
         // Data Humman Resources berdasarkan role
@@ -835,11 +843,11 @@ class WorkPackageController extends Controller
         $request->validate([
             // 'work_order_number' => 'required|integer|min:1|max:999',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'resources' => 'nullable|array',
-            'resources.*' => 'exists:user,user_id',
-            'jhk' => 'nullable|array',
-            'jhk.*' => 'nullable|integer|min:0'
+            'end_date' => 'required|date|after_or_equal:start_date'
+            // 'resources' => 'nullable|array',
+            // 'resources.*' => 'exists:user,user_id',
+            // 'jhk' => 'nullable|array',
+            // 'jhk.*' => 'nullable|integer|min:0'
         ]);
 
         try {
@@ -852,65 +860,66 @@ class WorkPackageController extends Controller
             $executionYear = Carbon::parse($request->start_date)->year;
 
             // Mapping resource Jumlah Harian Kerja
-            $resourceJhkMapping = [];
-            if (!empty($request->resources) && !empty($request->jhk)) {
-                foreach ($request->resources as $index => $userId) {
-                    if (!empty($userId) && isset($request->jhk[$index])) {
-                        $resourceJhkMapping[$userId] = (int) $request->jhk[$index];
-                    }
-                }
-            }
+            // $resourceJhkMapping = [];
+            // if (!empty($request->resources) && !empty($request->jhk)) {
+            //     foreach ($request->resources as $index => $userId) {
+            //         if (!empty($userId) && isset($request->jhk[$index])) {
+            //             $resourceJhkMapping[$userId] = (int) $request->jhk[$index];
+            //         }
+            //     }
+            // }
 
             // Deteksi Perubahan
             $originalStartDate = Carbon::parse($volume->start_date)->format('Y-m-d');
             $originalEndDate = Carbon::parse($volume->end_date)->format('Y-m-d');
             $originalExecutionYear = $volume->execution_year;
-            $originalResources = Work::where('volume_id', $volume_id)->pluck('user_id')->sort()->values()->toArray();
+            // $originalResources = Work::where('volume_id', $volume_id)->pluck('user_id')->sort()->values()->toArray();
 
             $newStartDate = $request->start_date;
             $newEndDate = $request->end_date;
             $newExecutionYear = $executionYear;
-            $newResources = collect($request->resources ?? [])
-                ->filter()
-                ->map(function($userId) {
-                    return (int) $userId;
-                })
-                ->unique()
-                ->sort()
-                ->values()
-                ->toArray();
-            $jhkChanged = false;
-            if (!empty($request->jhk) && !empty($request->resources)) {
-                foreach ($request->resources as $index => $userId) {
-                    $newJhk = (int) ($request->jhk[$index] ?? 0);
+            // $newResources = collect($request->resources ?? [])
+            //     ->filter()
+            //     ->map(function($userId) {
+            //         return (int) $userId;
+            //     })
+            //     ->unique()
+            //     ->sort()
+            //     ->values()
+            //     ->toArray();
+            // $jhkChanged = false;
+            // if (!empty($request->jhk) && !empty($request->resources)) {
+            //     foreach ($request->resources as $index => $userId) {
+            //         $newJhk = (int) ($request->jhk[$index] ?? 0);
 
-                    $user = User::with('roles')->find($userId);
-                    if (!$user || $user->roles->isEmpty()) {
-                        continue; // skip jika user atau role tidak valid
-                    }
+            //         $user = User::with('roles')->find($userId);
+            //         if (!$user || $user->roles->isEmpty()) {
+            //             continue; // skip jika user atau role tidak valid
+            //         }
 
-                    $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+            //         $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
 
-                    // Cari jhk lama dari human_resource berdasarkan role_id dan wp_id
-                    $hr = HumanResource::where('role_id', $roleId)
-                        ->where('wp_id', $volume->wp_id)
-                        ->first();
+            //         // Cari jhk lama dari human_resource berdasarkan role_id dan wp_id
+            //         $hr = HumanResource::where('role_id', $roleId)
+            //             ->where('wp_id', $volume->wp_id)
+            //             ->first();
 
-                    $originalJhk = $hr ? (int) $hr->jhk : 0;
+            //         $originalJhk = $hr ? (int) $hr->jhk : 0;
 
-                    if ($newJhk !== $originalJhk) {
-                        $jhkChanged = true;
-                        break; // cukup satu perubahan untuk dianggap berubah
-                    }
-                }
-            }
+            //         if ($newJhk !== $originalJhk) {
+            //             $jhkChanged = true;
+            //             break; // cukup satu perubahan untuk dianggap berubah
+            //         }
+            //     }
+            // }
 
             // Check for changes
             $startDateChanged = $originalStartDate !== $newStartDate;
             $endDateChanged = $originalEndDate !== $newEndDate;
             $executionYearChanged = $originalExecutionYear !== $newExecutionYear;
-            $resourcesChanged = $originalResources != $newResources;
-            $hasChanges = $startDateChanged || $endDateChanged || $executionYearChanged || $resourcesChanged || $jhkChanged;
+            // $resourcesChanged = $originalResources != $newResources;
+            // $hasChanges = $startDateChanged || $endDateChanged || $executionYearChanged || $resourcesChanged || $jhkChanged;
+            $hasChanges = $startDateChanged || $endDateChanged || $executionYearChanged;
 
             // Jika tidak ada perubahan
             if (!$hasChanges) {
@@ -921,105 +930,133 @@ class WorkPackageController extends Controller
                     'original_data' => [
                         'start_date' => $originalStartDate,
                         'end_date' => $originalEndDate,
-                        'execution_year' => $originalExecutionYear,
-                        'resources_count' => count($originalResources),
-                        'jhk_changed' => $jhkChanged,
+                        'execution_year' => $originalExecutionYear
+                        // 'resources_count' => count($originalResources),
+                        // 'jhk_changed' => $jhkChanged,
                     ]
                 ], 200);
             }
 
+            // Cari volume lain dalam grup yang sama untuk sinkronisasi
+            $relatedVolumes = WorkPackageVolume::where('volume_id', '!=', $volume_id)
+                ->where('wo_id', $volume->wo_id)
+                ->where('start_date', $volume->start_date)
+                ->where('end_date', $volume->end_date)
+                ->where('execution_year', $volume->execution_year)
+                ->get();
+            
+            $isGrouped = $relatedVolumes->count() > 0;
+            $updatedVolumeIds = [$volume_id];
+
+            // Update volume
             $volume->update([
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
                 'execution_year' => $executionYear
             ]);
 
-            // Menangani Resource dengan tabel Work
-            Work::where('volume_id', $volume_id)->delete();
-
-            // Tambah assignments baru berdasarkan user_id
-            $wpId = $volume->wp_id;
-            foreach ($newResources as $index => $userId) {
-                $user = User::with('roles')->find($userId);
-                $roleId = null;
-
-                if ($user && $user->roles->isNotEmpty()) {
-                    // Cari role yang sesuai dengan human resources work package ini
-                    $userRoleIds = $user->roles->pluck('id')->toArray();
-                    $wpRoleIds = HumanResource::where('wp_id', $wpId)->pluck('role_id')->toArray();
-                    
-                    // Ambil role yang matching
-                    $matchingRoleIds = array_intersect($userRoleIds, $wpRoleIds);
-                    
-                    // Filter out admin dan karyawan
-                    $adminRoleId = Role::where('name', 'admin')->first()?->id;
-                    $karyawanRoleId = Role::where('name', 'karyawan')->first()?->id;
-                    
-                    $validRoleIds = array_filter($matchingRoleIds, function($id) use ($adminRoleId, $karyawanRoleId) {
-                        return $id !== $adminRoleId && $id !== $karyawanRoleId;
-                    });
-
-                    if (!empty($validRoleIds)) {
-                        $roleId = reset($validRoleIds);
-                    } else {
-                        // Fallback: ambil role pertama dari human resources
-                        $firstHR = HumanResource::where('wp_id', $wpId)->first();
-                        $roleId = $firstHR ? $firstHR->role_id : null;
-                    }
-                }
-
-                Work::create([
-                    'user_id' => (int) $userId,
-                    'volume_id' => (int) $volume_id,
-                    'role_id' => $roleId
-                ]);
-
-                // Update jhk jika tersedia
-                if (isset($resourceJhkMapping[$userId]) && $roleId) {
-                    $jhkValue = $resourceJhkMapping[$userId];
-
-                    // Cari role user terkait
-                    // $user = User::with('roles')->find($userId);
-                    // if ($user && $user->roles->isNotEmpty()) {
-                    //     $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
-                    // }
-                    
-                    // Update jhk di HumanResource
-                    $hr = HumanResource::where('role_id', $roleId)
-                                        ->where('wp_id', $wpId)
-                                        ->first();
-                    if ($hr) {
-                        $hr->jhk = $jhkValue;
-                        $hr->save();
-                    }
+            // Update semua volume dalam grup yangs sama
+            if ($isGrouped) {
+                foreach ($relatedVolumes as $relatedVolume) {
+                    $relatedVolume->update([
+                        'start_date' => $request->start_date,
+                        'end_date' => $request->end_date,
+                        'execution_year' => $executionYear
+                    ]);
+                    $updatedVolumeIds[] = $relatedVolume->volume_id;
                 }
             }
+
+            // Menangani Resource dengan tabel Work
+            // Work::where('volume_id', $volume_id)->delete();
+
+            // Tambah assignments baru berdasarkan user_id
+            // $wpId = $volume->wp_id;
+            // foreach ($newResources as $index => $userId) {
+            //     $user = User::with('roles')->find($userId);
+            //     $roleId = null;
+
+            //     if ($user && $user->roles->isNotEmpty()) {
+            //         // Cari role yang sesuai dengan human resources work package ini
+            //         $userRoleIds = $user->roles->pluck('id')->toArray();
+            //         $wpRoleIds = HumanResource::where('wp_id', $wpId)->pluck('role_id')->toArray();
+                    
+            //         // Ambil role yang matching
+            //         $matchingRoleIds = array_intersect($userRoleIds, $wpRoleIds);
+                    
+            //         // Filter out admin dan karyawan
+            //         $adminRoleId = Role::where('name', 'admin')->first()?->id;
+            //         $karyawanRoleId = Role::where('name', 'karyawan')->first()?->id;
+                    
+            //         $validRoleIds = array_filter($matchingRoleIds, function($id) use ($adminRoleId, $karyawanRoleId) {
+            //             return $id !== $adminRoleId && $id !== $karyawanRoleId;
+            //         });
+
+            //         if (!empty($validRoleIds)) {
+            //             $roleId = reset($validRoleIds);
+            //         } else {
+            //             // Fallback: ambil role pertama dari human resources
+            //             $firstHR = HumanResource::where('wp_id', $wpId)->first();
+            //             $roleId = $firstHR ? $firstHR->role_id : null;
+            //         }
+            //     }
+
+            //     Work::create([
+            //         'user_id' => (int) $userId,
+            //         'volume_id' => (int) $volume_id,
+            //         'role_id' => $roleId
+            //     ]);
+
+            //     // Update jhk jika tersedia
+            //     if (isset($resourceJhkMapping[$userId]) && $roleId) {
+            //         $jhkValue = $resourceJhkMapping[$userId];
+
+            //         // Cari role user terkait
+            //         // $user = User::with('roles')->find($userId);
+            //         // if ($user && $user->roles->isNotEmpty()) {
+            //         //     $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+            //         // }
+                    
+            //         // Update jhk di HumanResource
+            //         $hr = HumanResource::where('role_id', $roleId)
+            //                             ->where('wp_id', $wpId)
+            //                             ->first();
+            //         if ($hr) {
+            //             $hr->jhk = $jhkValue;
+            //             $hr->save();
+            //         }
+            //     }
+            // }
 
             DB::commit();
 
             // $resourcesCount = $request->resources ? count(array_filter($request->resources)) : 0;
-            $resourcesCount = count($newResources);
+            // $resourcesCount = count($newResources);
 
             Log::info('Volume data updated successfully', [
                 'volume_id' => $volume_id,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
-                'execution_year' => $executionYear,
-                'resources_count' => $resourcesCount,
-                'role_ids' => $newResources,
-                'has_resources' => $resourcesCount > 0
+                'execution_year' => $executionYear
+                // 'resources_count' => $resourcesCount,
+                // 'role_ids' => $newResources,
+                // 'has_resources' => $resourcesCount > 0
             ]);
+
+            $responseMessage = $isGrouped ?
+                "Periode berhasil diperbarui untuk " . count($updatedVolumeIds) . " volume dalam grup" :
+                "Periode volume berhasil diperbarui";
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data berhasil diperbarui',
+                'message' => $responseMessage,
                 'data' => [
                     'volume_id' => $volume->volume_id,
                     'start_date' => $volume->start_date,
                     'end_date' => $volume->end_date,
-                    'execution_year' => $volume->execution_year,
-                    'resources_count' => $resourcesCount,
-                    'has_resources' => $resourcesCount > 0
+                    'execution_year' => $volume->execution_year
+                    // 'resources_count' => $resourcesCount,
+                    // 'has_resources' => $resourcesCount > 0
                 ]
             ]);
 
@@ -1040,7 +1077,7 @@ class WorkPackageController extends Controller
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
                 'execution_year' => $executionYear ?? null,
-                'resources' => $request->resources,
+                // 'resources' => $request->resources,
                 'trace' => $e->getTraceAsString()
             ]);
         

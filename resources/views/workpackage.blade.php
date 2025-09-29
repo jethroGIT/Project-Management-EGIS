@@ -41,7 +41,7 @@
                 @endif
 
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                    <i class="bi bi-pencil-square"></i> Edit Volume
+                    <i class="bi bi-pencil-square"></i> Edit Periode
                 </button>
             </div>
         @endif
@@ -499,7 +499,7 @@
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">Edit Volume Data</h3>
+                                <h3 class="modal-title">Edit Periode Volume</h3>
                             </div>
 
                             <div class="modal-body">
@@ -543,7 +543,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group">
+                                    <!-- <div class="form-group">
                                         <div class="mb-1">
                                             <div class="row g-2">
                                                 <div class="col-md-8">
@@ -555,12 +555,23 @@
                                             </div>
                                         </div>
                                         <div id="editResourceContainer">
-                                            <!-- Ditambahkan oleh JavaScript -->
                                         </div>
                                         <button type="button" class="btn btn-light-primary" id="addEditResourceBtn">
                                             <i class="bi bi-plus-lg"></i>
                                             Tambah Tenaga Kerja
                                         </button>
+                                    </div> -->
+
+                                    <div class="alert alert-light-info d-flex align-items-start">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <div>
+                                            <div class="small">
+                                                <strong>Info:</strong> Tahun pelaksanaan akan diperbarui secara otomatis sesuai tanggal mulai
+                                                @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+                                                    <p>Perubahan akan diterapkan ke {{ $volumeGroupInfo['total_volumes'] }} volume dalam grup ini</p>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                 </form>
                             </div>
@@ -758,8 +769,10 @@ const availableUsers = @json($availableUsersDropdown ?? []);
 console.log('availableUsers:', availableUsers);
 
 // Mendapatkan user saat ini
-const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin'))->pluck('user_id') : []);
-const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin')) : []);
+// const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin'))->pluck('user_id') : []);
+const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
+// const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin')) : []);
+const currentlyAssignedUsersAllData = @json($assignedUsers ?? []);
 console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('roles')->get()));
@@ -859,79 +872,96 @@ function setupTaskSearch(table) {
  */
 function initializeEditModal() {
     // Reset container
-    $('#editResourceContainer').empty();
-    editResourceCounter = 0;
+    // $('#editResourceContainer').empty();
+    // editResourceCounter = 0;
 
     $('.modal-info-alert').remove();
 
     // Debug log
-    console.log('availableUsers:', availableUsers);
-    console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
-    console.log('humanResourcesByRole:', humanResourcesByRole);
-    console.log('roleCapacity:', roleCapacity);
+    // console.log('availableUsers:', availableUsers);
+    // console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+    // console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
+    // console.log('humanResourcesByRole:', humanResourcesByRole);
+    // console.log('roleCapacity:', roleCapacity);
 
-    if (availableUsers && availableUsers.length > 0) {
-        const uniqueRoles = [...new Set(availableUsers.map(user => user.role_name))];
-        // console.log('Available roles in dropdown:', uniqueRoles);
-        // Build role capacity info
-        const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
-            const status = capacity.is_full ? 
-                `${capacity.current_count}/${capacity.jtk} (Penuh)` : 
-                `${capacity.current_count}/${capacity.jtk} (${capacity.available_slots} tersedia)`;
+    // if (availableUsers && availableUsers.length > 0) {
+    //     const uniqueRoles = [...new Set(availableUsers.map(user => user.role_name))];
+    //     // console.log('Available roles in dropdown:', uniqueRoles);
+    //     // Build role capacity info
+    //     const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
+    //         const status = capacity.is_full ? 
+    //             `${capacity.current_count}/${capacity.jtk} (Penuh)` : 
+    //             `${capacity.current_count}/${capacity.jtk} (${capacity.available_slots} tersedia)`;
             
-            return `${capacity.role_name}: ${status}`;
-        }).join('<br>');
+    //         return `${capacity.role_name}: ${status}`;
+    //     }).join('<br>');
         
-        // Add info alert about role filtering
-        const infoHtml = `
-            <div class="alert alert-light-info modal-info-alert" id="roleInfo">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-info-circle me-2 text-info"></i>
-                    <div>
-                        <div>Personel dengan jabatan berdasarkan Work Package ini: <strong>${uniqueRoles.join(', ')}</strong></div>
-                    </div>
-                </div>
-                <div class="alert alert-info" id="roleCapacityInfo">
-                    <div class="fw-bold mb-1">Kebutuhan Tenaga Kerja:</div>
-                    <div class="">${roleCapacityInfo}</div>
-                    <div class="small mt-2">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Personel dengan jabatan yang sudah penuh tidak dapat dipilih
-                    </div>
-                </div>
-            </div>
-        `;
-        $('#addEditResourceBtn').after(infoHtml);
-    } else {
-        // Show warning if no users available
-        const warningHtml = `
-            <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
-                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
-                <div>
-                    <strong>Tidak ada personel tersedia:</strong> 
-                    Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.
-                </div>
-            </div>
-        `;
-        $('#addEditResourceBtn').after(warningHtml);
-    }
+    //     // Add info alert about role filtering
+    //     const infoHtml = `
+    //         <div class="alert alert-light-info modal-info-alert" id="roleInfo">
+    //             <div class="d-flex align-items-center mb-3">
+    //                 <i class="bi bi-info-circle me-2 text-info"></i>
+    //                 <div>
+    //                     <div>Personel dengan jabatan berdasarkan Work Package ini: <strong>${uniqueRoles.join(', ')}</strong></div>
+    //                 </div>
+    //             </div>
+    //             <div class="alert alert-info" id="roleCapacityInfo">
+    //                 <div class="fw-bold mb-1">Kebutuhan Tenaga Kerja:</div>
+    //                 <div class="">${roleCapacityInfo}</div>
+    //                 <div class="small mt-2">
+    //                     <i class="bi bi-exclamation-triangle me-1"></i>
+    //                     Personel dengan jabatan yang sudah penuh tidak dapat dipilih
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     `;
+    //     $('#addEditResourceBtn').after(infoHtml);
+    // } else {
+    //     // Show warning if no users available
+    //     const warningHtml = `
+    //         <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
+    //             <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+    //             <div>
+    //                 <strong>Tidak ada personel tersedia:</strong> 
+    //                 Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.
+    //             </div>
+    //         </div>
+    //     `;
+    //     $('#addEditResourceBtn').after(warningHtml);
+    // }
 
     // Filter untuk exclude admin
-    const filteredAssignedUsers = currentlyAssignedUsers.filter(function(userId) {
-        return availableUsers.some(function(user) {
-            return user.user_id == userId;
-        });
-    });
+    // const filteredAssignedUsers = currentlyAssignedUsersAllData.filter(function(assignedUser) {
+    //     const userExists = availableUsers.some(function(user) {
+    //         return user.user_id == assignedUser.user_id;
+    //     });
+
+    //     // Jika user tidak ada di availableUsers, tambahkan ke availableUsers
+    //     if (!userExists && assignedUser.user_id) {
+    //         availableUsers.push({
+    //             user_id: assignedUser.user_id,
+    //             name: assignedUser.name,
+    //             role_name: assignedUser.role_name,
+    //             role_id: assignedUser.role_id,
+    //             default_jhk: assignedUser.jhk || 0,
+    //             is_role_full: false,
+    //             available_slots: 1,
+    //             jtk_limit: 999
+    //         });
+    //     }
+        
+    //     return assignedUser.user_id != null;
+    // });
     
     // Menambahkan assigned user saat ini
-    if (filteredAssignedUsers && filteredAssignedUsers.length > 0) {
-        filteredAssignedUsers.forEach(function(userId, index) {
-            addEditResource(userId);
-        });
-    } else {
-        // Menambahkan setidaknya 1 field kosong
-        addEditResource();
-    }
+    // if (filteredAssignedUsers && filteredAssignedUsers.length > 0) {
+    //     filteredAssignedUsers.forEach(function(assignedUser, index) {
+    //         addEditResource(assignedUser.user_id);
+    //     });
+    // } else {
+    //     // Menambahkan setidaknya 1 field kosong
+    //     addEditResource();
+    // }
     
     // Update end date min when start date changes
     $('#editStartDate').on('change', function() {
@@ -978,8 +1008,8 @@ function submitEditData() {
     // Manual validation
     const startDate = formData.get('start_date');
     const endDate = formData.get('end_date');
-    const resources = formData.getAll('resources[]');
-    const jhk = formData.getAll('jhk[]');
+    // const resources = formData.getAll('resources[]');
+    // const jhk = formData.getAll('jhk[]');
 
     if (!startDate || !endDate) {
         Swal.fire({
@@ -1009,17 +1039,17 @@ function submitEditData() {
 
     // Filter out empty resource selections
     // const validResources = resources.filter(resource => resource !== '');
-    const validResources = resources.filter(resource => {
-        return resource !== '' && resource !== null && resource !== undefined && !isNaN(resource);
-    });
+    // const validResources = resources.filter(resource => {
+    //     return resource !== '' && resource !== null && resource !== undefined && !isNaN(resource);
+    // });
     
     // Debug log
     console.log('Edit Data Form Submission:', {
         volumeId: volumeId,
         startDate: startDate,
-        endDate: endDate,
-        resources: validResources,
-        jhk: jhk
+        endDate: endDate
+        // resources: validResources,
+        // jhk: jhk
     });
     
     // Create clean FormData with filtered resources
@@ -1030,14 +1060,14 @@ function submitEditData() {
     cleanFormData.append('end_date', endDate);
     
     // Add valid resources
-    validResources.forEach(function(resource) {
-        cleanFormData.append('resources[]', resource);
-    });
+    // validResources.forEach(function(resource) {
+    //     cleanFormData.append('resources[]', resource);
+    // });
 
     // Add JHK values
-    jhk.forEach(function(jhkValue) {
-        cleanFormData.append('jhk[]', jhkValue);
-    });
+    // jhk.forEach(function(jhkValue) {
+    //     cleanFormData.append('jhk[]', jhkValue);
+    // });
     
     // Submit via AJAX
     $.ajax({
@@ -1147,355 +1177,355 @@ function submitEditData() {
 /**
  * Tambah resource field baru di edit modal
  */
-function addEditResource(selectedUserId = null) {
-    // Validasi availableUsers
-    if (!availableUsers || availableUsers.length === 0) {
-        console.error('No available users found in addEditResource');
+// function addEditResource(selectedUserId = null) {
+//     // Validasi availableUsers
+//     if (!availableUsers || availableUsers.length === 0) {
+//         console.error('No available users found in addEditResource');
 
-        // Hapus semua alert
-        $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
+//         // Hapus semua alert
+//         $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
 
-        const alertHtml = `
-            <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="noUsersAlert">
-                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
-                <div>
-                    Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.<br>
-                    <small class="text-muted">Pastikan ada personel dengan jabatan yang sudah di-assign di work package ini.</small>
-                </div>
-            </div>
-        `;
-        $('#addEditResourceBtn').after(alertHtml);
+//         const alertHtml = `
+//             <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="noUsersAlert">
+//                 <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+//                 <div>
+//                     Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.<br>
+//                     <small class="text-muted">Pastikan ada personel dengan jabatan yang sudah di-assign di work package ini.</small>
+//                 </div>
+//             </div>
+//         `;
+//         $('#addEditResourceBtn').after(alertHtml);
 
-        Swal.fire({
-            text: "Tidak Ada Personel Tersedia.",
-            text: "Tidak ada data personel dengan jabatan yang sesuai. Pastikan ada personel dengan jabatan yang sudah di-assign pada Work Package ini.",
-            icon: "warning",
-            buttonsStyling: false,
-            confirmButtonText: "OK",
-            customClass: {
-                confirmButton: "btn btn-warning"
-            }
-        });
-        return;
-    }
+//         Swal.fire({
+//             text: "Tidak Ada Personel Tersedia.",
+//             text: "Tidak ada data personel dengan jabatan yang sesuai. Pastikan ada personel dengan jabatan yang sudah di-assign pada Work Package ini.",
+//             icon: "warning",
+//             buttonsStyling: false,
+//             confirmButtonText: "OK",
+//             customClass: {
+//                 confirmButton: "btn btn-warning"
+//             }
+//         });
+//         return;
+//     }
 
-    const currentlySelectedUsers = [];
-    $('#editResourceContainer select[name="resources[]"]').each(function() {
-        const selectedValue = $(this).val();
-        if (selectedValue && selectedValue !== '') {
-            currentlySelectedUsers.push(parseInt(selectedValue));
-        }
-    });
+//     const currentlySelectedUsers = [];
+//     $('#editResourceContainer select[name="resources[]"]').each(function() {
+//         const selectedValue = $(this).val();
+//         if (selectedValue && selectedValue !== '') {
+//             currentlySelectedUsers.push(parseInt(selectedValue));
+//         }
+//     });
 
-    // Hitung index berdasarkan jumlah container yang ada
-    const currentResourceCount = $('#editResourceContainer .input-group').length;
-    const resourceIndex = currentResourceCount;
+//     // Hitung index berdasarkan jumlah container yang ada
+//     const currentResourceCount = $('#editResourceContainer .input-group').length;
+//     const resourceIndex = currentResourceCount;
 
-    let optionsHtml = '<option value="">Pilih Tenaga Kerja</option>';
-    let defaultJhk = 0; 
+//     let optionsHtml = '<option value="">Pilih Tenaga Kerja</option>';
+//     let defaultJhk = 0; 
     
-    // Group users berdasarkan role untuk pengecekan kapasitas
-    const usersByRole = {};
-    availableUsers.forEach(function(user) {
-        if (!usersByRole[user.role_id]) {
-            usersByRole[user.role_id] = [];
-        }
-        usersByRole[user.role_id].push(user);
-    });
+//     // Group users berdasarkan role untuk pengecekan kapasitas
+//     const usersByRole = {};
+//     availableUsers.forEach(function(user) {
+//         if (!usersByRole[user.role_id]) {
+//             usersByRole[user.role_id] = [];
+//         }
+//         usersByRole[user.role_id].push(user);
+//     });
 
-    // Membuat opsi dengan validasi kapasitas
-    Object.keys(usersByRole).forEach(function(roleId) {
-        const users = usersByRole[roleId];
-        const capacity = roleCapacity[roleId];
+//     // Membuat opsi dengan validasi kapasitas
+//     Object.keys(usersByRole).forEach(function(roleId) {
+//         const users = usersByRole[roleId];
+//         const capacity = roleCapacity[roleId];
         
-        if (!capacity) return;
+//         if (!capacity) return;
 
-        // Hitung user yang dipilih untuk role ini
-        const currentSelectedForRole = currentlySelectedUsers.filter(userId => {
-            const user = availableUsers.find(u => u.user_id === userId);
-            return user && user.role_id == roleId;
-        }).length;
+//         // Hitung user yang dipilih untuk role ini
+//         const currentSelectedForRole = currentlySelectedUsers.filter(userId => {
+//             const user = availableUsers.find(u => u.user_id === userId);
+//             return user && user.role_id == roleId;
+//         }).length;
 
-        // Cek apakah role ini sudah penuh
-        const isRoleAtCapacity = currentSelectedForRole >= capacity.jtk;
+//         // Cek apakah role ini sudah penuh
+//         const isRoleAtCapacity = currentSelectedForRole >= capacity.jtk;
         
-        users.forEach(function(user) {
-            const isAlreadySelected = currentlySelectedUsers.includes(user.user_id) && 
-                                    selectedUserId !== user.user_id;
+//         users.forEach(function(user) {
+//             const isAlreadySelected = currentlySelectedUsers.includes(user.user_id) && 
+//                                     selectedUserId !== user.user_id;
             
-            if (!isAlreadySelected) {
-                const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
+//             if (!isAlreadySelected) {
+//                 const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
 
-                // Cek jika dapat menambahkan user ini berdasarkan kapasitas role
-                const canSelectUser = selectedUserId == user.user_id || !isRoleAtCapacity;
-                const disabledAttr = canSelectUser ? '' : 'disabled';
-                const roleStatus = isRoleAtCapacity ? ' (Penuh)' : '';
+//                 // Cek jika dapat menambahkan user ini berdasarkan kapasitas role
+//                 const canSelectUser = selectedUserId == user.user_id || !isRoleAtCapacity;
+//                 const disabledAttr = canSelectUser ? '' : 'disabled';
+//                 const roleStatus = isRoleAtCapacity ? ' (Penuh)' : '';
                 
-                optionsHtml += `<option value="${user.user_id}" 
-                               data-role-id="${user.role_id}" 
-                               data-default-jhk="${user.default_jhk}"
-                               data-role-capacity="${capacity.jtk}"
-                               data-current-count="${currentSelectedForRole}"
-                               ${disabledAttr} ${selected}>
-                               ${user.name} (${user.role_name}) ${roleStatus}
-                               </option>`;
+//                 optionsHtml += `<option value="${user.user_id}" 
+//                                data-role-id="${user.role_id}" 
+//                                data-default-jhk="${user.default_jhk}"
+//                                data-role-capacity="${capacity.jtk}"
+//                                data-current-count="${currentSelectedForRole}"
+//                                ${disabledAttr} ${selected}>
+//                                ${user.name} (${user.role_name}) ${roleStatus}
+//                                </option>`;
 
-                if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
-                    const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
-                    if (assigned && assigned.jhk) {
-                        defaultJhk = assigned.jhk;
-                    } else {
-                        defaultJhk = user.default_jhk || 0;
-                    }
-                }
-            }
-        });
-    });
+//                 if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
+//                     const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
+//                     if (assigned && assigned.jhk) {
+//                         defaultJhk = assigned.jhk;
+//                     } else {
+//                         defaultJhk = user.default_jhk || 0;
+//                     }
+//                 }
+//             }
+//         });
+//     });
     
-    const resourceHtml = `
-        <div class="input-group mb-2" id="edit-resource-${resourceIndex}" data-resource-index="${resourceIndex}">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-8">
-                    <select class="form-select resource-select" 
-                            name="resources[]" 
-                            onchange="handleResourceChange(this)" 
-                            data-resource-index="${resourceIndex}">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="number" 
-                            class="form-control jhk-input" 
-                            name="jhk[]" 
-                            placeholder="0" 
-                            min="0" 
-                            value="${defaultJhk}" 
-                            data-resource-index="${resourceIndex}"/>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${resourceIndex})">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
+//     const resourceHtml = `
+//         <div class="input-group mb-2" id="edit-resource-${resourceIndex}" data-resource-index="${resourceIndex}">
+//             <div class="row g-2 align-items-end">
+//                 <div class="col-md-8">
+//                     <select class="form-select resource-select" 
+//                             name="resources[]" 
+//                             onchange="handleResourceChange(this)" 
+//                             data-resource-index="${resourceIndex}">
+//                         ${optionsHtml}
+//                     </select>
+//                 </div>
+//                 <div class="col-md-2">
+//                     <input type="number" 
+//                             class="form-control jhk-input" 
+//                             name="jhk[]" 
+//                             placeholder="0" 
+//                             min="0" 
+//                             value="${defaultJhk}" 
+//                             data-resource-index="${resourceIndex}"/>
+//                 </div>
+//                 <div class="col-md-2 d-flex align-items-end">
+//                     <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${resourceIndex})">
+//                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+//                             <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+//                         </svg>
+//                     </button>
+//                 </div>
+//             </div>
+//         </div>
+//     `;
     
-    $('#editResourceContainer').append(resourceHtml);
-    // editResourceCounter++;
-}
+//     $('#editResourceContainer').append(resourceHtml);
+//     // editResourceCounter++;
+// }
 
 /**
  * Menghapus resource field di edit modal
  */
-function removeEditResource(index) {
-    // const resourceCount = $('#editResourceContainer .input-group').length;
+// function removeEditResource(index) {
+//     // const resourceCount = $('#editResourceContainer .input-group').length;
 
-    $(`#edit-resource-${index}, [data-resource-index="${index}"]`).remove();
+//     $(`#edit-resource-${index}, [data-resource-index="${index}"]`).remove();
 
-    reindexResources();
-    updateRoleCapacityDisplay();
-}
+//     reindexResources();
+//     updateRoleCapacityDisplay();
+// }
 
 /**
  * Function untuk reindex semua resource containers
  */
-function reindexResources() {
-    $('#editResourceContainer .input-group').each(function(newIndex) {
-        const container = $(this);
-        const oldIndex = container.attr('data-resource-index');
+// function reindexResources() {
+//     $('#editResourceContainer .input-group').each(function(newIndex) {
+//         const container = $(this);
+//         const oldIndex = container.attr('data-resource-index');
 
-        // Update container attributes
-        container.attr('id', `edit-resource-${newIndex}`);
-        container.attr('data-resource-index', newIndex);
+//         // Update container attributes
+//         container.attr('id', `edit-resource-${newIndex}`);
+//         container.attr('data-resource-index', newIndex);
 
-        // Update select element
-        const selectElement = container.find('select');
-        selectElement.attr('name', 'resources[]');
-        selectElement.attr('data-resource-index', newIndex);
+//         // Update select element
+//         const selectElement = container.find('select');
+//         selectElement.attr('name', 'resources[]');
+//         selectElement.attr('data-resource-index', newIndex);
 
-        // Update input element
-        const inputElement = container.find('input[type="number"]');
-        inputElement.attr('name', 'jhk[]');
-        inputElement.attr('data-resource-index', newIndex);
+//         // Update input element
+//         const inputElement = container.find('input[type="number"]');
+//         inputElement.attr('name', 'jhk[]');
+//         inputElement.attr('data-resource-index', newIndex);
         
-        // Update button onclick
-        const buttonElement = container.find('button');
-        buttonElement.attr('onclick', `removeEditResource(${newIndex})`);
+//         // Update button onclick
+//         const buttonElement = container.find('button');
+//         buttonElement.attr('onclick', `removeEditResource(${newIndex})`);
         
-        console.log(`Reindexed resource from ${oldIndex} to ${newIndex}`);
-    });
-}
+//         console.log(`Reindexed resource from ${oldIndex} to ${newIndex}`);
+//     });
+// }
 
 /**
  * Menangani perubahan seleksi resource untuk menghindari duplikasi
  */
-function handleResourceChange(selectElement) {
-    const selectedValue = selectElement.value;
-    const resourceIndex = selectElement.getAttribute('data-resource-index');
-    const jhkInput = document.querySelector(`input[data-resource-index="${resourceIndex}"]`);
+// function handleResourceChange(selectElement) {
+//     const selectedValue = selectElement.value;
+//     const resourceIndex = selectElement.getAttribute('data-resource-index');
+//     const jhkInput = document.querySelector(`input[data-resource-index="${resourceIndex}"]`);
 
-    const allSelects = document.querySelectorAll('#editResourceContainer select');
+//     const allSelects = document.querySelectorAll('#editResourceContainer select');
     
-    // Check for duplicates
-    let duplicateCount = 0;
-    allSelects.forEach(function(select) {
-        if (select.value === selectedValue && selectedValue !== '') {
-            duplicateCount++;
-        }
-    });
+//     // Check for duplicates
+//     let duplicateCount = 0;
+//     allSelects.forEach(function(select) {
+//         if (select.value === selectedValue && selectedValue !== '') {
+//             duplicateCount++;
+//         }
+//     });
     
-    if (duplicateCount > 1) {
-        Swal.fire({
-            text: "Personel ini sudah dipilih di penugasan tenaga kerja lain!",
-            icon: "warning",
-            buttonsStyling: false,
-            confirmButtonText: "OK",
-            customClass: {
-                confirmButton: "btn btn-warning"
-            }
-        });
-        selectElement.value = ''; // Reset selection
-        jhkInput.value = 0; // Reset JHK
-        return;
-    }
+//     if (duplicateCount > 1) {
+//         Swal.fire({
+//             text: "Personel ini sudah dipilih di penugasan tenaga kerja lain!",
+//             icon: "warning",
+//             buttonsStyling: false,
+//             confirmButtonText: "OK",
+//             customClass: {
+//                 confirmButton: "btn btn-warning"
+//             }
+//         });
+//         selectElement.value = ''; // Reset selection
+//         jhkInput.value = 0; // Reset JHK
+//         return;
+//     }
 
-    // Auto populate JHK based on user roles
-    if (selectedValue !== '') {
-        const selectedOption = selectElement.querySelector(`option[value="${selectedValue}"]`);
-        const roleId = selectedOption.getAttribute('data-role-id');
-        const defaultJhk = selectedOption.getAttribute('data-default-jhk');
-        const capacity = roleCapacity[roleId];
+//     // Auto populate JHK based on user roles
+//     if (selectedValue !== '') {
+//         const selectedOption = selectElement.querySelector(`option[value="${selectedValue}"]`);
+//         const roleId = selectedOption.getAttribute('data-role-id');
+//         const defaultJhk = selectedOption.getAttribute('data-default-jhk');
+//         const capacity = roleCapacity[roleId];
 
-        if (capacity) {
-            // Count current selections for this role (excluding this select)
-            let currentSelectionCount = 0;
-            allSelects.forEach(function(select) {
-                if (select !== selectElement && select.value !== '') {
-                    const option = select.querySelector(`option[value="${select.value}"]`);
-                    if (option && option.getAttribute('data-role-id') === roleId) {
-                        currentSelectionCount++;
-                    }
-                }
-            });
+//         if (capacity) {
+//             // Count current selections for this role (excluding this select)
+//             let currentSelectionCount = 0;
+//             allSelects.forEach(function(select) {
+//                 if (select !== selectElement && select.value !== '') {
+//                     const option = select.querySelector(`option[value="${select.value}"]`);
+//                     if (option && option.getAttribute('data-role-id') === roleId) {
+//                         currentSelectionCount++;
+//                     }
+//                 }
+//             });
 
-            // Check if adding this user would exceed capacity
-            if (currentSelectionCount >= capacity.jtk) {
-                Swal.fire({
-                    title: "Kapasitas Jabatan Penuh",
-                    html: `
-                        <div class="text-center">
-                            <p class="mb-3">Jabatan <strong>${capacity.role_name}</strong> sudah mencapai batas maksimum!</p>
-                            <div class="alert alert-light-warning py-2">
-                                <div class="small">
-                                    <strong>Kapasitas:</strong> ${capacity.jtk} orang<br>
-                                    <strong>Sudah terisi:</strong> ${currentSelectionCount} orang<br>
-                                    <strong>Sisa slot:</strong> ${Math.max(0, capacity.jtk - currentSelectionCount)} orang
-                                </div>
-                            </div>
-                            <p class="small text-muted">
-                                Untuk menambah personel dengan jabatan ini, hapus salah satu personel dengan jabatan yang sama terlebih dahulu.
-                            </p>
-                        </div>
-                    `,
-                    icon: "warning",
-                    buttonsStyling: false,
-                    confirmButtonText: "OK",
-                    customClass: {
-                        confirmButton: "btn btn-warning"
-                    }
-                });
-                selectElement.value = '';
-                jhkInput.value = 0;
-                return;
-            }
-        }
+//             // Check if adding this user would exceed capacity
+//             if (currentSelectionCount >= capacity.jtk) {
+//                 Swal.fire({
+//                     title: "Kapasitas Jabatan Penuh",
+//                     html: `
+//                         <div class="text-center">
+//                             <p class="mb-3">Jabatan <strong>${capacity.role_name}</strong> sudah mencapai batas maksimum!</p>
+//                             <div class="alert alert-light-warning py-2">
+//                                 <div class="small">
+//                                     <strong>Kapasitas:</strong> ${capacity.jtk} orang<br>
+//                                     <strong>Sudah terisi:</strong> ${currentSelectionCount} orang<br>
+//                                     <strong>Sisa slot:</strong> ${Math.max(0, capacity.jtk - currentSelectionCount)} orang
+//                                 </div>
+//                             </div>
+//                             <p class="small text-muted">
+//                                 Untuk menambah personel dengan jabatan ini, hapus salah satu personel dengan jabatan yang sama terlebih dahulu.
+//                             </p>
+//                         </div>
+//                     `,
+//                     icon: "warning",
+//                     buttonsStyling: false,
+//                     confirmButtonText: "OK",
+//                     customClass: {
+//                         confirmButton: "btn btn-warning"
+//                     }
+//                 });
+//                 selectElement.value = '';
+//                 jhkInput.value = 0;
+//                 return;
+//             }
+//         }
         
-        // Check if this role already exists in Human Resources
-        let jhkValue = 0;
-        if (roleId && humanResourcesByRole[roleId]) {
-            jhkValue = humanResourcesByRole[roleId].jhk;
-            console.log(`Found existing role ${roleId} with JHK: ${jhkValue}`);
-        } else if (defaultJhk && defaultJhk > 0) {
-            jhkValue = parseInt(defaultJhk);
-            console.log(`Using default JHK: ${jhkValue}`);
-        }
+//         // Check if this role already exists in Human Resources
+//         let jhkValue = 0;
+//         if (roleId && humanResourcesByRole[roleId]) {
+//             jhkValue = humanResourcesByRole[roleId].jhk;
+//             console.log(`Found existing role ${roleId} with JHK: ${jhkValue}`);
+//         } else if (defaultJhk && defaultJhk > 0) {
+//             jhkValue = parseInt(defaultJhk);
+//             console.log(`Using default JHK: ${jhkValue}`);
+//         }
 
-        // Set JHK value in input
-        if (jhkInput) {
-            jhkInput.value = jhkValue;
+//         // Set JHK value in input
+//         if (jhkInput) {
+//             jhkInput.value = jhkValue;
             
-            // Show visual feedback if auto-populated
-            if (jhkValue > 0) {
-                jhkInput.style.backgroundColor = '#e8f5e8';
-                jhkInput.setAttribute('title', `Auto-populated from existing role data (${jhkValue} days)`);
+//             // Show visual feedback if auto-populated
+//             if (jhkValue > 0) {
+//                 jhkInput.style.backgroundColor = '#e8f5e8';
+//                 jhkInput.setAttribute('title', `Auto-populated from existing role data (${jhkValue} days)`);
                 
-                // Remove highlight after 3 seconds
-                setTimeout(() => {
-                    jhkInput.style.backgroundColor = '';
-                    jhkInput.removeAttribute('title');
-                }, 3000);
-            }
-        }
+//                 // Remove highlight after 3 seconds
+//                 setTimeout(() => {
+//                     jhkInput.style.backgroundColor = '';
+//                     jhkInput.removeAttribute('title');
+//                 }, 3000);
+//             }
+//         }
 
-        // Update capacity info in real-time
-        updateRoleCapacityDisplay();
+//         // Update capacity info in real-time
+//         updateRoleCapacityDisplay();
 
-    } else {
-        // Reset JHK jika tidak ada user yang dipilih
-        if (jhkInput) {
-            jhkInput.value = 0;
-            jhkInput.style.backgroundColor = '';
-            jhkInput.removeAttribute('title');
-        }
-        updateRoleCapacityDisplay();
-    }
-}
+//     } else {
+//         // Reset JHK jika tidak ada user yang dipilih
+//         if (jhkInput) {
+//             jhkInput.value = 0;
+//             jhkInput.style.backgroundColor = '';
+//             jhkInput.removeAttribute('title');
+//         }
+//         updateRoleCapacityDisplay();
+//     }
+// }
 
 /**
  * Function untuk update tampilan kapasitas role secara real-time
  */
-function updateRoleCapacityDisplay() {
-    const allSelects = document.querySelectorAll('#editResourceContainer select');
-    const currentSelections = {};
+// function updateRoleCapacityDisplay() {
+//     const allSelects = document.querySelectorAll('#editResourceContainer select');
+//     const currentSelections = {};
     
-    // Count current selections by role
-    allSelects.forEach(function(select) {
-        if (select.value !== '') {
-            const option = select.querySelector(`option[value="${select.value}"]`);
-            if (option) {
-                const roleId = option.getAttribute('data-role-id');
-                if (roleId) {
-                    currentSelections[roleId] = (currentSelections[roleId] || 0) + 1;
-                }
-            }
-        }
-    });
+//     // Count current selections by role
+//     allSelects.forEach(function(select) {
+//         if (select.value !== '') {
+//             const option = select.querySelector(`option[value="${select.value}"]`);
+//             if (option) {
+//                 const roleId = option.getAttribute('data-role-id');
+//                 if (roleId) {
+//                     currentSelections[roleId] = (currentSelections[roleId] || 0) + 1;
+//                 }
+//             }
+//         }
+//     });
 
-    // Update capacity info display
-    const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
-        const currentCount = currentSelections[capacity.role_id] || 0;
-        const availableSlots = Math.max(0, capacity.jtk - currentCount);
-        const isFull = currentCount >= capacity.jtk;
+//     // Update capacity info display
+//     const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
+//         const currentCount = currentSelections[capacity.role_id] || 0;
+//         const availableSlots = Math.max(0, capacity.jtk - currentCount);
+//         const isFull = currentCount >= capacity.jtk;
         
-        const status = isFull ? 
-            `${currentCount}/${capacity.jtk} (Penuh)` : 
-            `${currentCount}/${capacity.jtk} (${availableSlots} tersedia)`;
+//         const status = isFull ? 
+//             `${currentCount}/${capacity.jtk} (Penuh)` : 
+//             `${currentCount}/${capacity.jtk} (${availableSlots} tersedia)`;
         
-        return `${capacity.role_name}: ${status}`;
-    }).join('<br>');
+//         return `${capacity.role_name}: ${status}`;
+//     }).join('<br>');
 
-    // Update the info alert
-    const infoAlert = document.getElementById('roleCapacityInfo');
-    if (infoAlert) {
-        const infoContent = infoAlert.querySelector('div div:nth-child(2)');
-        if (infoContent) {
-            infoContent.innerHTML = roleCapacityInfo;
-        }
-    }
-}
+//     // Update the info alert
+//     const infoAlert = document.getElementById('roleCapacityInfo');
+//     if (infoAlert) {
+//         const infoContent = infoAlert.querySelector('div div:nth-child(2)');
+//         if (infoContent) {
+//             infoContent.innerHTML = roleCapacityInfo;
+//         }
+//     }
+// }
 
 // Function untuk toggle sub-rows
 function toggleSubRows(rowId) {

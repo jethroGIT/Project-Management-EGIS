@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
@@ -808,6 +808,41 @@ function saveWorkPackage() {
         }
     }
 
+    const resourceValidation = validateHumanResources();
+    
+    if (!resourceValidation.isValid) {
+        // Show validation errors
+        const errorList = resourceValidation.errors.map(error => `<li class="text-start">${error}</li>`).join('');
+
+        Swal.fire({
+            title: 'Validasi Tenaga Kerja Gagal',
+            html: `
+                <div class="text-start">
+                    <p class="mb-3">Ditemukan masalah dalam konfigurasi tenaga kerja:</p>
+                    <div class="alert alert-light-danger py-2 mb-3">
+                        <ul class="mb-0 ps-3">
+                            ${errorList}
+                        </ul>
+                    </div>
+                </div>
+            `,
+            icon: 'error',
+            buttonsStyling: false,
+            confirmButtonText: 'Ok',
+            customClass: {
+                confirmButton: 'btn btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setTimeout(() => {
+                    scrollToError();
+                }, 500);
+            }
+        });
+
+        return;
+    }
+
     formData.append('wp_sequence', $('#edit_wp_sequence').val());
 
     // if (Object.keys(temporaryAssignments).length > 0) {
@@ -915,6 +950,46 @@ function saveWorkPackage() {
     });
 }
 
+/**
+ * Scroll view to error
+ */
+function scrollToError() {
+    // Prioritas scroll
+    let targetElement = document.querySelector('[data-scroll-target="true"]');
+    
+    if (!targetElement) {
+        targetElement = document.querySelector('.border-danger');
+    }
+    
+    if (!targetElement) {
+        targetElement = document.querySelector('.is-invalid');
+    }
+    
+    if (targetElement) {
+        // Scroll dengan offset untuk header
+        const headerOffset = 500; // Adjust sesuai tinggi header
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+
+        // Focus pada element yang error untuk better UX
+        if (targetElement.querySelector('.is-invalid')) {
+            const invalidInput = targetElement.querySelector('.is-invalid');
+            setTimeout(() => {
+                invalidInput.focus();
+            }, 500); // Focus setelah scroll selesai
+        }
+
+        console.log('Scrolled to error element:', targetElement);
+    } else {
+        console.log('No error element found for scrolling');
+    }
+}
+
 /* HUMAN RESOURCE MANAGEMENT */
 // Event handlers untuk role change
 $(document).on('change', '.role-select', function() {
@@ -933,9 +1008,114 @@ $(document).on('change', '.role-select', function() {
 // event handlers untuk user select change
 $(document).on('change', '.user-select', function() {
     const resourceIndex = $(this).data('resource-index');
+
+    // Handle error state removal
+    handleUserSelectChange(this);
+
     updateJTKFromUsers(resourceIndex);
     updateUserSelectOptions();
 });
+
+/**
+ * Validate human resources before saving
+ */
+function validateHumanResources() {
+    const resourceItems = document.querySelectorAll('.human-resource-item');
+    let validationErrors = [];
+    let isValid = true;
+
+    resourceItems.forEach((item, index) => {
+        const resourceNumber = index + 1;
+
+        // Check role selection
+        const roleSelect = item.querySelector('select[name*="[role_id]"]');
+        const roleId = roleSelect ? roleSelect.value : '';
+        const roleName = roleSelect && roleSelect.selectedIndex > 0 ? 
+            roleSelect.options[roleSelect.selectedIndex].text : 'Unknown Role';
+        
+        if (!roleId) {
+            roleSelect?.classList.add('is-invalid');
+            validationErrors.push(`Tenaga Kerja #${resourceNumber}: Jabatan harus dipilih`);
+            isValid = false;
+        } else {
+            roleSelect?.classList.remove('is-invalid');
+        }
+
+        // Check JTK
+        const jtkInput = item.querySelector('input[name*="[jtk]"]');
+        const jtk = jtkInput ? parseInt(jtkInput.value) || 0 : 0;
+        
+        if (jtk <= 0) {
+            jtkInput?.classList.add('is-invalid');
+            validationErrors.push(`Tenaga Kerja #${resourceNumber}: JTK harus lebih dari 0`);
+            isValid = false;
+        } else {
+            jtkInput?.classList.remove('is-invalid');
+        }
+
+        // Check JHK
+        const jhkInput = item.querySelector('input[name*="[jhk]"]');
+        const jhk = jhkInput ? parseInt(jhkInput.value) || 0 : 0;
+        
+        if (jhk <= 0) {
+            jhkInput?.classList.add('is-invalid');
+            validationErrors.push(`Tenaga Kerja #${resourceNumber}: JHK harus lebih dari 0`);
+            isValid = false;
+        } else {
+            jhkInput?.classList.remove('is-invalid');
+        }
+
+        // Check personel assignemnts
+        const usersContainer = item.querySelector('.users-container');
+        const userSelects = usersContainer ? usersContainer.querySelectorAll('.user-select') : [];
+        
+        let assignedUsers = 0;
+        let hasEmptyUserSelect = false;
+        
+        userSelects.forEach(userSelect => {
+            if (userSelect.value && userSelect.value !== '') {
+                assignedUsers++;
+            } else {
+                hasEmptyUserSelect = true;
+                userSelect.classList.add('is-invalid');
+            }
+        });
+
+        if (!hasEmptyUserSelect) {
+            userSelects.forEach(select => select.classList.remove('is-invalid'));
+        }
+
+        // Validasi Personel
+        if (roleId) {
+            if (assignedUsers === 0) {
+                // Tidak ada personel sama sekali
+                validationErrors.push(`Tenaga Kerja #${resourceNumber} (${roleName}): Minimal harus ada 1 personel yang ditugaskan`);
+                isValid = false;
+                
+                // Highlight users container
+                if (usersContainer) {
+                    usersContainer.classList.add('border-danger');
+                    usersContainer.dataset.scrollTarget = 'true';
+                }
+            } else if (hasEmptyUserSelect) {
+                // Ada user select kosong
+                validationErrors.push(`Tenaga Kerja #${resourceNumber} (${roleName}): Personel harus dipilih`);
+                isValid = false;
+            } else {
+                // Valid - remove error styling
+                if (usersContainer) {
+                    usersContainer.classList.remove('border-danger');
+                    usersContainer.removeAttribute('data-scroll-target');
+                }
+            }
+        }
+    });
+
+    return {
+        isValid,
+        errors: validationErrors
+    };
+}
 
 /**
  * Add new human resource
@@ -996,6 +1176,11 @@ function addHumanResource() {
                     </div>
                 </div>
             </div>
+
+            <!-- Tambah Personel -->
+            <button type="button" class="btn btn-light-success btn-sm" onClick="addUserToResource(${humanResourceIndex})">
+                <i class="bi bi-person-plus"></i> Tambah Personel
+            </button>
         </div>
     `;
 
@@ -1015,6 +1200,14 @@ function addUserToResource(resourceIndex) {
     
     if (noUsersMessage) {
         noUsersMessage.style.display = 'none';
+    }
+
+    // Remove warning state when adding user
+    container.classList.remove('border-danger');
+    container.removeAttribute('data-scroll-target');
+    const warningMessage = container.querySelector('.empty-users-warning');
+    if (warningMessage) {
+        warningMessage.remove();
     }
 
     // Find next user index for this resource
@@ -1068,6 +1261,32 @@ function removeUserFromResource(button) {
         const noUsersMessage = document.getElementById(`no-users-${resourceIndex}`);
         if (noUsersMessage) {
             noUsersMessage.style.display = 'block';
+        }
+
+        // Add visual warning to container
+        container.classList.add('border-danger');
+        container.dataset.scrollTarget = 'true';
+
+        // Show inline warning
+        let warningMessage = container.querySelector('.empty-users-warning');
+        if (!warningMessage) {
+            warningMessage = document.createElement('div');
+            warningMessage.className = 'alert alert-light-danger py-2 mt-2 empty-users-warning';
+            warningMessage.innerHTML = `
+                <div class="small text-center">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <strong>Perhatian:</strong> Jabatan ini belum memiliki personel yang ditugaskan
+                </div>
+            `;
+            container.appendChild(warningMessage);
+        }
+    } else {
+        // Remove warning styling if users still exist
+        container.classList.remove('border-danger');
+        container.removeAttribute('data-scroll-target');
+        const warningMessage = container.querySelector('.empty-users-warning');
+        if (warningMessage) {
+            warningMessage.remove();
         }
     }
 
@@ -1206,6 +1425,45 @@ function updateResourceNumbering() {
 
     // Update global counter
     humanResourceIndex = resourceItems.length;
+}
+
+/**
+ * Handle user select change untuk remove error state
+ */
+function handleUserSelectChange(selectElement) {
+    const container = selectElement.closest('.users-container');
+    const resourceIndex = selectElement.dataset.resourceIndex;
+    
+    // Remove error state when user selects a value
+    if (selectElement.value !== '') {
+        selectElement.classList.remove('is-invalid');
+        
+        // Check if all user selects in this container have values
+        const allUserSelects = container.querySelectorAll('.user-select');
+        let allFilled = true;
+        
+        allUserSelects.forEach(select => {
+            if (select.value === '') {
+                allFilled = false;
+            }
+        });
+        
+        // Remove container error state if all filled
+        if (allFilled) {
+            container.classList.remove('border-danger');
+            container.removeAttribute('data-scroll-target');
+            
+            // Remove any warning messages
+            const warningMessage = container.querySelector('.empty-users-warning');
+            if (warningMessage) {
+                warningMessage.remove();
+            }
+        }
+    }
+    
+    // Update JTK and user select options
+    updateJTKFromUsers(resourceIndex);
+    updateUserSelectOptions();
 }
 
 // Initialize on document ready
