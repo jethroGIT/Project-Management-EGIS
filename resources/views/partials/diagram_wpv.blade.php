@@ -50,10 +50,10 @@
             <div style="position: relative;">
                 @php
                     $colorList = [
-                        ['bg' => 'bg-light-primary', 'text' => 'text-primary'],
-                        ['bg' => 'bg-light-success', 'text' => 'text-success'],
-                        ['bg' => 'bg-light-info',    'text' => 'text-info'],
-                        ['bg' => 'bg-light-danger',  'text' => 'text-danger'],
+                        ['bg' => 'bg-primary'],
+                        ['bg' => 'bg-success'],
+                        ['bg' => 'bg-info'],
+                        ['bg' => 'bg-danger'],
                     ];
                     $colorCount = count($colorList);
                 @endphp
@@ -70,7 +70,7 @@
                     <div class="d-flex align-items-center"
                         style="position: absolute; top: {{ $topPosition }}px; left: {{ $leftPosition }}px; height:60px; z-index:2;">
                         <div class="{{ $color['bg'] }} rounded-pill d-flex align-items-center px-2" style="width: {{ $width }}px;">
-                            <span class="fw-bold {{ $color['text'] }} ms-3">
+                            <span class="fw-bold text-light ms-3">
                                 {{ \Carbon\Carbon::parse($wpv->start_date)->translatedFormat('d F') }} - {{ \Carbon\Carbon::parse($wpv->end_date)->translatedFormat('d F') }}
                             </span>
                         </div>

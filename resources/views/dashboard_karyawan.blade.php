@@ -145,7 +145,7 @@
                                 </svg>
                             </span>
                             <select name="execution_year"
-                                    id="tahunFilter"
+                                    id="tahunFilterPeriod"
                                     class="form-select"
                             >
                                 <option value="">Pilih Tahun</option>
@@ -160,7 +160,7 @@
                         </div>
                     </div>
                     <!-- Loading indicator -->
-                    <div id="chartLoadingOverlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 justify-content-center align-items-center" style="z-index: 10;">
+                    <div id="periodChartLoadingOverlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 justify-content-center align-items-center" style="z-index: 10;">
                         <div class="spinner-border text-primary" role="status"></div>
                     </div>
                     <!-- Diagram WPV Container -->
@@ -183,13 +183,13 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const tahunFilter = document.getElementById('tahunFilter');
-        if (!tahunFilter) {
-            console.error('Element #tahunFilter tidak ditemukan di DOM!');
+        const tahunFilterPeriod = document.getElementById('tahunFilterPeriod');
+        if (!tahunFilterPeriod) {
+            console.error('Element #tahunFilterPeriod tidak ditemukan di DOM!');
             return;
         }
         
-        tahunFilter.addEventListener('change', function() {
+        tahunFilterPeriod.addEventListener('change', function() {
             const selectedYear = this.value;
             console.log('Tahun dipilih:', selectedYear);
             
@@ -224,13 +224,13 @@
     });
     
     function showChartLoading() {
-        $('#chartLoadingOverlay').removeClass('d-none').addClass('d-flex');
-        $('#tahunFilter').prop('disabled', true);
+        $('#periodChartLoadingOverlay').removeClass('d-none').addClass('d-flex');
+        $('#tahunFilterPeriod').prop('disabled', true);
     }
 
     function hideChartLoading() {
-        $('#chartLoadingOverlay').removeClass('d-flex').addClass('d-none');
-        $('#tahunFilter').prop('disabled', false);
+        $('#periodChartLoadingOverlay').removeClass('d-flex').addClass('d-none');
+        $('#tahunFilterPeriod').prop('disabled', false);
     }
 
     function toggleWpInfoSummary(event) {

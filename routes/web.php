@@ -25,7 +25,7 @@ use App\Http\Controllers\WorkOrderManagementController;
 use App\Http\Controllers\WorkPackagesListController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('login');
 });
 
 // Route::get('/test', function () {
@@ -36,6 +36,7 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     // dashboard admin
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/wp-progress-data', [DashboardController::class, 'getWpProgressDataByYear'])->name('dashboard.wp-progress-data');
+    Route::get('/dashboard-data', [DashboardController::class, 'getPeriodAllWPByYear'])->name('dashboard.period-data');
 
     // Manajemen Work Package
     Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');

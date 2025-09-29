@@ -106,8 +106,8 @@
                 <div class="card-header py-0">
                     <h3 class="card-title fw-bold m-0">Persentase Progres Work Package</h3>
                 </div>
-                <div class="card-body">
-                    <div class="col-md-4">
+                <div class="card-body pb-4">
+                    <div class="col-md-3">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
@@ -136,7 +136,7 @@
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
                                 <div class="mt-2">
-                                    <small class="text-muted">Memuat data tahun...</small>
+                                    <small class="text-muted">Memuat data...</small>
                                 </div>
                             </div>
                         </div>
@@ -231,7 +231,7 @@
     </div>
 
     <div class="card shadow-sm mb-6">
-        <!--begin::Card header-->
+         <!--begin::Card header-->
         <div class="card-header position-relative py-0 border-bottom border-bottom-1">
             <h2 class="card-title fw-bold">Periode Project</h2>
         </div>
@@ -239,128 +239,48 @@
 
         <!--begin::Card body-->
         <div class="card-body pb-0">
-            <div class="mb-5" style="max-width: 200px;">
-                <form method="GET" id="filterYearForm">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-                                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-                            </svg>
-                        </span>
-                        <select name="execution_year"
-                                id="execution_year"
-                                class="form-select"
-                                {{-- onchange="document.getElementById('filterYearForm').submit()" --}}
-                        >
-                            <option value="" disabled>Pilih Tahun</option>
-                            {{-- @foreach ($executionYear as $year) --}}
-                                <option value="2025">2025
-                                    {{-- {{ (request('execution_year', $selectedYear) == $year) ? 'selected' : '' }}> --}}
-                                    {{-- {{ $year }} --}}
+            <div class="col-md-2 mb-5">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                            <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+                        </svg>
+                    </span>
+                    <select name="execution_year"
+                            id="tahunFilterPeriod"
+                            class="form-select"
+                    >
+                        <option value="">Pilih Tahun</option>
+                        @if(isset($executionYear) && !empty($executionYear))
+                            @foreach ($executionYear as $year)
+                                <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
+                                    {{ $year }}
                                 </option>
-                            {{-- @endforeach --}}
-                        </select>
-                    </div>
-                </form>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
             </div>
-            {{-- <div id="diagram-wpv"> --}}
-                <div class="table-responsive pb-10" style="overflow-x: auto; max-height: 350px;">
-                    @php
-                        $bulanIndonesia = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-                        $lebarBulan = 160; // px per bulan
-                        $tinggiDiagram = 340; // px tinggi diagram
-                    @endphp
-                    <div style="display: flex;">
-                        <!-- Sumbu Y (Label) sticky di kiri, mulai dari atas -->
-                        <div style="
-                            position: sticky;
-                            left: 0;
-                            top: 0;
-                            background: #fff;
-                            width: 110px;
-                            min-width: 110px;
-                            max-width: 110px;
-                            z-index: 3;
-                            flex-shrink: 0;
-                            box-shadow: 2px 0 4px -2px #eee;
-                        ">
-                            <!-- Header bulan, kosong agar sejajar dan tetap sticky -->
-                            <div style="height: 40px;"></div>
-                            {{-- @foreach($wpvWithPeriod as $wpv) --}}
-                                <div class="d-flex align-items-center" style="height:60px;">
-                                    {{-- <span class="text-dark fw-bold fs-4 me-2">WP {{ $wpv->workPackage->wp_number }}</span> --}}
-                                    <span class="text-dark fw-bold fs-4 me-2">WP XX</span>
-                                </div>
-                            {{-- @endforeach --}}
-                        </div>
-                        <!-- Kolom diagram (bulan & item) -->
-                        <div style="position: relative; min-width: {{ count($bulanIndonesia) * $lebarBulan }}px; height: {{ $tinggiDiagram }}px; flex: 1;">
-                            <!-- Sumbu X (Bulan Indonesia) sticky di atas -->
-                            <div style="position: sticky; top: 0; z-index: 1; background: #fff;">
-                                <div style="display: flex;">
-                                    @foreach($bulanIndonesia as $bulan)
-                                        <div style="width: {{ $lebarBulan }}px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                            <span class="fw-bold text-gray-700" style="width:100%; text-align:center;">{{ $bulan }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                            <!-- Diagram WPV -->
-                            <div style="position: relative;">
-                                @php
-                                    $colorList = [
-                                        ['bg' => 'bg-light-primary', 'text' => 'text-primary'],
-                                        ['bg' => 'bg-light-success', 'text' => 'text-success'],
-                                        ['bg' => 'bg-light-info',    'text' => 'text-info'],
-                                        ['bg' => 'bg-light-danger',  'text' => 'text-danger'],
-                                    ];
-                                    $colorCount = count($colorList);
-                                @endphp
-                                {{-- @foreach($wpvWithPeriod as $wpv) --}}
-                                    {{-- @php
-                                        \Carbon\Carbon::setLocale('id');
-                                        $startMonth = \Carbon\Carbon::parse($wpv->start_date)->month;
-                                        $endMonth = \Carbon\Carbon::parse($wpv->end_date)->month;
-                                        $topPosition = ($loop->index * 60);
-                                        $leftPosition = ($startMonth - 1) * $lebarBulan;
-                                        $width = ($endMonth - $startMonth + 1) * $lebarBulan;
-                                        $color = $colorList[$loop->index % $colorCount];
-                                    @endphp --}}
-                                    {{-- <div class="d-flex align-items-center"
-                                        style="position: absolute; top: {{ $topPosition }}px; left: {{ $leftPosition }}px; height:60px; z-index:2;">
-                                        <div class="{{ $color['bg'] }} rounded-pill d-flex align-items-center px-2" style="width: {{ $width }}px;">
-                                            <span class="fw-bold {{ $color['text'] }} ms-3">
-                                                {{ \Carbon\Carbon::parse($wpv->start_date)->translatedFormat('d F') }} - {{ \Carbon\Carbon::parse($wpv->end_date)->translatedFormat('d F') }}
-                                            </span>
-                                        </div>
-                                    </div> --}}
-                                    <div class="d-flex align-items-center"
-                                        style="position: absolute; height:60px; z-index:2;">
-                                        <div class="rounded-pill d-flex align-items-center px-2">
-                                            <span class="fw-bold ms-3">
-                                                01 Januari - 31 Desember
-                                            </span>
-                                        </div>
-                                    </div>
-                                {{-- @endforeach --}}
-                            </div>
-                            <!-- Garis vertikal pembatas bulan -->
-                            @for($i = 0; $i <= count($bulanIndonesia); $i++)
-                                <div style="
-                                    position: absolute;
-                                    left: {{ $i * $lebarBulan }}px;
-                                    top: 0;
-                                    height: {{ $tinggiDiagram }}px;
-                                    width: 0;
-                                    z-index: 1;
-                                ">
-                                    <div style="border-right:1px solid #eee; height: 100%;"></div>
-                                </div>
-                            @endfor
-                        </div>
+            <!-- Loading indicator -->
+            <div id="periodChartLoadingOverlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 justify-content-center align-items-center" style="z-index: 10;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Memuat data...</small>
                     </div>
                 </div>
-            {{-- </div> --}}
+            </div>
+            <!-- Diagram WPV Container -->
+            <div id="diagram-wpv">
+                @include('partials.diagram_wpv', [
+                    'wpvWithPeriod' => $wpvWithPeriod,
+                    'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+                    'lebarBulan' => 160,
+                    'tinggiDiagram' => 340
+                ])
+            </div>
         </div>
         <!--end::Card body-->
     </div>
@@ -455,6 +375,57 @@ $(document).ready(function () {
         }
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const tahunFilterPeriod = document.getElementById('tahunFilterPeriod');
+    if (!tahunFilterPeriod) {
+        console.error('Element #tahunFilterPeriod tidak ditemukan di DOM!');
+        return;
+    }
+    
+    tahunFilterPeriod.addEventListener('change', function() {
+        const selectedYear = this.value;
+        console.log('Tahun dipilih:', selectedYear);
+        
+        if (selectedYear) {
+            showPeriodChartLoading();
+            const url = '{{ route("dashboard.period-data") }}?year=' + selectedYear;
+            console.log('URL AJAX:', url);
+
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                console.log('Status response:', response.status);
+                return response.json();
+            })
+            .then(function(response) {
+                console.log('Response JSON:', response);
+                if (response.success && response.html) {
+                    document.getElementById('diagram-wpv').innerHTML = response.html;
+                } else {
+                    document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                }
+                hidePeriodChartLoading();
+            })
+            .catch(function(error) {
+                console.error('AJAX error:', error);
+                document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                hidePeriodChartLoading();
+            });
+        }
+    });
+});
+
+function showPeriodChartLoading() {
+    $('#periodChartLoadingOverlay').removeClass('d-none').addClass('d-flex');
+    $('#tahunFilterPeriod').prop('disabled', true);
+}
+
+function hidePeriodChartLoading() {
+    $('#periodChartLoadingOverlay').removeClass('d-flex').addClass('d-none');
+    $('#tahunFilterPeriod').prop('disabled', false);
+}
 
 /**
  * Generate Color
