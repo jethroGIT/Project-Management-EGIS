@@ -41,18 +41,18 @@
             <div class="card shadow-sm">
                 <div class="card-body my-2">
                     <div class="d-flex align-items-center gap-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-earmark-check-fill text-success" viewBox="0 0 16 16">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-earmark-check-fill text-primary" viewBox="0 0 16 16">
                             <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m1.354 4.354-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
                         </svg>
                         <div>
-                            <h3 class="card-title fw-bold m-0">Work Package Selesai</h3>
-                            <div class="fs-6 text-muted">Progres pengerjaan WP</div>
+                            <h3 class="card-title fw-bold m-0">Utilisasi Work Package</h3>
+                            <div class="fs-6 text-muted">WP yang telah dipanggil oleh WO</div>
                             <div class="d-flex align-items-end">
                                 <div class="d-flex align-items-baseline">
-                                    <span class="fs-2hx fw-bold text-success me-2">{{ $workPackageCompletionData['completed'] }}</span>
+                                    <span class="fs-2hx fw-bold text-primary me-2">{{ $workPackageWOAssignmentData['assigned'] }}</span>
                                     <span class="fs-4 text-muted fw-semibold">/</span>
-                                    <span class="fs-3 text-muted fw-semibold ms-1">{{ $workPackageCompletionData['total'] }}</span>
-                                    <span class="ms-2 badge badge-light-success fs-7 fw-bold">{{ $workPackageCompletionData['completion_percentage'] }}% completed</span>
+                                    <span class="fs-3 text-muted fw-semibold ms-1">{{ $workPackageWOAssignmentData['total'] }}</span>
+                                    <!-- <span class="ms-2 badge badge-light-success fs-7 fw-bold">% completed</span> -->
                                 </div>
                             </div>
                         </div>
@@ -89,11 +89,11 @@
         <div class="col-md-4">
             <div class="card shadow-sm">
                 <div class="card-header py-0">
-                    <h3 class="card-title fw-bold m-0">Perbandingan WP yang dipanggil oleh WO</h3>
+                    <h3 class="card-title fw-bold m-0">Work Package Selesai</h3>
                 </div>
                 <div class="card-body">
                     <div class="mb-4">
-                        <div class="fs-6 text-muted">Total Work Package</div>
+                        <div class="fs-6 text-muted">Total WP terpanggil</div>
                         <div class="fs-1 fw-bold text-primary">{{ $pieChartDataWo['total'] ?? 0 }}</div>
                     </div>
                     <canvas id="wo_pie_chart" class="mh-400px"></canvas>
@@ -127,7 +127,12 @@
                         </div>
                     </div>
                     <div class="position-relative">
-                        <canvas id="wp_progres_bar_chart" class="mh-400px"></canvas>
+                        <div class="box">
+                            <div class="subbox">
+                                <canvas id="wp_progres_bar_chart"></canvas>
+                            </div>
+                        </div>
+                        <!-- class="mh-400px" -->
 
                         <!-- Loading Overlay -->
                         <div id="chartLoadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75 d-none">
@@ -146,7 +151,7 @@
         </div>
     </div>
 
-    <div class="card shadow-sm mb-6">
+    <!-- <div class="card shadow-sm mb-6">
         <div class="card-header py-0">
             <h3 class="card-title fw-bold m-0">Project Berjalan</h3>
             <div class="card-toolbar">
@@ -156,7 +161,7 @@
             </div>
         </div>
         <div class="card-body">
-            <!-- Search Form -->
+            Search Form
             <div>
                 <form class="d-flex justify-content-end mb-4">
                     <label class="me-5 mt-3" for="searchWOandWP">Cari: </label>
@@ -228,7 +233,7 @@
                 </table>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div class="card shadow-sm mb-6">
          <!--begin::Card header-->
@@ -301,6 +306,14 @@
 </div>
 @endsection
 
+<style>
+    .box {
+        height: 520px;
+        max-height: 260px;
+        overflow-y: scroll;
+    }
+</style>
+
 @push('scripts')
 <script>
 $(document).ready(function () {
@@ -312,11 +325,6 @@ $(document).ready(function () {
         if (selectedYear) {
             // Show loading state
             showChartLoading();
-
-            // Redirect dengan parameter year
-            // const currentUrl = new URL(window.location.href);
-            // currentUrl.searchParams.set('year', selectedYear);
-            // window.location.href = currentUrl.toString();
             
             // AJAX call to get new data
             $.ajax({
@@ -365,11 +373,6 @@ $(document).ready(function () {
                 }
             });
         } else {
-            // Remove year parameter dan redirect ke default (current year)
-            // const currentUrl = new URL(window.location.href);
-            // currentUrl.searchParams.delete('year');
-            // window.location.href = currentUrl.toString();
-
             // Reset default
             location.reload();
         }
@@ -440,7 +443,7 @@ function generateHSLColors(count) {
 }
 
 /**
- * Perbandingan WP yang dipanggil oleh WO
+ * Perbandingan WP selesai dengan WP yang dipanggil oleh WO
  * Pie Chart
  * 
  */
@@ -465,7 +468,7 @@ const dataWoPie = {
         label: 'Work Package',
         data: pieChartDataWo.data,
         backgroundColor: [
-            primaryColor,
+            successColor,
             warningColor
         ],
         borderWidth: 2,
@@ -485,6 +488,18 @@ const configWoPie = {
             legend: {
                 display: true,
                 position: 'bottom'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label;
+                        const value = context.parsed;
+                        const total = pieChartDataWo.total || 0;
+                        const percentage = total > 0 ? Math.round((value/total) * 100) : 0;
+
+                        return `${label}: ${value} WP (${percentage}%)`;
+                    }
+                }
             }
         },
         animation: {
@@ -517,15 +532,23 @@ var ctxBarWpProgres = document.getElementById('wp_progres_bar_chart');
 // Initialize chart
 function initWpProgressChart(charData) {
 
+    const backgroundColors = wpProgressBarChartData.data.map(completion => {
+        return completion >= 100 ? successColor : warningColor;
+    });
+
+    const borderColors = wpProgressBarChartData.data.map(completion => {
+        return completion >= 100 ?
+        successColor.replace('89', '70') :
+        warningColor.replace('700', '600');
+    });
+
     const dataBarWpProgres = {
         labels: wpProgressBarChartData.labels,
         datasets: [{
             label: 'Completion Percentage (%)',
             data: wpProgressBarChartData.data,
-            backgroundColor: generateHSLColors(wpProgressBarChartData.labels.length),
-            borderColor: generateHSLColors(wpProgressBarChartData.labels.length).map(color => 
-                color.replace('50%', '40%') // Darker border
-            ),
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
             borderWidth: 1
         }]
     };
@@ -537,7 +560,12 @@ function initWpProgressChart(charData) {
             indexAxis: 'y',
             plugins: {
                 title: {
-                    display: false
+                    display: true,
+                    text: 'Completion Percentage (%)',
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
                 },
                 legend: {
                     display: false
@@ -602,6 +630,7 @@ function initWpProgressChart(charData) {
                     }
                 }
             },
+            maintainAspectRatio: false,
             responsive: true,
             scales: {
                 x: {
@@ -632,6 +661,7 @@ function initWpProgressChart(charData) {
                     title: {
                         display: true,
                         text: 'Work Package',
+                        align: 'end',
                         font: {
                             size: 12,
                             weight: 'bold'
@@ -657,6 +687,13 @@ function initWpProgressChart(charData) {
     }
     
     myWpBarChart = new Chart(ctxBarWpProgres, configBarWpProgres);
+
+    const subbox = document.querySelector('.subbox');
+    subbox.style.height = '300px';
+    if (myWpBarChart.data.labels.length > 7) {
+        const newHeight = 300 + ((myWpBarChart.data.labels.length - 7) * 20);
+        subbox.style.height = `${newHeight}px`;
+    }
 }
 // Initialize chart with default data
 initWpProgressChart(wpProgressBarChartData);
