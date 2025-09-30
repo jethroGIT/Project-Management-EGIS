@@ -256,10 +256,8 @@
             </div>
             <div class="modal-body">
                 <form id="assignWoForm">
-                    {{--  action="{{ route('work-order.assign') }}" method="POST" --}}
                     @csrf
-                    {{-- @method('PUT') --}}
-                    <div class="mb-8">
+                    <div class="mb-6">
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-clipboard-check text-primary me-2 fs-3"></i>
                             <h6 class="mb-0">Work Order</h6>
@@ -300,60 +298,28 @@
                             <input type="number" min="1" id="newWoNumber" name="newWoNumber"
                                 class="form-control" placeholder="1" required />
                         </div>
-                        {{-- <select name="wo_id" id="woSelect" class="form-select mb-2" required>
-                            <option value="">Pilih Work Order</option>
-                            <option value="create_new" class="text-primary fw-bold">
-                                Buat Work Order Baru
-                            </option>
-                            @php
-                                // Kelompokkan WO berdasarkan execution_year
-                                $woGroups = [];
-                                $notSpecified = [];
-                                foreach($workOrders as $wo) {
-                                    $years = [];
-                                    foreach($wo->workPackageVolumes as $vol) {
-                                        if ($vol->wo_id == $wo->wo_id && $vol->execution_year) {
-                                            $years[] = $vol->execution_year;
-                                        }
-                                    }
-                                    $years = array_unique($years);
-                                    if (count($years) > 0) {
-                                        foreach($years as $year) {
-                                            $woGroups[$year][] = $wo;
-                                        }
-                                    } else {
-                                        $notSpecified[] = $wo;
-                                    }
-                                }
-                            @endphp
-
-                            @foreach($woGroups as $year => $group)
-                                <optgroup label="Tahun {{ $year }}">
-                                    @foreach($group as $wo)
-                                        <option value="{{ $wo->wo_id }}"
-                                            @if($year < now()->year) disabled @endif>
-                                            WO {{ $wo->wo_number }} (Digunakan {{$wo->realization_qty}} kali)
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-
-                            @if(count($notSpecified) > 0)
-                                <optgroup label="Not Specified">
-                                    @foreach($notSpecified as $wo)
-                                        <option value="{{ $wo->wo_id }}">
-                                            WO {{ $wo->wo_number }} (Digunakan {{$wo->realization_qty}} kali)
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            @endif
-                        </select> --}}
-                        {{-- <span class="badge badge-light-dark" id="woStatusBadge">
-                            <i class="bi bi-clock me-1"></i>
-                            Belum dipilih
-                        </span> --}}
                     </div>
-                    {{-- <div id="newWoInputContainer" class="mb-5"></div> --}}
+                    <div class="separator separator-dashed my-6"></div>
+                    <div class="mb-8">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-calendar-range text-primary me-2 fs-4"></i>
+                            <h6 class="mb-0">Periode Pelaksanaan Volume WP</h6>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold required">Start Date</label>
+                                <input type="date" name="start_date" id="addVolumeStartDate" 
+                                    class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold required">End Date</label>
+                                <input type="date" name="end_date" id="addVolumeEndDate" 
+                                    class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="separator separator-solid my-4"></div>
                     <div id="volumeSelectionContainer"></div>
                     <div class="d-flex justify-content-start mb-0">
                         <button type="button btn-sm" class="btn btn-primary" id="addWPVolumeBtn" onclick="addMoreVolumeSelection()">
@@ -373,8 +339,8 @@
 
 <template id="volumeSelectionTemplate">
     <div class="card card-flush shadow-sm border-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
-        <div class="card-header py-2">
-            <h3 class="card-title title-template fw-bold fs-5">Assignment #</h3>
+        <div class="card-header py-1">
+            <div class="card-title title-template fw-bolder fs-5">Assignment #</div>
             <div class="card-toolbar">
                 <button type="button" class="btn btn-sm btn-light-danger remove-wpvolume-btn">
                     <i class="bi bi-trash fs-5"></i> Hapus
@@ -385,7 +351,7 @@
             <div class="mb-10">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-info-circle text-primary me-2 fs-3"></i>
-                    <h6 class="mb-0">Kategori Work Package</h6>
+                    <div class="fs-5 text-dark fw-bold mb-0">Kategori Work Package</div>
                 </div>
                 @php
                     function wpOptionText($wp) {
@@ -399,42 +365,50 @@
                 <select name="wp_id" class="form-select wpSelect mb-2" required>
                     <option value="">Pilih Kategori Work Package</option>
                     @foreach($workPackages as $wp)
-                        @if($wp->remaining != 0)
-                            <option value="{{ $wp->wp_id }}">
+                        @php
+                            $remaining = $wp->volume_qty - $wp->workPackageVolumes->whereNotNull('wo_id')->count();
+                        @endphp
+                        @if($remaining > 0)
+                            <option value="{{ $wp->wp_id }}" data-remaining="{{ $remaining }}" data-total="{{ $wp->volume_qty }}">
                                 {{ wpOptionText($wp) }}
                             </option>
                         @endif
                     @endforeach
                 </select>
-                {{-- <span class="badge badge-light-dark" id="woStatusBadge">
-                    <i class="bi bi-clock me-1"></i>
-                    Belum dipilih
-                </span> --}}
             </div>
-            <div class="mb-6 volume-section">
+            <div class="volume-section">
                 <div class="alert alert-warning py-2 px-3 mb-0 volume-warning" role="alert" style="display:block;">
                     silakan pilih kategori Work Package terlebih dahulu
                 </div>
                 <div class="volume-options" style="display:none;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center justify-content-start mb-3">
                         <div class="d-flex align-items-center">
                             <i class="bi bi-folder text-primary me-2 fs-3"></i>
-                            <h5 class="mb-0">Volume</h5>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-light-primary btn-sm" title="Pilih Semua" 
-                                onclick="selectAllVolumes(this.closest('.card'))"
-                            >
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                            <button type="button" class="btn btn-light-danger btn-sm" title="Bersihkan" 
-                                onclick="clearAllVolumes(this.closest('.card'))"
-                            >
-                                <i class="bi bi-x-lg"></i>
-                            </button>
+                            <div class="fs-5 text-dark fw-bold mb-0">Volume</div>
                         </div>
                     </div>
-                    <div class="volume-list" style="max-height: 190px; overflow-y: auto;"></div>
+                    <div class="mb-3 px-2 py-2 rounded border border-info">
+                        <div class="fw-bold text-info mb-1">
+                            <i class="bi bi-clock-history me-1"></i>
+                            WP Volume yang sudah di-assign:
+                        </div>
+                        <div class="text-dark small wp-assigned-info">
+                            <span class="assigned-volume-count"></span>
+                        </div>
+                        <div class="text-dark small wp-assigned-info">
+                            <span class="assigned-volume-period"></span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="input-group" style="max-width: 200px;">
+                            <input type="number" min="1" name="volume_count"
+                                class="form-control volume-count" placeholder="1" required />
+                            <span class="input-group-text">volume</span>
+                        </div>
+                        <div class="form-text ms-2 mb-0 volume-remaining-info">
+                            Tersisa <span class="remaining-count"></span> dari <span class="total-count"></span> volume
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -504,10 +478,10 @@
 
     function initTableSummary() {
         const table = $('#table_summary_work_order').DataTable({
-            scrollY: 'auto',
+            scrollY: '325px',
             scrollX: true,
             resposive: true,
-            paging: false,
+            paging: true,
             ordering: false, 
             rowGroup: {
                 dataSrc: 0,
@@ -642,32 +616,6 @@
         $('#filterCollapse').collapse('hide');
     }
 
-    function handleVolumeSelection(card){
-        let selectedVolumes = [];
-        $(card).find('.volume-checkbox:checked').each(function() {
-            const volumeId = $(this).val();
-            const container = $(this).closest('.volume-option');
-            selectedVolumes.push(volumeId);
-            container.addClass('selected');
-        });
-        $(card).find('.volume-checkbox:not(:checked)').each(function() {
-            const container = $(this).closest('.volume-option');
-            container.removeClass('selected');
-        });
-    }
-
-    function selectAllVolumes(card){
-        $(card).find('.volume-checkbox').prop('checked', true);
-        $(card).find('.volume-option').addClass('selected');
-        handleVolumeSelection(card);
-    }
-
-    function clearAllVolumes(card){
-        $(card).find('.volume-checkbox').prop('checked', false);
-        $(card).find('.volume-option').removeClass('selected');
-        handleVolumeSelection(card);
-    }
-
     // ketika klik tombol assign work order
     function openAssignWO() {
         // reset form and variables
@@ -749,71 +697,97 @@
                     volumeWarning.style.display = 'none';
                     volumeOptions.style.display = 'block';
                 }
-                // wpSelect.addEventListener('change', function() {
-                //     if (!this.value) {
-                //         volumeWarning.style.display = 'block';
-                //         volumeOptions.style.display = 'none';
-                //     } else {
-                //         volumeWarning.style.display = 'none';
-                //         volumeOptions.style.display = 'block';
-                //     }
-                // });
 
-                const volumeList = card.querySelector('.volume-list');
                 wpSelect.addEventListener('change', function() {
-                    if (!this.value) {
-                        volumeWarning.style.display = 'block';
-                        volumeOptions.style.display = 'none';
-                        if (volumeList) volumeList.innerHTML = '';
-                    } else {
-                        volumeWarning.style.display = 'none';
-                        volumeOptions.style.display = 'block';
-
-                        // Ambil data WP dari window.wpData
-                        const wpId = this.value;
-                        let wpObj = null;
-                        if (Array.isArray(window.wpData)) {
-                            wpObj = window.wpData.find(wp => wp.wp_id == wpId);
-                        } else {
-                            wpObj = Object.values(window.wpData).find(wp => wp.wp_id == wpId);
-                        }
-
-                        // Populate volume
-                        if (volumeList) {
-                            volumeList.innerHTML = '';
-                            if (wpObj && wpObj.work_package_volumes && wpObj.work_package_volumes.length > 0) {
-                                const sortedVolumes = [...wpObj.work_package_volumes].sort((a, b) => a.volume_number - b.volume_number);
-                                sortedVolumes.forEach((vol, idx) => {
-                                    volumeList.innerHTML += `
-                                        <div class="volume-option form-check align-items-center mb-4" data-volume-id="${vol.volume_id}">
-                                            ${vol.wo_id ? 
-                                                '' 
-                                                : `<input class="form-check-input mt-3 volume-checkbox" type="checkbox" value="${vol.volume_id}" id="volume${vol.volume_id}">`
-                                            }
-                                            <label class="form-check-label fw-bolder" for="volume${vol.volume_id}">
-                                                Volume ${vol.volume_number}
-                                            </label>
-                                            ${vol.wo_id ? `
-                                                <span class="badge badge-light-danger">
-                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                    WO ${ vol.work_order ? vol.work_order.wo_number : '' }
-                                                </span>
-                                            ` : ''}
-                                            <div class="text-muted" style="font-size:0.9em;">
-                                                ${vol.period_formatted}
-                                            </div>                                            
-                                        </div>
-                                    `;
+                if (!this.value) {
+                    volumeWarning.style.display = 'block';
+                    volumeOptions.style.display = 'none';
+                } else {
+                    volumeWarning.style.display = 'none';
+                    volumeOptions.style.display = 'block';
+                    
+                    // Get remaining and total volume from data attributes
+                    const option = this.options[this.selectedIndex];
+                    const remaining = parseInt(option.dataset.remaining || 0);
+                    const total = parseInt(option.dataset.total || 0);
+                    const assignedCount = total - remaining;
+                    
+                    // Update info displays
+                    const volumeCountInput = card.querySelector('.volume-count');
+                    const remainingCountSpan = card.querySelector('.remaining-count');
+                    const totalCountSpan = card.querySelector('.total-count');
+                    const assignedVolumeCountSpan = card.querySelector('.assigned-volume-count');
+                    const assignedVolumePeriodSpan = card.querySelector('.assigned-volume-period');
+                    
+                    if (remainingCountSpan) remainingCountSpan.textContent = remaining;
+                    if (totalCountSpan) totalCountSpan.textContent = total;
+                    if (assignedVolumeCountSpan) {
+                        if (assignedCount > 0) {
+                            // Gather information about assigned volumes
+                            const wpId = this.value;
+                            const wp = window.wpData.find(w => w.wp_id == wpId);
+                            
+                            if (wp && wp.work_package_volumes) {
+                                // Get volumes that have been assigned to WOs
+                                const assignedVolumes = wp.work_package_volumes.filter(vol => vol.wo_id && vol.work_order);
+                                
+                                // Group volumes by work order
+                                const volumesByWO = {};
+                                assignedVolumes.forEach(vol => {
+                                    const woNumber = vol.work_order.wo_number;
+                                    if (!volumesByWO[woNumber]) {
+                                        volumesByWO[woNumber] = {
+                                            count: 0,
+                                            startDate: null,
+                                            endDate: null
+                                        };
+                                    }
+                                    volumesByWO[woNumber].count++;
+                                    
+                                    // Get start and end date (use the same for all volumes in a WO)
+                                    if (!volumesByWO[woNumber].startDate || new Date(vol.start_date) < new Date(volumesByWO[woNumber].startDate)) {
+                                        volumesByWO[woNumber].startDate = vol.start_date;
+                                    }
+                                    if (!volumesByWO[woNumber].endDate || new Date(vol.end_date) > new Date(volumesByWO[woNumber].endDate)) {
+                                        volumesByWO[woNumber].endDate = vol.end_date;
+                                    }
                                 });
-                                console.log(wpObj.work_package_volumes);
+                                
+                                // Format dates and create the list
+                                const formatDate = (dateStr) => {
+                                    if (!dateStr) return '';
+                                    const d = new Date(dateStr);
+                                    if (isNaN(d)) return '';
+                                    const day = d.getDate();
+                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                                    return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                                };
+                                
+                                // Create HTML for each WO group
+                                const volumeList = Object.keys(volumesByWO).map(woNumber => {
+                                    const info = volumesByWO[woNumber];
+                                    return `- ${info.count} volume (WO ${woNumber}): ${formatDate(info.startDate)} - ${formatDate(info.endDate)}`;
+                                }).join('<br>');
+                                
+                                assignedVolumeCountSpan.innerHTML = volumeList;
                             } else {
-                                volumeList.innerHTML = '<div class="text-muted">Tidak ada volume tersedia</div>';
+                                assignedVolumeCountSpan.textContent = 'Belum ada volume WP yang diassign ke WO.';
                             }
+                        } else {
+                            assignedVolumeCountSpan.textContent = 'Belum ada volume WP yang diassign ke WO.';
                         }
                     }
-                    setTimeout(updateWorkPackageOptions, 0);
-                    updateAddBtnState();
-                });
+                    
+                    // Set max value for volume input
+                    if (volumeCountInput) {
+                        volumeCountInput.max = remaining;
+                        volumeCountInput.value = Math.min(1, remaining);
+                    }
+                }
+                
+                setTimeout(updateWorkPackageOptions, 0);
+                updateAddBtnState();
+            });
             }
         });
         updateWorkPackageOptions();
@@ -825,15 +799,19 @@
         const cards = document.querySelectorAll('.card.card-flush.shadow-sm.border-0.mb-5');
 
         // Hitung WP yang masih punya volume belum di-assign WO
-        const availableWPIds = window.wpData
-            .filter(wp =>
-                wp.work_package_volumes &&
-                wp.work_package_volumes.some(vol => !vol.wo_id)
-            )
-            .map(wp => wp.wp_id);
+        // const availableWPIds = window.wpData
+        //     .filter(wp =>
+        //         wp.work_package_volumes &&
+        //         wp.work_package_volumes.some(vol => !vol.wo_id)
+        //     )
+        //     .map(wp => wp.wp_id);
+        const wpSelectOptions = document.querySelectorAll('.wpSelect option');
+        const availableWPOptions = Array.from(wpSelectOptions).filter(option => {
+            return option.value && parseInt(option.dataset.remaining || 0) > 0;
+        });
 
         // Tombol aktif jika jumlah card < jumlah WP yang masih available
-        addBtn.disabled = cards.length > availableWPIds.length;
+        addBtn.disabled = cards.length > availableWPOptions.length;
     }
 
     function updateWorkPackageOptions(){
@@ -874,47 +852,51 @@
         return recommended;
     }
 
-    // function createNewWO(){
-    //     const container = document.getElementById('newWoInputContainer');
-    //     const recNum = getRecommendedWoNumber();
-    //     container.innerHTML = `
-    //         <div class="mt-2">
-    //             <label for="newWoNumber" class="form-label fw-bolder mb-1"> 
-    //                 <i class="bi bi-info-circle me-2"></i>Buat Work Order Baru
-    //             </label>
-    //             <div class="input-group">
-    //                 <span class="input-group-text">Nomor WO</span>
-    //                 <input type="number" min="1" id="newWoNumber" name="newWoNumber" 
-    //                         class="form-control" placeholder="1" value="${recNum}" required
-    //                 />
-    //             </div>
-    //         </div>
-    //     `;
-    //     document.getElementById('create_new');
-    // }
-
-    // document.getElementById('woSelect').addEventListener('change', function() {
-    //     const container = document.getElementById('newWoInputContainer');
-    //     if (this.value == 'create_new') {
-    //         createNewWO();
-    //     }else{
-    //         container.innerHTML = '';
-    //     }
-    // });
-
     function addAssignWO() {
         const form = $('#assignWoForm');
-        let volume_ids = [];
-        let valid = true;
-        let incompletePeriod = false;
+        const startDate = $('#addVolumeStartDate').val();
+        const endDate = $('#addVolumeEndDate').val();
 
+        if (!startDate || !endDate) {
+            Swal.fire({
+                title: "Tanggal tidak valid",
+                text: "Silakan isi tanggal mulai dan selesai.",
+                icon: "warning",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            });
+            return;
+        }
+
+        // Validasi tanggal selesai harus setelah tanggal mulai
+        if (new Date(startDate) > new Date(endDate)) {
+            Swal.fire({
+                title: "Tanggal tidak valid",
+                text: "Tanggal selesai harus setelah tanggal mulai.",
+                icon: "warning",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            });
+            return;
+        }
+
+        // Validasi Work Package dan jumlah volume
+        let assignments = [];
+        let valid = true;
+        
         $('#volumeSelectionContainer .card').each(function(idx) {
-            const checked = $(this).find('.volume-checkbox:checked');
-            if (checked.length === 0) {
+            const wpSelect = $(this).find('.wpSelect');
+            const wpId = wpSelect.val();
+            const volumeInput = $(this).find('input[name="volume_count"]');
+            const volumeCount = parseInt(volumeInput.val());
+            
+            if (!wpId) {
                 valid = false;
                 Swal.fire({
-                    title: "Volume belum dipilih",
-                    text: `Silakan pilih minimal satu volume pada card Assignment #${idx + 1}`,
+                    title: "Work Package belum dipilih",
+                    text: `Silakan pilih Work Package pada card Assignment #${idx + 1}`,
                     icon: "warning",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
@@ -922,35 +904,51 @@
                 });
                 return false; // break each
             }
-            checked.each(function() {
-                volume_ids.push($(this).val());
-                const period = $(this).closest('.volume-option').find('.text-muted').text().trim();
-                if (period === "Belum tersedia") {
-                    incompletePeriod = true;
-                }
+            
+            if (!volumeCount || volumeCount < 1) {
+                valid = false;
+                Swal.fire({
+                    title: "Jumlah volume tidak valid",
+                    text: `Silakan isi jumlah volume dengan angka lebih dari 0 pada card Assignment #${idx + 1}`,
+                    icon: "warning",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false; // break each
+            }
+            
+            // Ambil remaining dari option yang dipilih
+            const selectedOption = wpSelect.find('option:selected');
+            const remaining = parseInt(selectedOption.data('remaining') || 0);
+            
+            if (volumeCount > remaining) {
+                valid = false;
+                Swal.fire({
+                    title: "Jumlah volume melebihi yang tersedia",
+                    text: `Jumlah volume maksimal yang tersedia pada WP ${selectedOption.text().split(' ')[0]} adalah ${remaining}`,
+                    icon: "warning",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false; // break each
+            }
+            
+            assignments.push({
+                wp_id: wpId,
+                volume_count: volumeCount
             });
         });
-
-        if (!valid) return; 
-
-        if (incompletePeriod) {
-            Swal.fire({
-                title: "Konfigurasi Volume Belum Lengkap",
-                text: "Silakan lengkapi periode volume sebelum assign WP ke WO.",
-                icon: "warning",
-                buttonsStyling: false,
-                confirmButtonText: "Tutup",
-                customClass: { confirmButton: "btn btn-secondary" }
-            });
-            return;
-        }
+        
+        if (!valid) return;
 
         // Jika create new WO, ambil nomor WO baru
         const newWoNumber = $('#newWoNumber').val();
         if (!newWoNumber || parseInt(newWoNumber) < 1) {
             Swal.fire({
                 title: "Nomor WO tidak valid",
-                text: "Isi nomor WO baru minimal 1",
+                text: "Isi nomor WO baru dengan nomor yang valid (minimal bernilai 1).",
                 icon: "warning",
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
@@ -959,6 +957,7 @@
             return;
         }
 
+        // Buat WO baru
         $.ajax({
             url: "{{ route('work-order.add') }}",
             method: 'POST',
@@ -982,8 +981,8 @@
             },
             success: function (response) {
                 if (response.success && response.data && response.data.wo_id) {
-                    // 2. Assign volume ke WO baru
-                    assignVolumesToWO(response.data.wo_id, volume_ids, form);
+                    // Assign volume ke WO baru
+                    assignVolumesToWO(response.data.wo_id, assignments, form);
                 } else {
                     Swal.fire({
                         title: "Gagal Membuat WO",
@@ -1012,17 +1011,18 @@
                 form.find('input, button, select').prop('disabled', false);
             }
         });
-        // assignVolumesToWO(wo_id, volume_ids, form);
     }
 
-    function assignVolumesToWO(wo_id, volume_ids, form) {
+    function assignVolumesToWO(wo_id, assignments, form) {
         $.ajax({
             url: "{{ route('work-order.assign') }}",
             method: 'PUT',
             data: {
                 _token: form.find('[name="_token"]').val(),
                 wo_id: wo_id,
-                volume_id: volume_ids
+                assignments: assignments, //isinya array {wp_id, volume_count}
+                start_date: $('#addVolumeStartDate').val(),
+                end_date: $('#addVolumeEndDate').val()
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1038,9 +1038,10 @@
                 });
             },
             success: function (response) {
-                if (response.success || response.message) {
+                if (response.success) {
                     Swal.fire({
                         title: "Berhasil Assign WP ke WO",
+                        text: response.message || "Work Package berhasil diassign ke Work Order",
                         icon: "success",
                         buttonsStyling: false,
                         confirmButtonText: "Tutup",

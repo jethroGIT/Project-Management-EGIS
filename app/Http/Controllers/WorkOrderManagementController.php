@@ -21,17 +21,9 @@ class WorkOrderManagementController extends Controller
                 return sprintf('%04d-%s', $catNum, $wpNum);
             })
             ->values();
-
-        // $workPackages = $workPackages->sortBy(function($wp) {
-        //     return $wp->wpCategory->name ?? '-';
-        // });
         
         $workOrders = WorkOrder::with('workPackageVolumes')->orderBy('wo_number', 'asc')->get();
 
-        // $workOrders = $workOrders->sortBy(function($wo) {
-        //     return $wo->wo_number . '-' . ($wo->workPackageVolumes->first()->execution_year ?? '');
-        // });
-        
         $categories = WpCategory::with('workPackage')
             ->orderByRaw('category_number::integer ASC')
             ->get();
@@ -84,50 +76,79 @@ class WorkOrderManagementController extends Controller
         }
     }
 
-    public function assign(Request $request){
+    public function assign(Request $request)
+    {
         // assign multiple volumes to work order
         try {
-            $volumeIds = (array) $request->volume_id;
+            $request->validate([
+                'wo_id' => 'required|exists:work_order,wo_id',
+                'assignments' => 'required|array',
+                'assignments.*.wp_id' => 'required|exists:work_package,wp_id',
+                'assignments.*.volume_count' => 'required|integer|min:1',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+            ]);
+
+            $woId = $request->wo_id;
+            $startDate = $request->start_date;
+            $endDate = $request->end_date;
+            $assignments = $request->assignments;
+            
             $updated = 0;
             $skipped = 0;
+            $executionYear = Carbon::parse($startDate)->year;
 
-            foreach ($volumeIds as $vid) {
-                $volume = WorkPackageVolume::where('volume_id', $vid)->first();
-                if (!$volume) continue;
-
-                if ($request->wo_id == $volume->wo_id) {
+            foreach ($assignments as $assignment) {
+                $wpId = $assignment['wp_id'];
+                $volumeCount = $assignment['volume_count'];
+                
+                // Ambil volume teratas dari WP yang belum diassign ke WO manapun
+                $volumes = WorkPackageVolume::where('wp_id', $wpId)
+                    ->whereNull('wo_id')
+                    ->orderBy('volume_id', 'asc')
+                    ->limit($volumeCount)
+                    ->get();
+                
+                if ($volumes->isEmpty()) {
                     $skipped++;
                     continue;
                 }
-
-                $volume->update([
-                    'wo_id' => $request->wo_id
-                ]);
-                $updated++;
+                
+                foreach ($volumes as $volume) {
+                    $volume->update([
+                        'wo_id' => $woId,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'execution_year' => $executionYear
+                    ]);
+                    $updated++;
+                }
             }
 
             if ($updated === 0) {
                 return response()->json([
                     'success' => false,
-                    'message' => $skipped > 0 ? 'Tidak ada perubahan yang dilakukan.' : 'Volume tidak ditemukan.'
+                    'message' => $skipped > 0 ? 'Tidak ada volume yang tersedia untuk diassign.' : 'Volume tidak ditemukan.'
                 ], 400);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => "Data berhasil diperbarui.",
+                // 'message' => "{$updated} volume berhasil diassign ke Work Order.",
                 'updated_count' => $updated,
                 'skipped_count' => $skipped
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Input tidak valid: ' . $e->getMessage(),
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
-    }
-
-    public function updateWO(){
-        // update & delete assigned WO of WPV
     }
 }
