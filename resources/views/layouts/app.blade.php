@@ -39,6 +39,8 @@ License: For each use you must have a valid license purchased only from above li
 		<link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<!--end::Global Stylesheets Bundle-->
+		{{-- for gantt chart --}}
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css">
 	</head>
 	<!--end::Head-->
 	<!--begin::Body-->
@@ -116,6 +118,8 @@ License: For each use you must have a valid license purchased only from above li
 		<script src="{{ asset('assets/js/custom/modals/users-search.js') }}"></script>
 		<!--end::Page Custom Javascript-->
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		{{-- for gantt chart --}}
+		<script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
 		<!--end::Javascript-->
 		@stack('scripts')
 	</body>

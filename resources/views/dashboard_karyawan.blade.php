@@ -197,13 +197,13 @@
             </div>
         </div>
     </div>
-    {{-- timeline fro project period--}}
+    {{-- timeline for project period--}}
     <div class="row">
         <div class="col-md-12 mb-10">
             <div class="card h-md-100 card-flush shadow-sm mb-8">
                 <!--begin::Card header-->
                 <div class="card-header position-relative py-0 border-bottom border-bottom-1">
-                    <h2 class="card-title fw-bold">Periode Project</h2>
+                    <h2 class="card-title fw-bold">Periode Work Package</h2>
                 </div>
                 <!--end::Card header-->
 
@@ -264,16 +264,16 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="pieChartDetailModalLabel">Detail Status Work Package</h5>
+                <h3 class="modal-title" id="pieChartDetailModalLabel">Detail Status Work Package</h3>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="card shadow-sm mb-3">
                     <div class="card-body">
-                        <div class="table-responsive" style="max-height: 270px; overflow-y: auto;">
+                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
                             <table class="table table-sm align-middle mb-0">
                                 <thead>
-                                    <tr style="font-size: 0.93rem;">
+                                    <tr style="font-size: 0.99rem;">
                                         <th class="fw-bold">No. WP</th>
                                         <th class="text-center fw-bold">Jumlah Volume</th>
                                         <th class="text-center fw-bold">Tahun Eksekusi</th>

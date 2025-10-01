@@ -91,7 +91,8 @@ class DashboardKaryawanController extends Controller
         $selectedYear = $request->input('execution_year', 
             $executionYear->contains($currentYear) ? $currentYear : $executionYear->first());
             
-        $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
+        $wpvWithPeriod = WorkPackageVolume::whereIn('volume_id', $volumeIds)  // Tambahkan filter volumeIds
+            ->whereNotNull('start_date')
             ->whereNotNull('end_date')
             ->where('execution_year', $selectedYear)
             ->with('workPackage')
@@ -272,15 +273,52 @@ class DashboardKaryawanController extends Controller
     public function getPeriodAllWPByYear(Request $request)
     {
         $year = $request->get('year', Carbon::now()->year);
-
-        // Ambil semua WorkPackageVolume yang memiliki periode untuk tahun yang dipilih
-        $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
+        $user_id = auth()->user()->user_id;
+        
+        // 1. Ambil volume_id yang dikerjakan oleh user yang login
+        $volumeIds = Work::where('user_id', $user_id)->pluck('volume_id');
+        
+        // 2. Ambil WorkPackageVolume dengan eager loading task dan subtask
+        $wpvWithPeriod = WorkPackageVolume::whereIn('volume_id', $volumeIds)
+            ->whereNotNull('start_date')
             ->whereNotNull('end_date')
             ->where('execution_year', $year)
-            ->with('workPackage')
+            ->with(['workPackage', 'task.subTask'])
             ->get();
         
-        // Render hanya partial view diagram
+        // 3. Hitung performance untuk setiap volume
+        foreach ($wpvWithPeriod as $wpv) {
+            // GUNAKAN RELASI YANG SUDAH DI-EAGER LOAD
+            $tasks = $wpv->task; // Bukan Task::where('volume_id', $wpv->volume_id)->get();
+            
+            $totalTasksCount = 0;
+            $totalTasksCompleteness = 0;
+            
+            foreach ($tasks as $task) {
+                $taskCompleteness = 0;
+                // GUNAKAN RELASI YANG SUDAH DI-EAGER LOAD
+                $subTasks = $task->subTask; // Bukan SubTask::where('task_id', $task->task_id)->get();
+                
+                if ($subTasks->count() > 0) {
+                    // Jika ada subtask, hitung rata-rata completeness subtask
+                    $subTasksSum = $subTasks->sum('completeness');
+                    $taskCompleteness = $subTasks->count() > 0 ? 
+                        $subTasksSum / $subTasks->count() : 0;
+                } else {
+                    // Jika tidak ada subtask, gunakan completeness task langsung
+                    $taskCompleteness = $task->completeness ?? 0;
+                }
+                
+                $totalTasksCompleteness += $taskCompleteness;
+                $totalTasksCount++;
+            }
+            
+            // Hitung rata-rata performance dan simpan ke volume
+            $wpv->performance = $totalTasksCount > 0 ? 
+                round($totalTasksCompleteness / $totalTasksCount, 0) : 0;
+        }
+        
+        // 4. Render partial view diagram
         $html = view('partials.diagram_wpv', [
             'wpvWithPeriod' => $wpvWithPeriod,
             'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
