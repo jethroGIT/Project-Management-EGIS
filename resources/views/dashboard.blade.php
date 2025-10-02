@@ -363,7 +363,12 @@
             </div>
         </div>
         <div class="card-body">
-            <canvas id="wp_sdm_bar_chart" class="mh-400px"></canvas>
+            <!-- mh-400px -->
+            <div class="table-responsive">
+                <div class="chart-scroll" style="--bs-chart-items: {{ count($barChartWpSDMData['labels']) }}">
+                    <canvas id="wp_sdm_bar_chart" class="w-100" height="400"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -383,6 +388,11 @@
 
     .transition-icon.rotate {
         transform: rotate(180deg);
+    }
+
+    /** Helper class untuk Bar Chart SDM */
+    .chart-scroll {
+        min-width: calc(var(--bs-chart-items, 10) * 60px);
     }
 </style>
 
@@ -920,6 +930,8 @@ const configBarWpSDM = {
     type: 'bar',
     data: dataBarWpSDM,
     options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             title: {
                 display: false
@@ -928,7 +940,6 @@ const configBarWpSDM = {
                 display: false
             }
         },
-        responsive: true,
         scales: {
             x: {
                 stacked: true,
