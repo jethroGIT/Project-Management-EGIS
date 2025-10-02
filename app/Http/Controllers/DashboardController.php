@@ -25,11 +25,20 @@ class DashboardController extends Controller
         // Hitung total Work Order yang tersedia
         $totalWorkOrders = WorkOrder::count();
 
-        // Data untuk card Work Package Selesai
-        $workPackageCompletionData = $this->getWorkPackageCompletionData();
+        // Data untuk card Work Package Selesai (TIDAK DIPAKAI)
+        // $workPackageCompletionData = $this->getWorkPackageCompletionData();
 
-        // Data untuk pie chart WO
-        $pieChartDataWo = $this->countWPAsociatedWithWO();
+        // Data untuk card Work Package yang sudah dipanggil WO
+        $workPackageWOAssignmentData = $this->getWorkPackageWOAssignment();
+
+        // Data untuk progress bar WO selesai dengan WO yang baru keluar berdasarkan nilai keuangan
+        $woCompletionFinanceData = $this->getWOCompletionFinance();
+
+        // Data untuk pie chart WO (TIDAK DIPAKAI)
+        // $pieChartDataWo = $this->countWPAsociatedWithWO();
+
+        // Data untuk pie chart WP Completion dari WP yang sudah dipanggil WO
+        $pieChartDataWo = $this->getWPCompletionFromAssignedWP();
 
         // Data untuk dropdown tahun
         $availableYears = $this->getAvailableYears();
@@ -48,7 +57,7 @@ class DashboardController extends Controller
             'total_users' => $userWorkPackageData->count()
         ];
 
-        // Data untuk tabel Project Berjalan
+        // Data untuk tabel Project Berjalan (TIDAK DIPAKAI)
         $projectBerjalanData = $this->getProjectBerjalanData();
 
          // Get execution years for the period diagram filter
@@ -66,7 +75,8 @@ class DashboardController extends Controller
 
         return view('dashboard', compact(
             'totalWorkOrders',
-            'workPackageCompletionData',
+            'workPackageWOAssignmentData',
+            'woCompletionFinanceData',
             'pieChartDataWo',
             'availableYears',
             'selectedYear',
@@ -78,6 +88,44 @@ class DashboardController extends Controller
         ));
     }
 
+    /**
+     * Get total Work Package WO assignment
+     */
+    private function getWorkPackageWOAssignment()
+    {
+        try {
+            // Hitun total Work Package yang ada
+            $totalWorkPackages = WorkPackage::count();
+
+            // Hitung Work Package yang sudah memiliki Work Order
+            $wpWithWorkOrder = WorkPackage::whereHas('workPackageVolumes', function($query) {
+                $query->whereNotNull('wo_id');
+            })->count();
+
+            // Hitung Work Package yang belum memiliki Work Order
+            $wpWithoutWorkOrder = $totalWorkPackages - $wpWithWorkOrder;
+
+            return [
+                'assigned' => $wpWithWorkOrder,
+                'total' => $totalWorkPackages,
+                'unassigned' => $wpWithoutWorkOrder
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getWorkPackageWOAssignmentData', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'assigned' => 0,
+                'total' => 0,
+                'unassigned' => 0
+            ];
+        }
+    }
+
+    // CATATAN : TIDAK DIPAKAI
     /**
      * Get Work Package completion data
      */
@@ -156,6 +204,261 @@ class DashboardController extends Controller
         }
     }
 
+    /**
+     * Get Work Order completion data from Work Order that have been called based on financial value
+     */
+    private function getWOCompletionFinance()
+    {
+        try {
+            // Ambil semua Work Order yang memiliki Work Package
+            $workOrders = WorkOrder::with([
+                'workPackageVolumes' => function($query) {
+                    $query->with([
+                        'workPackage.humanResources.role',
+                        'task.subTask'
+                    ]);
+                }
+            ])
+            ->whereHas('workPackageVolumes')
+            ->get();
+
+            $completedWOValue = 0;
+            $totalWOValue = 0;
+            $woDetails = [];
+
+            foreach ($workOrders as $wo) {
+                $woTotalValue = 0;
+                $woIsCompleted = true;
+                $woCompletionStatus = [];
+
+                // Group volume berdasarkan Work Package
+                $volumesByWP = $wo->workPackageVolumes->groupBy('wp_id');
+
+                foreach ($volumesByWP as $wpId => $volumes) {
+                    $firstVolume = $volumes->first();
+                    $workPackage = $firstVolume->workPackage;
+
+                    // Hitung WP Value untuk Work Package ini
+                    $wpValue = $this->calculateWPValue($workPackage);
+                    $woTotalValue += $wpValue;
+
+                    // Cek apakah semua completion volume dari WP ini sudah 100 %
+                    $allVolumesComplete = true;
+                    $volumeCompletions = [];
+
+                    foreach ($volumes as $volume) {
+                        $volumeCompletion = $this->calculateVolumeCompletion($volume->volume_id);
+                        $volumeCompletions[] = $volumeCompletion;
+
+                        if ($volumeCompletion < 100) {
+                            $allVolumesComplete = false;
+                        }
+                    }
+
+                    $avgVolumeCompletion = count($volumeCompletions) > 0 ?
+                        round(array_sum($volumeCompletions) / count($volumeCompletions), 2) : 0;
+
+                    // WP dianggap selesai jika semua volume sudah 100%
+                    if (!$allVolumesComplete) {
+                        $woIsCompleted = false;
+                    }
+
+                    $wpCompletionStatus[] = [
+                        'wp_id' => $wpId,
+                        'wp_number' => $workPackage->wp_number,
+                        'wp_name' => $workPackage->name,
+                        'wp_value' => $wpValue,
+                        'volume_count' => $volumes->count(),
+                        'avg_completion' => $avgVolumeCompletion,
+                        'is_completed' => $allVolumesComplete,
+                        'volume_completions' => $volumeCompletions
+                    ];
+                }
+
+                // Tambahkan ke total WO value
+                $totalWOValue += $woTotalValue;
+
+                // Jika WO selesai, tambahkan value ke completed
+                if ($woIsCompleted && $woTotalValue > 0) {
+                    $completedWOValue += $woTotalValue;
+                }
+
+                $woDetails[] = [
+                    'wo_id' => $wo->wo_id,
+                    'wo_number' => $wo->wo_number,
+                    'total_value' => $woTotalValue,
+                    'is_completed' => $woIsCompleted,
+                    'wp_count' => $volumesByWP->count(),
+                    'volume_count' => $wo->workPackageVolumes->count(),
+                    'wp_details' => $wpCompletionStatus
+                ];
+            }
+
+            // Hitung persentase completion berdasarkan nilai keuangan
+            $completionPercentage = $totalWOValue > 0 ?
+                round(($completedWOValue / $totalWOValue) * 100, 1) : 0;
+
+            $ongoingWOValue = $totalWOValue - $completedWOValue;
+
+            return [
+                'total_wo_value' => $totalWOValue,
+                'completed_wo_value' => $completedWOValue,
+                'ongoing_wo_value' => $ongoingWOValue,
+                'completion_percentage' => $completionPercentage,
+                'total_wo_count' => $workOrders->count(),
+                'completed_wo_count' => collect($woDetails)->where('is_completed', true)->count(),
+                'details' => $woDetails
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getWOCompletionFinanceData', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'total_wo_value' => 0,
+                'completed_wo_value' => 0,
+                'ongoing_wo_value' => 0,
+                'completion_percentage' => 0,
+                'total_wo_count' => 0,
+                'completed_wo_count' => 0,
+                'details' => []
+            ];
+        }
+    }
+
+    /**
+     * Calculate WP Value for a Work Package
+     */
+    private function calculateWPValue($workPackage)
+    {
+        try {
+            // Ambil human resources untuk Work Package ini
+            $humanResources = $workPackage->humanResources()
+                ->with('role')
+                ->get();
+            
+            $totalByYoy = 0;
+
+            foreach ($humanResources as $hResource) {
+                $resourceCost = optional($hResource->role)->resource_cost ?? 0;
+                $jhk = $hResource->jhk ?? 0;
+
+                // Hitung biaya by YoY
+                $byYoyCost = $jhk * $resourceCost;
+                $totalByYoy += $byYoyCost;
+            }
+
+            return $totalByYoy;
+
+        } catch (Exception $e) {
+            Log::error('Error calculating WP Value', [
+                'wp_id' => $workPackage->wp_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return 0;
+        }
+    }
+
+    /**
+     * Get WP Completion data from Work Packages that assigned to Work Orders
+     */
+    private function getWPCompletionFromAssignedWP()
+    {
+        try {
+            // Ambil semua Work Package yang sudah dipanggil oleh Work Order
+            $workPackagesWithWO = WorkPackage::with([
+                'workPackageVolumes' => function($query) {
+                    $query->whereNotNull('wo_id');
+                },
+                'workPackageVolumes.task.subTask'
+            ])
+            ->whereHas('workPackageVolumes', function($query) {
+                $query->whereNotNull('wo_id');
+            })
+            ->get();
+
+            $completedWorkPackages = 0;
+            $totalAssignedWorkPackages = $workPackagesWithWO->count();
+            $wpCompletionDetails = [];
+
+            foreach ($workPackagesWithWO as $wp) {
+                // Hanya ambil volume yang memiliki Work Order untuk evaluasi completion
+                $volumesWithWO = $wp->workPackageVolumes->whereNotNull('wo_id');
+
+                $volumeCompletions = [];
+                $totalVolumeCompletion = 0;
+                $volumeCount = $volumesWithWO->count();
+
+                // Hitung completion untuk setiap volume yang memiliki WO
+                foreach ($volumesWithWO as $volume) {
+                    $volumeCompletion = $this->calculateVolumeCompletion($volume->volume_id);
+                    $volumeCompletions[] = $volumeCompletion;
+                    $totalVolumeCompletion += $volumeCompletion;
+                }
+
+                // Rata - rata completion untuk WP ini
+                $avgWpCompletion = $volumeCount > 0 ? round($totalVolumeCompletion / $volumeCount, 2) : 0;
+
+                // WP dianggap selesai jika semua volume dengan WO memiliki completion 100%
+                $isCompleted = count($volumeCompletions) > 0 && min($volumeCompletions) >= 100;
+
+                if ($isCompleted) {
+                    $completedWorkPackages++;
+                }
+
+                $wpCompletionDetails[] = [
+                    'wp_id' => $wp->wp_id,
+                    'wp_number' => $wp->wp_number,
+                    'wp_name' => $wp->name,
+                    'total_volumes' => $wp->workPackageVolumes->count(),
+                    'volume_with_wo' => $volumeCount,
+                    'volume_completions' => $volumeCompletions,
+                    'avg_completions' => $avgWpCompletion,
+                    'is_completed' => $isCompleted,
+                    'min_volume_completion' => count($volumeCompletions) > 0 ? min($volumeCompletions) : 0,
+                    'max_volume_completion' => count($volumeCompletions) > 0 ? max($volumeCompletions) : 0
+                ];
+            }
+
+            // Hitung persentase completion
+            $completionPercentage = $totalAssignedWorkPackages > 0 ?
+                round(($completedWorkPackages / $totalAssignedWorkPackages) * 100, 1) : 0;
+
+            // Data work packages yang belum selesai
+            $ongoingWorkPackages = $totalAssignedWorkPackages - $completedWorkPackages;
+
+            return [
+                'labels' => ['WP Selesai', 'WP Belum Selesai'],
+                'data' => [$completedWorkPackages, $ongoingWorkPackages],
+                'total' => $totalAssignedWorkPackages,
+                'completed' => $completedWorkPackages,
+                'ongoing' => $ongoingWorkPackages,
+                'completion_percentage' => $completionPercentage,
+                'details' => $wpCompletionDetails
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getWPCompletionFromAssignedWP', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'labels' => ['No Data'],
+                'data' => [1],
+                'total' => 0,
+                'completed' => 0,
+                'ongoing' => 0,
+                'completion_percentage' => 0,
+                'details' => [],
+            ];
+        }     
+    }
+
+    // CATATAN : TIDAK DIPAKAI
     /**
      * Count WP which have been called by WO
      */
@@ -422,6 +725,7 @@ class DashboardController extends Controller
         }
     }
 
+    // CATATAN : TIDAK DIPAKAI
     /**
      * Get data for ongoing project table
      */
