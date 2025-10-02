@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SubTask;
 use App\Models\Task;
 use App\Models\Timesheet;
+use App\Models\User;
 use App\Models\Work;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
@@ -362,6 +363,100 @@ class DashboardKaryawanController extends Controller
             'success' => true,
             'html' => $html,
             'year' => $year
+        ]);
+    }
+
+    public function getUserWorkPackageDetails($user_id)
+    {
+        if (!$user_id) {
+            $user_id = auth()->user()->user_id;
+        }
+        
+        $user = User::find($user_id);
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User tidak ditemukan'
+            ]);
+        }
+        
+        // Ambil data work package seperti di method index()
+        $today = now()->toDateString();
+        
+        // 1. Ambil semua volume_id yang dikerjakan user
+        $volumeIds = Work::where('user_id', $user_id)->pluck('volume_id');
+        
+        // 2. Ambil semua WP yang terkait dengan volume tersebut
+        $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)->pluck('wp_id')->unique();
+        
+        // 3. Ambil semua WP dengan eager loading yang diperlukan
+        $workPackages = WorkPackage::with([
+                'wpCategory', 
+                'workPackageVolumes',
+                'humanResources',
+                'workPackageVolumes.task.subTask'
+            ])
+            ->whereIn('wp_id', $wpIds)
+            ->get();
+        
+        $wpCount = $workPackages->count();
+        $selesai = 0;
+        $berjalan = 0;
+        
+        // 4. Proses status untuk setiap WP
+        foreach ($workPackages as $wp) {
+            // Cek apakah ada volume dari WP ini yang dikerjakan user
+            $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->first();
+            $woId = $userVolume ? $userVolume->wo_id : null;
+            
+            if (!$woId) {
+                $wp->volumes_count = 0;
+                $wp->execution_year = '-';
+                $wp->status = 'Berjalan';
+                $wp->performance = 0;
+                $berjalan++;
+                continue;
+            }
+            
+            // Ambil volume dengan WO yang sama
+            $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);
+            $wp->volumes_count = $volumesWithSameWo->count();
+            
+            // Ambil execution_year dari volume
+            $executionYears = $volumesWithSameWo->pluck('execution_year')->unique()->filter();
+            $wp->execution_year = $executionYears->count() === 1 
+                ? $executionYears->first() 
+                : $executionYears->implode(', ');
+            
+            // Hitung performance & cek tanggal
+            $allDatesExpired = true;
+            $performance = $this->calculateWpPerformance($wp->workPackageVolumes, $today, $allDatesExpired);
+            $wp->performance = $performance;
+            $wp->allDatesExpired = $allDatesExpired;
+            
+            // Tentukan status WP
+            if ($allDatesExpired && $performance >= 100) {
+                $wp->status = 'Selesai';
+                $selesai++;
+            } else {
+                $wp->status = 'Berjalan';
+                $berjalan++;
+            }
+        }
+        
+        // Render partial view
+        $html = view('partials.user_wp_details', [
+            'workPackages' => $workPackages,
+            'username' => $user->name,
+            'totalWp' => $wpCount,
+            'selesai' => $selesai,
+            'berjalan' => $berjalan
+        ])->render();
+        
+        return response()->json([
+            'success' => true,
+            'html' => $html
         ]);
     }
 }

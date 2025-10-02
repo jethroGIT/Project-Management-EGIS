@@ -146,7 +146,7 @@ Route::middleware(['auth', 'role:karyawan'])->group(function(){
     // dashboard karyawan
     Route::get('/dashboard-karyawan/{user_id}', [DashboardKaryawanController::class, 'index'])->name('dashboard-karyawan');
     Route::get('/dashboard-karyawan-data', [DashboardKaryawanController::class, 'getPeriodAllWPByYear'])->name('dashboard-karyawan.period-data');
-
+    Route::get('/dashboard-karyawan/user-wp-details/{user_id}', [DashboardKaryawanController::class, 'getUserWorkPackageDetails'])->name('dashboard-karyawan.user-wp-details');
     // timesheet activity per user
     Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
     Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');

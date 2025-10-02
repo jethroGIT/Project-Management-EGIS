@@ -265,46 +265,18 @@
 @endsection
 
 <!-- Modal untuk detail pie chart -->
-<div class="modal fade" id="pieChartDetailModal" tabindex="-1" aria-labelledby="pieChartDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="userWpDetailModal" tabindex="-1" aria-labelledby="userWpDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="pieChartDetailModalLabel">Detail Status Work Package</h3>
+                <h3 class="modal-title" id="userWpDetailModalLabel">Detail Work Package</h3>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                            <table class="table table-sm align-middle mb-0">
-                                <thead>
-                                    <tr style="font-size: 0.99rem;">
-                                        <th class="fw-bold">No. WP</th>
-                                        <th class="text-center fw-bold">Jumlah Volume</th>
-                                        <th class="text-center fw-bold">Tahun Eksekusi</th>
-                                        <th class="text-center fw-bold">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($workPackages as $wp)
-                                        <tr style="font-size: 0.93rem;">
-                                            <td>WP {{ $wp->wp_number }}</td>
-                                            <td class="text-center">{{ $wp->volumes_count ?? ($wp->volumes->count() ?? '-') }}</td>
-                                            <td class="text-center">
-                                                {{$wp->execution_year ?: '-'}}
-                                            </td>
-                                            <td class="text-center">
-                                                @if($wp->status == 'Selesai')
-                                                    <span class="badge badge-success bg-success">Selesai</span>
-                                                @else
-                                                    <span class="badge badge-warning bg-warning">Berjalan</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                <!-- Content will be loaded here via AJAX -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             </div>
@@ -428,8 +400,33 @@
 
     function togglePieChartInfo(event) {
         // Tampilkan modal detail pie chart
-        var myModal = new bootstrap.Modal(document.getElementById('pieChartDetailModal'));
+        var myModal = new bootstrap.Modal(document.getElementById('userWpDetailModal'));
         myModal.show();
+        
+        // Ambil detail via AJAX
+        fetch('{{ route("dashboard-karyawan.user-wp-details", ["user_id" => Auth::user()->user_id]) }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(response => {
+            if (response.success) {
+                document.querySelector('#userWpDetailModal .modal-body').innerHTML = response.html;
+            } else {
+                document.querySelector('#userWpDetailModal .modal-body').innerHTML = `
+                    <div class="alert alert-warning">
+                        Tidak ada data work package untuk user ini.
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching work package details:', error);
+            document.querySelector('#userWpDetailModal .modal-body').innerHTML = `
+                <div class="alert alert-danger">
+                    Terjadi kesalahan saat mengambil data. Silakan coba lagi.
+                </div>
+            `;
+        });
     }
 
     // Fungsi untuk memperbarui status timesheet di UI

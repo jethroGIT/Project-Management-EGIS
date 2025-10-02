@@ -71,7 +71,7 @@
                         $endMonth = $endMonth + 12;
                     }
                     
-                    $topPosition = ($loop->index * ($rowHeight + $spacing)) + 60;
+                    $topPosition = ($loop->index * ($rowHeight + $spacing)) + 40;
                     $leftPosition = ($startMonth - 1) * $lebarBulan;
                     $width = ($endMonth - $startMonth + 1) * $lebarBulan;
                     
