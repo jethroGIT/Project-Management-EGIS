@@ -31,7 +31,10 @@ class DashboardController extends Controller
         // Data untuk card Work Package yang sudah dipanggil WO
         $workPackageWOAssignmentData = $this->getWorkPackageWOAssignment();
 
-        // Data untuk pie chart WO
+        // Data untuk progress bar WO selesai dengan WO yang baru keluar berdasarkan nilai keuangan
+        $woCompletionFinanceData = $this->getWOCompletionFinance();
+
+        // Data untuk pie chart WO (TIDAK DIPAKAI)
         // $pieChartDataWo = $this->countWPAsociatedWithWO();
 
         // Data untuk pie chart WP Completion dari WP yang sudah dipanggil WO
@@ -73,6 +76,7 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'totalWorkOrders',
             'workPackageWOAssignmentData',
+            'woCompletionFinanceData',
             'pieChartDataWo',
             'availableYears',
             'selectedYear',
@@ -197,6 +201,164 @@ class DashboardController extends Controller
                 'completion_percentage' => 0,
                 'details' => []
             ];
+        }
+    }
+
+    /**
+     * Get Work Order completion data from Work Order that have been called based on financial value
+     */
+    private function getWOCompletionFinance()
+    {
+        try {
+            // Ambil semua Work Order yang memiliki Work Package
+            $workOrders = WorkOrder::with([
+                'workPackageVolumes' => function($query) {
+                    $query->with([
+                        'workPackage.humanResources.role',
+                        'task.subTask'
+                    ]);
+                }
+            ])
+            ->whereHas('workPackageVolumes')
+            ->get();
+
+            $completedWOValue = 0;
+            $totalWOValue = 0;
+            $woDetails = [];
+
+            foreach ($workOrders as $wo) {
+                $woTotalValue = 0;
+                $woIsCompleted = true;
+                $woCompletionStatus = [];
+
+                // Group volume berdasarkan Work Package
+                $volumesByWP = $wo->workPackageVolumes->groupBy('wp_id');
+
+                foreach ($volumesByWP as $wpId => $volumes) {
+                    $firstVolume = $volumes->first();
+                    $workPackage = $firstVolume->workPackage;
+
+                    // Hitung WP Value untuk Work Package ini
+                    $wpValue = $this->calculateWPValue($workPackage);
+                    $woTotalValue += $wpValue;
+
+                    // Cek apakah semua completion volume dari WP ini sudah 100 %
+                    $allVolumesComplete = true;
+                    $volumeCompletions = [];
+
+                    foreach ($volumes as $volume) {
+                        $volumeCompletion = $this->calculateVolumeCompletion($volume->volume_id);
+                        $volumeCompletions[] = $volumeCompletion;
+
+                        if ($volumeCompletion < 100) {
+                            $allVolumesComplete = false;
+                        }
+                    }
+
+                    $avgVolumeCompletion = count($volumeCompletions) > 0 ?
+                        round(array_sum($volumeCompletions) / count($volumeCompletions), 2) : 0;
+
+                    // WP dianggap selesai jika semua volume sudah 100%
+                    if (!$allVolumesComplete) {
+                        $woIsCompleted = false;
+                    }
+
+                    $wpCompletionStatus[] = [
+                        'wp_id' => $wpId,
+                        'wp_number' => $workPackage->wp_number,
+                        'wp_name' => $workPackage->name,
+                        'wp_value' => $wpValue,
+                        'volume_count' => $volumes->count(),
+                        'avg_completion' => $avgVolumeCompletion,
+                        'is_completed' => $allVolumesComplete,
+                        'volume_completions' => $volumeCompletions
+                    ];
+                }
+
+                // Tambahkan ke total WO value
+                $totalWOValue += $woTotalValue;
+
+                // Jika WO selesai, tambahkan value ke completed
+                if ($woIsCompleted && $woTotalValue > 0) {
+                    $completedWOValue += $woTotalValue;
+                }
+
+                $woDetails[] = [
+                    'wo_id' => $wo->wo_id,
+                    'wo_number' => $wo->wo_number,
+                    'total_value' => $woTotalValue,
+                    'is_completed' => $woIsCompleted,
+                    'wp_count' => $volumesByWP->count(),
+                    'volume_count' => $wo->workPackageVolumes->count(),
+                    'wp_details' => $wpCompletionStatus
+                ];
+            }
+
+            // Hitung persentase completion berdasarkan nilai keuangan
+            $completionPercentage = $totalWOValue > 0 ?
+                round(($completedWOValue / $totalWOValue) * 100, 1) : 0;
+
+            $ongoingWOValue = $totalWOValue - $completedWOValue;
+
+            return [
+                'total_wo_value' => $totalWOValue,
+                'completed_wo_value' => $completedWOValue,
+                'ongoing_wo_value' => $ongoingWOValue,
+                'completion_percentage' => $completionPercentage,
+                'total_wo_count' => $workOrders->count(),
+                'completed_wo_count' => collect($woDetails)->where('is_completed', true)->count(),
+                'details' => $woDetails
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getWOCompletionFinanceData', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'total_wo_value' => 0,
+                'completed_wo_value' => 0,
+                'ongoing_wo_value' => 0,
+                'completion_percentage' => 0,
+                'total_wo_count' => 0,
+                'completed_wo_count' => 0,
+                'details' => []
+            ];
+        }
+    }
+
+    /**
+     * Calculate WP Value for a Work Package
+     */
+    private function calculateWPValue($workPackage)
+    {
+        try {
+            // Ambil human resources untuk Work Package ini
+            $humanResources = $workPackage->humanResources()
+                ->with('role')
+                ->get();
+            
+            $totalByYoy = 0;
+
+            foreach ($humanResources as $hResource) {
+                $resourceCost = optional($hResource->role)->resource_cost ?? 0;
+                $jhk = $hResource->jhk ?? 0;
+
+                // Hitung biaya by YoY
+                $byYoyCost = $jhk * $resourceCost;
+                $totalByYoy += $byYoyCost;
+            }
+
+            return $totalByYoy;
+
+        } catch (Exception $e) {
+            Log::error('Error calculating WP Value', [
+                'wp_id' => $workPackage->wp_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return 0;
         }
     }
 

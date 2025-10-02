@@ -64,22 +64,85 @@
 
     <div class="card shadow-sm mb-6">
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="text-warning" viewBox="0 0 640 640">
+            <div class="d-flex align-items-center justify-content-start gap-2">
+                <div class="">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="text-warning" viewBox="0 0 640 640">
                         <path d="M192 160L192 144C192 99.8 278 64 384 64C490 64 576 99.8 576 144L576 160C576 190.6 534.7 217.2 474 230.7C471.6 227.9 469.1 225.2 466.6 222.7C451.1 207.4 431.1 195.8 410.2 187.2C368.3 169.7 313.7 160.1 256 160.1C234.1 160.1 212.7 161.5 192.2 164.2C192 162.9 192 161.5 192 160.1zM496 417L496 370.8C511.1 366.9 525.3 362.3 538.2 356.9C551.4 351.4 564.3 344.7 576 336.6L576 352C576 378.8 544.5 402.5 496 417zM496 321L496 288C496 283.5 495.6 279.2 495 275C510.5 271.1 525 266.4 538.2 260.8C551.4 255.2 564.3 248.6 576 240.5L576 255.9C576 282.7 544.5 306.4 496 320.9zM64 304L64 288C64 243.8 150 208 256 208C362 208 448 243.8 448 288L448 304C448 348.2 362 384 256 384C150 384 64 348.2 64 304zM448 400C448 444.2 362 480 256 480C150 480 64 444.2 64 400L64 384.6C75.6 392.7 88.5 399.3 101.8 404.9C143.7 422.4 198.3 432 256 432C313.7 432 368.3 422.3 410.2 404.9C423.4 399.4 436.3 392.7 448 384.6L448 400zM448 480.6L448 496C448 540.2 362 576 256 576C150 576 64 540.2 64 496L64 480.6C75.6 488.7 88.5 495.3 101.8 500.9C143.7 518.4 198.3 528 256 528C313.7 528 368.3 518.3 410.2 500.9C423.4 495.4 436.3 488.7 448 480.6z"/>
                     </svg>
                 </div>
-                <div class="col-md-11">
-                    <h3 class="card-title fw-bold m-0">Perbandingan Nilai Uang</h3>
-                    <!-- Progress Bar -->
-                    <div class="progress progress-sm mt-3">
-                        <div class="progress-bar bg-success progress-bar-animated" 
-                                role="progressbar" style="width: 10%" 
-                                aria-valuenow="47" aria-valuemin="0" aria-valuemax="100">
+                <h3 class="card-title fw-bold m-0">Perbandingan Nilai Uang</h3>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-3">
+                <div class="d-flex justify-content-between">
+                    <div class="fs-6 fw-bold text-muted">WO keluar dengan total keseluruhan</div>
+                    <div class="fs-6 fw-bold text-muted">10 %</div>
+                </div>
+                <div class="progress progress-sm mt-1" role="progressbar" aria-label="Basic example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-info" style="width: 10%"></div>
+                </div>
+                <div class="text-muted fs-6 mt-1">Rp10.000.000 / Rp100.000.000</div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-3">
+                <div class="d-flex justify-content-between">
+                    <div class="fs-6 fw-bold text-muted">WO selesai dengan WO keluar</div>
+                    <div class="fs-6 fw-bold text-muted">{{ $woCompletionFinanceData['completion_percentage'] }} %</div>
+                </div>
+                <div class="progress progress-sm mt-1" role="progressbar" aria-label="Basic example" aria-valuenow="{{ $woCompletionFinanceData['completion_percentage'] }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-primary bg-success" style="width: {{ $woCompletionFinanceData['completion_percentage'] }}%"></div>
+                </div>
+                <div class="text-muted fs-6 mt-1">
+                    Rp{{ number_format($woCompletionFinanceData['completed_wo_value'], 0, ',', '.') }} / Rp{{ number_format($woCompletionFinanceData['total_wo_value'], 0, ',', '.') }}
+                </div>
+            </div>
+
+            <!-- Additional info -->
+            <div class="mt-4">
+                <!-- Toggle Button -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <button 
+                        type="button" 
+                        class="btn btn-sm btn-light-primary" 
+                        id="toggleFinanceDetails"
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#financeDetailsCollapse" 
+                        aria-expanded="false" 
+                        aria-controls="financeDetailsCollapse"
+                    >
+                        <i class="bi bi-chevron-down transition-icon" id="toggleFinanceIcon"></i>
+                        <span class="ms-1" id="toggleFinanceText">Tampilkan Detail</span>
+                    </button>
+                </div>
+                
+                <div class="collapse" id="financeDetailsCollapse">
+                    <div class="fs-6 text-muted fw-bold my-2">Detail Informasi</div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Total WO Keluar:</span>
+                            <span class="fw-bold">{{ $woCompletionFinanceData['total_wo_count'] }}</span>
                         </div>
                     </div>
-                    <div class="text-muted fs-8 mt-2">Rp10.000.000 / Rp100.000.000</div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">WO Selesai:</span>
+                            <span class="fw-bold text-success">{{ $woCompletionFinanceData['completed_wo_count'] }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">WO Berjalan:</span>
+                            <span class="fw-bold text-warning">{{ $woCompletionFinanceData['total_wo_count'] - $woCompletionFinanceData['completed_wo_count'] }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Nilai WO Berjalan:</span>
+                            <span class="fw-bold text-warning">Rp{{ number_format($woCompletionFinanceData['ongoing_wo_value'], 0, ',', '.') }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,7 +165,7 @@
         </div>
 
         <div class="col-md-8">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm h-100">
                 <div class="card-header py-0">
                     <h3 class="card-title fw-bold m-0">Persentase Progres Work Package</h3>
                 </div>
@@ -312,6 +375,15 @@
         max-height: 260px;
         overflow-y: scroll;
     }
+
+    /* CSS untuk expandable section */
+    .transition-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .transition-icon.rotate {
+        transform: rotate(180deg);
+    }
 </style>
 
 @push('scripts')
@@ -377,6 +449,45 @@ $(document).ready(function () {
             location.reload();
         }
     });
+
+    $('#toggleFinanceDetails').on('click', function() {
+        const icon = $('#toggleFinanceIcon');
+        const text = $('#toggleFinanceText');
+        const isExpanded = $(this).attr('aria-expanded') === 'true';
+
+        // Update icon rotation
+        if (isExpanded) {
+            icon.removeClass('rotate');
+            text.text('Tampilkan Detail');
+        } else {
+            icon.addClass('rotate');
+            text.text('Sembunyikan Detail');
+        }
+    });
+
+    // Event listener untuk collapse state changes
+    $('#financeDetailsCollapse').on('shown.bs.collapse', function () {
+        $('#toggleFinanceIcon').addClass('rotate');
+        $('#toggleFinanceText').text('Sembunyikan Detail');
+        $('#toggleFinanceDetails').attr('aria-expanded', 'true');
+    });
+
+    $('#financeDetailsCollapse').on('hidden.bs.collapse', function () {
+        $('#toggleFinanceIcon').removeClass('rotate');
+        $('#toggleFinanceText').text('Tampilkan Detail');
+        $('#toggleFinanceDetails').attr('aria-expanded', 'false');
+    });
+
+    // Auto-collapse jika screen kecil
+    function handleResponsiveCollapse() {
+        if ($(window).width() < 768) {
+            $('#financeDetailsCollapse').collapse('hide');
+        }
+    }
+
+    // Check on load and resize
+    handleResponsiveCollapse();
+    $(window).on('resize', handleResponsiveCollapse);
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -455,7 +566,7 @@ var ctxWoPie = document.getElementById('wo_pie_chart');
 var primaryColor = KTUtil.getCssVariableValue('--kt-primary') || '#009EF7';
 var dangerColor = KTUtil.getCssVariableValue('--kt-danger') || '#F1416C';
 var successColor = KTUtil.getCssVariableValue('--kt-success') || '#50CD89';
-var warningColor = KTUtil.getCssVariableValue('--kt-warning') || '#FFC700';
+var warningColor = KTUtil.getCssVariableValue('--kt-warning') || '#FFDE21';
 var infoColor = KTUtil.getCssVariableValue('--kt-info') || '#7239EA';
 
 // Define fonts
@@ -606,7 +717,7 @@ function initWpProgressChart(charData) {
                         //     // Work Package name
                         //     afterLabels.push(`WP Name: ${details.wp_name}`);
                             
-                        //     // ✅ TAMBAHAN: Volume details
+                        //     // Volume details
                         //     if (details.volume_count > 1) {
                         //         afterLabels.push(`Volume Numbers: ${details.volume_numbers.join(', ')}`);
                         //     } else {
@@ -836,6 +947,9 @@ const configBarWpSDM = {
                     display: false
                 },
                 stacked: true,
+                ticks: {
+                    stepSize: 1
+                },
                 title: {
                     display: true,
                     text: 'Jumlah Work Package',
