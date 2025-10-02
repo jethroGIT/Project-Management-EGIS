@@ -416,6 +416,8 @@ class DashboardKaryawanController extends Controller
                 $wp->status = 'Berjalan';
                 $wp->performance = 0;
                 $berjalan++;
+                $wp->planned_mandays = 0;
+                $wp->actual_mandays = 0;
                 continue;
             }
             
@@ -443,7 +445,39 @@ class DashboardKaryawanController extends Controller
                 $wp->status = 'Berjalan';
                 $berjalan++;
             }
+
+            $userWork = Work::where('user_id', $user_id)
+            ->whereIn('volume_id', $volumesWithSameWo->pluck('volume_id'))
+            ->first();
+        
+            $role_id = $userWork ? $userWork->role_id : null;
+            
+            // Tambahan: Hitung mandays rencana (JHK) dari humanResources
+            $humanResource = $wp->humanResources
+                ->where('role_id', $role_id)
+                ->first();
+            
+            $planned_mandays = $humanResource ? $humanResource->jhk : 0;
+            $wp->planned_mandays = $planned_mandays;
+            
+            // Tambahan: Hitung mandays realisasi dari timesheet
+            $volumeIdsInWp = $volumesWithSameWo->pluck('volume_id')->toArray();
+            $actual_mandays = Timesheet::where('user_id', $user_id)
+                ->whereIn('volume_id', $volumeIdsInWp)
+                ->sum('duration'); // Konversi dari menit ke jam
+            
+            $wp->actual_mandays = round($actual_mandays, 2);
+            
+            // Hitung persentase mandays terhadap rencana
+            $wp->mandays_percentage = $planned_mandays > 0 ? 
+                round(($actual_mandays / $planned_mandays) * 100, 2) : 0;
         }
+        
+        // Total Mandays rencana dan realisasi
+        // $total_planned_mandays = $workPackages->sum('planned_mandays');
+        // $total_actual_mandays = $workPackages->sum('actual_mandays');
+        // $total_mandays_percentage = $total_planned_mandays > 0 ? 
+        //     round(($total_actual_mandays / $total_planned_mandays) * 100, 2) : 0;
         
         // Render partial view
         $html = view('partials.user_wp_details', [
@@ -451,7 +485,10 @@ class DashboardKaryawanController extends Controller
             'username' => $user->name,
             'totalWp' => $wpCount,
             'selesai' => $selesai,
-            'berjalan' => $berjalan
+            'berjalan' => $berjalan,
+            // 'total_planned_mandays' => $total_planned_mandays,
+            // 'total_actual_mandays' => $total_actual_mandays,
+            // 'total_mandays_percentage' => $total_mandays_percentage
         ])->render();
         
         return response()->json([

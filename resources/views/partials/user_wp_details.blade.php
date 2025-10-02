@@ -7,17 +7,22 @@
     </div>
 </div>
 <div class="card shadow-sm mb-3">
-    <div class="card-body">
+    <div class="card-body p-5">
         <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
             <table class="table table-sm align-middle mb-0">
                 <thead>
                     <tr style="font-size: 0.99rem;">
-                        <th class="fw-bold">No.</th>
-                        <th class="fw-bold">Work Package</th>
-                        <th class="text-center fw-bold">Volume</th>
-                        <th class="text-center fw-bold">Tahun Eksekusi</th>
-                        <th class="text-center fw-bold">Progress</th>
-                        <th class="text-center fw-bold">Status</th>
+                        <th rowspan="2" class="fw-bold">No.</th>
+                        <th rowspan="2" class="fw-bold">Work Package</th>
+                        <th colspan="2" class="text-center fw-bold p-0">Mandays</th>
+                        <th rowspan="2" class="text-center fw-bold px-3">Volume</th>
+                        <th rowspan="2" class="text-center fw-bold">Tahun</th>
+                        <th rowspan="2" class="text-center fw-bold">Progress</th>
+                        <th rowspan="2" class="text-center fw-bold">Status</th>
+                    </tr>
+                    <tr style="font-size: 0.98rem;">
+                        <th>Rencana</th>
+                        <th>Realisasi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -25,6 +30,8 @@
                         <tr style="font-size: 0.93rem;">
                             <td>{{ $wp->wp_number }}</td>
                             <td>{{ $wp->name }}</td>
+                            <td class="text-center">{{$wp->planned_mandays}}</td>
+                            <td class="text-center">{{$wp->actual_mandays}}</td>
                             <td class="text-center">{{ $wp->volumes_count }}</td>
                             <td class="text-center">{{ $wp->execution_year }}</td>
                             <td class="text-center">
