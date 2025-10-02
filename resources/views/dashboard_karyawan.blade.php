@@ -200,15 +200,14 @@
     {{-- timeline for project period--}}
     <div class="row">
         <div class="col-md-12 mb-10">
-            <div class="card h-md-100 card-flush shadow-sm mb-8">
+            <div class="card card-flush shadow-sm mb-4" style="height: 580px">
                 <!--begin::Card header-->
                 <div class="card-header position-relative py-0 border-bottom border-bottom-1">
                     <h2 class="card-title fw-bold">Periode Work Package</h2>
                 </div>
                 <!--end::Card header-->
-
                 <!--begin::Card body-->
-                <div class="card-body pb-0">
+                <div class="card-body">
                     <div class="col-md-2 mb-5">
                         <div class="input-group">
                             <span class="input-group-text">
@@ -244,12 +243,18 @@
                     </div>
                     <!-- Diagram WPV Container -->
                     <div id="diagram-wpv">
-                        @include('partials.diagram_wpv', [
-                            'wpvWithPeriod' => $wpvWithPeriod,
-                            'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
-                            'lebarBulan' => 160,
-                            'tinggiDiagram' => 340
-                        ])
+                        @if(!isset($wpvWithPeriod) || empty($wpvWithPeriod) || count($wpvWithPeriod) === 0)
+                            <div class="text-center py-5">
+                                Tidak ada data WP pada tahun ini.
+                            </div>
+                        @else
+                            @include('partials.diagram_wpv', [
+                                'wpvWithPeriod' => $wpvWithPeriod,
+                                'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+                                'lebarBulan' => 130,
+                                'tinggiDiagram' => 340
+                            ])
+                        @endif
                     </div>
                 </div>
                 <!--end::Card body-->

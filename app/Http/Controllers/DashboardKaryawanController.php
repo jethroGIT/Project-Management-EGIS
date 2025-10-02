@@ -82,7 +82,8 @@ class DashboardKaryawanController extends Controller
         $workPackagesActive = $this->getActiveWorkPackages($workPackages, $volumeIds, $user_id, $today);
         
         // 6. Data untuk timeline dan filter tahun
-        $executionYear = WorkPackageVolume::whereNotNull('execution_year')
+        $executionYear = WorkPackageVolume::whereIn('volume_id', $volumeIds)
+            ->whereNotNull('execution_year')
             ->distinct()
             ->orderBy('execution_year', 'asc')
             ->pluck('execution_year');
@@ -91,13 +92,44 @@ class DashboardKaryawanController extends Controller
         $selectedYear = $request->input('execution_year', 
             $executionYear->contains($currentYear) ? $currentYear : $executionYear->first());
             
-        $wpvWithPeriod = WorkPackageVolume::whereIn('volume_id', $volumeIds)  // Tambahkan filter volumeIds
+        $wpvWithPeriod = WorkPackageVolume::whereIn('volume_id', $volumeIds)
             ->whereNotNull('start_date')
             ->whereNotNull('end_date')
             ->where('execution_year', $selectedYear)
-            ->with('workPackage')
+            ->with(['workPackage', 'task.subTask'])  // Tambahkan eager loading task dan subTask
             ->get();
+        
+        foreach ($wpvWithPeriod as $wpv) {
+            // Gunakan relasi yang sudah di-eager load
+            $tasks = $wpv->task;
             
+            $totalTasksCount = 0;
+            $totalTasksCompleteness = 0;
+            
+            foreach ($tasks as $task) {
+                $taskCompleteness = 0;
+                // Gunakan relasi yang sudah di-eager load
+                $subTasks = $task->subTask;
+                
+                if ($subTasks->count() > 0) {
+                    // Jika ada subtask, hitung rata-rata completeness subtask
+                    $subTasksSum = $subTasks->sum('completeness');
+                    $taskCompleteness = $subTasks->count() > 0 ? 
+                        $subTasksSum / $subTasks->count() : 0;
+                } else {
+                    // Jika tidak ada subtask, gunakan completeness task langsung
+                    $taskCompleteness = $task->completeness ?? 0;
+                }
+                
+                $totalTasksCompleteness += $taskCompleteness;
+                $totalTasksCount++;
+            }
+            
+            // Hitung rata-rata performance dan simpan ke volume
+            $wpv->performance = $totalTasksCount > 0 ? 
+                round($totalTasksCompleteness / $totalTasksCount, 0) : 0;
+        }
+
         // 7. Data untuk pie chart
         $pieChartDataWP = [
             'labels' => ['Berjalan', 'Selesai'],

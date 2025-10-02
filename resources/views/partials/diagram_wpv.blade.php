@@ -1,22 +1,43 @@
-<div class="table-responsive pb-10" style="overflow-x: auto; max-height: 400px;">
-    <div style="position: relative; min-width: {{ count($bulanIndonesia) * $lebarBulan }}px; height: {{ $tinggiDiagram }}px;">
+<div class="table-responsive border border-secondary border-1 rounded pb-10" style="overflow-x: auto; width: 100%;">
+    @php
+        // Hitung tinggi total yang dibutuhkan berdasarkan jumlah WP
+        $totalItems = count($wpvWithPeriod);
+        $spacing = 15; // Spacing between rows
+        $rowHeight = 45; // Height of each row
+        $headerHeight = 40; // Tinggi header bulan
+        $extraPadding = 80; // Ruang tambahan di atas dan bawah
+        
+        // Hitung tinggi konten aktual
+        $contentHeight = ($totalItems * ($rowHeight + $spacing)) + $extraPadding;
+        
+        // Tinggi container tetap menggunakan yang dikirim dari controller
+        $containerHeight = $tinggiDiagram;
+    @endphp
+    <div style="position: relative; width: {{ count($bulanIndonesia) * $lebarBulan }}px; height: {{ $containerHeight }}px;">
         <!-- Hanya header bulan di bagian atas -->
         <div style="position: sticky; top: 0; z-index: 3; background: #fff;">
-            <div style="display: flex; border-bottom: 1px solid #ddd;">
+            <div style="display: flex;">
                 @foreach($bulanIndonesia as $index => $bulan)
                     <div style="
                         width: {{ $lebarBulan }}px; 
+                        min-width: {{ $lebarBulan }}px; 
+                        max-width: {{ $lebarBulan }}px; 
+                        flex: 0 0 {{ $lebarBulan }}px;
                         text-align: center;
                         padding: 10px;
                         font-weight: 500;
                         background-color: #f8f9fa;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        border-bottom: 1px solid #ddd;
                     ">{{ $bulan }}</div>
                 @endforeach
             </div>
         </div>
         
         <!-- Diagram WPV -->
-        <div style="position: relative;">
+        <div style="position: relative; height:{{$contentHeight}}px;">
             @php
                 $colorList = [
                     ['bg' => 'bg-primary'],
@@ -25,18 +46,35 @@
                     ['bg' => 'bg-danger'],
                 ];
                 $colorCount = count($colorList);
-                $spacing = 15; // Spacing between rows
-                $rowHeight = 45; // Height of each row
             @endphp
+
+            <!-- Garis vertikal pembatas bulan -->
+            {{-- @for($i = 0; $i <= count($bulanIndonesia); $i++)
+                <div style="
+                    position: absolute;
+                    left: {{ $i * $lebarBulan }}px;
+                    top: 0;
+                    height: {{$contentHeight}}px;
+                    width: 1px;
+                    background-color: #ddd;
+                    z-index: 1;
+                "></div>
+            @endfor --}}
             
             @foreach($wpvWithPeriod as $wpv)
                 @php
                     \Carbon\Carbon::setLocale('id');
                     $startMonth = \Carbon\Carbon::parse($wpv->start_date)->month;
                     $endMonth = \Carbon\Carbon::parse($wpv->end_date)->month;
-                    $topPosition = ($loop->index * ($rowHeight + $spacing)) + 60; // Start from 60px to give space for header
+                    
+                    if ($startMonth > $endMonth) {
+                        $endMonth = $endMonth + 12;
+                    }
+                    
+                    $topPosition = ($loop->index * ($rowHeight + $spacing)) + 60;
                     $leftPosition = ($startMonth - 1) * $lebarBulan;
                     $width = ($endMonth - $startMonth + 1) * $lebarBulan;
+                    
                     $color = $colorList[$loop->index % $colorCount];
                     
                     // Calculate progress
@@ -45,13 +83,13 @@
                 @endphp
                 
                 <div class="d-flex align-items-center justify-content-between position-relative"
-                    style="position: absolute; top: {{ $topPosition }}px; left: {{ $leftPosition }}px; height: {{ $rowHeight }}px; z-index: 2;">
+                    style="position: absolute; top: {{ $topPosition }}px; left: {{ $leftPosition }}px; height: {{ $rowHeight }}px; z-index: 2; width: {{ $width }}px;">
                     
                     <!-- Main rounded pill with WP info -->
-                    <div class="{{ $color['bg'] }} rounded-pill" style="width: {{ $width }}px; position: relative; overflow: hidden;">
+                    <div class="{{ $color['bg'] }} rounded-pill" style="width: 100%; position: relative; overflow: hidden;">
                         <!-- Progress bar overlay -->
                         @if($progress > 0)
-                            <div class="progress-overlay" style="position: absolute; top: 0; left: 0; height: 100%; width: {{ $progressWidth }}px; background-color: rgba(255,255,255,0.3);"></div>
+                            <div class="progress-overlay" style="position: absolute; top: 0; left: 0; height: 100%; width: {{ $progressWidth }}px;"></div>
                         @endif
                         
                         <!-- Content -->
@@ -74,19 +112,6 @@
                     </div>
                 </div>
             @endforeach
-            
-            <!-- Garis vertikal pembatas bulan -->
-            @for($i = 0; $i <= count($bulanIndonesia); $i++)
-                <div style="
-                    position: absolute;
-                    left: {{ $i * $lebarBulan }}px;
-                    top: 0;
-                    height: 100%;
-                    width: 1px;
-                    background-color: #ddd;
-                    z-index: 1;
-                "></div>
-            @endfor
         </div>
     </div>
 </div>
