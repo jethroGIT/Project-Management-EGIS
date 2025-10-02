@@ -301,12 +301,12 @@
     <div class="card shadow-sm mb-6">
          <!--begin::Card header-->
         <div class="card-header position-relative py-0 border-bottom border-bottom-1">
-            <h2 class="card-title fw-bold">Periode Project</h2>
+            <h2 class="card-title fw-bold">Jadwal Pelaksanaan Work Package</h2>
         </div>
         <!--end::Card header-->
 
         <!--begin::Card body-->
-        <div class="card-body pb-0">
+        <div class="card-body">
             <div class="col-md-2 mb-5">
                 <div class="input-group">
                     <span class="input-group-text">
@@ -345,7 +345,7 @@
                 @include('partials.diagram_wpv', [
                     'wpvWithPeriod' => $wpvWithPeriod,
                     'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
-                    'lebarBulan' => 160,
+                    'lebarBulan' => 110,
                     'tinggiDiagram' => 340
                 ])
             </div>

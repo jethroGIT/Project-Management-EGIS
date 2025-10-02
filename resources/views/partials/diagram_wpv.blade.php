@@ -2,8 +2,8 @@
     @php
         // Hitung tinggi total yang dibutuhkan berdasarkan jumlah WP
         $totalItems = count($wpvWithPeriod);
-        $spacing = 15; // Spacing between rows
-        $rowHeight = 45; // Height of each row
+        $spacing = 7; // Spacing between rows
+        $rowHeight = 35; // Height of each row
         $headerHeight = 40; // Tinggi header bulan
         $extraPadding = 80; // Ruang tambahan di atas dan bawah
         

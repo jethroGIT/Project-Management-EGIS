@@ -61,7 +61,7 @@ class DashboardController extends Controller
         $projectBerjalanData = $this->getProjectBerjalanData();
 
          // Get execution years for the period diagram filter
-        $executionYear = WorkPackageVolume::whereNotNull('execution_year')
+        $executionYear = WorkPackageVolume::whereNotNull(['start_date', 'end_date'])
             ->distinct()
             ->orderBy('execution_year', 'asc')
             ->pluck('execution_year');
@@ -70,8 +70,38 @@ class DashboardController extends Controller
         $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
             ->whereNotNull('end_date')
             ->where('execution_year', $selectedYear)
-            ->with('workPackage')
+            ->with(['workPackage', 'task.subTask']) // Tambahkan task.subTask ke eager loading
             ->get();
+
+        // Hitung performance untuk setiap volume
+        foreach ($wpvWithPeriod as $wpv) {
+            $tasks = $wpv->task;
+            
+            $totalTasksCount = 0;
+            $totalTasksCompleteness = 0;
+            
+            foreach ($tasks as $task) {
+                $taskCompleteness = 0;
+                $subTasks = $task->subTask;
+                
+                if ($subTasks->count() > 0) {
+                    // Jika ada subtask, hitung rata-rata completeness subtask
+                    $subTasksSum = $subTasks->sum('completeness');
+                    $taskCompleteness = $subTasks->count() > 0 ? 
+                        $subTasksSum / $subTasks->count() : 0;
+                } else {
+                    // Jika tidak ada subtask, gunakan completeness task langsung
+                    $taskCompleteness = $task->completeness ?? 0;
+                }
+                
+                $totalTasksCompleteness += $taskCompleteness;
+                $totalTasksCount++;
+            }
+            
+            // Hitung rata-rata performance dan simpan ke volume
+            $wpv->performance = $totalTasksCount > 0 ? 
+                round($totalTasksCompleteness / $totalTasksCount, 0) : 0;
+        }
 
         return view('dashboard', compact(
             'totalWorkOrders',
@@ -842,8 +872,37 @@ class DashboardController extends Controller
         $wpvWithPeriod = WorkPackageVolume::whereNotNull('start_date')
             ->whereNotNull('end_date')
             ->where('execution_year', $year)
-            ->with('workPackage')
+            ->with('workPackage', 'task.subTask')
             ->get();
+        
+        foreach ($wpvWithPeriod as $wpv) {
+            $tasks = $wpv->task;
+            
+            $totalTasksCount = 0;
+            $totalTasksCompleteness = 0;
+            
+            foreach ($tasks as $task) {
+                $taskCompleteness = 0;
+                $subTasks = $task->subTask;
+                
+                if ($subTasks->count() > 0) {
+                    // Jika ada subtask, hitung rata-rata completeness subtask
+                    $subTasksSum = $subTasks->sum('completeness');
+                    $taskCompleteness = $subTasks->count() > 0 ? 
+                        $subTasksSum / $subTasks->count() : 0;
+                } else {
+                    // Jika tidak ada subtask, gunakan completeness task langsung
+                    $taskCompleteness = $task->completeness ?? 0;
+                }
+                
+                $totalTasksCompleteness += $taskCompleteness;
+                $totalTasksCount++;
+            }
+            
+            // Hitung rata-rata performance dan simpan ke volume
+            $wpv->performance = $totalTasksCount > 0 ? 
+                round($totalTasksCompleteness / $totalTasksCount, 0) : 0;
+        }
         
         // Render hanya partial view diagram
         $html = view('partials.diagram_wpv', [
