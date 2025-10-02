@@ -37,6 +37,7 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/wp-progress-data', [DashboardController::class, 'getWpProgressDataByYear'])->name('dashboard.wp-progress-data');
     Route::get('/dashboard-data', [DashboardController::class, 'getPeriodAllWPByYear'])->name('dashboard.period-data');
+    Route::get('/dashboard/user-wp-details', [DashboardController::class, 'getUserWorkPackageDetails'])->name('dashboard.user-wp-details');
 
     // Manajemen Work Package
     Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');

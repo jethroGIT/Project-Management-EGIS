@@ -169,8 +169,8 @@
                 <div class="card-header py-0">
                     <h3 class="card-title fw-bold m-0">Persentase Progres Work Package</h3>
                 </div>
-                <div class="card-body pb-4">
-                    <div class="col-md-3">
+                <div class="card-body pb-3">
+                    <div class="col-md-3 mb-1">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
@@ -374,27 +374,22 @@
 </div>
 @endsection
 
-<style>
-    .box {
-        height: 520px;
-        max-height: 260px;
-        overflow-y: scroll;
-    }
-
-    /* CSS untuk expandable section */
-    .transition-icon {
-        transition: transform 0.3s ease;
-    }
-
-    .transition-icon.rotate {
-        transform: rotate(180deg);
-    }
-
-    /** Helper class untuk Bar Chart SDM */
-    .chart-scroll {
-        min-width: calc(var(--bs-chart-items, 10) * 60px);
-    }
-</style>
+<div class="modal fade" id="pieChartDetailModal" tabindex="-1" aria-labelledby="pieChartDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Detail Status Work Package</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here by AJAX -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -938,6 +933,19 @@ const configBarWpSDM = {
             },
             legend: {
                 display: false
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(tooltipItems) {
+                        return tooltipItems[0].label;
+                    },
+                    label: function(context) {
+                        return `Jumlah WP: ${context.parsed.y}`;
+                    },
+                    footer: function() {
+                        return 'Klik untuk melihat detail';
+                    }
+                }
             }
         },
         scales: {
@@ -970,11 +978,79 @@ const configBarWpSDM = {
                     }
                 }
             }
+        },
+        onClick: function(event, elements) {
+            if (elements.length > 0) {
+                const index = elements[0].index;
+                const username = this.data.labels[index];
+                const wpCount = this.data.datasets[0].data[index];
+
+                // Perbaiki selector untuk modal body
+                $('#pieChartDetailModal').modal('show');
+                $('#pieChartDetailModal .modal-body').html(`
+                    <div class="d-flex justify-content-center my-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+
+                // AJAX call
+                $.ajax({
+                    url: '{{ route("dashboard.user-wp-details") }}',
+                    type: 'GET',
+                    data: {
+                        username: username
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#pieChartDetailModal .modal-body').html(response.html);
+                        } else {
+                            $('#pieChartDetailModal .modal-body').html(`
+                                <div class="alert alert-warning">
+                                    Tidak ada data work package untuk personel ini.
+                                </div>
+                            `);
+                        }
+                    },
+                    error: function() {
+                        $('#pieChartDetailModal .modal-body').html(`
+                            <div class="alert alert-danger">
+                                Terjadi kesalahan saat mengambil data. Silakan coba lagi.
+                            </div>
+                        `);
+                    }
+                });
+            }
         }
     }
 };
 
+document.getElementById('wp_sdm_bar_chart').style.cursor = 'pointer';
 var myWpSDMBarChart = new Chart(ctxBarWpSDM, configBarWpSDM);
 
 </script>
 @endpush
+
+
+<style>
+    .box {
+        height: 520px;
+        max-height: 260px;
+        overflow-y: scroll;
+    }
+
+    /* CSS untuk expandable section */
+    .transition-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .transition-icon.rotate {
+        transform: rotate(180deg);
+    }
+
+    /** Helper class untuk Bar Chart SDM */
+    .chart-scroll {
+        min-width: calc(var(--bs-chart-items, 10) * 60px);
+    }
+</style>

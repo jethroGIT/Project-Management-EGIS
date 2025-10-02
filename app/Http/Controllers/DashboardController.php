@@ -461,7 +461,7 @@ class DashboardController extends Controller
             $ongoingWorkPackages = $totalAssignedWorkPackages - $completedWorkPackages;
 
             return [
-                'labels' => ['WP Selesai', 'WP Belum Selesai'],
+                'labels' => ['WP Selesai', 'WP Berjalan'],
                 'data' => [$completedWorkPackages, $ongoingWorkPackages],
                 'total' => $totalAssignedWorkPackages,
                 'completed' => $completedWorkPackages,
@@ -917,5 +917,142 @@ class DashboardController extends Controller
             'html' => $html,
             'year' => $year
         ]);
+    }
+
+    public function getUserWorkPackageDetails(Request $request)
+    {
+        $username = $request->get('username');
+        
+        if (!$username) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Username tidak valid'
+            ]);
+        }
+        
+        // Get user ID from username
+        $user = User::where('name', $username)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User tidak ditemukan'
+            ]);
+        }
+        
+        // 1. Ambil volume_id yang dikerjakan oleh user
+        $volumeIds = Work::where('user_id', $user->user_id)->pluck('volume_id')->toArray();
+        
+        // 2. Ambil wp_id dari volume tersebut
+        $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)
+            ->pluck('wp_id')
+            ->unique()
+            ->toArray();
+        
+        // 3. Load work packages dengan eager loading
+        $workPackages = WorkPackage::with([
+            'wpCategory', 
+            'workPackageVolumes',
+            'humanResources',
+            'workPackageVolumes.task.subTask'
+        ])
+        ->whereIn('wp_id', $wpIds)
+        ->get();
+        
+        $wpCount = $workPackages->count();
+        $selesai = 0;
+        $berjalan = 0;
+        $today = now();
+        
+        // 4. Proses status untuk setiap WP
+        foreach ($workPackages as $wp) {
+            // Cek apakah ada volume dari WP ini yang dikerjakan user
+            $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->first();
+            $woId = $userVolume ? $userVolume->wo_id : null;
+            
+            if (!$woId) {
+                $wp->volumes_count = 0;
+                $wp->execution_year = '-';
+                $wp->status = 'Berjalan';
+                $wp->performance = 0;
+                $berjalan++;
+                continue;
+            }
+            
+            // Ambil volume dengan WO yang sama
+            $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);
+            $wp->volumes_count = $volumesWithSameWo->count();
+            
+            // Ambil execution_year dari volume
+            $executionYears = $volumesWithSameWo->pluck('execution_year')->unique()->filter();
+            $wp->execution_year = $executionYears->count() === 1 
+                ? $executionYears->first() 
+                : $executionYears->implode(', ');
+            
+            // Hitung performance & cek tanggal
+            $allDatesExpired = true;
+            $performance = $this->calculateWpPerformance($volumesWithSameWo, $today, $allDatesExpired);
+            $wp->performance = $performance;
+            $wp->allDatesExpired = $allDatesExpired;
+            
+            // Tentukan status WP
+            if ($allDatesExpired && $performance >= 100) {
+                $wp->status = 'Selesai';
+                $selesai++;
+            } else {
+                $wp->status = 'Berjalan';
+                $berjalan++;
+            }
+        }
+        
+        $html = view('partials.user_wp_details', [
+            'workPackages' => $workPackages,
+            'username' => $username,
+            'totalWp' => $wpCount,
+            'selesai' => $selesai,
+            'berjalan' => $berjalan
+        ])->render();
+        
+        return response()->json([
+            'success' => true,
+            'html' => $html
+        ]);
+    }
+
+    private function calculateWpPerformance($volumes, $today, &$allDatesExpired)
+    {
+        $totalTasksCount = 0;
+        $totalTasksCompleteness = 0;
+        
+        foreach ($volumes as $volume) {
+            // Cek apakah volume masih dalam periode
+            if (!$volume->end_date || $volume->end_date > $today) {
+                $allDatesExpired = false;
+            }
+            
+            // Ambil semua task untuk volume ini
+            $tasks = Task::where('volume_id', $volume->volume_id)->get();
+            
+            foreach ($tasks as $task) {
+                $taskCompleteness = 0;
+                $subTasks = SubTask::where('task_id', $task->task_id)->get();
+                
+                if ($subTasks->count() > 0) {
+                    // Jika ada subtask, hitung rata-rata completeness subtask
+                    $subTasksSum = $subTasks->sum('completeness');
+                    $taskCompleteness = $subTasks->count() > 0 ? 
+                        $subTasksSum / $subTasks->count() : 0;
+                } else {
+                    // Jika tidak ada subtask, gunakan completeness task langsung
+                    $taskCompleteness = $task->completeness ?? 0;
+                }
+                
+                $totalTasksCompleteness += $taskCompleteness;
+                $totalTasksCount++;
+            }
+        }
+        
+        return $totalTasksCount > 0 ? 
+            round($totalTasksCompleteness / $totalTasksCount, 2) : 0;
     }
 }
