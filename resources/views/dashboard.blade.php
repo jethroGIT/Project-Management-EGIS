@@ -214,90 +214,6 @@
         </div>
     </div>
 
-    <!-- <div class="card shadow-sm mb-6">
-        <div class="card-header py-0">
-            <h3 class="card-title fw-bold m-0">Project Berjalan</h3>
-            <div class="card-toolbar">
-                <span class="badge badge-light-info badge-lg">
-                    {{ $projectBerjalanData->count() }} Project
-                </span>
-            </div>
-        </div>
-        <div class="card-body">
-            Search Form
-            <div>
-                <form class="d-flex justify-content-end mb-4">
-                    <label class="me-5 mt-3" for="searchWOandWP">Cari: </label>
-                    <input 
-                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
-                        style="width:200px" 
-                        type="search" 
-                        id="searchWOandWP"
-                        placeholder="Cari Data" 
-                        aria-label="Search"
-                    >                    
-                </form>
-            </div>
-
-            <div class="table-responsive">
-                <table id="wp_progres_table" class="table border table-row-dashed border-gray-300 table-row-gray-300 gy-5 gs-7 rounded w-100">
-                    <thead class="align-middle text-center">
-                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
-                            <th>Nomor Work Order</th>
-                            <th class="align-middle border-bottom">No</th>
-                            <th class="align-middle border-bottom min-w-200px">Work Package</th>
-                            <th class="align-middle border-bottom">Volume (Qty)</th>
-                            <th class="align-middle border-bottom min-w-100px">WP Progres</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if($projectBerjalanData->count() > 0)
-                            @foreach($projectBerjalanData as $index => $project)
-                                <tr class="task-row">
-                                    <td>WO {{ $project['wo_number'] }}</td>
-                                    <td>{{ $index + 1 }}.</td>
-                                    <td>
-                                        <span>WP {{ $project['wp_number'] }}</span>
-                                        <span>{{ $project['wp_name'] }}</span>
-                                    </td>
-                                    <td class="text-center">{{ $project['volume_qty'] }}</td>
-                                    <td class="text-center">
-                                        <div class="d-flex flex-column align-items-center gap-2">
-                                            <span class="fw-bold badge badge-lg
-                                                @if($project['completion'] >= 80) badge-light-success
-                                                @elseif($project['completion'] >= 60) badge-light-primary
-                                                @elseif($project['completion'] >= 40) badge-light-warning
-                                                @else badge-light-danger
-                                                @endif
-                                            ">
-                                                {{ number_format($project['completion'], 1) }}%
-                                            </span>
-                                            <div class="progress progress-sm w-100" style="height: 6px;">
-                                                <div class="progress-bar
-                                                    @if($project['completion'] >= 80) bg-success
-                                                    @elseif($project['completion'] >= 60) bg-primary
-                                                    @elseif($project['completion'] >= 40) bg-warning
-                                                    @else bg-danger
-                                                    @endif
-                                                "
-                                                    role="progressbar"
-                                                    style="width: {{ $project['completion'] }}%"
-                                                    aria-valuenow="{{ $project['completion'] }}"
-                                                    aria-valuemin="0"
-                                                    aria-valuemax="100"
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @endif
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div> -->
-
     <div class="card shadow-sm mb-6">
          <!--begin::Card header-->
         <div class="card-header position-relative py-0 border-bottom border-bottom-1">
@@ -363,7 +279,6 @@
             </div>
         </div>
         <div class="card-body">
-            <!-- mh-400px -->
             <div class="table-responsive">
                 <div class="chart-scroll" style="--bs-chart-items: {{ count($barChartWpSDMData['labels']) }}">
                     <canvas id="wp_sdm_bar_chart" class="w-100" height="400"></canvas>
@@ -394,8 +309,6 @@
 @push('scripts')
 <script>
 $(document).ready(function () {
-    initTabelWPProgres();
-
     $('#tahunFilter').on('change', function() {
         const selectedYear = this.value;
 
@@ -830,72 +743,6 @@ function hideChartLoading() {
     $('#tahunFilter').prop('disabled', false);
 }
 
-/**
- * Initialize table WP Progress
- */
-function initTabelWPProgres() {
-    const table = $('#wp_progres_table').DataTable({
-        'scrollY': '300px',
-        "scrollX": true,
-        "paging": true,
-        "searching": true,
-        "language": {
-            "emptyTable": "Tidak ada data work package yang sedang berjalan",
-            "search": "Cari Project:",
-            "searchPlaceholder": "Cari berdasarkan WO atau WP"
-        },
-        rowGroup: {
-            dataSrc: 0,
-            startRender: function (rows, group) {
-                return $('<tr/>')
-                    .append('<td colspan="5" class="fw-bold bg-light-primary text-dark px-4 py-3">' + group + '</td>');
-            }
-        },
-        columnDefs: [
-            {
-                targets: 0,
-                visible: false, // Kolom kategori disembunyikan karena sudah ditampilkan sebagai grup
-                searchable: true
-            },
-            {
-                targets: 4, // Kolom progress
-                orderable: true,
-                type: 'num' // Enable numeric sorting for progress
-            }
-        ],
-        order: [[4, 'asc']]
-    });
-
-    // Setup search
-    setupWOandWPSearch(table);
-}
-
-/**
- * Function untuk search pada tabel
- */
-function setupWOandWPSearch(table) {
-    const searchInput = $('#searchWOandWP');
-
-    searchInput.on('keyup change input', function() {
-        const searchValue = this.value.trim();
-        table.search(searchValue).draw();
-    });
-
-    searchInput.on('search', function() {
-        if (this.value === '') {
-            table.search('').draw();
-        }
-    });
-
-    searchInput.on('keydown', function(e) {
-        if (e.which === 27) { // ESC key
-            e.preventDefault();
-            this.value = '';
-            $(this).trigger('input');
-            this.focus();
-        }
-    });
-}
 
 /**
  * Jumlah Work Package dari Setiap SDM

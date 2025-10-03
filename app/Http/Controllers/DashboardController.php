@@ -58,7 +58,7 @@ class DashboardController extends Controller
         ];
 
         // Data untuk tabel Project Berjalan (TIDAK DIPAKAI)
-        $projectBerjalanData = $this->getProjectBerjalanData();
+        // $projectBerjalanData = $this->getProjectBerjalanData();
 
          // Get execution years for the period diagram filter
         $executionYear = WorkPackageVolume::whereNotNull(['start_date', 'end_date'])
@@ -112,7 +112,6 @@ class DashboardController extends Controller
             'selectedYear',
             'wpProgressBarChartData',
             'barChartWpSDMData',
-            'projectBerjalanData',
             'executionYear',
             'wpvWithPeriod',
         ));
