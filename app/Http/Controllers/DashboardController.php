@@ -7,6 +7,7 @@ use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use App\Models\Task;
 use App\Models\SubTask;
+use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Work;
 use App\Models\WorkOrder;
@@ -987,6 +988,8 @@ class DashboardController extends Controller
                 $wp->status = 'Berjalan';
                 $wp->performance = 0;
                 $berjalan++;
+                $wp->planned_mandays = 0;
+                $wp->actual_mandays = 0;
                 continue;
             }
             
@@ -1014,6 +1017,32 @@ class DashboardController extends Controller
                 $wp->status = 'Berjalan';
                 $berjalan++;
             }
+
+            $userWork = Work::where('user_id', $user->user_id)
+            ->whereIn('volume_id', $volumesWithSameWo->pluck('volume_id'))
+            ->first();
+        
+            $role_id = $userWork ? $userWork->role_id : null;
+            
+            // Tambahan: Hitung mandays rencana (JHK) dari humanResources berdasarkan role
+            $humanResource = $wp->humanResources
+                ->where('role_id', $role_id)
+                ->first();
+            
+            $planned_mandays = $humanResource ? $humanResource->jhk : 0;
+            $wp->planned_mandays = $planned_mandays;
+            
+            // Tambahan: Hitung mandays realisasi dari timesheet
+            $volumeIdsInWp = $volumesWithSameWo->pluck('volume_id')->toArray();
+            $actual_mandays = Timesheet::where('user_id', $user->user_id)
+                ->whereIn('volume_id', $volumeIdsInWp)
+                ->sum('duration'); // Konversi dari menit ke jam
+            
+            $wp->actual_mandays = round($actual_mandays, 2);
+            
+            // Hitung persentase mandays terhadap rencana
+            $wp->mandays_percentage = $planned_mandays > 0 ? 
+                round(($actual_mandays / $planned_mandays) * 100, 2) : 0;
         }
         
         $html = view('partials.user_wp_details', [
