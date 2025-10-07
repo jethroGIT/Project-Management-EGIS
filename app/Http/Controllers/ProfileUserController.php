@@ -17,13 +17,18 @@ class ProfileUserController extends Controller
         //ambil resource cost dan hitung user terlibat di berapa work package
         $user = auth()->user();
         // Ambil semua role_id dari relasi work user
-        $roleIds = $user->work->pluck('role_id')->filter()->unique();
-
-        // Ambil resource cost dari role-role tersebut (misal ambil dari role pertama yang ditemukan)
         $resourceCost = 0;
-        if ($roleIds->count()) {
-            $role = Role::find($roleIds->first());
-            $resourceCost = $role ? $role->resource_cost : 0;
+        $role = null;
+        if($user->hasRole('admin')){
+            $adminRole = Role::where('name', 'admin')->first();
+            $roleIds = $adminRole->id;
+            $role = $adminRole;
+        }else{
+            $roleIds = $user->work->pluck('role_id')->filter()->unique();
+            if ($roleIds->count()) {
+                $role = Role::find($roleIds->first());
+                $resourceCost = $role ? $role->resource_cost : 0;
+            }
         }
 
         $workPackagesUserCount = $user->work()

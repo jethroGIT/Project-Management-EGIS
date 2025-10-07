@@ -92,7 +92,7 @@
                                                     <li>
                                                         <a class="dropdown-item d-flex align-items-center" href="#" onClick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
                                                             <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                            <span>Tambah Sub Baris</span>
+                                                            <span>Tambah Sub Task</span>
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -795,7 +795,7 @@
                 if (response.success) {
                     Swal.fire({
                         title: "Berhasil Dihapus",
-                        text: 'Task berhasil dihapus',
+                        text: 'Sub task berhasil dihapus',
                         icon: "success",
                         buttonStyling: false,
                         confirmButton: "Tutup",
