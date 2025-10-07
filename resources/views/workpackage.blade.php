@@ -8,7 +8,12 @@
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         @if(isset($workPackage) && isset($volume))
             <div class="col-8">
-                <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
+                <h4 class="">
+                    @if (isset($volume->workOrder) && isset($volume->workOrder->wo_number))
+                        <span class="badge badge-info badge-lg">WO {{ $volume->workOrder->wo_number }}</span>
+                    @endif
+                    WP {{ $workPackage->wp_number }} {{ $workPackage->name }}
+                </h4>
                 <p>Periode 
                     @if(isset($volume->start_date) && ($volume->end_date))
                         {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}

@@ -24,7 +24,19 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // Hitung total Work Order yang tersedia
-        $totalWorkOrders = WorkOrder::count();
+        // $totalWorkOrders = WorkOrder::count();
+        $totalWorkOrders = WorkOrder::with(['workPackageVolumes' => function($query) {
+            $query->with('workPackage')
+                ->whereNotNull('start_date')
+                ->whereNotNull('end_date')
+                ->whereNotNull('execution_year');
+        }])
+        ->whereHas('workPackageVolumes', function($query) {
+            $query->whereNotNull('start_date')
+                ->whereNotNull('end_date')
+                ->whereNotNull('execution_year');
+        })
+        ->count();
 
         // Data untuk card Work Package Selesai (TIDAK DIPAKAI)
         // $workPackageCompletionData = $this->getWorkPackageCompletionData();
@@ -59,7 +71,7 @@ class DashboardController extends Controller
         ];
 
         // Data untuk tabel Project Berjalan (TIDAK DIPAKAI)
-        $projectBerjalanData = $this->getProjectBerjalanData();
+        // $projectBerjalanData = $this->getProjectBerjalanData();
 
          // Get execution years for the period diagram filter
         $executionYear = WorkPackageVolume::whereNotNull(['start_date', 'end_date'])
@@ -113,7 +125,6 @@ class DashboardController extends Controller
             'selectedYear',
             'wpProgressBarChartData',
             'barChartWpSDMData',
-            'projectBerjalanData',
             'executionYear',
             'wpvWithPeriod',
         ));
@@ -125,7 +136,7 @@ class DashboardController extends Controller
     private function getWorkPackageWOAssignment()
     {
         try {
-            // Hitun total Work Package yang ada
+            // Hitung total Work Package yang ada
             $totalWorkPackages = WorkPackage::count();
 
             // Hitung Work Package yang sudah memiliki Work Order
