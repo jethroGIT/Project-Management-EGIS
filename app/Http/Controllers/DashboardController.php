@@ -23,7 +23,19 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // Hitung total Work Order yang tersedia
-        $totalWorkOrders = WorkOrder::count();
+        // $totalWorkOrders = WorkOrder::count();
+        $totalWorkOrders = WorkOrder::with(['workPackageVolumes' => function($query) {
+            $query->with('workPackage')
+                ->whereNotNull('start_date')
+                ->whereNotNull('end_date')
+                ->whereNotNull('execution_year');
+        }])
+        ->whereHas('workPackageVolumes', function($query) {
+            $query->whereNotNull('start_date')
+                ->whereNotNull('end_date')
+                ->whereNotNull('execution_year');
+        })
+        ->count();
 
         // Data untuk card Work Package Selesai (TIDAK DIPAKAI)
         // $workPackageCompletionData = $this->getWorkPackageCompletionData();
@@ -123,7 +135,7 @@ class DashboardController extends Controller
     private function getWorkPackageWOAssignment()
     {
         try {
-            // Hitun total Work Package yang ada
+            // Hitung total Work Package yang ada
             $totalWorkPackages = WorkPackage::count();
 
             // Hitung Work Package yang sudah memiliki Work Order

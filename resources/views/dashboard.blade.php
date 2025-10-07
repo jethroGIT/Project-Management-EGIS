@@ -82,7 +82,8 @@
                 <div class="progress progress-sm mt-1" role="progressbar" aria-label="Basic example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar bg-info" style="width: 10%"></div>
                 </div>
-                <div class="text-muted fs-6 mt-1">Rp10.000.000 / Rp100.000.000</div>
+                <!-- <div class="text-muted fs-6 mt-1">Rp10.000.000 / Rp100.000.000</div> -->
+                <div class="text-muted fs-6 mt-1">Rp{{ number_format($woCompletionFinanceData['total_wo_value'], 0, ',', '.') }} / RP12.704.350.000</div>
             </div>
 
             <!-- Progress Bar -->

@@ -371,6 +371,7 @@ class WorkPackageController extends Controller
     {
         $relatedVolumes = WorkPackageVolume::where('volume_id', '!=', $volume->volume_id)
             ->where('wo_id', $volume->wo_id)
+            ->where('wp_id', $volume->wp_id)
             ->where('start_date', $volume->start_date)
             ->where('end_date', $volume->end_date)
             ->where('execution_year', $volume->execution_year)

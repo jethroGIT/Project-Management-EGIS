@@ -5,6 +5,7 @@
     <div class="mt-0 mb-5">
         <h1 class="mt-0 mb-5">Work Order</h1>
         <h4>WO {{ $workOrder->wo_number }}</h4>
+        <p>Daftar kategori Work Package yang sudah dipanggil ke dalam Work Order</p>
     </div>
     
     <!-- Work Package List Associated with Work Order -->
