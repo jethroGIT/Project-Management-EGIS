@@ -574,9 +574,45 @@ function initMultiStepModal() {
         }
     });
 
+    // Real-time validation untuk nama kategori work package
+    let nameValidationTimeout;
+    $('input[name="name"]').on('input', function() {
+        const name = $(this).val().trim();
+        const input = $(this);
+
+        // Clear previous timeout
+        clearTimeout(nameValidationTimeout);
+
+        // Remove existing feedback
+        input.removeClass('is-valid is-invalid');
+        input.siblings('.invalid-feedback, .valid-feedback').remove();
+
+        if (name.length > 0) {
+            nameValidationTimeout = setTimeout(() => {
+                checkWorkPackageName(name, null, input);
+            }, 500);
+        } else {
+            // input.removeClass('is-valid is-invalid');
+            // input.siblings('.invalid-feedback, .valid-feedback').remove();
+            input.addClass('is-invalid');
+            input.after('<div class="invalid-feedback">Nama Work Package perlu diisi</div>');
+        }
+    });
+
+    // Immediate validation blur
+    $('input[name="name"]').on('blur', function() {
+        const name = $(this).val().trim();
+        const input = $(this);
+
+        if (name.length > 0) {
+            checkWorkPackageName(name, null, input);
+        }
+    });
+
     // Next button
-    $('#nextBtn').on('click', function() {
-        if (validateCurrentStep()) {
+    $('#nextBtn').on('click', async function() {
+        const isValid = await validateCurrentStep();
+        if (isValid) {
             goToStep(currentStep + 1);
         }
     });
@@ -587,8 +623,9 @@ function initMultiStepModal() {
     });
 
     // Submit button
-    $('#submitBtn').on('click', function() {
-        if (validateCurrentStep()) {
+    $('#submitBtn').on('click', async function() {
+        const isValid = await validateCurrentStep();
+        if (isValid) {
             submitMultiStepForm();
         }
     });
@@ -661,6 +698,44 @@ function checkWpNumberAvailability(categoryId, sequence) {
 }
 
 /**
+ * Check if Work Package name is available
+ */
+function checkWorkPackageName(name, excludeId = null, inputElement = null) {
+    if (!name) {
+        return;
+    }
+
+    $.ajax({
+        url: `/wp-management/check-wp-name`,
+        method: 'GET',
+        data: {
+            name: name,
+            exclude_id: excludeId
+        },
+        success: function(response) {
+            if (response.success && inputElement) {
+                inputElement.siblings('.invalid-feedback, .valid-feedback').remove();
+                
+                if (response.available) {
+                    inputElement.removeClass('is-invalid').addClass('is-valid');
+                    inputElement.after('<div class="valid-feedback">Nama Work Package tersedia</div>');
+                } else {
+                    inputElement.removeClass('is-valid').addClass('is-invalid');
+                    inputElement.after('<div class="invalid-feedback">' + response.message + '</div>');
+                }
+            }
+        },
+        error: function() {
+            console.error('Failed to check work package name availability');
+            if (inputElement) {
+                inputElement.removeClass('is-valid is-invalid');
+                inputElement.siblings('.invalid-feedback, .valid-feedback').remove();
+            }
+        }
+    });
+}
+
+/**
  * Reset modal to initial state
  */
 function resetMultiStepModal() {
@@ -715,7 +790,7 @@ function goToStep(step) {
 /**
  * Validate current step
  */
-function validateCurrentStep() {
+async function validateCurrentStep() {
     let isValid = true;
     
     if (currentStep === 0) {
@@ -732,14 +807,56 @@ function validateCurrentStep() {
             }
         });
 
+        // Check WP sequence validity
         if ($('#wp_sequence').hasClass('is-invalid')) {
+            isValid = false;
+        }
+
+        // Check nama Work Package validity
+        const nameInput = $('input[name="name"]');
+        const nameValue = nameInput.val().trim();
+
+        if (nameValue) {
+            try {
+                // Wait for validation response
+                const response = await $.ajax({
+                    url: `/wp-management/check-wp-name`,
+                    method: 'GET',
+                    data: {
+                        name: nameValue,
+                        exclude_id: null
+                    }
+                });
+
+                if (response.success) {
+                    if (!response.available) {
+                        nameInput.removeClass('is-valid').addClass('is-invalid');
+                        nameInput.siblings('.valid-feedback').remove();
+                        nameInput.siblings('.invalid-feedback').remove();
+                        nameInput.after('<div class="invalid-feedback">' + response.message + '</div>');
+                        isValid = false;
+                    } else {
+                        nameInput.removeClass('is-invalid').addClass('is-valid');
+                        nameInput.siblings('.invalid-feedback').remove();
+                        nameInput.siblings('.valid-feedback').remove();
+                        nameInput.after('<div class="valid-feedback">Nama Sub Work Package tersedia</div>');
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error validating name:', error);
+                nameInput.addClass('is-invalid');
+                isValid = false;
+            }
+        } else {
+            nameInput.addClass('is-invalid');
             isValid = false;
         }
         
         if (!isValid) {
             Swal.fire({
                 title: "Validasi Gagal",
-                text: "Mohon lengkapi semua field yang wajib diisi",
+                text: "Mohon lengkapi semua field yang wajib diisi dan pastikan data sudah benar",
                 icon: "error",
                 buttonsStyling: false,
                 confirmButtonText: "OK",

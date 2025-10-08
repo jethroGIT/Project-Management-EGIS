@@ -241,10 +241,13 @@
                     @endif
                 </div>
             @else
-                <div class="text-center py-5">
+                <div class="text-center py-8">
                     <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
-                    <h6 class="text-muted">Belum ada volume</h6>
-                    <p class="text-muted">Volume belum dipanggil ke dalam Work Order</p>
+                    <h6 class="text-muted">Belum ada volume yang berjalan</h6>
+                    <p class="text-muted">Work Package belum dipanggil ke dalam Work Order</p>
+                    <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAssignWPtoWO()">
+                        <i class="bi bi-plus-circle"></i> Assign Kategori WP ke WO
+                    </button>
                 </div>
             @endif
         </div>
@@ -483,6 +486,13 @@ function editWorkPackage(wpId) {
 function manageVolume(volumeId) {
     const referrerUrl = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId) + '?referrer=detail&wp_id={{ $workPackage->wp_id }}';
     window.location.href = referrerUrl;
+}
+
+/**
+ * Navigation to Work Order Management
+ */
+function openAssignWPtoWO() {
+    window.location.href='{{route('work-order')}}';
 }
 
 // Toast notification if redirected with success/error message

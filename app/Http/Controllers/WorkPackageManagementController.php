@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Carbon\Carbon;
@@ -400,7 +401,12 @@ class WorkPackageManagementController extends Controller
                 // Step 1: Basic Work Package Data
                 'category_id' => 'required|exists:wp_category,category_id',
                 'wp_sequence' => 'required|integer|min:1',
-                'name' => 'required|string|max:255',
+                'name' => [
+                    'required',
+                    'string', 
+                    'max:255',
+                    Rule::unique('work_package', 'name')
+                ],
                 'actual_scope_contract' => 'nullable|string',
                 'deliverable' => 'nullable|string',
                 'duration' => 'required|integer|min:1',
@@ -887,7 +893,12 @@ class WorkPackageManagementController extends Controller
                 // Informasi umum work package
                 'category_id' => 'required|exists:wp_category,category_id',
                 'wp_sequence' => 'required|integer|min:1',
-                'name' => 'required|string|max:255',
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('work_package', 'name')->ignore($wp_id, 'wp_id')
+                ],
                 'actual_scope_contract' => 'nullable|string',
                 'deliverable' => 'nullable|string',
                 'duration' => 'required|integer|min:1',
@@ -912,6 +923,9 @@ class WorkPackageManagementController extends Controller
 
                 // Volume changes validation
                 'volume_changes' => 'nullable|string',
+            ], [
+                'name.unique' => 'Nama Work Package sudah digunakan. Silakan pilih nama yang berbeda.',
+                'name.required' => 'Nama Work Package harus diisi.',
             ]);
 
             // CHECK DATA UPDATE CHANGES
@@ -1203,6 +1217,52 @@ class WorkPackageManagementController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memperbarui Work Package: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check if work package name is available
+     */
+    public function checkWorkPackageName(Request $request)
+    {
+        try {
+            $name = trim($request->get('name'));
+            $excludeId = $request->get('exclude_id'); // Untuk edit
+
+            if (!$name) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nama Work Package diperlukan'
+                ], 400);
+            }
+
+            $query = WorkPackage::where('name', $name);
+
+            // Exclude current work package ID saat edit
+            if ($excludeId) {
+                $query->where('wp_id', '!=', $excludeId);
+            }
+
+            $exists = $query->exists();
+
+            return response()->json([
+                'success' => true,
+                'available' => !$exists,
+                'name' => $name,
+                'message' => $exists ? 'Nama Sub Work Package sudah digunakan' : 'Nama Sub Work Package tersedia'
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error checking work package name availability', [
+                'name' => $request->get('name'),
+                'exclude_id' => $request->get('exclude_id'),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memeriksa ketersediaan nama Work Package'
             ], 500);
         }
     }

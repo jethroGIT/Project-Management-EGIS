@@ -129,11 +129,10 @@
                     Manajemen Volume ({{ $volumesWithWorkOrderCount }}/{{ $totalVolumeQty }} volume)
                 </h3>
                 <div class="card-toolbar">
-                    @if($remainingVolumeSlots > 0)
-                        <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAddVolume()">
+                    @if($remainingVolumeSlots === 0)
+                        <!-- <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAddVolume()">
                             <i class="bi bi-plus-circle"></i> Tambah Volume
-                        </button>
-                    @else
+                        </button> -->
                         <span class="badge badge-light-success">
                             <i class="bi bi-check-circle me-1"></i>
                             Volume sudah penuh
@@ -271,10 +270,13 @@
 
                 <!-- No Volumes Message -->
                 @if($volumesData->count() == 0)
-                    <div class="text-center py-5" id="noVolumesMessage">
+                    <div class="text-center py-8" id="noVolumesMessage">
                         <i class="bi bi-collection fs-1 text-muted mb-3"></i>
-                        <h6 class="text-muted">Belum ada volume</h6>
-                        <p class="text-muted">Klik "Tambah Volume" untuk menambahkan volume work package</p>
+                        <h6 class="text-muted">Belum ada volume yang berjalan</h6>
+                        <p class="text-muted">Panggil Work Package ke dalam Work Order untuk menampilkan volume work package</p>
+                        <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAssignWPtoWO()">
+                            <i class="bi bi-plus-circle"></i> Assign Kategori WP ke WO
+                        </button>
                     </div>
                 @endif
             </div>
@@ -649,7 +651,7 @@ $(document).ready(function() {
 });
 
 /**
- * Initialize edit form validation for WP number
+ * Initialize edit form validation for WP number and name
  */
 function initEditFormValidation() {
     // Auto-update WP number ketika kategori diubah
@@ -677,6 +679,42 @@ function initEditFormValidation() {
         }
     });
 
+    // Real-time validation untuk nama work package
+    let editNameValidationTimeout;
+    $('input[name="name"]').on('input', function() {
+        const name = $(this).val().trim();
+        const input = $(this);
+        const currentWpId = '{{ $workPackage->wp_id }}';
+
+        // Clear previous timeout
+        clearTimeout(editNameValidationTimeout);
+
+        // Remove existing feedback
+        input.removeClass('is-valid is-invalid');
+        input.siblings('.invalid-feedback, .valid-feedback').remove();
+
+        if (name.length > 0) {
+            editNameValidationTimeout = setTimeout(() => {
+                checkWorkPackageName(name, currentWpId, input);
+            }, 500);
+        } else {
+            // input.removeClass('is-valid is-invalid');
+            // input.siblings('.invalid-feedback, .valid-feedback').remove();
+            input.addClass('is-invalid');
+            input.after('<div class="invalid-feedback">Nama Work Package perlu diisi</div>');
+        }
+    });
+
+    // Validation on blur
+    $('input[name="name"]').on('blur', function() {
+        const name = $(this).val().trim();
+        const input = $(this);
+        const currentWpId = '{{ $workPackage->wp_id }}';
+
+        if (name.length > 0) {
+            checkWorkPackageName(name, currentWpId, input);
+        }
+    });
 }
 
 /**
@@ -736,9 +774,47 @@ function checkEditWpNumberAvailability(categoryId, sequence) {
 }
 
 /**
+ * Check Work Package name availability
+ */
+function checkWorkPackageName(name, excludeId, inputElement) {
+    if (!name) {
+        return;
+    }
+
+    $.ajax({
+        url: `/wp-management/check-wp-name`,
+        method: 'GET',
+        data: {
+            name: name,
+            exclude_id: excludeId
+        },
+        success: function(response) {
+            if (response.success && inputElement) {
+                inputElement.siblings('.invalid-feedback, .valid-feedback').remove();
+
+                if (response.available) {
+                    inputElement.removeClass('is-invalid').addClass('is-valid');
+                    inputElement.after('<div class="valid-feedback">Nama Sub Work Package tersedia</div>');
+                } else {
+                    inputElement.removeClass('is-valid').addClass('is-invalid');
+                    inputElement.after('<div class="invalid-feedback">' + response.message + '</div>');
+                }
+            }
+        },
+        error: function() {
+            console.error('Failed to check work package name availability');
+            if (inputElement) {
+                inputElement.removeClass('is-valid is-invalid');
+                inputElement.siblings('.invalid-feedback, .valid-feedback').remove();
+            }
+        }
+    });
+}
+
+/**
  * Save work package changes
  */
-function saveWorkPackage() {
+async function saveWorkPackage() {
     // Validate WP number
     if ($('#edit_wp_sequence').hasClass('is-invalid')) {
         Swal.fire({
@@ -752,6 +828,51 @@ function saveWorkPackage() {
             }
         });
         return;
+    }
+
+    // Validate Work Package name
+    const nameInput = $('input[name="name"]');
+    const nameValue = nameInput.val().trim();
+    const currentWpId = '{{ $workPackage->wp_id }}';
+    
+    if (nameValue) {
+        try {
+            const response = await $.ajax({
+                url: `/wp-management/check-wp-name`,
+                method: 'GET',
+                data: {
+                    name: nameValue,
+                    exclude_id: currentWpId
+                }
+            });
+            
+            if (response.success && !response.available) {
+                Swal.fire({
+                    title: 'Nama Sub Work Package Tidak Valid',
+                    text: 'Nama Sub Work Package yang dipilih sudah digunakan. Silakan pilih nama yang berbeda.',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        confirmButton: 'btn btn-secondary'
+                    }
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('Error validating name:', error);
+            Swal.fire({
+                title: 'Error Validasi',
+                text: 'Terjadi kesalahan saat memvalidasi nama Work Package.',
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'Tutup',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
+            return;
+        }
     }
 
     const form = document.getElementById('editWorkPackageForm');
@@ -1633,6 +1754,13 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
 }
 
 /** VOLUME MANAGEMENT */
+/**
+ * Navigation to Work Order Management
+ */
+function openAssignWPtoWO() {
+    window.location.href='{{route('work-order')}}';
+}
+
 /**
  * Open add volume modal
  */
