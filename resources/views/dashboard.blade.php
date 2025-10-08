@@ -218,7 +218,7 @@
     <div class="card shadow-sm mb-6">
          <!--begin::Card header-->
         <div class="card-header position-relative py-0 border-bottom border-bottom-1">
-            <h2 class="card-title fw-bold">Jadwal Pelaksanaan Work Package</h2>
+            <h2 class="card-title fw-bold">Jadwal Pelaksanaan Work Order</h2>
         </div>
         <!--end::Card header-->
 
@@ -263,7 +263,7 @@
                     'wpvWithPeriod' => $wpvWithPeriod,
                     'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                     'lebarBulan' => 110,
-                    'tinggiDiagram' => 340
+                    'tinggiDiagram' => 330
                 ])
             </div>
         </div>
