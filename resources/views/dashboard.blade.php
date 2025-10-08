@@ -38,7 +38,7 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm h-100 hover-card" onclick="window.location.href='{{route('workpackages-list')}}'" style="cursor: pointer; transition: all 0.3s ease;">
                 <div class="card-body my-2">
                     <div class="d-flex align-items-center gap-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-earmark-check-fill text-primary" viewBox="0 0 16 16">
@@ -56,8 +56,13 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Arrow Icon -->
+                        <div class="ms-auto hover-arrow">
+                            <i class="bi bi-arrow-right-circle fs-1 text-primary opacity-75"></i>
+                        </div>
                     </div>
                 </div>
+                <div class="card-footer-custom"></div>
             </div>
         </div>
     </div>
@@ -306,6 +311,28 @@
         </div>
     </div>
 </div>
+
+<style>
+.hover-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.hover-card:hover .hover-arrow {
+    transform: translateX(5px);
+    transition: transform 0.3s ease;
+}
+
+.hover-arrow {
+    transition: transform 0.3s ease;
+}
+
+.card-footer-custom {
+    height: 4px;
+    background: #009ef7;
+    border-radius: 0 0 0.475rem 0.475rem;
+}
+</style>
 
 @push('scripts')
 <script>

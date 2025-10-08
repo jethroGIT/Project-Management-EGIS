@@ -258,10 +258,17 @@ class DashboardController extends Controller
                     $query->with([
                         'workPackage.humanResources.role',
                         'task.subTask'
-                    ]);
+                    ])
+                    ->whereNotNull('start_date')
+                    ->whereNotNull('end_date')
+                    ->whereNotNull('execution_year');
                 }
             ])
-            ->whereHas('workPackageVolumes')
+            ->whereHas('workPackageVolumes', function($query) {
+                $query->whereNotNull('start_date')
+                    ->whereNotNull('end_date')
+                    ->whereNotNull('execution_year');
+            })
             ->get();
 
             $completedWOValue = 0;
