@@ -34,6 +34,7 @@
                         </div>
                     </div>
                 </div>
+                <div class="card-footer-total-wo"></div>
             </div>
         </div>
 
@@ -330,6 +331,12 @@
 .card-footer-custom {
     height: 4px;
     background: #009ef7;
+    border-radius: 0 0 0.475rem 0.475rem;
+}
+
+.card-footer-total-wo {
+    height: 4px;
+    background: #7239ea;
     border-radius: 0 0 0.475rem 0.475rem;
 }
 </style>
