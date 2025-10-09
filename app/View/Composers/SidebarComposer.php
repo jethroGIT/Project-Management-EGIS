@@ -10,25 +10,42 @@ class SidebarComposer
 {
     public function compose(View $view)
     {
-        $workOrdersByYear = WorkOrder::with(['workPackageVolumes' => function($query) {
-            $query->with('workPackage')
-                ->whereNotNull('start_date')
-                ->whereNotNull('end_date')
-                ->whereNotNull('execution_year')
-                ->orderBy('volume_number');
-        }])
-        ->whereHas('workPackageVolumes', function($query) {
+        $user = auth()->user();
+        $isKaryawan = $user && method_exists($user, 'hasRole') && $user->hasRole('karyawan');
+        $userId = $user->user_id ?? null;
+
+        $workOrdersQuery = WorkOrder::with([
+            'workPackageVolumes' => function ($query) use ($isKaryawan, $userId) {
+                $query->with('workPackage')
+                    ->whereNotNull('start_date')
+                    ->whereNotNull('end_date')
+                    ->whereNotNull('execution_year');
+                if ($isKaryawan && $userId) {
+                    // Hanya volume yang dikerjakan user (dari tabel work)
+                    $query->whereHas('work', function ($w) use ($userId) {
+                        $w->where('work.user_id', $userId);
+                    });
+                }
+                $query->orderBy('volume_number');
+            }
+        ])
+        ->whereHas('workPackageVolumes', function ($query) use ($isKaryawan, $userId) {
             $query->whereNotNull('start_date')
                 ->whereNotNull('end_date')
                 ->whereNotNull('execution_year');
+            if ($isKaryawan && $userId) {
+                $query->whereHas('work', function ($w) use ($userId) {
+                    $w->where('work.user_id', $userId);
+                });
+            }
         })
-        ->orderBy('wo_number')
-        ->get()
-        ->groupBy(function($workOrder) {
-            // Group berdasarkan tahun execution year dari volume pertama
-            $firstVolume = $workOrder->workPackageVolumes->first();
-            return $firstVolume ? $firstVolume->execution_year : 'Unknown';
-        });
+        ->orderBy('wo_number');
+
+        $workOrdersByYear = $workOrdersQuery->get()
+            ->groupBy(function($workOrder) {
+                $firstVolume = $workOrder->workPackageVolumes->first();
+                return $firstVolume ? $firstVolume->execution_year : 'Unknown';
+            });
 
         $workPackagesByYear = WorkPackageVolume::with('workPackage')
             ->whereNotNull('start_date')

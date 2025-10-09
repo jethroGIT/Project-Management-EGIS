@@ -22,37 +22,36 @@ class WorkOrderManagementController extends Controller
             })
             ->values();
         
-        $workOrders = WorkOrder::with('workPackageVolumes')->orderBy('wo_number', 'asc')->get();
+        $workOrders = WorkOrder::with('workPackageVolumes.workPackage')->orderBy('wo_number', 'asc')->get();
 
         $categories = WpCategory::with('workPackage')
             ->orderByRaw('category_number::integer ASC')
             ->get();
+        
+        $executionYears = WorkPackageVolume::whereNotNull('execution_year')
+            ->distinct()
+            ->orderBy('execution_year', 'asc')
+            ->pluck('execution_year');
 
-        foreach ($workOrders as $wo) {
-            // Hitung jumlah volume yang menggunakan WO ini
-            $wo->realization_qty = $wo->workPackageVolumes()->count();
-        }
+        // Proses data untuk table_summary_work_order
+        $summaryWorkOrders = $workOrders->map(function ($wo) {
+            $groupedVolumes = $wo->workPackageVolumes
+                ->groupBy('wp_id')
+                ->map(function ($volumes) {
+                    return [
+                        'wp' => $volumes->first()->workPackage,
+                        'count' => $volumes->count(),
+                    ];
+                });
 
-        foreach ($workPackages as $wp) {
-            // Hitung jumlah volume yang belum menggunakan WO
-            $wp->remaining = $wp->volume_qty - $wp->workPackageVolumes->whereNotNull('wo_id')->count();
-            $remainingWPCount = collect($workPackages)->filter(function($wp) {
-                // $wp->remaining sudah dihitung sebelumnya (misal: $wp->remaining = $wp->volume_qty - $totalWithWO)
-                return $wp->remaining != 0;
-            })->count();
-            // format periode
-            foreach ($wp->workPackageVolumes as $volume) {
-                $periodFormatted = "Belum tersedia";
-                if ($volume->start_date && $volume->end_date) {
-                    $periodFormatted = Carbon::parse($volume->start_date)->format('d M Y') . 
-                        ' - ' .
-                        Carbon::parse($volume->end_date)->format('d M Y');
-                }
-                $volume->period_formatted = $periodFormatted;
-            }
-        }
+            return [
+                'wo_number' => $wo->wo_number,
+                'execution_year' => $wo->workPackageVolumes->first()->execution_year ?? '-',
+                'grouped_volumes' => $groupedVolumes,
+            ];
+        });
 
-        return view('work_order_management', compact('workPackages', 'categories', 'workOrders', 'remainingWPCount'));
+        return view('work_order_management', compact('workPackages', 'categories', 'workOrders', 'executionYears', 'summaryWorkOrders'));
     }
 
     public function add(Request $request){

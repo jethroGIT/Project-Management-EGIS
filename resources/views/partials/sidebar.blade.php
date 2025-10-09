@@ -274,93 +274,76 @@
                             >
                         </div>
                     </div>
-                    {{-- <div
-                        data-kt-menu-trigger="click" 
-                        class="menu-item menu-accordion {{ request()->routeIs('wo.content-list*') ? 'show' : '' }}"
-                    > --}}
-                        {{-- <span class="menu-link">
-                            <span class="menu-icon">
-                                <span class="svg-icon svg-icon-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 16 16">
-                                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0L6 9.707a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
-                                        <path d="M8 1.5a1.5 1.5 0 0 1 1.415 1H12a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1h2.585A1.5 1.5 0 0 1 8 1.5m0-1A2.5 2.5 0 0 0 5.5 3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1.5A2.5 2.5 0 0 0 8 .5"/>
-                                    </svg>
-                                </span>
-                            </span>
-                            <span class="menu-title">Work Orders</span>
-                            <span class="menu-arrow"></span>
-                        </span> --}}
-                        <div data-kt-menu-trigger="click" class="menu-item menu-accordion menu-active-bg">
-                            @if(isset($workOrdersByYear))
-                                @foreach($workOrdersByYear as $year => $workOrders)
-                                    @php
-                                        // Urutkan work orders berdasarkan nomor WO
-                                        $sortedWorkOrders = $workOrders->sortBy('wo_number');
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion menu-active-bg">
+                        @if(isset($workOrdersByYear))
+                            @foreach($workOrdersByYear as $year => $workOrders)
+                                @php
+                                    // Urutkan work orders berdasarkan nomor WO
+                                    $sortedWorkOrders = $workOrders->sortBy('wo_number');
 
-                                        // Cek jika tahun tersebut memiliki volume yang aktif
-                                        $isYearActive = false;
-                                        $hasActiveWo = false;
-                                        if (isset($currentWoId)) {
-                                            foreach ($sortedWorkOrders as $workOrder) {
-                                                if ($workOrder->wo_id == $currentWoId) {
-                                                    $isYearActive = true;
-                                                    $hasActiveWo = true;
-                                                    break;
-                                                }
+                                    // Cek jika tahun tersebut memiliki volume yang aktif
+                                    $isYearActive = false;
+                                    $hasActiveWo = false;
+                                    if (isset($currentWoId)) {
+                                        foreach ($sortedWorkOrders as $workOrder) {
+                                            if ($workOrder->wo_id == $currentWoId) {
+                                                $isYearActive = true;
+                                                $hasActiveWo = true;
+                                                break;
                                             }
                                         }
-                                    @endphp
+                                    }
+                                @endphp
 
-                                    <div 
-                                        data-kt-menu-trigger="click" 
-                                        class="menu-item menu-accordion {{ $hasActiveWo ? 'show' : '' }}"
-                                    >
-                                        <span class="menu-link">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot"></span>
-                                            </span>
-                                            <span class="menu-title">{{ $year }}</span>
-                                            <span class="menu-arrow"></span>
+                                <div 
+                                    data-kt-menu-trigger="click" 
+                                    class="menu-item menu-accordion {{ $hasActiveWo ? 'show' : '' }}"
+                                >
+                                    <span class="menu-link">
+                                        <span class="menu-bullet">
+                                            <span class="bullet bullet-dot"></span>
                                         </span>
-                                        <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveWo ? 'show' : '' }}">
-                                            @foreach($sortedWorkOrders as $workOrder)
-                                                @php
-                                                    $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->wo_id;
+                                        <span class="menu-title">{{ $year }}</span>
+                                        <span class="menu-arrow"></span>
+                                    </span>
+                                    <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveWo ? 'show' : '' }}">
+                                        @foreach($sortedWorkOrders as $workOrder)
+                                            @php
+                                                $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->wo_id;
 
-                                                    // Hitung jumlah volume dan WP
-                                                    $volumeCount = $workOrder->workPackageVolumes->count();
-                                                    $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.wp_number')->unique()->count();
+                                                // Hitung jumlah volume dan WP
+                                                $volumeCount = $workOrder->workPackageVolumes->count();
+                                                $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.wp_number')->unique()->count();
 
-                                                    $fullTitle = "WO {$workOrder->wo_number} ({$volumeCount} Volume, {$wpCount} WP)";
-                                                    $maxLength = 35;
-                                                    $truncatedTitle = strlen($fullTitle) > $maxLength ?
-                                                        substr($fullTitle, 0, $maxLength) . "..." :
-                                                        $fullTitle;
-                                                @endphp
-                                                <div class="menu-item">
-                                                    <a 
-                                                        class="menu-link {{ $isWoActive ? 'active' : '' }}" 
-                                                        href="{{ route('wo.content-list', ['wo_id' => $workOrder->wo_id]) }}"
-                                                        data-bs-toggle="tooltip" 
-                                                        data-bs-placement="right" 
-                                                        data-bs-custom-class="sidebar-tooltip" 
-                                                        title="{{ $fullTitle }}"
-                                                    >
-                                                        <span class="menu-bullet">
-                                                            <span class="bullet bullet-dot"></span>
-                                                        </span>
-                                                        <span class="menu-title">
-                                                            {{ $truncatedTitle }}
-                                                        </span>
-                                                    </a>
-                                                </div>
-                                            @endforeach
-                                        </div>
+                                                $fullTitle = "WO {$workOrder->wo_number} ({$volumeCount} Volume, {$wpCount} WP)";
+                                                $maxLength = 35;
+                                                $truncatedTitle = strlen($fullTitle) > $maxLength ?
+                                                    substr($fullTitle, 0, $maxLength) . "..." :
+                                                    $fullTitle;
+                                            @endphp
+                                            <div class="menu-item">
+                                                <a 
+                                                    class="menu-link {{ $isWoActive ? 'active' : '' }}" 
+                                                    href="{{ route('wo.content-list', ['wo_id' => $workOrder->wo_id]) }}"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="right" 
+                                                    data-bs-custom-class="sidebar-tooltip" 
+                                                    title="{{ $fullTitle }}"
+                                                >
+                                                    <span class="menu-bullet">
+                                                        <span class="bullet bullet-dot"></span>
+                                                    </span>
+                                                    <span class="menu-title">
+                                                        {{ $truncatedTitle }}
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
-                            @endif
-                        </div>
-                    {{-- </div> --}}
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
                 @endif
 
                 <!-- Section CMS -->

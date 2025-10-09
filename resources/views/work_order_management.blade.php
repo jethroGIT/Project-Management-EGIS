@@ -81,21 +81,25 @@
 
             <!-- Table -->
             {{-- No WP, no WO, nama WP, volume by contract, volume realisasi, volume remaining, action lihat detail --}}
-            <div class="table-responsive mb-2">
+            <div class="table-responsive mb-2" style="overflow-x: auto; width: 100%;">
                 <table id="table_work_order" class="table table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="text-center fw-bolder fs-6 text-gray-800 px-7">
                             <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping WP category --}}
                             <th scope="col" rowspan="2" class="align-middle border-bottom" style="min-width:50px">No.</th>
                             <th scope="col" rowspan="2" class="align-middle border-bottom">Work Package</th>
-                            <th scope="col" colspan="2" class="align-middle border-bottom"  style="min-width:100px">No. WO</th>
+                            @php
+                                $countYears = $executionYears->count();
+                            @endphp
+                            <th scope="col" colspan="{{$countYears}}" class="align-middle border-bottom">No. WO</th>
                             <th scope="col" colspan="3" class="align-middle border-bottom">Volume (Qty)</th>
                             <th scope="col" rowspan="2" class="align-middle border-bottom" style="min-width: 70px">Action</th>
                         </tr>
                         <tr class="text-center fw-bolder fs-6 text-gray-800 px-7">
                             <th scope="col" style="display: none;"></th> {{-- untuk grouping WP category --}}
-                            <th class="align-middle border-bottom" style="min-width: 50px">2024</th>
-                            <th class="align-middle border-bottom" style="min-width: 50px">2025</th>
+                            @foreach($executionYears as $year)
+                                <th class="align-middle border-bottom" style="min-width: 50px">{{ $year }}</th>
+                            @endforeach
                             <th class="align-middle border-bottom" style="min-width: 100px">By Contract</th>
                             <th class="align-middle border-bottom" style="min-width: 70px">Realisasi</th>
                             <th class="align-middle border-bottom" style="min-width: 50px">Sisa</th>
@@ -113,34 +117,22 @@
                                 <td style="display: none;">{{$wp->wpCategory->name ?? '-'}}</td>
                                 <td class="align-middle text-center">{{$wp->wp_number}}</td>
                                 <td class="align-middle">{{$wp->name}}</td>
-                                <td class="align-middle text-center">
-                                    @php
-                                        $wo2024Numbers = $wp->workPackageVolumes
-                                            ->where('execution_year', 2024)
-                                            ->whereNotNull('workOrder')
-                                            ->sortBy(fn($vol) => $vol->workOrder->wo_number)
-                                            ->pluck('workOrder.wo_number')
-                                            ->filter()
-                                            ->unique()
-                                            ->map(fn($num) => 'WO ' . $num)
-                                            ->implode(', ');
-                                    @endphp
-                                    {{ $wo2024Numbers ?: '-' }}
-                                </td>
-                                <td class="align-middle text-center">
-                                    @php
-                                        $wo2025Numbers = $wp->workPackageVolumes
-                                            ->where('execution_year', 2025)
-                                            ->whereNotNull('workOrder')
-                                            ->sortBy(fn($vol) => $vol->workOrder->wo_number)
-                                            ->pluck('workOrder.wo_number')
-                                            ->filter()
-                                            ->unique()
-                                            ->map(fn($num) => 'WO ' . $num)
-                                            ->implode(', ');
-                                    @endphp
-                                    {{ $wo2025Numbers ?: '-' }}
-                                </td>
+                                @foreach($executionYears as $year)
+                                    <td class="align-middle text-center">
+                                        @php
+                                            $woNumbers = $wp->workPackageVolumes
+                                                ->where('execution_year', $year)
+                                                ->whereNotNull('workOrder')
+                                                ->sortBy(fn($vol) => $vol->workOrder->wo_number)
+                                                ->pluck('workOrder.wo_number')
+                                                ->filter()
+                                                ->unique()
+                                                ->map(fn($num) => 'WO ' . $num)
+                                                ->implode(', ');
+                                        @endphp
+                                        {{ $woNumbers ?: '-' }}
+                                    </td>
+                                @endforeach
                                 <td class="align-middle text-center">{{$wp->volume_qty}}</td>
                                 <td class="align-middle text-center">{{$totalWithWO}}</td>
                                 <td class="align-middle text-center">{{$remaining}}</td>
@@ -184,31 +176,18 @@
                             </tr>
                         </thead>
                         <tbody style="font-size: 0.97rem;">
-                            @foreach($workOrders as $wo)
-                                @php
-                                    $firstVolume = $wo->workPackageVolumes->first();
-                                    $sortedVolumes = $wo->workPackageVolumes->sortBy(function($vol) {
-                                        return $vol->workPackage->wp_number ?? '';
-                                    });
-                                @endphp
-                                    @foreach($sortedVolumes as $vol)
+                            @foreach($summaryWorkOrders as $summary)
+                                @foreach($summary['grouped_volumes'] as $group)
                                     <tr>
                                         <td scope="col" style="display: none;">
-                                            WO {{ $wo->wo_number ?? '-' }} - ({{ $firstVolume ? $firstVolume->execution_year : '-' }})
+                                            WO {{ $summary['wo_number'] }} - ({{ $summary['execution_year'] }})
                                         </td>
-                                        <td class="align-middle text-center">{{ $vol->workPackage->wp_number ?? '-' }}</td>
-                                        <td class="align-middle">{{$vol->workPackage->name ?? '-'}}</td>
-                                        <td class="text-center align-middle">
-                                            {{
-                                                $sortedVolumes
-                                                    ->where('workPackage.wp_id', $vol->workPackage->wp_id)
-                                                    ->where('wo_id', $wo->wo_id)
-                                                    ->count()
-                                            }}
-                                        </td>
+                                        <td class="align-middle text-center">{{ $group['wp']->wp_number ?? '-' }}</td>
+                                        <td class="align-middle">{{ $group['wp']->name ?? '-' }}</td>
+                                        <td class="text-center align-middle">{{ $group['count'] }}</td>
                                     </tr>
-                                    @endforeach
-                            @endforeach                           
+                                @endforeach
+                            @endforeach                         
                         </tbody>
                     </table>
                 </div>
