@@ -138,7 +138,7 @@
             <div class="mb-6 ms-2">
                 <h5>${wp.wp_number}. ${wp.name}</h5>
             </div>
-            <div class="card card-flush shadow-sm mb-6">
+            <div class="card card-flush shadow-sm mb-6" style="overflow-y: auto; max-height: 400px;">
                 <div class="card-header py-0" style="padding-bottom: 8px;">
                     <h3 class="card-title">
                         <i class="bi bi-info-circle text-primary me-2"></i>
@@ -151,7 +151,7 @@
                             <table class="table table-borderless mb-6 pt-0" style="font-size: 0.97rem;">
                                 <tbody>
                                     <tr>
-                                        <td class="fw-bold text-muted">Kategori</td>
+                                        <td class="fw-bold text-muted">Work Package</td>
                                         <td class="fw-bold text-muted">:</td>
                                         <td>${wp.wp_category?.name ?? 'Tidak Berkategori'}</td>
                                     </tr>
