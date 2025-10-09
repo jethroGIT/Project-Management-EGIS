@@ -39,9 +39,6 @@ class TimesheetManagementController extends Controller
             $existingAssignments[$key] = $group->pluck('user_id')->unique()->values();
         }
 
-        // ambil semua work package dari database, pastikan untuk menghindari duplikasi
-        $workPackages = WorkPackage::with('workPackageVolumes.users')->get();
-
         // Ambil semua user unique di timesheet untuk semua bulan
         $users = $timesheets->pluck('user')
             ->filter() // pastikan user tidak null
@@ -64,9 +61,38 @@ class TimesheetManagementController extends Controller
             return $user;
         })->values();
 
+        // ambil semua work package dari database, pastikan untuk menghindari duplikasi
+        $workPackages = WorkPackage::with(['workPackageVolumes.users'])
+            ->whereHas('workPackageVolumes', function ($query) {
+                $query->whereNotNull('wo_id'); // Filter hanya volume yang memiliki wo_id
+            })
+            ->orderBy('wp_number')
+            ->get();
+
+        // Ambil hanya volume_id yang memiliki wo_id tidak null
+        $validVolumes = WorkPackageVolume::whereNotNull('wo_id')
+            ->get(['volume_id', 'volume_number', 'wp_id'])
+            ->groupBy('wp_id')
+            ->map(function ($group) {
+                return $group->map(function ($volume) {
+                    return [
+                        'volume_id' => $volume->volume_id,
+                        'volume_number' => $volume->volume_number,
+                    ];
+                })->values();
+            })
+            ->toArray();
+
+        // Proses data untuk personnelByVolume
+        $personnelByVolume = [];
         foreach ($workPackages as $wp) {
             foreach ($wp->workPackageVolumes as $vol) {
-                $personnelByVolume[$vol->volume_id] = $vol->users->map(function($user) use ($vol) {
+                // Pastikan hanya memproses volume yang ada di validVolumeIds
+                if (in_array($vol->volume_id, array_column($validVolumes, 'volume_id'))) {
+                    continue;
+                }
+
+                $personnelByVolume[$vol->volume_id] = $vol->users->map(function ($user) use ($vol) {
                     // Ambil work record user pada volume ini
                     $workRecord = $user->work->where('volume_id', $vol->volume_id)->first();
                     $roleId = $workRecord->role_id ?? null;
@@ -77,7 +103,7 @@ class TimesheetManagementController extends Controller
                         'name' => $user->name,
                         'role_id' => $roleId,
                         'role_name' => $roleName,
-                        'roles' => $user->roles->map(function($role) {
+                        'roles' => $user->roles->map(function ($role) {
                             return [
                                 'id' => $role->id,
                                 'name' => $role->name
@@ -98,7 +124,7 @@ class TimesheetManagementController extends Controller
         })->orderBy('wp_number')->get();
 
         return view('timesheet_management', compact('activitiesForTable', 'existingAssignments', 'workPackagesFilter',
-                                                    'groupedActivities', 'users', 'workPackages', 'personnelByVolume'));
+                                                    'groupedActivities', 'users', 'workPackages', 'personnelByVolume', 'validVolumes'));
     }
 
     public function add(Request $request)
@@ -188,7 +214,6 @@ class TimesheetManagementController extends Controller
 
     public function edit(Request $request)
     {
-        // edit and or delete activity
         try {
             $request->validate([
                 'execution_date' => 'date',
@@ -201,12 +226,17 @@ class TimesheetManagementController extends Controller
             $activities = $request->input('activities', []);
             $executionDate = $request->input('execution_date');
             $volumeId = $request->input('volume_id');
+            $deletedTimesheetIds = json_decode($request->input('deleted_timesheet_ids', '[]'), true);
+
+            // Hapus data berdasarkan deletedTimesheetIds
+            if (!empty($deletedTimesheetIds)) {
+                Timesheet::whereIn('timesheet_id', $deletedTimesheetIds)->delete();
+            }
 
             $hasChanges = false;
             $updatedOrCreated = [];
 
-            // Cek apakah ada perubahan pada volume_id atau execution_date
-            // tidak sekedar cek apakah terisi, tapi apakah ada perubahan !!
+            // Proses pembaruan atau penambahan data
             foreach ($personelIds as $index => $userId) {
                 $activity = $activities[$index] ?? null;
                 $duration = $durations[$index] ?? null;
@@ -235,9 +265,7 @@ class TimesheetManagementController extends Controller
                         $hasChanges = true;
                         $updatedOrCreated[] = $timesheet;
                     }
-                }
-                // Create
-                else {
+                } else {
                     $new = Timesheet::create([
                         'user_id' => $userId,
                         'volume_id' => $volumeId,
@@ -249,17 +277,19 @@ class TimesheetManagementController extends Controller
                     $updatedOrCreated[] = $new;
                 }
             }
-            if (!$hasChanges) {
+
+            if (!$hasChanges && empty($deletedTimesheetIds)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak ada perubahan yang dilakukan.'
                 ], 400);
             }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui.',
                 'data' => $updatedOrCreated
-            ]);            
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -294,22 +324,22 @@ class TimesheetManagementController extends Controller
         }
     }
 
-    public function delete($id)
-    {
-        try {
-            Timesheet::findOrFail($id)
-                ->delete();
+    // public function delete($id)
+    // {
+    //     try {
+    //         Timesheet::findOrFail($id)
+    //             ->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data berhasil dihapus.'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Data berhasil dihapus.'
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+    //         ], 500);
+    //     }
 
-    }
+    // }
 }

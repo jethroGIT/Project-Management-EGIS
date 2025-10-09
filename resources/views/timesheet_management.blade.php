@@ -353,6 +353,7 @@
                     {{-- hidden input --}}
                     <div id="edit_timesheet_ids_container"></div>
                     <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value="">
+                    <input type="hidden" name="deleted_timesheet_ids" id="deleted_timesheet_ids" value="">
                     <div class="form-group mb-6">
                         <label for="edit_work_package_select" class="form-label fw-bold">Kategori Work Package</label>
                         <div class="input-group">
@@ -404,7 +405,7 @@
         <div class="card-header py-2"> {{-- Sesuaikan padding header --}}
             <h3 class="card-title card-title-edit fw-bold fs-5"></h3>
             <div class="card-toolbar">
-                <button type="button" class="btn btn-sm btn-light-danger remove-edit-personel-btn">
+                <button type="button" class="btn btn-sm btn-light-danger remove-edit-personel-btn" data-timesheet-id="">
                     <i class="bi bi-trash fs-5"></i> Hapus
                 </button>
             </div>
@@ -488,7 +489,7 @@
         // Search input handler
         searchInput.on('keyup change input', function() {
             const searchValue = this.value.trim();
-            table.column(4).search(searchValue, false, true).draw();
+            table.search(searchValue).draw();
         });
 
         // Clear button handler
@@ -541,18 +542,7 @@
     }
 
     // menampilkan volume berdasarkan work package yang dipilih
-    const volumeData = @json(
-        $workPackages->mapWithKeys(function ($wp) {
-            return [$wp->wp_id => $wp->workPackageVolumes
-                ->sortBy('volume_number')
-                ->map(function ($vol) {
-                    return [
-                        'volume_id' => $vol->volume_id,
-                        'volume_number' => $vol->volume_number
-                    ];
-            })->values()];
-        })->toArray()
-    );
+    const volumeData = @json($validVolumes);
     const volumeSelect = document.getElementById('volume_select');
     const editVolumeSelect = document.getElementById('edit_volume_select');
 
@@ -949,7 +939,7 @@
                 const wpId = activities[0].volume.work_package.wp_id;
 
                 document.getElementById('edit_work_package_select').value = wpId;
-                document.getElementById('edit_timesheet_id').value = activities[0].timesheet_id;
+                document.getElementById('edit_timesheet_id').value = timesheetId;
 
                 const volumes = volumeData[wpId] || [];
                 const volumeSelect = document.getElementById('edit_volume_select');
@@ -965,7 +955,6 @@
                 document.getElementById('edit_execution_date').value = executionDate;
 
                 // Kosongkan dulu container-nya
-                const hiddenInputContainer = document.getElementById('edit_timesheet_ids_container');
                 hiddenInputContainer.innerHTML = '';
 
                 // Tambahkan personel dan aktivitas yang sudah ada (dari database)
@@ -1010,6 +999,7 @@
         const personelSelect = group.querySelector('.edit-personel-select');
         const durationSelect = group.querySelector('.edit-duration-select');
         const textarea = group.querySelector('.edit-activity-textarea');
+        const removeBtn = group.querySelector('.remove-edit-personel-btn');
 
         // Populate select
         allUsers.forEach(user => {
@@ -1026,9 +1016,9 @@
         textarea.value = activity.activity || '';
         personelSelect.value = activity.user_id ? String(activity.user_id) : '';
 
-        // Event listener tombol hapus
-        const removeBtn = group.querySelector('.remove-edit-personel-btn');
+        // Tambahkan timesheet_id ke tombol hapus
         if (removeBtn) {
+            removeBtn.setAttribute('data-timesheet-id', activity.timesheet_id); // Inject timesheet_id
             removeBtn.addEventListener('click', function () {
                 removeEditPersonelActivityGroup(group);
             });
@@ -1038,6 +1028,7 @@
         updateEditGroupNumbering();
     }
 
+    let deletedTimesheetIds = [];
     function removeEditPersonelActivityGroup(group) {
         if (typeof group === 'string') {
             group = document.getElementById(group);
@@ -1116,53 +1107,21 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const timesheetId = document.getElementById('edit_timesheet_id').value; // atau ambil dari global variable
+                    const timesheetId = group.querySelector('.remove-edit-personel-btn').getAttribute('data-timesheet-id');
+                    console.log('Menghapus aktivitas personel dengan timesheetId:', timesheetId);
 
-                    fetch(`/timesheet-management/${timesheetId}/delete`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                title:'Berhasil!', 
-                                text: data.message, 
-                                icon: 'success',
-                                buttonsStyling: false,
-                                confirmButtonText: "Tutup",
-                                customClass: { confirmButton: "btn btn-secondary" }
-                            }).then(() => {
-                                // Tutup modal dan update UI
-                                $('#editActivityModal').modal('hide');
-                                // location.reload();
-                                $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
-                                // console.log('Menghapus seluruh aktivitas personel');
-                                // document.getElementById(groupId).remove();
-                                editCurrentPersonelGroups--;
-                                // Tetap update numbering (meskipun 0, jaga konsistensi DOM)
-                                // wrapper.remove();
-                                group.remove();
-                                updateEditGroupNumbering();
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire('Gagal', data.message, 'error');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
-                    });
+                    if (timesheetId) {
+                        deletedTimesheetIds.push(timesheetId);
+                    }
+
+                    // Hapus elemen grup dari DOM
+                    group.remove();
+                    updateEditGroupNumbering();
                 }
             });
         }
     }
 
-    // ...existing code...
     function updateEditGroupNumbering() {
         // Selalu urutkan berdasarkan urutan DOM
         const groups = editPersonelActivityContainer.querySelectorAll('.personel-activity-group');
@@ -1258,6 +1217,10 @@
         submitEditActivityForm.addEventListener('click', function(e) {
             e.preventDefault();
             
+            const deletedTimesheetInput = document.getElementById('deleted_timesheet_ids');
+            if (deletedTimesheetInput) {
+                deletedTimesheetInput.value = JSON.stringify(deletedTimesheetIds);
+            }
             const formData = new FormData(editActivityForm);
             const url = editActivityForm.action;
             
@@ -1332,7 +1295,7 @@
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch(`/timesheet-management/${timesheetId}/delete`, {
+                fetch(`/timesheet-management/${timesheetId}/delete-all`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1350,8 +1313,7 @@
                             confirmButtonText: "Tutup",
                             customClass: { confirmButton: "btn btn-secondary" }
                         }).then(() => {
-                            // location.reload(); // atau remove baris dari DOM langsung
-                            $(`[data-timesheet-id="${timesheetId}"]`).closest('tr').remove();
+                            location.reload();
                         });
                     } else {
                         Swal.fire('Gagal', data.message, 'error');
