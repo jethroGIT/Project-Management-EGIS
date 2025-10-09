@@ -38,8 +38,9 @@
                 <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
                     <thead class="border border-1 border-secondary bg-light fs-5">
                         <tr class="border-bottom border-1 border-secondary">
-                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary fw-bold py-0" style="width: 160px">Personel</th>
-                            <th scope="col" colspan="2" class="text-center align-middle border-end border-secondary fw-bold py-2">Mandays</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary fw-bold py-0" style="width: 160px">Jabatan</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary fw-bold py-0">JTK</th>
+                            <th scope="col" colspan="2" class="text-center align-middle border-end border-secondary fw-bold py-2">Mandays (JHK)</th>
                             <th scope="col" colspan="4" class="text-center align-middle border-start border-secondary fw-bold py-2">Biaya</th>
                         </tr>
                         <tr>
@@ -73,6 +74,7 @@
                         @foreach($costsPerRole as $cost)
                             <tr>
                                 <td class="text-start align-middle">{{ $cost['role_name'] }}</td>
+                                <td class="text-center align-middle">{{ $cost['jtk'] }}</td>
                                 <td class="text-center align-middle">{{ $cost['jhk'] }}</td>
                                 <td class="text-center align-middle">{{ $cost['timesheet_count'] }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['resource_cost'], 0, ',', '.') }}</td>
@@ -131,7 +133,7 @@
                     <input type="hidden" name="category_id" id="form_category_id">
                     <div class="row">
                         <div class="col-md-5">
-                            <label class="form-label fw-bolder">Personel</label>
+                            <label class="form-label fw-bolder">Jabatan</label>
                         </div>
                         <div class="col-md-7">
                             <label class="form-label fw-bolder">Biaya Tenaga Kerja</label>

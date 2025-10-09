@@ -266,7 +266,7 @@
                     <div class="form-group mb-6">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="volume_select" class="form-label fw-bold">Volume</label>
+                                <label for="volume_select" class="form-label fw-bold">Volume Ke-</label>
                                 <div class="input-group">
                                     <select class="form-select form-select-solid" name="volume_id" id="volume_select" required>
                                         <option value="">Pilih Volume</option>
@@ -368,7 +368,7 @@
                     <div class="form-group mb-6">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="edit_volume_select" class="form-label fw-bold">Volume</label>
+                                <label for="edit_volume_select" class="form-label fw-bold">Volume Ke-</label>
                                 <div class="input-group">
                                     <select class="form-select form-select-solid" name="volume_id" id="edit_volume_select" required>
                                         <option value="">Pilih Volume</option>

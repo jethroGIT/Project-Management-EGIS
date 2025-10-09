@@ -32,7 +32,7 @@ Route::get('/', function () {
 //     return view('test');
 // });
 
-Route::middleware(['auth', 'role:admin'])->group(function(){
+Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin'])->group(function(){
     // dashboard admin
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/wp-progress-data', [DashboardController::class, 'getWpProgressDataByYear'])->name('dashboard.wp-progress-data');
@@ -111,7 +111,7 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::put('/work-order/update', [WorkOrderManagementController::class, 'updateWO'])->name('work-order.update');
 });
 
-Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
+Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin|karyawan'])->group(function(){
     // general
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/logout', function () {
@@ -143,7 +143,7 @@ Route::middleware(['auth', 'role:admin|karyawan'])->group(function(){
     Route::get('/workpackages-list', [WorkPackagesListController::class, 'index'])->name('workpackages-list');
 });
 
-Route::middleware(['auth', 'role:karyawan'])->group(function(){
+Route::middleware(['web', 'auth', 'prevent-back-history', 'role:karyawan'])->group(function(){
     // dashboard karyawan
     Route::get('/dashboard-karyawan/{user_id}', [DashboardKaryawanController::class, 'index'])->name('dashboard-karyawan');
     Route::get('/dashboard-karyawan-data', [DashboardKaryawanController::class, 'getPeriodAllWPByYear'])->name('dashboard-karyawan.period-data');

@@ -116,19 +116,22 @@
                                     $isPeriodeMelewati = $wp->timesheetStatus === 'Periode melewati kontrak';
                                 @endphp
                                 <!--begin::Wrapper-->
-                                <div class="d-flex align-items-center mb-6 rounded px-0 
-                                    {{ $isBelumIsi ? 'bg-light-danger' : 
-                                    ($isMandaysCukup ? 'bg-light-warning' : 
-                                    ($isPeriodeMelewati ? 'bg-light-info' : 'bg-light-primary')) }}">
+                                <div class="d-flex align-items-center mb-6 rounded px-0 bg-light">
                                     <span data-kt-element="bullet" class="bullet bullet-vertical d-flex align-items-center min-h-100px mh-100 me-4 
                                         {{ $isBelumIsi ? 'bg-danger' : 
                                         ($isMandaysCukup ? 'bg-warning' : 
                                         ($isPeriodeMelewati ? 'bg-info' : 'bg-primary')) }}"></span>
                                     <div class="flex-grow-1">
+                                        <div class="fw-semibold fs-7 mb-2 mt-2 d-inline-block status-timesheet text-white rounded-pill px-2
+                                            {{ $isBelumIsi ? 'bg-danger' : 
+                                            ($isMandaysCukup ? 'bg-warning' : 
+                                            ($isPeriodeMelewati ? 'bg-info' : 'bg-primary')) }}" id="status-timesheet-{{$wp->wp_id}}">
+                                                {{$wp->timesheetStatus}}
+                                        </div>
                                         <div class="text-gray-800 fw-semibold fs-6 mt-1">
                                             WP {{$wp->wp_number}} {{$wp->name}}
                                         </div>
-                                        <div class="text-gray-700 fw-semibold fs-7 mt-1">
+                                        <div class="text-gray-700 fw-semibold fs-7 mt-1 mb-2">
                                             @if($wp->activeVolume)
                                                 {{ \Carbon\Carbon::parse($wp->activeVolume->start_date)->translatedFormat('d F Y') }}
                                                 -
@@ -149,9 +152,6 @@
                                             @else
                                                 <span class="text-muted">Tidak ada periode aktif</span>
                                             @endif
-                                        </div>
-                                        <div class="fw-semibold fs-7 mt-4 mb-1 status-timesheet" id="status-timesheet-{{$wp->wp_id}}">
-                                            {{$wp->timesheetStatus}}
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center me-2">
@@ -203,7 +203,7 @@
             <div class="card card-flush shadow-sm mb-4" style="height: 580px">
                 <!--begin::Card header-->
                 <div class="card-header position-relative py-0 border-bottom border-bottom-1">
-                    <h2 class="card-title fw-bold">Jadwal Pelaksanaan Work Package</h2>
+                    <h2 class="card-title fw-bold">Jadwal Pelaksanaan Work Order</h2>
                 </div>
                 <!--end::Card header-->
                 <!--begin::Card body-->
@@ -252,7 +252,7 @@
                                 'wpvWithPeriod' => $wpvWithPeriod,
                                 'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                                 'lebarBulan' => 110,
-                                'tinggiDiagram' => 340
+                                'tinggiDiagram' => 330
                             ])
                         @endif
                     </div>

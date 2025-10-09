@@ -77,13 +77,14 @@ class PerformanceFinanceController extends Controller
 
             $timesheetMandays = $mandaysPerRole[$roleId] ?? 0;
 
-            $byYoyCost = $hResource->jhk * $resourceCost;
+            $byYoyCost = $hResource->jhk *$hResource->jtk * $resourceCost;
             $realizationCost = $timesheetMandays * $resourceCost;
             $remainingCost = $byYoyCost - $realizationCost;
 
             return [
                 'role_id' => $roleId,
                 'role_name' => $roleName,
+                'jtk' => $hResource->jtk,
                 'jhk' => $hResource->jhk,
                 'resource_cost' => $resourceCost,
                 'timesheet_count' => $timesheetMandays,

@@ -134,11 +134,11 @@
                     <div class="row">
                         <div class="col-md-2">
                             <label class="form-label fw-bolder">No. WP</label>
-                            <input type="number" class="form-control" id="categoryNumber" name="category_number" min="1"></input>
+                            <input type="number" class="form-control" id="categoryNumber" name="category_number" min="1" required></input>
                         </div>                
                         <div class="col-md-10">
                             <label class="form-label fw-bolder">Work Package</label>
-                            <input class="form-control" id="categoryName" name="name" placeholder="Work Package"></input>
+                            <input class="form-control" id="categoryName" name="name" placeholder="Work Package" required></input>
                         </div>
                     </div>
                 </form>
@@ -338,6 +338,21 @@
                 const formData = new FormData(editCategoryForm);
                 const url = editCategoryForm.action;
 
+                const categoryNumber = $('#categoryNumber').val().trim();
+                const categoryName = $('#categoryName').val().trim();
+
+                if (!categoryNumber || !categoryName) {
+                    Swal.fire({
+                        title: "Data Belum Lengkap",
+                        text: "Nomor WP & Work Package wajib diisi.",
+                        icon: "info",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-primary" }
+                    });
+                    return;
+                }
+
                 fetch(url, {
                     method: 'POST',
                     body: formData,
@@ -363,7 +378,7 @@
                             confirmButtonText: "Tutup",
                             customClass: { confirmButton: "btn btn-secondary" }
                         }).then(() => {
-                            addCategoryModal.hide();
+                            editCategoryModal.hide();
                             location.reload();
                         });
                     })

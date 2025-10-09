@@ -93,42 +93,40 @@ class DashboardKaryawanController extends Controller
         $selectedYear = $request->input('execution_year', 
             $executionYear->contains($currentYear) ? $currentYear : $executionYear->first());
             
-        $wpvWithPeriod = WorkPackageVolume::whereIn('volume_id', $volumeIds)
-            ->whereNotNull('start_date')
-            ->whereNotNull('end_date')
-            ->where('execution_year', $selectedYear)
-            ->with(['workPackage', 'task.subTask'])  // Tambahkan eager loading task dan subTask
+        $wpvWithPeriod = WorkPackageVolume::whereIn('work_package_volume.volume_id', $volumeIds)
+            ->whereNotNull('work_package_volume.end_date')
+            ->whereNotNull('work_package_volume.wo_id')
+            ->where('work_package_volume.execution_year', $selectedYear)
+            ->with(['workPackage', 'workOrder', 'task.subTask'])
+            ->join('work_order as wo_sort', 'work_package_volume.wo_id', '=', 'wo_sort.wo_id')
+            ->orderByRaw('CAST(wo_sort.wo_number AS INTEGER) ASC')
+            ->select('work_package_volume.*')
             ->get();
         
-        foreach ($wpvWithPeriod as $wpv) {
-            // Gunakan relasi yang sudah di-eager load
-            $tasks = $wpv->task;
-            
+        $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        foreach ($groupedByWo as $woId => $volumes) {
             $totalTasksCount = 0;
-            $totalTasksCompleteness = 0;
-            
-            foreach ($tasks as $task) {
-                $taskCompleteness = 0;
-                // Gunakan relasi yang sudah di-eager load
-                $subTasks = $task->subTask;
-                
-                if ($subTasks->count() > 0) {
-                    // Jika ada subtask, hitung rata-rata completeness subtask
-                    $subTasksSum = $subTasks->sum('completeness');
-                    $taskCompleteness = $subTasks->count() > 0 ? 
-                        $subTasksSum / $subTasks->count() : 0;
-                } else {
-                    // Jika tidak ada subtask, gunakan completeness task langsung
-                    $taskCompleteness = $task->completeness ?? 0;
+            $totalTasksCompleteness = 0.0;
+
+            foreach ($volumes as $volume) {
+                foreach ($volume->task as $task) {
+                    $subTasks = $task->subTask;
+                    $taskCompleteness = $subTasks && $subTasks->count() > 0
+                        ? (float) $subTasks->avg('completeness')
+                        : (float) ($task->completeness ?? 0);
+
+                    $totalTasksCompleteness += $taskCompleteness;
+                    $totalTasksCount++;
                 }
-                
-                $totalTasksCompleteness += $taskCompleteness;
-                $totalTasksCount++;
             }
-            
-            // Hitung rata-rata performance dan simpan ke volume
-            $wpv->performance = $totalTasksCount > 0 ? 
-                round($totalTasksCompleteness / $totalTasksCount, 0) : 0;
+
+            $groupPerformance = $totalTasksCount > 0
+                ? round($totalTasksCompleteness / $totalTasksCount, 0)
+                : 0;
+
+            foreach ($volumes as $volume) {
+                $volume->performance = $groupPerformance;
+            }
         }
 
         // 7. Data untuk pie chart
@@ -310,45 +308,43 @@ class DashboardKaryawanController extends Controller
         
         // 1. Ambil volume_id yang dikerjakan oleh user yang login
         $volumeIds = Work::where('user_id', $user_id)->pluck('volume_id');
-        
+
         // 2. Ambil WorkPackageVolume dengan eager loading task dan subtask
-        $wpvWithPeriod = WorkPackageVolume::whereIn('volume_id', $volumeIds)
-            ->whereNotNull('start_date')
-            ->whereNotNull('end_date')
-            ->where('execution_year', $year)
-            ->with(['workPackage', 'task.subTask'])
+        $wpvWithPeriod = WorkPackageVolume::whereIn('work_package_volume.volume_id', $volumeIds)
+            ->whereNotNull('work_package_volume.end_date')
+            ->whereNotNull('work_package_volume.wo_id')
+            ->where('work_package_volume.execution_year', $year)
+            ->with(['workPackage', 'workOrder', 'task.subTask'])
+            ->join('work_order as wo_sort', 'work_package_volume.wo_id', '=', 'wo_sort.wo_id')
+            ->orderByRaw('CAST(wo_sort.wo_number AS INTEGER) ASC')
+            ->select('work_package_volume.*')
             ->get();
         
         // 3. Hitung performance untuk setiap volume
-        foreach ($wpvWithPeriod as $wpv) {
-            // GUNAKAN RELASI YANG SUDAH DI-EAGER LOAD
-            $tasks = $wpv->task; // Bukan Task::where('volume_id', $wpv->volume_id)->get();
-            
+        $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        foreach ($groupedByWo as $woId => $volumes) {
             $totalTasksCount = 0;
-            $totalTasksCompleteness = 0;
-            
-            foreach ($tasks as $task) {
-                $taskCompleteness = 0;
-                // GUNAKAN RELASI YANG SUDAH DI-EAGER LOAD
-                $subTasks = $task->subTask; // Bukan SubTask::where('task_id', $task->task_id)->get();
-                
-                if ($subTasks->count() > 0) {
-                    // Jika ada subtask, hitung rata-rata completeness subtask
-                    $subTasksSum = $subTasks->sum('completeness');
-                    $taskCompleteness = $subTasks->count() > 0 ? 
-                        $subTasksSum / $subTasks->count() : 0;
-                } else {
-                    // Jika tidak ada subtask, gunakan completeness task langsung
-                    $taskCompleteness = $task->completeness ?? 0;
+            $totalTasksCompleteness = 0.0;
+
+            foreach ($volumes as $volume) {
+                foreach ($volume->task as $task) {
+                    $subTasks = $task->subTask;
+                    $taskCompleteness = $subTasks && $subTasks->count() > 0
+                        ? (float) $subTasks->avg('completeness')
+                        : (float) ($task->completeness ?? 0);
+
+                    $totalTasksCompleteness += $taskCompleteness;
+                    $totalTasksCount++;
                 }
-                
-                $totalTasksCompleteness += $taskCompleteness;
-                $totalTasksCount++;
             }
-            
-            // Hitung rata-rata performance dan simpan ke volume
-            $wpv->performance = $totalTasksCount > 0 ? 
-                round($totalTasksCompleteness / $totalTasksCount, 0) : 0;
+
+            $groupPerformance = $totalTasksCount > 0
+                ? round($totalTasksCompleteness / $totalTasksCount, 0)
+                : 0;
+
+            foreach ($volumes as $volume) {
+                $volume->performance = $groupPerformance;
+            }
         }
         
         // 4. Render partial view diagram
