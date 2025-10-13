@@ -222,36 +222,74 @@
         submitEditFinanceForm.addEventListener('click', function() {
             e.preventDefault();
 
-            const formData = new FormData(editFinanceForm);
-            const url = editFinanceForm.action;
+            // Validasi jika ada input lebih dari 15 digit
+            let isValid = true;
+            let isChanged = false;
+            $('[id^=editResCost_]').each(function() {
+                let value = $(this).val().replace(/[^\d]/g, ''); // Hapus semua kecuali angka
+                let originalValue = $(this).data('original').replace(/[^\d]/g, '');
 
-            fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                if (value.length > 13) { // 15 digit termasuk desimal
+                    isValid = false;
+                    Swal.fire({
+                        text: "Nominal biaya tenaga kerja tidak boleh lebih dari 15 digit termasuk desimal. Silakan periksa kembali.",
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "OK",
+                        customClass: { confirmButton: "btn btn-danger" }
                     });
+                    return false; // Hentikan iterasi jika ditemukan input tidak valid
                 }
-                return response.json();
-            })
-            .then(data => {
+
+                if (value !== originalValue) {
+                    isChanged = true;
+                }
+            });
+
+            if (!isValid) return;
+
+            if (!isChanged) {
                 Swal.fire({
-                    text: "Perubahan biaya tenaga kerja akan diterapkan ke semua Work Package.",
-                    icon: "warning",
+                    text: "Tidak ada perubahan pada biaya tenaga kerja.",
+                    icon: "info",
                     buttonsStyling: false,
-                    cancelButtonText: "Batal",
-                    confirmButtonText: "Lanjutkan",
-                    showCancelButton: true,
-                    customClass: { cancelButton: "btn btn-secondary", confirmButton: "btn btn-warning" }
-                }).then((result) => {
-                    if(result.isConfirmed){
+                    confirmButtonText: "Batal",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return;
+            }
+
+            Swal.fire({
+                text: "Perubahan biaya tenaga kerja akan diterapkan ke semua Work Package.",
+                icon: "warning",
+                buttonsStyling: false,
+                cancelButtonText: "Batal",
+                confirmButtonText: "Lanjutkan",
+                showCancelButton: true,
+                customClass: { cancelButton: "btn btn-secondary", confirmButton: "btn btn-warning" }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna menekan "Lanjutkan", kirim data ke server
+                    const formData = new FormData(editFinanceForm);
+                    const url = editFinanceForm.action;
+
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
                         Swal.fire({
                             text: data.message || "Data berhasil diubah!",
                             icon: "success",
@@ -262,18 +300,18 @@
                             editFinanceModal.hide();
                             location.reload();
                         });
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error adding category:', error);
-                Swal.fire({
-                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "OK",
-                    customClass: { confirmButton: "btn btn-danger" }
-                });
+                    })
+                    .catch(error => {
+                        console.error('Error adding category:', error);
+                        Swal.fire({
+                            text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                            icon: "error",
+                            buttonsStyling: false,
+                            confirmButtonText: "OK",
+                            customClass: { confirmButton: "btn btn-danger" }
+                        });
+                    });
+                }
             });
         });
     });

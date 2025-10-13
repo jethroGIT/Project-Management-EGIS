@@ -168,7 +168,7 @@ class PerformanceFinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                // 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
     }
