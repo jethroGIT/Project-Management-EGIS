@@ -172,7 +172,7 @@
                     </div>
                     <!-- Diagram WPV Container -->
                     <div id="diagram-wpv">
-                        @include('partials.diagram_wpv', [
+                        @include('partials.diagram_timeline', [
                             'wpvWithPeriod' => $wpvWithPeriod,
                             'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                             'lebarBulan' => 160,

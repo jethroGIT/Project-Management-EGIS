@@ -1,7 +1,7 @@
 <div class="table-responsive border border-secondary border-1 rounded pb-10" style="overflow-x: auto; width: 100%;">
     @php
         // Hitung tinggi total yang dibutuhkan berdasarkan jumlah WP
-        $totalItems = count($wpvWithPeriod);
+        $totalItems = count($woGroups);
         $spacing = 7; // Spacing between rows
         $rowHeight = 35; // Height of each row
         $headerHeight = 40; // Tinggi header bulan
@@ -62,56 +62,27 @@
                     ['bg' => 'bg-danger'],
                 ];
                 $colorCount = count($colorList);
-
-                // Kumpulkan nomor WP unik per WO
-                $wpNumbersByWo = [];
-                foreach ($wpvWithPeriod as $v) {
-                    $woId = $v->wo_id ?? null;
-                    $wpNum = optional($v->workPackage)->wp_number;
-                    if ($woId && $wpNum) {
-                        $wpNumbersByWo[$woId][$wpNum] = true;
-                    }
-                }
-                // Ubah ke array terurut
-                foreach ($wpNumbersByWo as $woId => $set) {
-                    $list = array_keys($set);
-                    usort($list, function($a, $b) {
-                        $aParts = array_map('intval', explode('.', (string) $a));
-                        $bParts = array_map('intval', explode('.', (string) $b));
-                        $max = max(count($aParts), count($bParts));
-                        for ($i = 0; $i < $max; $i++) {
-                            $ai = $aParts[$i] ?? 0;
-                            $bi = $bParts[$i] ?? 0;
-                            if ($ai !== $bi) return $ai <=> $bi;
-                        }
-                        return 0;
-                    });
-                    $wpNumbersByWo[$woId] = $list;
-                }
             @endphp
             
-            @foreach($wpvWithPeriod as $wpv)
+            @foreach($woGroups as $group)
                 @php
                     \Carbon\Carbon::setLocale('id');
-                    $startMonth = \Carbon\Carbon::parse($wpv->start_date)->month;
-                    $endMonth = \Carbon\Carbon::parse($wpv->end_date)->month;
-                    
-                    if ($startMonth > $endMonth) {
+                    $start = $group->start_date ? \Carbon\Carbon::parse($group->start_date) : null;
+                    $end = $group->end_date ? \Carbon\Carbon::parse($group->end_date) : null;
+
+                    $startMonth = $start ? $start->month : 1;
+                    $endMonth = $end ? $end->month : $startMonth;
+                    if ($start && $end && $start->gt($end)) {
                         $endMonth = $endMonth + 12;
                     }
-                    
+
                     $topPosition = ($loop->index * ($rowHeight + $spacing)) + 40;
                     $leftPosition = ($startMonth - 1) * $lebarBulan;
-                    $width = ($endMonth - $startMonth + 1) * $lebarBulan;
-                    
+                    $width = max( ( ($endMonth - $startMonth + 1) * $lebarBulan ), $lebarBulan ); // minimal 1 bulan
                     $color = $colorList[$loop->index % $colorCount];
-                    
-                    // Calculate progress
-                    $progress = $wpv->performance ?? 0;
-                    $progressWidth = $width * ($progress / 100);
-
-                    // Tooltip periode
-                   $periodeTooltip = \Carbon\Carbon::parse($wpv->start_date)->translatedFormat('d M') . ' - ' . \Carbon\Carbon::parse($wpv->end_date)->translatedFormat('d M');
+                    $progress = $group->performance ?? 0;
+                    $periodeTooltip = $start && $end ? $start->translatedFormat('d M') . ' - ' . $end->translatedFormat('d M') : ($start ? $start->translatedFormat('d M') : '-');
+                    $wpLabel = implode(', WP ', $group->wp_numbers ?: []);
                 @endphp
                 
                 <div class="position-relative"
@@ -138,7 +109,7 @@
                                 <!-- Left side: WP Number and Period -->
                                 <div class="d-flex align-items-center">
                                     <span class="fw-bold {{ $progress > 20 ? 'text-light' : 'text-dark' }}">
-                                        WO {{ $wpv->workOrder->wo_number }} - WP {{ implode(', ', $wpNumbersbyWo[$wpv->wo_id] ?? [optional($wpv->workPackage)->wp_number]) }}
+                                        WO {{ $group->wo_number }} - WP {{ $wpLabel }}
                                     </span>
                                 </div>
                                 

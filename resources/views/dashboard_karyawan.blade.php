@@ -242,13 +242,13 @@
                         </div>
                     </div>
                     <!-- Diagram WPV Container -->
-                    <div id="diagram-wpv">
+                    <div id="diagram-timeline">
                         @if(!isset($wpvWithPeriod) || empty($wpvWithPeriod) || count($wpvWithPeriod) === 0)
                             <div class="text-center py-5">
                                 Tidak ada data WP pada tahun ini.
                             </div>
                         @else
-                            @include('partials.diagram_wpv', [
+                            @include('partials.diagram_timeline', [
                                 'wpvWithPeriod' => $wpvWithPeriod,
                                 'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                                 'lebarBulan' => 110,
@@ -316,15 +316,15 @@
                 .then(function(response) {
                     console.log('Response JSON:', response);
                     if (response.success && response.html) {
-                        document.getElementById('diagram-wpv').innerHTML = response.html;
+                        document.getElementById('diagram-timeline').innerHTML = response.html;
                     } else {
-                        document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                        document.getElementById('diagram-timeline').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
                     }
                     hideChartLoading();
                 })
                 .catch(function(error) {
                     console.error('AJAX error:', error);
-                    document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                    document.getElementById('diagram-timeline').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
                     hideChartLoading();
                 });
             }

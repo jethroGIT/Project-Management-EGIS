@@ -79,7 +79,6 @@ class DashboardController extends Controller
             ->orderBy('execution_year', 'asc')
             ->pluck('execution_year');
             
-        // Fetch the WPV period data for initial view
         $wpvWithPeriod = WorkPackageVolume::whereNotNull('work_package_volume.end_date')
             ->whereNotNull('work_package_volume.wo_id')
             ->where('work_package_volume.execution_year', $selectedYear)
@@ -88,32 +87,75 @@ class DashboardController extends Controller
             ->orderByRaw('CAST(wo_sort.wo_number AS INTEGER) ASC')
             ->select('work_package_volume.*')
             ->get();
-
-        // Hitung performance untuk setiap volume
+        
         $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
-        foreach ($groupedByWo as $woId => $volumes) {            
-            $totalTasksCount = 0;
-            $totalTasksCompleteness = 0;
-            
-            foreach ($volumes as $volume) {
-                foreach ($volume->task as $task) {
-                    $subTasks = $task->subTask;
-                    $taskCompleteness = $subTasks && $subTasks->count() > 0
-                        ? (float) $subTasks->avg('completeness')
-                        : (float) ($task->completeness ?? 0);
+        $woGroups = collect();
 
-                    $totalTasksCompleteness += $taskCompleteness;
-                    $totalTasksCount++;
+        foreach ($groupedByWo as $woId => $volumes) {
+            $totalTasksCount = 0;
+            $totalTasksCompleteness = 0.0;
+
+            $startDates = [];
+            $endDates = [];
+            $wpNumbers = [];
+
+            foreach ($volumes as $volume) {
+                // collect period bounds
+                if ($volume->start_date) $startDates[] = $volume->start_date;
+                if ($volume->end_date) $endDates[] = $volume->end_date;
+
+                // collect WP numbers
+                $wpNum = optional($volume->workPackage)->wp_number;
+                if ($wpNum) $wpNumbers[$wpNum] = true;
+
+                // get tasks (use eager loaded relationship if present)
+                $tasks = $volume->task ?? collect();
+                // if relation not loaded, fallback to query
+                if ($tasks instanceof \Illuminate\Database\Eloquent\Collection === false) {
+                    $tasks = Task::where('volume_id', $volume->volume_id)->with('subTask')->get();
+                }
+
+                foreach ($tasks as $task) {
+                    $taskCompleteness = null;
+                    if ($task->completeness !== null) {
+                        $taskCompleteness = floatval($task->completeness);
+                    } else {
+                        // compute from sub tasks
+                        $subTasks = $task->subTask ?? collect();
+                        if ($subTasks->count() > 0) {
+                            $subsAvg = $subTasks->avg(function($st) {
+                                return $st->completeness !== null ? floatval($st->completeness) : 0;
+                            });
+                            $taskCompleteness = floatval($subsAvg);
+                        }
+                    }
+
+                    if ($taskCompleteness !== null) {
+                        $totalTasksCompleteness += $taskCompleteness;
+                        $totalTasksCount++;
+                    }
                 }
             }
 
             $groupPerformance = $totalTasksCount > 0
-                ? round($totalTasksCompleteness / $totalTasksCount, 0)
-                : 0;
+                ? round($totalTasksCompleteness / $totalTasksCount, 2)
+                : 0.0;
 
-            foreach ($volumes as $volume) {
-                $volume->performance = $groupPerformance;
-            }
+            // determine group period (earliest start, latest end)
+            $groupStart = count($startDates) ? collect($startDates)->min() : null;
+            $groupEnd = count($endDates) ? collect($endDates)->max() : null;
+
+            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+
+            $woGroups->push((object)[
+                'wo_id' => $woId,
+                'wo_number' => $woNumber,
+                'start_date' => $groupStart,
+                'end_date' => $groupEnd,
+                'performance' => $groupPerformance,
+                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'volumes' => $volumes, // include volumes if view needs details
+            ]);
         }
 
         return view('dashboard', compact(
@@ -126,7 +168,7 @@ class DashboardController extends Controller
             'wpProgressBarChartData',
             'barChartWpSDMData',
             'executionYear',
-            'wpvWithPeriod',
+            'woGroups',
         ));
     }
 
@@ -891,36 +933,80 @@ class DashboardController extends Controller
             ->get();
         
         $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        $woGroups = collect();
+
         foreach ($groupedByWo as $woId => $volumes) {
             $totalTasksCount = 0;
             $totalTasksCompleteness = 0.0;
 
-            foreach ($volumes as $volume) {
-                foreach ($volume->task as $task) {
-                    $subTasks = $task->subTask;
-                    $taskCompleteness = $subTasks && $subTasks->count() > 0
-                        ? (float) $subTasks->avg('completeness')
-                        : (float) ($task->completeness ?? 0);
+            $startDates = [];
+            $endDates = [];
+            $wpNumbers = [];
 
-                    $totalTasksCompleteness += $taskCompleteness;
-                    $totalTasksCount++;
+            foreach ($volumes as $volume) {
+                // collect period bounds
+                if ($volume->start_date) $startDates[] = $volume->start_date;
+                if ($volume->end_date) $endDates[] = $volume->end_date;
+
+                // collect WP numbers
+                $wpNum = optional($volume->workPackage)->wp_number;
+                if ($wpNum) $wpNumbers[$wpNum] = true;
+
+                // get tasks (use eager loaded relationship if present)
+                $tasks = $volume->task ?? collect();
+                // if relation not loaded, fallback to query
+                if ($tasks instanceof \Illuminate\Database\Eloquent\Collection === false) {
+                    $tasks = Task::where('volume_id', $volume->volume_id)->with('subTask')->get();
+                }
+
+                foreach ($tasks as $task) {
+                    $taskCompleteness = null;
+                    if ($task->completeness !== null) {
+                        $taskCompleteness = floatval($task->completeness);
+                    } else {
+                        // compute from sub tasks
+                        $subTasks = $task->subTask ?? collect();
+                        if ($subTasks->count() > 0) {
+                            $subsAvg = $subTasks->avg(function($st) {
+                                return $st->completeness !== null ? floatval($st->completeness) : 0;
+                            });
+                            $taskCompleteness = floatval($subsAvg);
+                        }
+                    }
+
+                    if ($taskCompleteness !== null) {
+                        $totalTasksCompleteness += $taskCompleteness;
+                        $totalTasksCount++;
+                    }
                 }
             }
 
             $groupPerformance = $totalTasksCount > 0
-                ? round($totalTasksCompleteness / $totalTasksCount, 0)
-                : 0;
+                ? round($totalTasksCompleteness / $totalTasksCount, 2)
+                : 0.0;
 
-            foreach ($volumes as $volume) {
-                $volume->performance = $groupPerformance;
-            }
+            // determine group period (earliest start, latest end)
+            $groupStart = count($startDates) ? collect($startDates)->min() : null;
+            $groupEnd = count($endDates) ? collect($endDates)->max() : null;
+
+            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+
+            $woGroups->push((object)[
+                'wo_id' => $woId,
+                'wo_number' => $woNumber,
+                'start_date' => $groupStart,
+                'end_date' => $groupEnd,
+                'performance' => $groupPerformance,
+                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'volumes' => $volumes, // include volumes if view needs details
+            ]);
         }
         
         // Render hanya partial view diagram
-        $html = view('partials.diagram_wpv', [
-            'wpvWithPeriod' => $wpvWithPeriod,
+        $html = view('partials.diagram_timeline', [
+            'woGroups' => $woGroups,
             'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
-            'lebarBulan' => 160,
+            'lebarBulan' => 110,
             'tinggiDiagram' => 340,
         ])->render();
 

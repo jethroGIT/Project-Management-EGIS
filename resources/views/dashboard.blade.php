@@ -258,9 +258,9 @@
                 </div>
             </div>
             <!-- Diagram WPV Container -->
-            <div id="diagram-wpv">
-                @include('partials.diagram_wpv', [
-                    'wpvWithPeriod' => $wpvWithPeriod,
+            <div id="diagram-timeline">
+                @include('partials.diagram_timeline', [
+                    'woGroups' => $woGroups,
                     'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                     'lebarBulan' => 110,
                     'tinggiDiagram' => 330
@@ -435,15 +435,15 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function(response) {
                 console.log('Response JSON:', response);
                 if (response.success && response.html) {
-                    document.getElementById('diagram-wpv').innerHTML = response.html;
+                    document.getElementById('diagram-timeline').innerHTML = response.html;
                 } else {
-                    document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                    document.getElementById('diagram-timeline').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
                 }
                 hidePeriodChartLoading();
             })
             .catch(function(error) {
                 console.error('AJAX error:', error);
-                document.getElementById('diagram-wpv').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
+                document.getElementById('diagram-timeline').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
                 hidePeriodChartLoading();
             });
         }

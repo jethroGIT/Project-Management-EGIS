@@ -348,7 +348,7 @@ class DashboardKaryawanController extends Controller
         }
         
         // 4. Render partial view diagram
-        $html = view('partials.diagram_wpv', [
+        $html = view('partials.diagram_timeline', [
             'wpvWithPeriod' => $wpvWithPeriod,
             'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
             'lebarBulan' => 160,
