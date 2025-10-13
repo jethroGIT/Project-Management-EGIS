@@ -213,8 +213,40 @@
         const form = document.getElementById('editProfileForm');
         const passwordInput = document.getElementById('editPassword');
         const passwordValue = passwordInput.value;
+        const emailInput = document.getElementById('editEmail');
+        const emailValue = emailInput.value;
+        const nameInput = document.getElementById('editFullName');
+        const nameValue = nameInput.value;
         const formData = new FormData(form);
         const url = form.action;
+
+
+        // Validasi semua
+        if (!nameValue.trim() || !emailValue.trim()) {
+            Swal.fire({
+                text: "Nama atau email tidak boleh kosong.",
+                icon: "warning",
+                buttonsStyling: false,
+                confirmButtonText: "OK",
+                customClass: { confirmButton: "btn btn-danger" }
+            });
+            nameInput.focus();
+            return;
+        }
+
+        // Validasi email
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(emailValue)) {
+            Swal.fire({
+                text: "Format email tidak valid.",
+                icon: "warning",
+                buttonsStyling: false,
+                confirmButtonText: "OK",
+                customClass: { confirmButton: "btn btn-danger" }
+            });
+            emailInput.focus();
+            return;
+        }
 
         if (passwordValue && passwordValue.length < 8) {
             Swal.fire({
@@ -246,7 +278,7 @@
         })
         .then(data => {
             Swal.fire({
-                text: data.message || "Data berhasil diubah!",
+                text: data.message || "Data berhasil diperbarui!",
                 icon: "success",
                 buttonsStyling: false,
                 confirmButtonText: "Tutup",
