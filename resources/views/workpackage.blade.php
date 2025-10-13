@@ -649,7 +649,7 @@
                                 </div>
                                 <h3 class="card-title fw-bold">Deliverables</h3>
                             </div>
-                            <div class="mb-2 fs-7">
+                            <div class="mb-2 fs-7" style="overflow-y: auto; max-height: 300px;">
                                 @if(!empty($workPackage->deliverable))
                                     {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
                                 @else

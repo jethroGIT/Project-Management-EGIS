@@ -243,13 +243,13 @@
                     </div>
                     <!-- Diagram WPV Container -->
                     <div id="diagram-timeline">
-                        @if(!isset($wpvWithPeriod) || empty($wpvWithPeriod) || count($wpvWithPeriod) === 0)
+                        @if(!isset($woGroups) || empty($woGroups) || count($woGroups) === 0)
                             <div class="text-center py-5">
                                 Tidak ada data WP pada tahun ini.
                             </div>
                         @else
                             @include('partials.diagram_timeline', [
-                                'wpvWithPeriod' => $wpvWithPeriod,
+                                'woGroups' => $woGroups,
                                 'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
                                 'lebarBulan' => 110,
                                 'tinggiDiagram' => 330

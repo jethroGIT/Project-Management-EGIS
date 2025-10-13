@@ -32,6 +32,7 @@ class DashboardKaryawanController extends Controller
                 'workPackageVolumes.task.subTask'
             ])
             ->whereIn('wp_id', $wpIds)
+            ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
             ->get();
         
         $wpCount = $workPackages->count();
@@ -44,14 +45,14 @@ class DashboardKaryawanController extends Controller
             $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->first();
             $woId = $userVolume ? $userVolume->wo_id : null;
             
-            if (!$woId) {
-                $wp->volumes_count = 0;
-                $wp->execution_year = '-';
-                $wp->status = 'Berjalan';
-                $wp->performance = 0;
-                $berjalan++;
-                continue;
-            }
+            // if (!$woId) {
+            //     $wp->volumes_count = 0;
+            //     $wp->execution_year = '-';
+            //     $wp->status = 'Berjalan';
+            //     $wp->performance = 0;
+            //     $berjalan++;
+            //     continue;
+            // }
             
             // Ambil volume dengan WO yang sama
             $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);
@@ -104,29 +105,73 @@ class DashboardKaryawanController extends Controller
             ->get();
         
         $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        $woGroups = collect();
+
         foreach ($groupedByWo as $woId => $volumes) {
             $totalTasksCount = 0;
             $totalTasksCompleteness = 0.0;
 
-            foreach ($volumes as $volume) {
-                foreach ($volume->task as $task) {
-                    $subTasks = $task->subTask;
-                    $taskCompleteness = $subTasks && $subTasks->count() > 0
-                        ? (float) $subTasks->avg('completeness')
-                        : (float) ($task->completeness ?? 0);
+            $startDates = [];
+            $endDates = [];
+            $wpNumbers = [];
 
-                    $totalTasksCompleteness += $taskCompleteness;
-                    $totalTasksCount++;
+            foreach ($volumes as $volume) {
+                // collect period bounds
+                if ($volume->start_date) $startDates[] = $volume->start_date;
+                if ($volume->end_date) $endDates[] = $volume->end_date;
+
+                // collect WP numbers
+                $wpNum = optional($volume->workPackage)->wp_number;
+                if ($wpNum) $wpNumbers[$wpNum] = true;
+
+                // get tasks (use eager loaded relationship if present)
+                $tasks = $volume->task ?? collect();
+                // if relation not loaded, fallback to query
+                if ($tasks instanceof \Illuminate\Database\Eloquent\Collection === false) {
+                    $tasks = Task::where('volume_id', $volume->volume_id)->with('subTask')->get();
+                }
+
+                foreach ($tasks as $task) {
+                    $taskCompleteness = null;
+                    if ($task->completeness !== null) {
+                        $taskCompleteness = floatval($task->completeness);
+                    } else {
+                        // compute from sub tasks
+                        $subTasks = $task->subTask ?? collect();
+                        if ($subTasks->count() > 0) {
+                            $subsAvg = $subTasks->avg(function($st) {
+                                return $st->completeness !== null ? floatval($st->completeness) : 0;
+                            });
+                            $taskCompleteness = floatval($subsAvg);
+                        }
+                    }
+
+                    if ($taskCompleteness !== null) {
+                        $totalTasksCompleteness += $taskCompleteness;
+                        $totalTasksCount++;
+                    }
                 }
             }
 
             $groupPerformance = $totalTasksCount > 0
-                ? round($totalTasksCompleteness / $totalTasksCount, 0)
-                : 0;
+                ? round($totalTasksCompleteness / $totalTasksCount, 2)
+                : 0.0;
 
-            foreach ($volumes as $volume) {
-                $volume->performance = $groupPerformance;
-            }
+            // determine group period (earliest start, latest end)
+            $groupStart = count($startDates) ? collect($startDates)->min() : null;
+            $groupEnd = count($endDates) ? collect($endDates)->max() : null;
+
+            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+
+            $woGroups->push((object)[
+                'wo_id' => $woId,
+                'wo_number' => $woNumber,
+                'start_date' => $groupStart,
+                'end_date' => $groupEnd,
+                'performance' => $groupPerformance,
+                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'volumes' => $volumes, // include volumes if view needs details
+            ]);
         }
 
         // 7. Data untuk pie chart
@@ -149,7 +194,7 @@ class DashboardKaryawanController extends Controller
             'wpCount', 
             'workPackagesActive', 
             'executionYear', 
-            'wpvWithPeriod', 
+            'woGroups', 
             'selectedYear',
             'pieChartDataWP'
         ));
@@ -320,38 +365,81 @@ class DashboardKaryawanController extends Controller
             ->select('work_package_volume.*')
             ->get();
         
-        // 3. Hitung performance untuk setiap volume
         $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        $woGroups = collect();
+
         foreach ($groupedByWo as $woId => $volumes) {
             $totalTasksCount = 0;
             $totalTasksCompleteness = 0.0;
 
-            foreach ($volumes as $volume) {
-                foreach ($volume->task as $task) {
-                    $subTasks = $task->subTask;
-                    $taskCompleteness = $subTasks && $subTasks->count() > 0
-                        ? (float) $subTasks->avg('completeness')
-                        : (float) ($task->completeness ?? 0);
+            $startDates = [];
+            $endDates = [];
+            $wpNumbers = [];
 
-                    $totalTasksCompleteness += $taskCompleteness;
-                    $totalTasksCount++;
+            foreach ($volumes as $volume) {
+                // collect period bounds
+                if ($volume->start_date) $startDates[] = $volume->start_date;
+                if ($volume->end_date) $endDates[] = $volume->end_date;
+
+                // collect WP numbers
+                $wpNum = optional($volume->workPackage)->wp_number;
+                if ($wpNum) $wpNumbers[$wpNum] = true;
+
+                // get tasks (use eager loaded relationship if present)
+                $tasks = $volume->task ?? collect();
+                // if relation not loaded, fallback to query
+                if ($tasks instanceof \Illuminate\Database\Eloquent\Collection === false) {
+                    $tasks = Task::where('volume_id', $volume->volume_id)->with('subTask')->get();
+                }
+
+                foreach ($tasks as $task) {
+                    $taskCompleteness = null;
+                    if ($task->completeness !== null) {
+                        $taskCompleteness = floatval($task->completeness);
+                    } else {
+                        // compute from sub tasks
+                        $subTasks = $task->subTask ?? collect();
+                        if ($subTasks->count() > 0) {
+                            $subsAvg = $subTasks->avg(function($st) {
+                                return $st->completeness !== null ? floatval($st->completeness) : 0;
+                            });
+                            $taskCompleteness = floatval($subsAvg);
+                        }
+                    }
+
+                    if ($taskCompleteness !== null) {
+                        $totalTasksCompleteness += $taskCompleteness;
+                        $totalTasksCount++;
+                    }
                 }
             }
 
             $groupPerformance = $totalTasksCount > 0
-                ? round($totalTasksCompleteness / $totalTasksCount, 0)
-                : 0;
+                ? round($totalTasksCompleteness / $totalTasksCount, 2)
+                : 0.0;
 
-            foreach ($volumes as $volume) {
-                $volume->performance = $groupPerformance;
-            }
+            // determine group period (earliest start, latest end)
+            $groupStart = count($startDates) ? collect($startDates)->min() : null;
+            $groupEnd = count($endDates) ? collect($endDates)->max() : null;
+
+            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+
+            $woGroups->push((object)[
+                'wo_id' => $woId,
+                'wo_number' => $woNumber,
+                'start_date' => $groupStart,
+                'end_date' => $groupEnd,
+                'performance' => $groupPerformance,
+                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'volumes' => $volumes, // include volumes if view needs details
+            ]);
         }
         
         // 4. Render partial view diagram
         $html = view('partials.diagram_timeline', [
-            'wpvWithPeriod' => $wpvWithPeriod,
+            'woGroups' => $woGroups,
             'bulanIndonesia' => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
-            'lebarBulan' => 160,
+            'lebarBulan' => 110,
             'tinggiDiagram' => 340,
         ])->render();
 
@@ -384,7 +472,10 @@ class DashboardKaryawanController extends Controller
         $volumeIds = Work::where('user_id', $user_id)->pluck('volume_id');
         
         // 2. Ambil semua WP yang terkait dengan volume tersebut
-        $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)->pluck('wp_id')->unique();
+        $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)
+            ->whereNotNull('wo_id')
+            ->pluck('wp_id')
+            ->unique();
         
         // 3. Ambil semua WP dengan eager loading yang diperlukan
         $workPackages = WorkPackage::with([
@@ -394,6 +485,7 @@ class DashboardKaryawanController extends Controller
                 'workPackageVolumes.task.subTask'
             ])
             ->whereIn('wp_id', $wpIds)
+            ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
             ->get();
         
         $wpCount = $workPackages->count();
@@ -406,16 +498,16 @@ class DashboardKaryawanController extends Controller
             $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->first();
             $woId = $userVolume ? $userVolume->wo_id : null;
             
-            if (!$woId) {
-                $wp->volumes_count = 0;
-                $wp->execution_year = '-';
-                $wp->status = 'Berjalan';
-                $wp->performance = 0;
-                $berjalan++;
-                $wp->planned_mandays = 0;
-                $wp->actual_mandays = 0;
-                continue;
-            }
+            // if (!$woId) {
+            //     $wp->volumes_count = 0;
+            //     $wp->execution_year = '-';
+            //     $wp->status = 'Berjalan';
+            //     $wp->performance = 0;
+            //     $berjalan++;
+            //     $wp->planned_mandays = 0;
+            //     $wp->actual_mandays = 0;
+            //     continue;
+            // }
             
             // Ambil volume dengan WO yang sama
             $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);

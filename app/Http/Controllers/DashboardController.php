@@ -1055,6 +1055,7 @@ class DashboardController extends Controller
             'workPackageVolumes.task.subTask'
         ])
         ->whereIn('wp_id', $wpIds)
+        ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
         ->get();
         
         $wpCount = $workPackages->count();
@@ -1068,16 +1069,16 @@ class DashboardController extends Controller
             $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->first();
             $woId = $userVolume ? $userVolume->wo_id : null;
             
-            if (!$woId) {
-                $wp->volumes_count = 0;
-                $wp->execution_year = '-';
-                $wp->status = 'Berjalan';
-                $wp->performance = 0;
-                $berjalan++;
-                $wp->planned_mandays = 0;
-                $wp->actual_mandays = 0;
-                continue;
-            }
+            // if (!$woId) {
+            //     $wp->volumes_count = 0;
+            //     $wp->execution_year = '-';
+            //     $wp->status = 'Berjalan';
+            //     $wp->performance = 0;
+            //     $berjalan++;
+            //     $wp->planned_mandays = 0;
+            //     $wp->actual_mandays = 0;
+            //     continue;
+            // }
             
             // Ambil volume dengan WO yang sama
             $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);

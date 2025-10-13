@@ -18,7 +18,7 @@
                         <th rowspan="2" class="text-center fw-bold px-3">Volume</th>
                         <th rowspan="2" class="text-center fw-bold">Tahun</th>
                         <th rowspan="2" class="text-center fw-bold">Progress</th>
-                        <th rowspan="2" class="text-center fw-bold">Status</th>
+                        {{-- <th rowspan="2" class="text-center fw-bold">Status</th> --}}
                     </tr>
                     <tr style="font-size: 0.98rem;">
                         <th>Rencana</th>
@@ -48,13 +48,13 @@
                                     <span class="ms-2">{{ round($wp->performance) }}%</span>
                                 </div>
                             </td>
-                            <td class="text-center">
+                            {{-- <td class="text-center">
                                 @if($wp->status == 'Selesai')
                                     <span class="badge bg-success">Selesai</span>
                                 @else
                                     <span class="badge bg-warning">Berjalan</span>
                                 @endif
-                            </td>
+                            </td> --}}
                         </tr>
                     @empty
                         <tr>
