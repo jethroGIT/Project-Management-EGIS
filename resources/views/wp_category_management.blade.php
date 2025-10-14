@@ -215,11 +215,11 @@
             if (!categoryNumber || !categoryName) {
                 Swal.fire({
                     title: "Data Belum Lengkap",
-                    text: "Nomor WP & Work Package wajib diisi.",
+                    text: "Nomor WP & Nama Work Package wajib diisi.",
                     icon: "info",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
-                    customClass: { confirmButton: "btn btn-primary" }
+                    customClass: { confirmButton: "btn btn-secondary" }
                 });
                 return;
             }
@@ -230,7 +230,7 @@
                     icon: "info",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
-                    customClass: { confirmButton: "btn btn-primary" }
+                    customClass: { confirmButton: "btn btn-secondary" }
                 });
                 return;
             }
@@ -397,60 +397,85 @@
     });
 
     // delete category
-    $(document).on('click', '.btn-delete-category', function(e) {
+    $(document).on('click', '.btn-delete-category', function (e) {
         e.preventDefault();
         const categoryId = $(this).data('category-id');
         const categoryName = $(this).data('category-name');
 
-        Swal.fire({
-            title: "Konfirmasi Hapus Work Package",
-            html: `
-                <span>Apakah Anda yakin ingin menghapus Work Package:</span>
-                <p>${categoryName}?</p>
-                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
-            `,
-            icon: "warning",
-            buttonsStyling: false,
-            showCancelButton: true,
-            cancelButtonText: 'Batal',
-            confirmButtonText: "Ya, Hapus",
-            customClass: {
-                confirmButton: "btn btn-danger",
-                cancelButton: 'btn btn-secondary'
+        fetch(`/wpcategory-management/${categoryId}/related-data`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
             }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/wpcategory-management/${categoryId}/delete`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title:'Berhasil!', 
-                            text: data.message, 
-                            icon: 'success',
-                            buttonsStyling: false,
-                            confirmButtonText: "Tutup",
-                            customClass: { confirmButton: "btn btn-secondary" }
-                        }).then(() => {
-                            // location.reload(); // atau remove baris dari DOM langsung
-                            $(`[data-category-id="${categoryId}"]`).closest('tr').remove();
-                        });
-                    } else {
-                        Swal.fire('Gagal', data.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
-                });
-            }
-        });
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Tampilkan daftar Work Package yang akan dihapus
+                    const workPackages = data.deleted_work_packages.map(wp => `${wp.wp_number} - ${wp.name}</br>`).join('');
+                    const htmlContent = `
+                        <p>Apakah Anda yakin ingin menghapus Work Package <strong>${categoryName}</strong>?</p>
+                        <p>Seluruh data Kategori Work Package berikut akan ikut terhapus:</p>
+                        <ul style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-start: 5px;">${workPackages}</ul>
+                        <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan.</small></p>
+                    `;
+
+                    Swal.fire({
+                        title: "Konfirmasi Hapus Work Package",
+                        html: htmlContent,
+                        icon: "warning",
+                        buttonsStyling: false,
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonText: "Ya, Hapus",
+                        customClass: {
+                            confirmButton: "btn btn-danger",
+                            cancelButton: 'btn btn-secondary'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Lakukan penghapusan
+                            fetch(`/wpcategory-management/${categoryId}/delete`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                                .then(res => res.json())
+                                .then(deleteResponse => {
+                                    if (deleteResponse.success) {
+                                        Swal.fire({
+                                            title: 'Berhasil!',
+                                            text: deleteResponse.message,
+                                            icon: 'success',
+                                            buttonsStyling: false,
+                                            confirmButtonText: "Tutup",
+                                            customClass: { confirmButton: "btn btn-secondary" }
+                                        }).then(() => {
+                                            // Hapus baris dari tabel
+                                            location.reload();
+                                            // $(`[data-category-id="${categoryId}"]`).closest('tr').remove();
+                                        });
+                                    } else {
+                                        Swal.fire('Gagal', deleteResponse.message, 'error');
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
+                                });
+                        }
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error', 'Gagal mengambil data terkait kategori.', 'error');
+            });
     });
 </script>
 @endpush

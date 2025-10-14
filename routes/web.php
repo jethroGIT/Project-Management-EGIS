@@ -57,6 +57,7 @@ Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin'])->group(
     Route::post('/wpcategory-management/add', [WPCategoryManagementController::class, 'add'])->name('wpcategory.add');
     Route::put('/wpcategory-management/edit', [WPCategoryManagementController::class, 'edit'])->name('wpcategory.edit');
     Route::delete('/wpcategory-management/{id}/delete', [WPCategoryManagementController::class, 'delete'])->name('wpcategory.delete');
+    Route::get('/wpcategory-management/{id}/related-data', [WPCategoryManagementController::class, 'getRelatedData']);
 
     // Manajemen Resource
     Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');

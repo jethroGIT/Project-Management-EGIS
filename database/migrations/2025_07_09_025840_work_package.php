@@ -23,7 +23,8 @@ return new class extends Migration
             // $table->decimal('completeness', 5, 2)->default(0.00);
             $table->timestamps();
 
-            $table->foreign('category_id')->references('category_id')->on('wp_category')->onDelete('set null');
+            // semula on delete set null
+            $table->foreign('category_id')->references('category_id')->on('wp_category')->onDelete('cascade');
         });
     }
 

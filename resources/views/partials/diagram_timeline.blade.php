@@ -181,6 +181,27 @@
         border-radius: 20px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
+    .tooltip {
+        background-color: #fff !important; /* Warna latar belakang putih */
+        color: #000 !important; /* Warna teks hitam */
+        border: 1px solid #ddd; /* Tambahkan border abu-abu */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Tambahkan bayangan */
+    }
+
+    .tooltip .tooltip-inner {
+        background-color: #fff !important; /* Warna latar belakang putih */
+        color: #000 !important; /* Warna teks hitam */
+        font-size: 0.875rem; /* Ukuran font */
+        font-weight: 400; /* Berat font */
+        border-radius: 5px; /* Sudut melengkung */
+        padding: 8px 12px; /* Padding dalam tooltip */
+    }
+
+    .tooltip-arrow {
+        border-top-color: #fff !important; /* Warna panah putih */
+        border-bottom-color: #fff !important; /* Warna panah putih */
+    }
     
     /* Responsive adjustments */
     /* @media (max-width: 767.98px) {
