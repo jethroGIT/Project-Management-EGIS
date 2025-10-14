@@ -24,7 +24,6 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // Hitung total Work Order yang tersedia
-        // $totalWorkOrders = WorkOrder::count();
         $totalWorkOrders = WorkOrder::with(['workPackageVolumes' => function($query) {
             $query->with('workPackage')
                 ->whereNotNull('start_date')
@@ -38,17 +37,11 @@ class DashboardController extends Controller
         })
         ->count();
 
-        // Data untuk card Work Package Selesai (TIDAK DIPAKAI)
-        // $workPackageCompletionData = $this->getWorkPackageCompletionData();
-
         // Data untuk card Work Package yang sudah dipanggil WO
         $workPackageWOAssignmentData = $this->getWorkPackageWOAssignment();
 
         // Data untuk progress bar WO selesai dengan WO yang baru keluar berdasarkan nilai keuangan
         $woCompletionFinanceData = $this->getWOCompletionFinance();
-
-        // Data untuk pie chart WO (TIDAK DIPAKAI)
-        // $pieChartDataWo = $this->countWPAsociatedWithWO();
 
         // Data untuk pie chart WP Completion dari WP yang sudah dipanggil WO
         $pieChartDataWo = $this->getWPCompletionFromAssignedWP();
@@ -70,10 +63,7 @@ class DashboardController extends Controller
             'total_users' => $userWorkPackageData->count()
         ];
 
-        // Data untuk tabel Project Berjalan (TIDAK DIPAKAI)
-        // $projectBerjalanData = $this->getProjectBerjalanData();
-
-         // Get execution years for the period diagram filter
+        // Get execution years for the period diagram filter
         $executionYear = WorkPackageVolume::whereNotNull(['end_date', 'wo_id'])
             ->distinct()
             ->orderBy('execution_year', 'asc')
@@ -393,9 +383,10 @@ class DashboardController extends Controller
             foreach ($humanResources as $hResource) {
                 $resourceCost = optional($hResource->role)->resource_cost ?? 0;
                 $jhk = $hResource->jhk ?? 0;
+                $jtk = $hResource->jtk ?? 0;
 
                 // Hitung biaya by YoY
-                $byYoyCost = $jhk * $resourceCost;
+                $byYoyCost = $jhk * $jtk * $resourceCost;
                 $totalByYoy += $byYoyCost;
             }
 
@@ -547,6 +538,8 @@ class DashboardController extends Controller
                 'task.subTask',
             ])
             ->whereNotNull('work_package_volume.wo_id')
+            ->whereNotNull('work_package_volume.start_date')
+            ->whereNotNull('work_package_volume.end_date')
             ->whereHas('workPackage')
             ->whereHas('workOrder')
             ->where('execution_year', $year)
@@ -666,6 +659,8 @@ class DashboardController extends Controller
         try {
             $years = WorkPackageVolume::whereNotNull('execution_year')
                 ->whereNotNull('wo_id')
+                ->whereNotNull('start_date')
+                ->whereNotNull('end_date')
                 ->whereHas('workPackage')
                 ->whereHas('workOrder')
                 ->select('execution_year')
