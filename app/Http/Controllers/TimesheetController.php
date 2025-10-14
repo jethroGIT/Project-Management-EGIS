@@ -186,42 +186,79 @@ class TimesheetController extends Controller
     /**
      * adding the user activity.
      */
-    public function addperUser(Request $request, $volume_id, $user_id){
+    public function addperUser(Request $request, $volume_id, $user_id)
+    {
         try {
-            // validate
-            // save
+            // Validasi input
             $request->validate([
                 'execution_date' => 'required|date',
                 'duration' => 'required|numeric',
                 'activity' => 'required'
             ]);
 
-            // Cek apakah sudah ada aktivitas di volume & tanggal yang sama untuk user ini
-            $exists = Timesheet::where('user_id', $user_id)
-                ->where('volume_id', $volume_id)
-                ->whereDate('execution_date', $request->execution_date)
-                ->exists();
+            // Ambil volume yang sedang diproses
+            $currentVolume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
 
-            if ($exists) {
+            // Cari semua volume milik WP yang memiliki wo_id yang sama
+            $relatedVolumes = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
+                ->where('wo_id', $currentVolume->wo_id)
+                ->get();
+
+            // Jika tidak ada volume terkait, hanya simpan untuk volume saat ini
+            if ($relatedVolumes->count() <= 1) {
+                // Cek apakah sudah ada aktivitas di volume & tanggal yang sama untuk user ini
+                $exists = Timesheet::where('user_id', $user_id)
+                    ->where('volume_id', $volume_id)
+                    ->whereDate('execution_date', $request->execution_date)
+                    ->exists();
+
+                if ($exists) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda sudah mengisi aktivitas untuk WP volume dan tanggal ini.'
+                    ], 422);
+                }
+
+                // Simpan aktivitas baru
+                $activity = Timesheet::create([
+                    'user_id' => $user_id,
+                    'volume_id' => $volume_id,
+                    'duration' => $request->duration,
+                    'execution_date' => $request->execution_date,
+                    'activity' => $request->activity,
+                ]);
+
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Anda sudah mengisi aktivitas untuk WP volume dan tanggal ini.'
-                ], 422);
+                    'success' => true,
+                    'message' => 'Data berhasil ditambahkan.',
+                    'data' => $activity
+                ]);
             }
 
-            // Simpan aktivitas baru
-            $activity = Timesheet::create([
-                'user_id' => $user_id,
-                'volume_id' => $volume_id,
-                'duration' => $request->duration,
-                'execution_date' => $request->execution_date,
-                'activity' => $request->activity,
-            ]);
+            // Jika ada lebih dari 1 volume terkait, simpan aktivitas untuk semua volume
+            $activities = [];
+            foreach ($relatedVolumes as $volume) {
+                // Cek apakah sudah ada aktivitas di volume & tanggal yang sama untuk user ini
+                $exists = Timesheet::where('user_id', $user_id)
+                    ->where('volume_id', $volume->volume_id)
+                    ->whereDate('execution_date', $request->execution_date)
+                    ->exists();
+
+                if (!$exists) {
+                    $activities[] = Timesheet::create([
+                        'user_id' => $user_id,
+                        'volume_id' => $volume->volume_id,
+                        'duration' => $request->duration,
+                        'execution_date' => $request->execution_date,
+                        'activity' => $request->activity,
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data berhasil ditambahkan.',
-                'data' => $activity // Kirim data yang diperbarui jika perlu untuk update UI
+                'message' => 'Data berhasil ditambahkan untuk semua volume terkait.',
+                'data' => $activities
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -237,31 +274,79 @@ class TimesheetController extends Controller
     public function editperUser(Request $request, $volume_id, $user_id)
     {
         try {
-            // validation
-            // save
-            $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
-                                ->where('user_id', $user_id)
-                                ->where('volume_id', $volume_id)
-                                ->firstOrFail();
+            // Validasi input
+            $request->validate([
+                'execution_date' => 'nullable|date',
+                'duration' => 'nullable|numeric',
+                'activity' => 'nullable|string'
+            ]);
 
-            if ($request->filled('execution_date')) {
-                $activity->execution_date = $request->execution_date;
+            // Ambil volume yang sedang diproses
+            $currentVolume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
+
+            // Cari semua volume milik WP yang memiliki wo_id yang sama
+            $relatedVolumes = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
+                ->where('wo_id', $currentVolume->wo_id)
+                ->get();
+
+            // Jika hanya ada satu volume terkait, perbarui aktivitas untuk volume tersebut
+            if ($relatedVolumes->count() <= 1) {
+                $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
+                    ->where('user_id', $user_id)
+                    ->where('volume_id', $volume_id)
+                    ->firstOrFail();
+
+                if ($request->filled('execution_date')) {
+                    $activity->execution_date = $request->execution_date;
+                }
+
+                if ($request->filled('duration')) {
+                    $activity->duration = $request->duration;
+                }
+
+                if ($request->filled('activity')) {
+                    $activity->activity = $request->activity;
+                }
+
+                $activity->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data berhasil diperbarui.',
+                    'data' => $activity
+                ]);
             }
 
-            if ($request->filled('duration')) {
-                $activity->duration = $request->duration;
-            }
+            // Jika ada lebih dari satu volume terkait, perbarui aktivitas untuk semua volume
+            $updatedActivities = [];
+            foreach ($relatedVolumes as $volume) {
+                $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
+                    ->where('user_id', $user_id)
+                    ->where('volume_id', $volume->volume_id)
+                    ->first();
 
-            if ($request->filled('activity')) {
-                $activity->activity = $request->activity;
-            }
+                if ($activity) {
+                    if ($request->filled('execution_date')) {
+                        $activity->execution_date = $request->execution_date;
+                    }
 
-            $activity->save();
+                    if ($request->filled('duration')) {
+                        $activity->duration = $request->duration;
+                    }
+
+                    if ($request->filled('activity')) {
+                        $activity->activity = $request->activity;
+                    }
+
+                    $activity->save();
+                    $updatedActivities[] = $activity;
+                }
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data berhasil diperbarui.',
-                'data' => $activity // Kirim data yang diperbarui jika perlu untuk update UI
+                'message' => 'Data berhasil diperbarui untuk semua volume terkait.',
+                'data' => $updatedActivities
             ]);
         } catch (\Exception $e) {
             return response()->json([

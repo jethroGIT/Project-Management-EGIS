@@ -94,11 +94,6 @@
                             <th scope="col" style="width: 75px; min-width: 35px;">Tanggal</th>
                             @foreach($users as $user)
                                 <th scope="col">
-                                    @php
-                                        // Menggunakan first() untuk mendapatkan role pertama jika ada
-                                        $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
-                                    @endphp
-                                    {{-- <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{$roleName}}">{{$user->short_name}}</span> --}}
                                     {{$user->short_name}}
                                 </th>     
                             @endforeach
@@ -107,38 +102,32 @@
                     </thead>
                     <tbody style="font-size: 0.92rem;">
                         @php $rowNumber = 1; @endphp
-                        @foreach($groupedActivities as $groupKey => $group)
-                            @php
-                                $firstEntry = $group->first();
-                                $wpNumber = optional($firstEntry->volume->workPackage)->wp_number ?? 'N/A';
-                                $wpName = optional($firstEntry->volume->workPackage)->name ?? 'N/A';
-                                $wpGroupKey = $wpNumber . ' - ' . $wpName;
-                                $volumeNum = optional($firstEntry->volume)->volume_number ?? 'N/A';
-                                $executionDate = optional($firstEntry)->execution_date;
-                            @endphp
-
+                        @foreach($groupedActivities as $activity)
                             <tr>
                                 {{-- Kolom tersembunyi untuk grouping --}}
-                                <td style="display: none;">{{ trim(preg_replace('/\s+/', ' ', $wpGroupKey)) }}</td>
+                                <td style="display: none;">{{ $activity['wpGroupKey'] }}</td>
 
                                 <td>{{ $rowNumber++ }}</td>
-                                <td>{{ $volumeNum }}</td>
-                                <td>{{ \Carbon\Carbon::parse($executionDate)->format('d M Y') }}</td>
+                                <td>{{ $activity['volumes'] }}</td>
+                                <td>{{ \Carbon\Carbon::parse($activity['execution_date'])->format('d M Y') }}</td>
                                 
                                 @foreach($users as $user)
                                     @php
-                                        $userEntry = $group->firstWhere('user_id', $user->user_id);
+                                        $userData = collect($activity['users'])->firstWhere('user_id', $user->user_id);
                                     @endphp
-                                    @if($userEntry)
+                                    @if($userData)
                                         <td style="min-width: 120px;">
-                                            @if($userEntry->duration == 1.0)
-                                                <span class="badge badge-light-info mb-1">{{ $userEntry->duration }} Hari</span></br>
-                                            @elseif($userEntry->duration == 0.5)
-                                                <span class="badge badge-light-primary mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                            @if($userData['duration'] == 1.0)
+                                                <span class="badge badge-light-info mb-1">{{ $userData['duration'] }} Hari</span></br>
+                                            @elseif($userData['duration'] == 0.5)
+                                                <span class="badge badge-light-primary mb-1">{{ $userData['duration'] }} Hari</span></br>
                                             @else
-                                                <span class="badge badge-secondary mb-1">{{ $userEntry->duration}} Hari</span></br>
+                                                <span class="badge badge-secondary mb-1">{{ $userData['duration']}} Hari</span></br>
                                             @endif
-                                            <span>{{ $userEntry->activity}}</span>
+                                            {{-- <span class="badge badge-light-info mb-1">{{ $userData['duration'] }} Hari</span></br> --}}
+                                            @foreach($userData['activities'] as $userActivity)
+                                                <span>{{ $userActivity }}</span></br>
+                                            @endforeach
                                         </td>
                                     @else
                                         <td class="text-center text-muted">-</td>
@@ -158,9 +147,9 @@
                                                     title="Edit Aktivitas" 
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#editActivityModal"
-                                                    data-timesheet-id="{{$firstEntry->timesheet_id}}"
-                                                    data-volume-id="{{$firstEntry->volume_id}}"
-                                                    data-execution-date="{{$executionDate}}"
+                                                    data-timesheet-id="{{ $activity['timesheet_id'] ?? '' }}"
+                                                    data-volume-id="{{ $activity['volume_id'] ?? '' }}"
+                                                    data-execution-date="{{ $activity['execution_date'] }}"
                                                 >
                                                     <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                     Edit
@@ -168,58 +157,16 @@
                                             </li>
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" title="Hapus Aktivitas"
-                                                    data-execution-date="{{$executionDate}}" 
-                                                    data-timesheet-id="{{$firstEntry->timesheet_id}}"
+                                                    data-execution-date="{{ $activity['execution_date'] }}" 
+                                                    data-timesheet-id="{{ $activity['timesheet_id'] ?? '' }}"
                                                 >
                                                     <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                     Hapus
                                                 </a>
                                             </li>
-                                            {{-- <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <a class="dropdown-item d-flex align-items-center" href="{{ route('wp-management.detail', ['wp_id' => $wp['wp_id']]) }}">
-                                                    <i class="bi bi-eye me-3 fs-2 text-dark"></i>
-                                                    Lihat Detail
-                                                </a>
-                                            </li> --}}
-                                            <!-- <li>
-                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertAbove(1.1)">
-                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                    Masukkan di Atas
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertBelow(1.1)">
-                                                    <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                    Masukkan di Bawah
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="insertSubRow(1.1)">
-                                                    <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                    Masukkan Sub Baris
-                                                </a>
-                                            </li> -->
                                         </ul>
                                     </div>
                                 </td>
-                                {{-- <td>
-                                    <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit-activity" 
-                                                title="Edit Aktivitas" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editActivityModal"
-                                                data-timesheet-id="{{$firstEntry->timesheet_id}}"
-                                                data-volume-id="{{$firstEntry->volume_id}}"
-                                                data-execution-date="{{$executionDate}}"
-                                        >
-                                            <i class="bi bi-pencil-square fs-6"></i>
-                                        </button>
-                                        <button type="button" data-execution-date="{{$executionDate}}" class="btn btn-danger btn-sm btn-delete-activity" title="Hapus Aktivitas" data-timesheet-id="{{$firstEntry->timesheet_id}}">
-                                            <i class="bi bi-trash fs-6"></i>
-                                        </button>
-                                    </div>                                  
-                                </td> --}}
                             </tr>
                         @endforeach
                     </tbody>

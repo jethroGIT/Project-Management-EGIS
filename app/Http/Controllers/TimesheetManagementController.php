@@ -21,25 +21,45 @@ class TimesheetManagementController extends Controller
             ->orderByRaw('volume_id ASC, execution_date ASC')
             ->get();
         
-        $activitiesForTable = $timesheets->sortBy(function($timesheet) {
-            $wpNumber = optional($timesheet->volume->workPackage)->wp_number ?? '';
-            $wpName = optional($timesheet->volume->workPackage)->name ?? '';
-            $volumeNum = optional($timesheet->volume)->vol_num ?? '';
-            $executionDate = optional($timesheet)->execution_date;
+        $groupedActivities = $timesheets->groupBy(function ($timesheet) {
+            // Gabungkan berdasarkan wp_id, wo_id, dan execution_date
+            $wpId = optional($timesheet->volume->workPackage)->wp_id;
+            $woId = optional($timesheet->volume)->wo_id;
+            $executionDate = $timesheet->execution_date;
 
-            // Gabungkan untuk sorting yang presisi untuk DataTables RowGroup
-            return $wpNumber . '|' . $wpName . '|' . $volumeNum . '|' . $executionDate;
-        });
+            return $wpId . '_' . $woId . '_' . $executionDate;
+        })->map(function ($group) {
+            // Gabungkan aktivitas untuk volume yang sama
+            $firstItem = $group->first();
+            $volumes = $group->pluck('volume.volume_number')->unique()->sort()->values()->toArray();
+            $volumeCount = count($volumes); // Hitung jumlah volume
+            $users = $group->pluck('user')->unique('user_id')->values();
 
-        $groupedActivities = $activitiesForTable->groupBy(function($item) {
-            return $item->volume_id . '_' . $item->execution_date;
-        });
+            return [
+                'wp_number' => optional($firstItem->volume->workPackage)->wp_number,
+                'wp_name' => optional($firstItem->volume->workPackage)->name,
+                'execution_date' => $firstItem->execution_date,
+                'volumes' => implode(', ', $volumes), // Gabungkan volume_number
+                'users' => $users->map(function ($user) use ($group, $volumeCount) {
+                    // Gabungkan aktivitas dan durasi untuk setiap pengguna
+                    $userActivities = $group->where('user_id', $user->user_id)->reduce(function ($carry, $entry) {
+                        $carry['duration'] += $entry->duration;
+                        $carry['activities'][] = $entry->activity;
+                        return $carry;
+                    }, ['duration' => 0, 'activities' => []]);
 
-        // Buat array untuk menyimpan personel yang sudah ada di setiap group
-        $existingAssignments = [];
-        foreach ($groupedActivities as $key => $group) {
-            $existingAssignments[$key] = $group->pluck('user_id')->unique()->values();
-        }
+                    return [
+                        'user_id' => $user->user_id,
+                        'name' => $user->name,
+                        'short_name' => $user->short_name ?? $user->name,
+                        // Bagi total durasi dengan jumlah volume
+                        'duration' => round($userActivities['duration'] / $volumeCount, 2),
+                        'activities' => array_unique($userActivities['activities']), // Hilangkan duplikasi aktivitas
+                    ];
+                })->toArray(),
+                'wpGroupKey' => trim(preg_replace('/\s+/', ' ', optional($firstItem->volume->workPackage)->wp_number . ' - ' . optional($firstItem->volume->workPackage)->name)),
+            ];
+        })->sortBy('wp_number')->values();
 
         // Ambil semua user unique di timesheet untuk semua bulan
         $users = $timesheets->pluck('user')
@@ -68,7 +88,7 @@ class TimesheetManagementController extends Controller
             ->whereHas('workPackageVolumes', function ($query) {
                 $query->whereNotNull('wo_id'); // Filter hanya volume yang memiliki wo_id
             })
-            ->orderBy('wp_number')
+            ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
             ->get();
 
         // Ambil hanya volume_id yang memiliki wo_id tidak null
@@ -76,12 +96,13 @@ class TimesheetManagementController extends Controller
             ->get(['volume_id', 'volume_number', 'wp_id'])
             ->groupBy('wp_id')
             ->map(function ($group) {
-                return $group->map(function ($volume) {
-                    return [
-                        'volume_id' => $volume->volume_id,
-                        'volume_number' => $volume->volume_number,
-                    ];
-                })->values();
+                return $group->sortBy('volume_number') // Urutkan berdasarkan volume_number
+                    ->map(function ($volume) {
+                        return [
+                            'volume_id' => $volume->volume_id,
+                            'volume_number' => $volume->volume_number,
+                        ];
+                    })->values();
             })
             ->toArray();
 
@@ -123,10 +144,12 @@ class TimesheetManagementController extends Controller
                     $subQuery->select('volume_id')
                         ->from('timesheet');
                 });
-        })->orderBy('wp_number')->get();
+        })
+        ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
+        ->get();
 
-        return view('timesheet_management', compact('activitiesForTable', 'existingAssignments', 'workPackagesFilter',
-                                                    'groupedActivities', 'users', 'workPackages', 'personnelByVolume', 'validVolumes'));
+        return view('timesheet_management', compact('workPackagesFilter', 'groupedActivities', 'users', 
+                                                    'workPackages', 'personnelByVolume', 'validVolumes'));
     }
 
     public function add(Request $request)

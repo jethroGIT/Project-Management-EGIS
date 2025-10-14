@@ -346,6 +346,23 @@
         submitAddActivitykForm.addEventListener('click', function(e) {
             e.preventDefault();
 
+            const executionDate = document.getElementById('execution_date').value.trim();
+            const duration = document.getElementById('duration').value.trim();
+            const activity = document.getElementById('activity').value.trim();
+
+            // Validasi input
+            if (!executionDate || !duration || !activity) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Tanggal, Durasi, dan Aktivitas wajib diisi.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return; // Hentikan proses jika validasi gagal
+            }
+
             const formData = new FormData(addActivityForm);
             const url = addActivityForm.action;
 
@@ -421,6 +438,24 @@
     if (submitEditActivitykForm) {
         submitEditActivitykForm.addEventListener('click', function(e) {
             e.preventDefault();
+
+            // Ambil nilai dari form
+            const executionDate = document.getElementById('executionDate').value.trim();
+            const duration = document.getElementById('duration_day').value.trim();
+            const activity = document.getElementById('activityTimesheet').value.trim();
+
+            // Validasi input
+            if (!executionDate || !duration || !activity) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Tanggal, Durasi, dan Aktivitas wajib diisi.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return; // Hentikan proses jika validasi gagal
+            }
 
             const formData = new FormData(editActivityForm);
             const url = editActivityForm.action;
