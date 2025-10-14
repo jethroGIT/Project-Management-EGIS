@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HumanResource;
 use App\Models\Timesheet;
 use App\Models\User;
+use App\Models\Work;
 use App\Models\WorkPackage;
 use App\Models\WorkPackageVolume;
 use App\Models\WpCategory;
@@ -320,6 +322,45 @@ class TimesheetManagementController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getPersonelMandays($personelId, $volumeId)
+    {
+        try {
+            // Ambil role_id dari tabel Work
+            $roleId = Work::where('user_id', $personelId)
+                ->where('volume_id', $volumeId)
+                ->value('role_id');
+
+            // Ambil JHK/Mandays Rencana dari tabel human_resource
+            $mandaysPlan = HumanResource::where('role_id', $roleId)
+                ->where('wp_id', function ($query) use ($volumeId) {
+                    $query->select('wp_id')
+                        ->from('work_package_volume')
+                        ->where('volume_id', $volumeId)
+                        ->limit(1);
+                })
+                ->value('jhk') ?? 0;
+
+            // Hitung JHK/Mandays Realisasi dari tabel timesheet
+            $mandaysReal = Timesheet::where('user_id', $personelId)
+                ->where('volume_id', $volumeId)
+                ->sum('duration') ?? 0;
+
+            // Format nilai mandays agar tidak menampilkan .0 jika tidak diperlukan
+            $mandaysReal = (float) $mandaysReal == intval($mandaysReal) ? intval($mandaysReal) : round($mandaysReal, 2);
+            
+            return response()->json([
+                'success' => true,
+                'mandays_plan' => $mandaysPlan,
+                'mandays_real' => $mandaysReal,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }

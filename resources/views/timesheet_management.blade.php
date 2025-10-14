@@ -315,6 +315,22 @@
                                             </div>
                                         </div>
                                     </div> 
+                                    <div class="form-group mb-6 rounded border border-info personel-info-container" style="display: block;">
+                                        <div class="fw-bold text-info mt-2 mb-1 ms-3">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            Mandays
+                                        </div>
+                                        <!-- Spinner -->
+                                        <div class="spinner-container text-center mt-2" style="display: none;">
+                                            <div class="spinner-border text-info" role="status" style="width: 1.5rem; height: 1.5rem;">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-dark small wp-assigned-info ms-3 mb-2 d-flex justify-content-start gap-5" style="display: flex;">
+                                            <span class="assigned-mandays-count">Rencana: <span class="mandays-plan">0</span></span>
+                                            <span class="assigned-mandays-count">Realisasi: <span class="mandays-real">0</span></span>
+                                        </div>
+                                    </div>
                                     <div class="form-group mb-6">
                                         <label for="activity_0" class="form-label fw-bold">Aktivitas</label>
                                         <textarea class="form-control activity-textarea"  name="activities[]" id="activity_0" rows="2" placeholder="Aktivitas" required></textarea>
@@ -436,6 +452,22 @@
                     </div>
                 </div>
             </div> 
+            <div class="form-group mb-6 rounded border border-info personel-info-container" style="display: block;">
+                <div class="fw-bold text-info mt-2 mb-1 ms-3">
+                    <i class="bi bi-calendar me-1"></i>
+                    Mandays
+                </div>
+                <!-- Spinner -->
+                <div class="spinner-container text-center mt-2" style="display: none;">
+                    <div class="spinner-border text-info" role="status" style="width: 1.5rem; height: 1.5rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div class="text-dark small wp-assigned-info ms-3 mb-2 d-flex justify-content-start gap-5" style="display: flex;">
+                    <span class="assigned-mandays-count">Rencana: <span class="mandays-plan">0</span></span>
+                    <span class="assigned-mandays-count">Realisasi: <span class="mandays-real">0</span></span>
+                </div>
+            </div>
             <div class="form-group mb-6">
                 <label class="form-label fw-bold">Aktivitas</label>
                 <textarea class="form-control edit-activity-textarea"  name="activities[]" id="activity_0" rows="2" placeholder="Aktivitas" required></textarea>
@@ -609,6 +641,59 @@
             volumeSelectElement.appendChild(option);
         });
     }
+
+    function updateMandaysInfo(selectElement, volumeId) {
+        const personelId = selectElement.value; // Ambil ID personel yang dipilih
+        const infoContainer = selectElement.closest('.personel-activity-group').querySelector('.personel-info-container');
+        const mandaysPlanElement = infoContainer.querySelector('.mandays-plan');
+        const mandaysRealElement = infoContainer.querySelector('.mandays-real');
+        const spinnerContainer = infoContainer.querySelector('.spinner-container'); // Spinner element
+        const wpAssignedInfo = infoContainer.querySelector('.wp-assigned-info'); // Container teks Rencana dan Realisasi
+
+        // Jika personel atau volume belum dipilih, sembunyikan info container
+        if (!personelId || !volumeId) {
+            infoContainer.style.display = 'none';
+            return;
+        }
+
+        // Tampilkan spinner, sembunyikan teks Rencana dan Realisasi
+        spinnerContainer.style.display = 'block';
+        wpAssignedInfo.style.display = 'none'; // Sembunyikan teks Rencana dan Realisasi
+        wpAssignedInfo.style.visibility = 'hidden';
+        infoContainer.style.display = 'block';
+
+        // Fetch data untuk Mandays dari server
+        fetch(`/timesheet-management/personel-mandays/${personelId}/${volumeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Perbarui nilai Mandays Rencana dan Realisasi
+                    mandaysPlanElement.textContent = data.mandays_plan || 0;
+                    mandaysRealElement.textContent = data.mandays_real || 0;
+
+                    // Tampilkan teks Rencana dan Realisasi, sembunyikan spinner
+                    wpAssignedInfo.style.display = 'flex';
+                    wpAssignedInfo.style.visibility = 'visible';
+                    spinnerContainer.style.display = 'none';
+                } else {
+                    infoContainer.style.display = 'none'; // Sembunyikan jika data gagal diambil
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching mandays info:', error);
+                infoContainer.style.display = 'none'; // Sembunyikan jika terjadi error
+            })
+            .finally(() => {
+                spinnerContainer.style.display = 'none'; // Sembunyikan spinner setelah selesai
+            });
+    }
+
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('personel-select') || e.target.classList.contains('edit-personel-select')) {
+            const volumeId = document.getElementById('volume_select')?.value || document.getElementById('edit_volume_select')?.value;
+            updateMandaysInfo(e.target, volumeId);
+        }
+    });
 
     // Add Personel Activity Button
     const addActivityModal = new bootstrap.Modal(document.getElementById('addActivityModal'));
@@ -977,6 +1062,12 @@
                 updateAllPersonelSelects(volumeId);
                 updateEditPersonelSelectOptions();
 
+                // Panggil updateMandaysInfo untuk setiap personel yang sudah ada
+                const personelSelects = editPersonelActivityContainer.querySelectorAll('.edit-personel-select');
+                personelSelects.forEach(select => {
+                    updateMandaysInfo(select, volumeId);
+                });
+
                 editActivityModal.show();
             })
             .catch(error => {
@@ -1191,6 +1282,44 @@
         }
     });
 
+    function validateEditActivityForm() {
+        // Cek field utama
+        const wp = document.getElementById('edit_work_package_select').value.trim();
+        const vol = document.getElementById('edit_volume_select').value.trim();
+        const date = document.getElementById('edit_execution_date').value.trim();
+
+        if (!wp || !vol || !date) {
+            Swal.fire({
+                title: "Data Belum Lengkap",
+                text: "Kategori Work Package, Volume, dan Tanggal wajib diisi.",
+                icon: "info",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-primary" }
+            });
+            return false;
+        }
+
+        // Cek setiap grup personel
+        const personelSelects = document.querySelectorAll('.edit-personel-select');
+        const activityTextareas = document.querySelectorAll('.edit-activity-textarea');
+        for (let i = 0; i < personelSelects.length; i++) {
+            if (!personelSelects[i].value.trim() || !activityTextareas[i].value.trim()) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Personel, durasi, dan aktivitas wajib diisi untuk setiap grup.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-primary" }
+                });
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     if (editPersonelActivityBtn) {
         editPersonelActivityBtn.addEventListener('click', function() {
             // Hitung jumlah group saat ini
@@ -1216,7 +1345,9 @@
     if (submitEditActivityForm) {
         submitEditActivityForm.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
+            if (!validateEditActivityForm()) {return;}
+
             const deletedTimesheetInput = document.getElementById('deleted_timesheet_ids');
             if (deletedTimesheetInput) {
                 deletedTimesheetInput.value = JSON.stringify(deletedTimesheetIds);

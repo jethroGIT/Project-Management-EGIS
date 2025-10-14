@@ -78,6 +78,7 @@ Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin'])->group(
     Route::get('/timesheet-management/{volume_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
     Route::post('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
     Route::delete('/timesheet-management/{id}/delete-all', [TimesheetManagementController::class, 'deleteAll'])->name('timesheet.delete.all');
+    Route::get('/timesheet-management/personel-mandays/{personelId}/{volumeId}', [TimesheetManagementController::class, 'getPersonelMandays']);
     // Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
 
     // performance task
