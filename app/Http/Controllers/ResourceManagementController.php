@@ -204,9 +204,44 @@ class ResourceManagementController extends Controller
                 'max:255',
                 Rule::unique('user', 'email')->ignore($id, 'user_id')
             ],
-            // 'role_id' => 'required|exists:roles,id',
-            'password' => 'nullable|string|min:6|confirmed',
+            'password' => [
+                'nullable', 
+                'string', 
+                'min:6', 
+                'confirmed',
+                // Custom rule untuk memastikan kedua password field diisi
+                function ($attribute, $value, $fail) use ($request) {
+                    $passwordConfirmation = $request->input('password_confirmation');
+
+                    if (($value && !$passwordConfirmation) || (!$value && $passwordConfirmation)) {
+                        $fail('Jika ingin mengubah password, kedua field password harus diisi.');
+                    }
+                },
+            ],
+            'password_confirmation' => [
+                'nullable',
+                'string',
+                'min:6',
+                // Custom rule untuk memastikan kedua password field diisi
+                function ($attribute, $value, $fail) use ($request) {
+                    $password = $request->input('password');
+
+                    if (($value && !$password) || (!$value && $password)) {
+                        $fail('Jika ingin mengubah password, kedua field password harus diisi.');
+                    }
+                },
+            ],
             'desc' => 'nullable|string|max:1000'
+        ], [
+            'name.required' => 'Nama harus diisi',
+            'name.max' => 'Nama maksimal 255 karakter',
+            'email.email' => 'Format email tidak valid',
+            'email.unique' => 'Email sudah terdaftar dalam sistem',
+            'email.max' => 'Email maksimal 255 karakter',
+            'desc.max' => 'Deskripsi maksimal 1000 karakter',
+            'password.min' => 'Password minimal 6 karakter',
+            'password.confirmed' => 'Password dan konfirmasi password tidak cocok',
+            'password_confirmation.min' => 'Konfirmasi password minimal 6 karakter',
         ]);
 
         try {
@@ -218,31 +253,16 @@ class ResourceManagementController extends Controller
             $originalName = $user->name;
             $originalEmail = $user->email;
             $originalDescription = $user->desc;
-            // $originalRoles = $user->getRoleNames();
-            // $originalMainRole = $originalRoles->contains('admin')
-            //     ? 'admin' 
-            //     : $originalRoles->filter(fn($role) => $role !== 'karyawan')->first();
             
             $newName = trim($request->name);
             $newEmail = trim($request->email);
             $newDescription = trim($request->desc);
-            // $newRole = Role::find($request->role_id);
-            $passwordChanged = $request->filled('password');
+            $passwordChanged = $request->filled('password') && $request->filled('password_confirmation');
 
             // Pengecekan perubahan
             $nameChanged = $originalName !== $newName;
             $emailChanged = $originalEmail !== $newEmail;
             $descriptionChanged = $originalDescription !== $newDescription;
-            // $roleChanged = false;
-            // if ($newRole) {
-            //     if ($originalRoles->contains('admin') && $newRole->name !== 'admin') {
-            //         $roleChanged = true; // Admin -> Non-admin
-            //     } elseif (!$originalRoles->contains('admin') && $newRole->name === 'admin') {
-            //         $roleChanged = true; // Non-admin -> Admin
-            //     } elseif (!$originalRoles->contains('admin') && $originalMainRole !== $newRole->name) {
-            //         $roleChanged = true; // Karyawan role change 
-            //     }
-            // }
             
             $hasChanges = $nameChanged || $emailChanged || $descriptionChanged || $passwordChanged;
 
@@ -258,7 +278,6 @@ class ResourceManagementController extends Controller
                         'name' => $originalName,
                         'email' => $originalEmail,
                         'desc' => $originalDescription,
-                        // 'role_name' => $originalMainRole ?? 'No Role',
                         'last_updated' => $user->updated_at ? $user->updated_at->format('d M Y H:i') : 'Tidak diketahui'
                     ]
                 ], 200);
@@ -276,22 +295,7 @@ class ResourceManagementController extends Controller
 
             $user->save();
 
-            // Update role jika berubah
-            // if ($roleChanged && $newRole) {
-            //     if ($newRole->name === 'admin') {
-            //         $user->syncRoles(['admin']);
-            //     } else {
-            //         $user->syncRoles(['karyawan', $newRole->name]);
-            //     }
-            // }
-
             DB::commit();
-
-            // Ambil nama role terbaru untuk response
-            // $updatedRoles = $user->fresh()->getRoleNames();
-            // $displayRoleName = $updatedRoles->contains('admin') 
-            //     ? 'admin' 
-            //     : $updatedRoles->filter(fn($role) => $role !== 'karyawan')->first();
 
             return response()->json([
                 'success' => true,
@@ -301,7 +305,6 @@ class ResourceManagementController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'desc' => $user->desc,
-                    // 'role_name' => $displayRoleName ?? 'No Role',
                     'updated_at' => $user->updated_at->format('d M Y H:i')
                 ]
             ]);
@@ -312,7 +315,7 @@ class ResourceManagementController extends Controller
             Log::error('Error updating user', [
                 'user_id' => $id,
                 'error' => $e->getMessage(),
-                'request_data' => $request->except('password')
+                'request_data' => $request->except('password', 'password_confirmation')
             ]);
 
             return response()->json([
