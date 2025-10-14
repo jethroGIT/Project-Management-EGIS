@@ -939,13 +939,29 @@ class WorkPackageManagementController extends Controller
             
             // Mendapatkan data original human resources
             $originalHumanResources = $workPackage->humanResources()
+                ->with(['role'])
                 ->orderBy('role_id', 'asc')
                 ->get()
-                ->map(function($hr) {
+                ->map(function($hr) use ($workPackage) {
+                    // Ambil user assignments untuk role ini dari semua volume
+                    $userAssignments = collect();
+                    foreach($workPackage->workPackageVolumes as $volume) {
+                        $volumeUsers = $volume->work->filter(function($work) use ($hr) {
+                            return $work->role_id == $hr->role_id && $work->user;
+                        })->map(function($work) {
+                            return $work->user_id;
+                        });
+                        $userAssignments = $userAssignments->merge($volumeUsers);
+                    }
+                    
+                    // Hapus duplikat dan sort untuk comparison
+                    $uniqueUserIds = $userAssignments->unique()->sort()->values()->toArray();
+
                     return [
                         'role_id' => $hr->role_id,
                         'jtk' => $hr->jtk,
-                        'jhk' => $hr->jhk
+                        'jhk' => $hr->jhk,
+                        'assigned_user_ids' => $uniqueUserIds 
                     ];
                 })
                 ->toArray();
@@ -993,10 +1009,19 @@ class WorkPackageManagementController extends Controller
             // Cek perubahan human resources
             $newHumanResources = collect($validatedData['resources'])
                 ->map(function($resource) {
+                    // Extract user IDs dan sort untuk comparison
+                    $userIds = collect($resource['users'] ?? [])
+                        ->pluck('user_id')
+                        ->map(function($id) { return (int)$id; })
+                        ->sort()
+                        ->values()
+                        ->toArray();
+
                     return [
                         'role_id' => (int)$resource['role_id'],
                         'jtk' => (int)$resource['jtk'],
-                        'jhk' => (int)$resource['jhk']
+                        'jhk' => (int)$resource['jhk'],
+                        'assigned_user_ids' => $userIds
                     ];
                 })
                 ->sortBy('role_id')

@@ -314,7 +314,7 @@
                             <input type="hidden" name="resources[{{ $index }}][hr_id]" value="{{ $hr['hr_id'] }}">
 
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold required">Jabatan</label>
                                     <select name="resources[{{ $index }}][role_id]" class="form-select role-select" data-index="{{ $index }}" required>
                                         <option value="">Pilih Jabatan</option>
@@ -330,21 +330,21 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
-                                    <input 
-                                        type="number" 
-                                        name="resources[{{ $index }}][jtk]" 
-                                        class="form-control jtk-input" 
-                                        value="{{ $hr['jtk'] }}" 
-                                        min="1" 
-                                        placeholder="1" 
-                                        required
-                                        data-index="{{ $index }}"
-                                    >
-                                    <div class="form-text">Jumlah personel dengan jabatan ini</div>
-                                </div>
-                                <div class="col-md-4">
+                                <!-- <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label> -->
+                                <input 
+                                    type="hidden"
+                                    name="resources[{{ $index }}][jtk]" 
+                                    class="form-control jtk-input" 
+                                    value="{{ $hr['jtk'] }}" 
+                                    min="1" 
+                                    placeholder="1" 
+                                    required
+                                    data-index="{{ $index }}"
+                                >
+                                <!-- <div class="form-text">Jumlah personel dengan jabatan ini</div> -->
+                                <!-- <div class="col-md-4">
+                                </div> -->
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
                                     <input 
                                         type="number" 
@@ -404,6 +404,19 @@
                             <button type="button" class="btn btn-light-success btn-sm" onclick="addUserToResource({{ $index }})">
                                 <i class="bi bi-person-plus"></i> Tambah Personel
                             </button>
+
+                            <!-- Display JTK Information -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="alert alert-light-info">
+                                        <div>
+                                            <strong>JTK (Jumlah Tenaga Kerja):</strong> 
+                                            <span class="jtk-display fw-bold" data-index="{{ $index }}">{{ $hr['jtk'] }}</span> orang
+                                            <div class="small text-muted mt-1">Otomatis dihitung berdasarkan jumlah personel yang ditugaskan</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -1261,7 +1274,7 @@ function addHumanResource() {
             <input type="hidden" name="resources[${humanResourceIndex}][hr_id]" value="new">
 
             <div class="row mb-3">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="form-label fw-bold required">Jabatan</label>
                     <select name="resources[${humanResourceIndex}][role_id]" class="form-select role-select" data-index="${humanResourceIndex}" required>
                         <option value="">Pilih Jabatan</option>
@@ -1272,13 +1285,14 @@ function addHumanResource() {
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
-                    <input type="number" name="resources[${humanResourceIndex}][jtk]" 
-                           class="form-control jtk-input" min="1" placeholder="Contoh: 1" data-index="${humanResourceIndex}" required>
-                    <div class="form-text">Jumlah personel dengan jabatan ini</div>
-                </div>
-                <div class="col-md-4">
+                <input 
+                    type="hidden" 
+                    name="resources[${humanResourceIndex}][jtk]" 
+                    class="jtk-input" 
+                    value="0"
+                    data-index="${humanResourceIndex}"
+                >
+                <div class="col-md-6">
                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jhk]" 
                            class="form-control" min="1" placeholder="Contoh: 20" required>
@@ -1302,6 +1316,19 @@ function addHumanResource() {
             <button type="button" class="btn btn-light-success btn-sm" onClick="addUserToResource(${humanResourceIndex})">
                 <i class="bi bi-person-plus"></i> Tambah Personel
             </button>
+
+            <!-- Display JTK Information -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-light-info">
+                        <div>
+                            <strong>JTK (Jumlah Tenaga Kerja):</strong> 
+                            <span class="jtk-display fw-bold" data-index="${humanResourceIndex}">0</span> orang
+                            <div class="small text-muted mt-1">Otomatis dihitung berdasarkan jumlah personel yang ditugaskan</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 
@@ -1428,6 +1455,7 @@ function updateJTKFromUsers(resourceIndex) {
     const container = document.getElementById(`users-container-${resourceIndex}`);
     const userSelects = container.querySelectorAll('.user-select');
     const jtkInput = document.querySelector(`input[name="resources[${resourceIndex}][jtk]"]`);
+    const jtkDisplay = document.querySelector(`.jtk-display[data-index="${resourceIndex}"]`);
 
     if (jtkInput) {
         let selectedUsersCount = 0;
@@ -1437,7 +1465,14 @@ function updateJTKFromUsers(resourceIndex) {
             }
         });
 
-        jtkInput.value = Math.max(selectedUsersCount, 1);
+        jtkInput.value = Math.max(selectedUsersCount, 0);
+
+        // Update display
+        if (jtkDisplay) {
+            jtkDisplay.textContent = selectedUsersCount;
+        }
+
+        console.log(`JTK updated for resource ${resourceIndex}: ${selectedUsersCount} users`);
     }
 }
 
@@ -1591,6 +1626,12 @@ function handleUserSelectChange(selectElement) {
 $(document).ready(function() {
     // Update user select options on page load
     updateUserSelectOptions();
+
+    // Initialize JTK displays for existing resources
+    $('.human-resource-item').each(function() {
+        const resourceIndex = $(this).data('index');
+        updateJTKFromUsers(resourceIndex);
+    });
 
     // Set up event handlers for existing elements
     $('.role-select').each(function() {
