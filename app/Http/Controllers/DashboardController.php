@@ -11,6 +11,7 @@ use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Work;
 use App\Models\WorkOrder;
+use App\Models\Project;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use DB;
@@ -24,7 +25,6 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // Hitung total Work Order yang tersedia
-        // $totalWorkOrders = WorkOrder::count();
         $totalWorkOrders = WorkOrder::with(['workPackageVolumes' => function($query) {
             $query->with('workPackage')
                 ->whereNotNull('start_date')
@@ -38,17 +38,14 @@ class DashboardController extends Controller
         })
         ->count();
 
-        // Data untuk card Work Package Selesai (TIDAK DIPAKAI)
-        // $workPackageCompletionData = $this->getWorkPackageCompletionData();
-
         // Data untuk card Work Package yang sudah dipanggil WO
         $workPackageWOAssignmentData = $this->getWorkPackageWOAssignment();
 
+        // Perbandingan nilai uang
+        // Data untuk progress bar WO keluar dengan total keseluruhan
+        $projectFinanceComparisonData = $this->getProjectFinanceComparison();
         // Data untuk progress bar WO selesai dengan WO yang baru keluar berdasarkan nilai keuangan
         $woCompletionFinanceData = $this->getWOCompletionFinance();
-
-        // Data untuk pie chart WO (TIDAK DIPAKAI)
-        // $pieChartDataWo = $this->countWPAsociatedWithWO();
 
         // Data untuk pie chart WP Completion dari WP yang sudah dipanggil WO
         $pieChartDataWo = $this->getWPCompletionFromAssignedWP();
@@ -70,10 +67,7 @@ class DashboardController extends Controller
             'total_users' => $userWorkPackageData->count()
         ];
 
-        // Data untuk tabel Project Berjalan (TIDAK DIPAKAI)
-        // $projectBerjalanData = $this->getProjectBerjalanData();
-
-         // Get execution years for the period diagram filter
+        // Get execution years for the period diagram filter
         $executionYear = WorkPackageVolume::whereNotNull(['end_date', 'wo_id'])
             ->distinct()
             ->orderBy('execution_year', 'asc')
@@ -161,6 +155,7 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'totalWorkOrders',
             'workPackageWOAssignmentData',
+            'projectFinanceComparisonData',
             'woCompletionFinanceData',
             'pieChartDataWo',
             'availableYears',
@@ -289,6 +284,71 @@ class DashboardController extends Controller
     }
 
     /**
+     * Get project finance comparison data
+     */
+    private function getProjectFinanceComparison()
+    {
+        try {
+            // Ambil data project
+            $getProjectBudget = Project::getBudgetByName('Project EGIS');
+            
+            // Total anggaran proyek
+            $totalProjectBudget = $getProjectBudget ?? 12704350000;
+
+            // Ambil total nilai WO yang sudah keluar dari method yang sudah ada
+            $woCompletionData = $this->getWOCompletionFinance();
+            $totalWOValue = $woCompletionData['total_wo_value'];
+
+            // Hitung persentase WO keluar terhadap total anggaran
+            $woProjectPercentage = $totalProjectBudget > 0 ?
+                round(($totalWOValue / $totalProjectBudget) * 100, 1) : 0;
+            
+            // Hitung sisa anggaran
+            $remainingBudget = $totalProjectBudget - $totalWOValue;
+
+            return [
+                'project_name' => 'Project EGIS',
+                'total_project_budget' => $totalProjectBudget,
+                'total_wo_value' => $totalWOValue,
+                'remaining_budget' => $remainingBudget,
+                'wo_project_percentage' => $woProjectPercentage,
+                'completed_wo_value' => $woCompletionData['completed_wo_value'],
+                'completion_percentage' => $woCompletionData['completion_percentage'],
+                'formatted' => [
+                    'total_project_budget' => number_format($totalProjectBudget, 0, ',', '.'),
+                    'total_wo_value' => number_format($totalWOValue, 0, ',', '.'),
+                    'remaining_budget' => number_format($remainingBudget, 0, ',', '.'),
+                    'completed_wo_value' => number_format($woCompletionData['completed_wo_value'], 0, ',', '.')
+                ]
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getProjectFinanceComparison', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Default value is case of error
+            $defaultBudget = 12704350000;
+            return [
+                'project_name' => 'Project EGIS',
+                'total_project_budget' => $defaultBudget,
+                'total_wo_value' => 0,
+                'remaining_budget' => $defaultBudget,
+                'wo_project_percentage' => 0,
+                'completed_wo_value' => 0,
+                'completion_percentage' => 0,
+                'formatted' => [
+                    'total_project_budget' => number_format($defaultBudget, 0, ',', '.'),
+                    'total_wo_value' => '0',
+                    'remaining_budget' => number_format($defaultBudget, 0, ',', '.'),
+                    'completed_wo_value' => '0'
+                ]
+            ];
+        }
+    }
+
+    /**
      * Get Work Order completion data from Work Order that have been called based on financial value
      */
     private function getWOCompletionFinance()
@@ -300,10 +360,17 @@ class DashboardController extends Controller
                     $query->with([
                         'workPackage.humanResources.role',
                         'task.subTask'
-                    ]);
+                    ])
+                    ->whereNotNull('start_date')
+                    ->whereNotNull('end_date')
+                    ->whereNotNull('execution_year');
                 }
             ])
-            ->whereHas('workPackageVolumes')
+            ->whereHas('workPackageVolumes', function($query) {
+                $query->whereNotNull('start_date')
+                    ->whereNotNull('end_date')
+                    ->whereNotNull('execution_year');
+            })
             ->get();
 
             $completedWOValue = 0;
@@ -428,9 +495,10 @@ class DashboardController extends Controller
             foreach ($humanResources as $hResource) {
                 $resourceCost = optional($hResource->role)->resource_cost ?? 0;
                 $jhk = $hResource->jhk ?? 0;
+                $jtk = $hResource->jtk ?? 0;
 
                 // Hitung biaya by YoY
-                $byYoyCost = $jhk * $resourceCost;
+                $byYoyCost = $jhk * $jtk * $resourceCost;
                 $totalByYoy += $byYoyCost;
             }
 
@@ -582,6 +650,8 @@ class DashboardController extends Controller
                 'task.subTask',
             ])
             ->whereNotNull('work_package_volume.wo_id')
+            ->whereNotNull('work_package_volume.start_date')
+            ->whereNotNull('work_package_volume.end_date')
             ->whereHas('workPackage')
             ->whereHas('workOrder')
             ->where('execution_year', $year)
@@ -701,6 +771,8 @@ class DashboardController extends Controller
         try {
             $years = WorkPackageVolume::whereNotNull('execution_year')
                 ->whereNotNull('wo_id')
+                ->whereNotNull('start_date')
+                ->whereNotNull('end_date')
                 ->whereHas('workPackage')
                 ->whereHas('workOrder')
                 ->select('execution_year')

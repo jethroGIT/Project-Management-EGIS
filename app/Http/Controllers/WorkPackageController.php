@@ -60,6 +60,15 @@ class WorkPackageController extends Controller
         // Cari volume lain dalam grup yang sama
         $volumeGroupInfo = $this->getVolumeGroupInfo($volume);
 
+        // Hitung durasi berdasarkan volume grouping
+        $wpDuration = $workPackage->duration;
+        $adjustedWpDuration = $wpDuration;
+
+        if ($volumeGroupInfo['is_grouped']) {
+            // Jika ada group di volume, kalikan durasi dengan total volume dalam grup
+            $adjustedWpDuration = $wpDuration * $volumeGroupInfo['total_volumes'];
+        }
+
         $humanResources = HumanResource::with('role')
             ->where('wp_id', $workPackage->wp_id)
             ->orderBy('hresource_id')
@@ -360,7 +369,9 @@ class WorkPackageController extends Controller
             'humanResourcesByRole',
             'roleCapacity',
             'currentAssignments',
-            'volumeGroupInfo'
+            'volumeGroupInfo',
+            'wpDuration',
+            'adjustedWpDuration'
         ));
     }
 
@@ -384,15 +395,19 @@ class WorkPackageController extends Controller
             ->values()
             ->toArray();
 
+        $totalVolumes = $relatedVolumes->count() + 1;
+        $isGrouped = $relatedVolumes->count() > 0;
+
         return [
-            'is_grouped' => $relatedVolumes->count() > 0,
-            'total_volumes' => $relatedVolumes->count() + 1,
+            'is_grouped' => $isGrouped,
+            'total_volumes' => $totalVolumes,
             'volume_numbers' => $allVolumeNumbers,
             'related_volume_ids' => $relatedVolumes->pluck('volume_id')->toArray(),
             'wo_number' => optional($volume->workOrder)->wo_number,
             'period_formatted' => $volume->start_date && $volume->end_date ? 
                 Carbon::parse($volume->start_date)->format('d M Y') . ' - ' . Carbon::parse($volume->end_date)->format('d M Y') : 
-                'Belum tersedia'
+                'Belum tersedia',
+            
         ];
     }
 

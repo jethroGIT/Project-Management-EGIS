@@ -34,11 +34,12 @@
                         </div>
                     </div>
                 </div>
+                <div class="card-footer-total-wo"></div>
             </div>
         </div>
 
         <div class="col-md-6">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm h-100 hover-card" onclick="window.location.href='{{route('workpackages-list')}}'" style="cursor: pointer; transition: all 0.3s ease;">
                 <div class="card-body my-2">
                     <div class="d-flex align-items-center gap-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-file-earmark-check-fill text-primary" viewBox="0 0 16 16">
@@ -56,8 +57,13 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Arrow Icon -->
+                        <div class="ms-auto hover-arrow">
+                            <i class="bi bi-arrow-right-circle fs-1 text-primary opacity-75"></i>
+                        </div>
                     </div>
                 </div>
+                <div class="card-footer-custom"></div>
             </div>
         </div>
     </div>
@@ -77,13 +83,15 @@
             <div class="mt-3">
                 <div class="d-flex justify-content-between">
                     <div class="fs-6 fw-bold text-muted">WO keluar dengan total keseluruhan</div>
-                    <div class="fs-6 fw-bold text-muted">10 %</div>
+                    <div class="fs-6 fw-bold text-muted">{{ $projectFinanceComparisonData['wo_project_percentage'] }} %</div>
                 </div>
-                <div class="progress progress-sm mt-1" role="progressbar" aria-label="Basic example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                    <div class="progress-bar bg-info" style="width: 10%"></div>
+                <div class="progress progress-sm mt-1" role="progressbar" aria-label="WO call out vs Total Budget" aria-valuenow="{{ $projectFinanceComparisonData['wo_project_percentage'] }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-info" style="width: {{ $projectFinanceComparisonData['wo_project_percentage'] }}%"></div>
                 </div>
                 <!-- <div class="text-muted fs-6 mt-1">Rp10.000.000 / Rp100.000.000</div> -->
-                <div class="text-muted fs-6 mt-1">Rp{{ number_format($woCompletionFinanceData['total_wo_value'], 0, ',', '.') }} / RP12.704.350.000</div>
+                <div class="text-muted fs-6 mt-1">
+                    Rp{{ $projectFinanceComparisonData['formatted']['total_wo_value'] }} / Rp.{{ $projectFinanceComparisonData['formatted']['total_project_budget'] }}
+                </div>
             </div>
 
             <!-- Progress Bar -->
@@ -119,29 +127,48 @@
                 </div>
                 
                 <div class="collapse" id="financeDetailsCollapse">
-                    <div class="fs-6 text-muted fw-bold my-2">Detail Informasi</div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted small">Total WO Keluar:</span>
-                            <span class="fw-bold">{{ $woCompletionFinanceData['total_wo_count'] }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted small">WO Selesai:</span>
-                            <span class="fw-bold text-success">{{ $woCompletionFinanceData['completed_wo_count'] }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted small">WO Berjalan:</span>
-                            <span class="fw-bold text-warning">{{ $woCompletionFinanceData['total_wo_count'] - $woCompletionFinanceData['completed_wo_count'] }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted small">Nilai WO Berjalan:</span>
-                            <span class="fw-bold text-warning">Rp{{ number_format($woCompletionFinanceData['ongoing_wo_value'], 0, ',', '.') }}</span>
+                    <div class="card shadow-sm my-2 col-md-6">
+                        <div class="card-body">
+                            <div class="card-title fs-6 text-muted fw-bold my-2">Detail Informasi</div>
+                            <div class="row">
+                                <div class="">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted small">Total Anggaran Proyek:</span>
+                                        <span class="fw-bold text-primary">Rp{{ $projectFinanceComparisonData['formatted']['total_project_budget'] }}</span>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted small">Sisa Anggaran:</span>
+                                        <span class="fw-bold text-info">Rp{{ $projectFinanceComparisonData['formatted']['remaining_budget'] }}</span>
+                                    </div>
+                                </div>
+                                <div class="separator separator-solid my-3"></div> 
+                                <div class="">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted small">Total WO Keluar:</span>
+                                        <span class="fw-bold">{{ $woCompletionFinanceData['total_wo_count'] }}</span>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted small">WO Selesai:</span>
+                                        <span class="fw-bold text-success">{{ $woCompletionFinanceData['completed_wo_count'] }}</span>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted small">WO Berjalan:</span>
+                                        <span class="fw-bold text-warning">{{ $woCompletionFinanceData['total_wo_count'] - $woCompletionFinanceData['completed_wo_count'] }}</span>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted small">Nilai WO Berjalan:</span>
+                                        <span class="fw-bold text-warning">Rp{{ number_format($woCompletionFinanceData['ongoing_wo_value'], 0, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -306,6 +333,34 @@
         </div>
     </div>
 </div>
+
+<style>
+.hover-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.hover-card:hover .hover-arrow {
+    transform: translateX(5px);
+    transition: transform 0.3s ease;
+}
+
+.hover-arrow {
+    transition: transform 0.3s ease;
+}
+
+.card-footer-custom {
+    height: 4px;
+    background: #009ef7;
+    border-radius: 0 0 0.475rem 0.475rem;
+}
+
+.card-footer-total-wo {
+    height: 4px;
+    background: #7239ea;
+    border-radius: 0 0 0.475rem 0.475rem;
+}
+</style>
 
 @push('scripts')
 <script>

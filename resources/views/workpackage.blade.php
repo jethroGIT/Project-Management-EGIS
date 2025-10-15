@@ -29,9 +29,9 @@
                             <i class="bi bi-collection me-1"></i>
                             {{ $volumeGroupInfo['total_volumes'] }} Volume Dikelompokkan
                         </span>
-                        <small class="text-muted ms-2">
+                        <!-- <small class="text-muted ms-2">
                             Vol {{ implode(', ', $volumeGroupInfo['volume_numbers']) }}
-                        </small>
+                        </small> -->
                     </div>
                 @endif
             </div>
@@ -81,15 +81,33 @@
                                 <h3 class="card-title fw-bold">Duration</h3>
                             </div>
                             <div class="card-body">
-                                <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
+                                <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-1">
                                     @if(isset($workPackage) && isset($volume))
-                                        <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
+                                        <span class="fs-1 fw-bold text-primary duration-highlight">{{ $adjustedWpDuration ?? $workPackage->duration }}</span>
                                         <span class="fs-1 text-primary duration-highlight">Hari</span>
                                     @else
                                         <span class="fs-1 fw-bold text-primary duration-highlight">0</span>
                                         <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
                                     @endif
                                 </div>
+
+                                {{-- Show duration calculation info for grouped volumes --}}
+                                @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+                                    <div class="text-center">
+                                        <div class="small text-muted">
+                                            Durasi Disesuaikan
+                                        </div>
+                                        <div class="badge badge-light-info">
+                                            {{ $volumeGroupInfo['total_volumes'] }} volume
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-center">
+                                        <div class="small text-muted">
+                                            Durasi standar
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

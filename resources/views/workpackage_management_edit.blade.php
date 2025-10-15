@@ -129,11 +129,10 @@
                     Manajemen Volume ({{ $volumesWithWorkOrderCount }}/{{ $totalVolumeQty }} volume)
                 </h3>
                 <div class="card-toolbar">
-                    @if($remainingVolumeSlots > 0)
-                        <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAddVolume()">
+                    @if($remainingVolumeSlots === 0)
+                        <!-- <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAddVolume()">
                             <i class="bi bi-plus-circle"></i> Tambah Volume
-                        </button>
-                    @else
+                        </button> -->
                         <span class="badge badge-light-success">
                             <i class="bi bi-check-circle me-1"></i>
                             Volume sudah penuh
@@ -271,10 +270,13 @@
 
                 <!-- No Volumes Message -->
                 @if($volumesData->count() == 0)
-                    <div class="text-center py-5" id="noVolumesMessage">
+                    <div class="text-center py-8" id="noVolumesMessage">
                         <i class="bi bi-collection fs-1 text-muted mb-3"></i>
-                        <h6 class="text-muted">Belum ada volume</h6>
-                        <p class="text-muted">Klik "Tambah Volume" untuk menambahkan volume work package</p>
+                        <h6 class="text-muted">Belum ada volume yang berjalan</h6>
+                        <p class="text-muted">Panggil Work Package ke dalam Work Order untuk menampilkan volume work package</p>
+                        <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAssignWPtoWO()">
+                            <i class="bi bi-plus-circle"></i> Assign Kategori WP ke WO
+                        </button>
                     </div>
                 @endif
             </div>
@@ -312,7 +314,7 @@
                             <input type="hidden" name="resources[{{ $index }}][hr_id]" value="{{ $hr['hr_id'] }}">
 
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold required">Jabatan</label>
                                     <select name="resources[{{ $index }}][role_id]" class="form-select role-select" data-index="{{ $index }}" required>
                                         <option value="">Pilih Jabatan</option>
@@ -328,21 +330,21 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
-                                    <input 
-                                        type="number" 
-                                        name="resources[{{ $index }}][jtk]" 
-                                        class="form-control jtk-input" 
-                                        value="{{ $hr['jtk'] }}" 
-                                        min="1" 
-                                        placeholder="1" 
-                                        required
-                                        data-index="{{ $index }}"
-                                    >
-                                    <div class="form-text">Jumlah personel dengan jabatan ini</div>
-                                </div>
-                                <div class="col-md-4">
+                                <!-- <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label> -->
+                                <input 
+                                    type="hidden"
+                                    name="resources[{{ $index }}][jtk]" 
+                                    class="form-control jtk-input" 
+                                    value="{{ $hr['jtk'] }}" 
+                                    min="1" 
+                                    placeholder="1" 
+                                    required
+                                    data-index="{{ $index }}"
+                                >
+                                <!-- <div class="form-text">Jumlah personel dengan jabatan ini</div> -->
+                                <!-- <div class="col-md-4">
+                                </div> -->
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
                                     <input 
                                         type="number" 
@@ -402,6 +404,19 @@
                             <button type="button" class="btn btn-light-success btn-sm" onclick="addUserToResource({{ $index }})">
                                 <i class="bi bi-person-plus"></i> Tambah Personel
                             </button>
+
+                            <!-- Display JTK Information -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="alert alert-light-info">
+                                        <div>
+                                            <strong>JTK (Jumlah Tenaga Kerja):</strong> 
+                                            <span class="jtk-display fw-bold" data-index="{{ $index }}">{{ $hr['jtk'] }}</span> orang
+                                            <div class="small text-muted mt-1">Otomatis dihitung berdasarkan jumlah personel yang ditugaskan</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -649,7 +664,7 @@ $(document).ready(function() {
 });
 
 /**
- * Initialize edit form validation for WP number
+ * Initialize edit form validation for WP number and name
  */
 function initEditFormValidation() {
     // Auto-update WP number ketika kategori diubah
@@ -677,6 +692,42 @@ function initEditFormValidation() {
         }
     });
 
+    // Real-time validation untuk nama work package
+    let editNameValidationTimeout;
+    $('input[name="name"]').on('input', function() {
+        const name = $(this).val().trim();
+        const input = $(this);
+        const currentWpId = '{{ $workPackage->wp_id }}';
+
+        // Clear previous timeout
+        clearTimeout(editNameValidationTimeout);
+
+        // Remove existing feedback
+        input.removeClass('is-valid is-invalid');
+        input.siblings('.invalid-feedback, .valid-feedback').remove();
+
+        if (name.length > 0) {
+            editNameValidationTimeout = setTimeout(() => {
+                checkWorkPackageName(name, currentWpId, input);
+            }, 500);
+        } else {
+            // input.removeClass('is-valid is-invalid');
+            // input.siblings('.invalid-feedback, .valid-feedback').remove();
+            input.addClass('is-invalid');
+            input.after('<div class="invalid-feedback">Nama Work Package perlu diisi</div>');
+        }
+    });
+
+    // Validation on blur
+    $('input[name="name"]').on('blur', function() {
+        const name = $(this).val().trim();
+        const input = $(this);
+        const currentWpId = '{{ $workPackage->wp_id }}';
+
+        if (name.length > 0) {
+            checkWorkPackageName(name, currentWpId, input);
+        }
+    });
 }
 
 /**
@@ -736,9 +787,47 @@ function checkEditWpNumberAvailability(categoryId, sequence) {
 }
 
 /**
+ * Check Work Package name availability
+ */
+function checkWorkPackageName(name, excludeId, inputElement) {
+    if (!name) {
+        return;
+    }
+
+    $.ajax({
+        url: `/wp-management/check-wp-name`,
+        method: 'GET',
+        data: {
+            name: name,
+            exclude_id: excludeId
+        },
+        success: function(response) {
+            if (response.success && inputElement) {
+                inputElement.siblings('.invalid-feedback, .valid-feedback').remove();
+
+                if (response.available) {
+                    inputElement.removeClass('is-invalid').addClass('is-valid');
+                    inputElement.after('<div class="valid-feedback">Nama Sub Work Package tersedia</div>');
+                } else {
+                    inputElement.removeClass('is-valid').addClass('is-invalid');
+                    inputElement.after('<div class="invalid-feedback">' + response.message + '</div>');
+                }
+            }
+        },
+        error: function() {
+            console.error('Failed to check work package name availability');
+            if (inputElement) {
+                inputElement.removeClass('is-valid is-invalid');
+                inputElement.siblings('.invalid-feedback, .valid-feedback').remove();
+            }
+        }
+    });
+}
+
+/**
  * Save work package changes
  */
-function saveWorkPackage() {
+async function saveWorkPackage() {
     // Validate WP number
     if ($('#edit_wp_sequence').hasClass('is-invalid')) {
         Swal.fire({
@@ -752,6 +841,51 @@ function saveWorkPackage() {
             }
         });
         return;
+    }
+
+    // Validate Work Package name
+    const nameInput = $('input[name="name"]');
+    const nameValue = nameInput.val().trim();
+    const currentWpId = '{{ $workPackage->wp_id }}';
+    
+    if (nameValue) {
+        try {
+            const response = await $.ajax({
+                url: `/wp-management/check-wp-name`,
+                method: 'GET',
+                data: {
+                    name: nameValue,
+                    exclude_id: currentWpId
+                }
+            });
+            
+            if (response.success && !response.available) {
+                Swal.fire({
+                    title: 'Nama Sub Work Package Tidak Valid',
+                    text: 'Nama Sub Work Package yang dipilih sudah digunakan. Silakan pilih nama yang berbeda.',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        confirmButton: 'btn btn-secondary'
+                    }
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('Error validating name:', error);
+            Swal.fire({
+                title: 'Error Validasi',
+                text: 'Terjadi kesalahan saat memvalidasi nama Work Package.',
+                icon: 'error',
+                buttonsStyling: false,
+                confirmButtonText: 'Tutup',
+                customClass: {
+                    confirmButton: 'btn btn-secondary'
+                }
+            });
+            return;
+        }
     }
 
     const form = document.getElementById('editWorkPackageForm');
@@ -1140,7 +1274,7 @@ function addHumanResource() {
             <input type="hidden" name="resources[${humanResourceIndex}][hr_id]" value="new">
 
             <div class="row mb-3">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="form-label fw-bold required">Jabatan</label>
                     <select name="resources[${humanResourceIndex}][role_id]" class="form-select role-select" data-index="${humanResourceIndex}" required>
                         <option value="">Pilih Jabatan</option>
@@ -1151,13 +1285,14 @@ function addHumanResource() {
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold required">JTK (Jumlah Tenaga Kerja)</label>
-                    <input type="number" name="resources[${humanResourceIndex}][jtk]" 
-                           class="form-control jtk-input" min="1" placeholder="Contoh: 1" data-index="${humanResourceIndex}" required>
-                    <div class="form-text">Jumlah personel dengan jabatan ini</div>
-                </div>
-                <div class="col-md-4">
+                <input 
+                    type="hidden" 
+                    name="resources[${humanResourceIndex}][jtk]" 
+                    class="jtk-input" 
+                    value="0"
+                    data-index="${humanResourceIndex}"
+                >
+                <div class="col-md-6">
                     <label class="form-label fw-bold required">JHK (Jumlah Hari Kerja)</label>
                     <input type="number" name="resources[${humanResourceIndex}][jhk]" 
                            class="form-control" min="1" placeholder="Contoh: 20" required>
@@ -1181,6 +1316,19 @@ function addHumanResource() {
             <button type="button" class="btn btn-light-success btn-sm" onClick="addUserToResource(${humanResourceIndex})">
                 <i class="bi bi-person-plus"></i> Tambah Personel
             </button>
+
+            <!-- Display JTK Information -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-light-info">
+                        <div>
+                            <strong>JTK (Jumlah Tenaga Kerja):</strong> 
+                            <span class="jtk-display fw-bold" data-index="${humanResourceIndex}">0</span> orang
+                            <div class="small text-muted mt-1">Otomatis dihitung berdasarkan jumlah personel yang ditugaskan</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 
@@ -1307,6 +1455,7 @@ function updateJTKFromUsers(resourceIndex) {
     const container = document.getElementById(`users-container-${resourceIndex}`);
     const userSelects = container.querySelectorAll('.user-select');
     const jtkInput = document.querySelector(`input[name="resources[${resourceIndex}][jtk]"]`);
+    const jtkDisplay = document.querySelector(`.jtk-display[data-index="${resourceIndex}"]`);
 
     if (jtkInput) {
         let selectedUsersCount = 0;
@@ -1316,7 +1465,14 @@ function updateJTKFromUsers(resourceIndex) {
             }
         });
 
-        jtkInput.value = Math.max(selectedUsersCount, 1);
+        jtkInput.value = Math.max(selectedUsersCount, 0);
+
+        // Update display
+        if (jtkDisplay) {
+            jtkDisplay.textContent = selectedUsersCount;
+        }
+
+        console.log(`JTK updated for resource ${resourceIndex}: ${selectedUsersCount} users`);
     }
 }
 
@@ -1470,6 +1626,12 @@ function handleUserSelectChange(selectElement) {
 $(document).ready(function() {
     // Update user select options on page load
     updateUserSelectOptions();
+
+    // Initialize JTK displays for existing resources
+    $('.human-resource-item').each(function() {
+        const resourceIndex = $(this).data('index');
+        updateJTKFromUsers(resourceIndex);
+    });
 
     // Set up event handlers for existing elements
     $('.role-select').each(function() {
@@ -1633,6 +1795,13 @@ function confirmRemoveResource(resourceItem, selectedRoleText, hasAssignments, a
 }
 
 /** VOLUME MANAGEMENT */
+/**
+ * Navigation to Work Order Management
+ */
+function openAssignWPtoWO() {
+    window.location.href='{{route('work-order')}}';
+}
+
 /**
  * Open add volume modal
  */

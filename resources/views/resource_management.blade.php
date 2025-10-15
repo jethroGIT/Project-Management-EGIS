@@ -708,21 +708,64 @@ function submitEditUser() {
     }
 
     // Validasi password confirmation
-    const password = $('#editUserPassword').val();
-    const passwordConfirmation = $('#editUserPasswordConfirmation').val();
+    const password = $('#editUserPassword').val().trim();
+    const passwordConfirmation = $('#editUserPasswordConfirmation').val().trim();
 
-    if (password && password !== passwordConfirmation) {
-        Swal.fire({
-            title: "Validasi Error",
-            text: "Password dan konfirmasi password tidak cocok",
-            icon: "error",
-            buttonsStyling: false,
-            confirmButtonText: "Tutup",
-            customClass: {
-                confirmButton: "btn btn-secondary"
+    // Cek jika kedua field password konsisten
+    if (password || passwordConfirmation) {
+        // Kedua field harus terisi
+        if (!password || !passwordConfirmation) {
+            Swal.fire({
+                title: "Validasi Error",
+                text: "Jika ingin mengubah password, kedua field password harus diisi",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+
+            // Menambahkan focus pada field kosong
+            if (!password) {
+                $('#editUserPassword').focus();
+            } else {
+                $('#editUserPasswordConfirmation').focus();
             }
-        });
-        return;
+            return;
+        }
+
+        // Cek jika password cocok
+        if (password !== passwordConfirmation) {
+            Swal.fire({
+                title: "Validasi Error",
+                text: "Password dan konfirmasi password tidak cocok",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+            $('#editUserPasswordConfirmation').focus();
+            return;
+        }
+
+        // Cek panjang minimum
+        if (password.length < 6) {
+            Swal.fire({
+                title: "Validasi Error",
+                text: "Password minimal 6 karakter",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: {
+                    confirmButton: "btn btn-secondary"
+                }
+            });
+            $('#editUserPassword').focus();
+            return;
+        }
     }
 
     // Create FormData
@@ -825,10 +868,15 @@ function submitEditUser() {
                 
                 // Handle validation errors
                 if (xhr.responseJSON.errors) {
-                    const errors = Object.entries(xhr.responseJSON.errors)
-                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-                        .join('\n');
-                    errorMessage += '\n\nValidation Errors:\n' + errors;
+                    const errors = Object.entries(xhr.responseJSON.errors);
+                    if (errors.length > 0) {
+                        // Show first validating error
+                        const [field, messages] = errors[0];
+                        errorMessage = Array.isArray(messages) ? messages[0] : messages;
+                    }
+                    //     .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                    //     .join('\n');
+                    // errorMessage += '\n\nValidation Errors:\n' + errors;
                 }
             }
 
@@ -925,10 +973,15 @@ function submitAddUser() {
                 }
 
                 if (xhr.responseJSON.errors) {
-                    const errors = Object.entries(xhr.responseJSON.errors)
-                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-                        .join('\n');
-                    errorMessage += '\n\nValidation Errors:\n' + errors;
+                    const errors = Object.entries(xhr.responseJSON.errors);
+                    if (errors.length > 0) {
+                        // Show first validation error
+                        const [field, messages] = errors[0];
+                        errorMessage = Array.isArray(messages) ? messages[0] : messages;
+                    }
+                    //     .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                    //     .join('\n');
+                    // errorMessage += '\n\nValidation Errors:\n' + errors;
                 }
             }
 
