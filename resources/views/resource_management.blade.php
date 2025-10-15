@@ -973,10 +973,15 @@ function submitAddUser() {
                 }
 
                 if (xhr.responseJSON.errors) {
-                    const errors = Object.entries(xhr.responseJSON.errors)
-                        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-                        .join('\n');
-                    errorMessage += '\n\nValidation Errors:\n' + errors;
+                    const errors = Object.entries(xhr.responseJSON.errors);
+                    if (errors.length > 0) {
+                        // Show first validation error
+                        const [field, messages] = errors[0];
+                        errorMessage = Array.isArray(messages) ? messages[0] : messages;
+                    }
+                    //     .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                    //     .join('\n');
+                    // errorMessage += '\n\nValidation Errors:\n' + errors;
                 }
             }
 

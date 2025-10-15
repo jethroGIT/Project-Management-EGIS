@@ -49,7 +49,6 @@ class ResourceManagementController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:user,email',
             'desc' => 'nullable|string|max:1000', 
-            // 'role_id' => 'required|exists:roles,id',
             'password' => 'nullable|string|min:6|confirmed'
         ], [
             'name.required' => 'Nama harus diisi',
@@ -68,28 +67,16 @@ class ResourceManagementController extends Controller
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                // 'role_id' => $request->role_id,
                 'password' => Hash::make($generatedPassword),
                 'desc' => $request->desc ? trim($request->desc) : null,
             ]);
 
             // Assign role ke user
-            // $selectedRole = Role::find($request->role_id);
-            // if ($selectedRole) {
-            //     if ($selectedRole->name === 'admin') {
-            //         $user->assignRole('admin');
-            //     } else {
-            //         $user->assignRole(['karyawan', $selectedRole->name]);
-            //     }
-            // }
+            if (!$user->hasRole('karyawan')) {
+                $user->assignRole('karyawan');
+            }
 
             DB::commit();
-
-            // Ambil display role name untuk response
-            // $userRoles = $user->fresh()->getRoleNames();
-            // $displayRoleName = $userRoles->contains('admin') 
-            //     ? 'admin' 
-            //     : $userRoles->filter(fn($role) => $role !== 'karyawan')->first();
 
             return response()->json([
                 'success' => true,
@@ -97,8 +84,8 @@ class ResourceManagementController extends Controller
                 'user' => [
                     'user_id' => $user->user_id,
                     'name' => $user->name,
-                    'email' => $user->email
-                    // 'role_name' => $displayRoleName ?? 'Belum ada peran'
+                    'email' => $user->email,
+                    'roles' => $user->getRoleNames()->toArray()
                 ],
                 'password_info' => $generatedPassword
             ]);
