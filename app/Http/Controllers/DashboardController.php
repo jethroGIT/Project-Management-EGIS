@@ -11,6 +11,7 @@ use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Work;
 use App\Models\WorkOrder;
+use App\Models\Project;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use DB;
@@ -40,6 +41,9 @@ class DashboardController extends Controller
         // Data untuk card Work Package yang sudah dipanggil WO
         $workPackageWOAssignmentData = $this->getWorkPackageWOAssignment();
 
+        // Perbandingan nilai uang
+        // Data untuk progress bar WO keluar dengan total keseluruhan
+        $projectFinanceComparisonData = $this->getProjectFinanceComparison();
         // Data untuk progress bar WO selesai dengan WO yang baru keluar berdasarkan nilai keuangan
         $woCompletionFinanceData = $this->getWOCompletionFinance();
 
@@ -109,6 +113,7 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'totalWorkOrders',
             'workPackageWOAssignmentData',
+            'projectFinanceComparisonData',
             'woCompletionFinanceData',
             'pieChartDataWo',
             'availableYears',
@@ -232,6 +237,70 @@ class DashboardController extends Controller
                 'remaining' => 0,
                 'completion_percentage' => 0,
                 'details' => []
+            ];
+        }
+    }
+
+    /**
+     * Get project finance comparison data
+     */
+    private function getProjectFinanceComparison()
+    {
+        try {
+            // Ambil data project
+            $getProject = Project::getBudgetByName('Project EGIS');
+            
+            // Total anggaran proyek
+            $totalProjectBudget = $getProject ?? 12704350000;
+
+            // Ambil total nilai WO yang sudah keluar dari method yang sudah ada
+            $woCompletionData = $this->getWOCompletionFinance();
+            $totalWOValue = $woCompletionData['total_wo_value'];
+
+            // Hitung persentase WO keluar terhadap total anggaran
+            $woProjectPercentage = $totalProjectBudget > 0 ?
+                round(($totalWOValue / $totalProjectBudget) * 100, 1) : 0;
+            
+            // Hitung sisa anggaran
+            $remainingBudget = $totalProjectBudget - $totalWOValue;
+
+            return [
+                'total_project_budget' => $totalProjectBudget,
+                'total_wo_value' => $totalWOValue,
+                'remaining_budget' => $remainingBudget,
+                'wo_project_percentage' => $woProjectPercentage,
+                'completed_wo_value' => $woCompletionData['completed_wo_value'],
+                'completion_percentage' => $woCompletionData['completion_percentage'],
+                'formatted' => [
+                    'total_project_budget' => number_format($totalProjectBudget, 0, ',', '.'),
+                    'total_wo_value' => number_format($totalWOValue, 0, ',', '.'),
+                    'remaining_budget' => number_format($remainingBudget, 0, ',', '.'),
+                    'completed_wo_value' => number_format($woCompletionData['completed_wo_value'], 0, ',', '.')
+                ]
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error in getProjectFinanceComparison', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Default value is case of error
+            $defaultBudget = 12704350000;
+            return [
+                'project_name' => 'Project EGIS',
+                'total_project_budget' => $defaultBudget,
+                'total_wo_value' => 0,
+                'remaining_budget' => $defaultBudget,
+                'wo_project_percentage' => 0,
+                'completed_wo_value' => 0,
+                'completion_percentage' => 0,
+                'formatted' => [
+                    'total_project_budget' => number_format($defaultBudget, 0, ',', '.'),
+                    'total_wo_value' => '0',
+                    'remaining_budget' => number_format($defaultBudget, 0, ',', '.'),
+                    'completed_wo_value' => '0'
+                ]
             ];
         }
     }

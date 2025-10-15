@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             Timesheet52Seeder::class,
             Timesheet62Seeder::class,
             Timesheet91Seeder::class,
+            ProjectSeeder::class,
         ]);
         
         // User::factory(10)->create();
