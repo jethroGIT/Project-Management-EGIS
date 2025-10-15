@@ -248,10 +248,10 @@ class DashboardController extends Controller
     {
         try {
             // Ambil data project
-            $getProject = Project::getBudgetByName('Project EGIS');
+            $getProjectBudget = Project::getBudgetByName('Project EGIS');
             
             // Total anggaran proyek
-            $totalProjectBudget = $getProject ?? 12704350000;
+            $totalProjectBudget = $getProjectBudget ?? 12704350000;
 
             // Ambil total nilai WO yang sudah keluar dari method yang sudah ada
             $woCompletionData = $this->getWOCompletionFinance();
@@ -265,6 +265,7 @@ class DashboardController extends Controller
             $remainingBudget = $totalProjectBudget - $totalWOValue;
 
             return [
+                'project_name' => 'Project EGIS',
                 'total_project_budget' => $totalProjectBudget,
                 'total_wo_value' => $totalWOValue,
                 'remaining_budget' => $remainingBudget,
