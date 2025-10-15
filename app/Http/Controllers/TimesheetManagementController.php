@@ -11,6 +11,7 @@ use App\Models\WorkPackageVolume;
 use App\Models\WpCategory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TimesheetManagementController extends Controller
 {
@@ -38,8 +39,12 @@ class TimesheetManagementController extends Controller
             return [
                 'wp_number' => optional($firstItem->volume->workPackage)->wp_number,
                 'wp_name' => optional($firstItem->volume->workPackage)->name,
-                'execution_date' => $firstItem->execution_date,
+                'execution_date' => $firstItem->execution_date, // Ambil langsung dari item pertama
                 'volumes' => implode(', ', $volumes), // Gabungkan volume_number
+                'timesheets' => [
+                    'timesheet_ids' => $group->pluck('timesheet_id')->toArray(),
+                    'volume_ids' => $group->pluck('volume_id')->unique()->toArray(),
+                ],
                 'users' => $users->map(function ($user) use ($group, $volumeCount) {
                     // Gabungkan aktivitas dan durasi untuk setiap pengguna
                     $userActivities = $group->where('user_id', $user->user_id)->reduce(function ($carry, $entry) {
@@ -60,6 +65,8 @@ class TimesheetManagementController extends Controller
                 'wpGroupKey' => trim(preg_replace('/\s+/', ' ', optional($firstItem->volume->workPackage)->wp_number . ' - ' . optional($firstItem->volume->workPackage)->name)),
             ];
         })->sortBy('wp_number')->values();
+
+        // Log::info('Grouped Activities:', $groupedActivities->toArray());
 
         // Ambil semua user unique di timesheet untuk semua bulan
         $users = $timesheets->pluck('user')
@@ -212,7 +219,11 @@ class TimesheetManagementController extends Controller
     public function editData($volumeId, $executionDate)
     {
         try {
-            $activities = Timesheet::where('volume_id', $volumeId)
+            // Jika volumeId adalah array (untuk mendukung lebih dari satu volume), pecah menjadi array
+            $volumeIds = explode(',', $volumeId);
+
+            // Ambil semua aktivitas berdasarkan volume_id dan execution_date
+            $activities = Timesheet::whereIn('volume_id', $volumeIds)
                 ->where('execution_date', $executionDate)
                 ->with('user.roles', 'volume.workPackage')
                 ->orderBy('user_id')
@@ -241,16 +252,19 @@ class TimesheetManagementController extends Controller
     {
         try {
             $request->validate([
-                'execution_date' => 'date',
-                'activity' => 'string|max:255'
+                'execution_date' => 'required|date',
+                'activities' => 'required|array',
+                'durations' => 'required|array',
+                'personel_ids' => 'required|array',
+                'volume_ids' => 'required|array',
             ]);
 
-            $timesheetIds = $request->input('timesheet_ids', []);
-            $personelIds = $request->input('personel_ids', []);
-            $durations = $request->input('durations', []);
-            $activities = $request->input('activities', []);
             $executionDate = $request->input('execution_date');
-            $volumeId = $request->input('volume_id');
+            $activities = $request->input('activities');
+            $durations = $request->input('durations');
+            $personelIds = $request->input('personel_ids');
+            $volumeIds = $request->input('volume_ids');
+            $timesheetIds = $request->input('timesheet_ids', []);
             $deletedTimesheetIds = json_decode($request->input('deleted_timesheet_ids', '[]'), true);
 
             // Hapus data berdasarkan deletedTimesheetIds
@@ -267,20 +281,32 @@ class TimesheetManagementController extends Controller
                 $duration = $durations[$index] ?? null;
                 $timesheetId = $timesheetIds[$index] ?? null;
 
-                if ($activity === null) continue;
+                if ($activity === null || $duration === null) continue;
 
-                // Update jika ada ID, Create jika tidak
-                if ($timesheetId) {
-                    $timesheet = Timesheet::findOrFail($timesheetId);
+                foreach ($volumeIds as $volumeId) {
+                    // Update jika ada ID, Create jika tidak
+                    if ($timesheetId) {
+                        $timesheet = Timesheet::findOrFail($timesheetId);
 
-                    $isUserChanged = $userId != $timesheet->user_id;
-                    $isVolumeChanged = $volumeId != $timesheet->volume_id;
-                    $isDateChanged = $executionDate != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
-                    $isDurationChanged = $duration != $timesheet->duration;
-                    $isActivityChanged = $activity != $timesheet->activity;
+                        $isUserChanged = $userId != $timesheet->user_id;
+                        $isVolumeChanged = $volumeId != $timesheet->volume_id;
+                        $isDateChanged = $executionDate != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
+                        $isDurationChanged = $duration != $timesheet->duration;
+                        $isActivityChanged = $activity != $timesheet->activity;
 
-                    if ($isUserChanged || $isVolumeChanged || $isDateChanged || $isDurationChanged || $isActivityChanged) {
-                        $timesheet->update([
+                        if ($isUserChanged || $isVolumeChanged || $isDateChanged || $isDurationChanged || $isActivityChanged) {
+                            $timesheet->update([
+                                'user_id' => $userId,
+                                'volume_id' => $volumeId,
+                                'execution_date' => $executionDate,
+                                'duration' => $duration,
+                                'activity' => $activity,
+                            ]);
+                            $hasChanges = true;
+                            $updatedOrCreated[] = $timesheet;
+                        }
+                    } else {
+                        $new = Timesheet::create([
                             'user_id' => $userId,
                             'volume_id' => $volumeId,
                             'execution_date' => $executionDate,
@@ -288,18 +314,8 @@ class TimesheetManagementController extends Controller
                             'activity' => $activity,
                         ]);
                         $hasChanges = true;
-                        $updatedOrCreated[] = $timesheet;
+                        $updatedOrCreated[] = $new;
                     }
-                } else {
-                    $new = Timesheet::create([
-                        'user_id' => $userId,
-                        'volume_id' => $volumeId,
-                        'execution_date' => $executionDate,
-                        'duration' => $duration,
-                        'activity' => $activity,
-                    ]);
-                    $hasChanges = true;
-                    $updatedOrCreated[] = $new;
                 }
             }
 

@@ -147,9 +147,9 @@
                                                     title="Edit Aktivitas" 
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#editActivityModal"
-                                                    data-timesheet-id="{{ $activity['timesheet_id'] ?? '' }}"
-                                                    data-volume-id="{{ $activity['volume_id'] ?? '' }}"
-                                                    data-execution-date="{{ $activity['execution_date'] }}"
+                                                    data-timesheet-ids="{{ json_encode($activity['timesheets']['timesheet_ids']) }}"
+                                                    data-volume-ids="{{ json_encode($activity['timesheets']['volume_ids']) }}"
+                                                    data-execution-dates="{{ json_encode($activity['execution_date']) }}"
                                                 >
                                                     <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                     Edit
@@ -157,8 +157,7 @@
                                             </li>
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" title="Hapus Aktivitas"
-                                                    data-execution-date="{{ $activity['execution_date'] }}" 
-                                                    data-timesheet-id="{{ $activity['timesheet_id'] ?? '' }}"
+                                                    data-timesheet-ids="{{ json_encode($activity['timesheets']['timesheet_ids']) }}"
                                                 >
                                                     <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                     Hapus
@@ -1195,10 +1194,11 @@
     // Event listener for edit buttons
     $(document).on('click', '.btn-edit-activity', function(e) {
         e.preventDefault();
-        const timesheetId = $(this).data('timesheet-id');
-        const volumeId = $(this).data('volume-id');
-        const executionDate = $(this).data('execution-date');
-        populateEditModal(timesheetId, volumeId, executionDate);
+        const timesheetIds = $(this).data('timesheet-ids');
+        console.log('edit aktivitas personel dengan timesheetId:', timesheetId);
+        const volumeIds = $(this).data('volume-ids');
+        const executionDate = $(this).data('execution-dates');
+        populateEditModal(timesheetIds, volumeIds, executionDate);
     });
 
     function updateEditPersonelSelectOptions() {
@@ -1348,6 +1348,7 @@
     $(document).on('click', '.btn-delete-activity', function(e) {
         e.preventDefault();
         const timesheetId = $(this).data('timesheet-id');
+        console.log('Hapus seluruh aktivitas personel dengan timesheetId:', timesheetId);
         const executionDate = $(this).data('execution-date');
         let formattedDate = executionDate;
         if (executionDate) {
