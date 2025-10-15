@@ -271,21 +271,42 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-
+    const activitiesCount = {{ $activitiesCount }};
+    const mandaysPlan = {{ $humanResources->jhk ?? 0 }};
+    const periodValid = {{ $periodValid ? 'true' : 'false' }};
+    console.log('periodValid: ' + periodValid);
      // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
 
-        const activitiesCount = {{ $activitiesCount }};
-        const mandaysPlan = {{ $humanResources->jhk ?? 0 }};
 
         // Handler tombol tambah aktivitas
         $('[data-bs-target="#addActivityModal"]').on('click', function(e) {
-            if (activitiesCount >= mandaysPlan) {
+            if (activitiesCount >= mandaysPlan && !periodValid) {
                 e.preventDefault();
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Mandays sudah penuh',
+                    title: 'Mandays dan Periode Melewati Batas',
+                    text: 'Jumlah aktivitas Anda sudah sama atau lebih dari rencana mandays, dan periode pelaksanaan WP sudah berakhir.',
+                    confirmButtonText: 'Ok',
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false;
+            }else if(!periodValid){
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Periode Melewati Batas',
+                    text: 'Periode pelaksanaan WP sudah berakhir.',
+                    confirmButtonText: 'Ok',
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false;
+            }else if(activitiesCount >= mandaysPlan){
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Mandays Penuh',
                     text: 'Jumlah aktivitas Anda sudah sama atau lebih dari rencana mandays.',
                     confirmButtonText: 'Ok',
                     customClass: { confirmButton: "btn btn-secondary" }
@@ -363,55 +384,82 @@
                 return; // Hentikan proses jika validasi gagal
             }
 
-            const formData = new FormData(addActivityForm);
-            const url = addActivityForm.action;
+            let durationNow = activitiesCount + parseFloat(duration);
+            console.log('durationNow:' + durationNow);
+            console.log('mandaysPlan:' + mandaysPlan);
+            if (durationNow >= mandaysPlan) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Mandays penuh',
+                    text: 'Penambahan aktivitas berikut akan memenuhi/melebihi mandays yang direncanakan.',
+                    cancelButtonText: 'Batal',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    customClass: { confirmButton: "btn btn-primary", cancelButton: 'btn btn-light' }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jika user menekan tombol "Ok", lanjutkan ke tahap fetch POST
+                        submitAddActivity();
+                    }
+                });
+                return; // Hentikan proses jika mandays penuh
+            }
 
-            // Kirim permintaan AJAX
-            fetch(url, {
-                method: 'POST',
-                body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
+            // Jika tidak penuh, langsung lanjut ke tahap fetch POST
+            submitAddActivity();
+        });
+    }
+
+    function submitAddActivity() {
+        const formData = new FormData(addActivityForm);
+        const url = addActivityForm.action;
+
+        // Kirim permintaan AJAX
+        fetch(url, {
+            method: 'POST',
+            body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Jika respons bukan 2xx
+                if (response.status === 422) {
+                    // Jika status 422, tangani validasi khusus
                     return response.json().then(errorData => {
-                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                        throw new Error(errorData.message || 'Validasi gagal.');
                     });
                 }
-                return response.json(); // Parse respons JSON
-            })
-            .then(data => {
-                // Logika jika permintaan sukses
-                Swal.fire({
-                    text: data.message || "Data berhasil ditambahkan!",
-                    icon: "success",
-                    buttonsStyling: false,
-                    confirmButtonText: "Tutup",
-                    customClass: { confirmButton: "btn btn-secondary" }
-                }).then(() => {
-                    addActivityModal.hide(); // Sembunyikan modal
-                    location.reload(); // Reload halaman untuk melihat perubahan
-                    // if (window.refreshStatusTimesheet) {
-                    //     window.refreshStatusTimesheet();
-                    // }
-                    // ATAU update UI tanpa reload:
-                    // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
                 });
-            })
-            .catch(error => {
-                // Logika jika ada error (jaringan, validasi, server error)
-                console.error('Error updating resource:', error);
-                Swal.fire({
-                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "OK",
-                    customClass: { confirmButton: "btn btn-danger" }
-                });
+            }
+            return response.json(); // Parse respons JSON
+        })
+        .then(data => {
+            // Logika jika permintaan sukses
+            Swal.fire({
+                text: data.message || "Data berhasil ditambahkan!",
+                icon: "success",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            }).then(() => {
+                addActivityModal.hide(); // Sembunyikan modal
+                location.reload(); // Reload halaman untuk melihat perubahan
+            });
+        })
+        .catch(error => {
+            // Logika jika ada error (jaringan, validasi, server error)
+            console.error('Error:', error.message);
+            Swal.fire({
+                text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "OK",
+                customClass: { confirmButton: "btn btn-danger" }
             });
         });
     }
@@ -471,7 +519,13 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
+                    // Jika respons bukan 2xx
+                    if (response.status === 422) {
+                        // Jika status 422, tangani validasi khusus
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.message || 'Validasi gagal.');
+                        });
+                    }
                     return response.json().then(errorData => {
                         throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
                     });
@@ -489,8 +543,6 @@
                 }).then(() => {
                     editActivityModal.hide(); // Sembunyikan modal
                     location.reload(); // Reload halaman untuk melihat perubahan
-                    // ATAU update UI tanpa reload:
-                    // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
                 });
             })
             .catch(error => {

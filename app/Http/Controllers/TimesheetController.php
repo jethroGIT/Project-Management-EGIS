@@ -180,7 +180,22 @@ class TimesheetController extends Controller
         // menghitung jumlah aktivitas dari role tertentu
         $activitiesCount = $activities->sum('duration');
 
-        return view('timesheet_per_user', compact('volume', 'workPackage', 'humanResources', 'activities', 'user', 'roleName', 'activitiesCount'));
+        if ($volume->start_date && $volume->end_date) {
+            $startDate = Carbon::parse($volume->start_date)->format('Y-m-d');
+            $endDate = Carbon::parse($volume->end_date)->format('Y-m-d');
+            $dateNow = Carbon::now()->format('Y-m-d');
+
+            if ($startDate <= $dateNow && $dateNow <= $endDate) {
+                $periodValid = true; // dalam periode
+            } else {
+                $periodValid = false; // di luar periode
+            }
+        } else {
+            $periodValid = false; // Jika tanggal tidak valid
+        }
+
+        return view('timesheet_per_user', compact('volume', 'workPackage', 'humanResources', 'activities', 
+                                                  'user', 'roleName', 'activitiesCount', 'periodValid'));
     }
     
     /**
@@ -289,35 +304,23 @@ class TimesheetController extends Controller
                 ->where('wo_id', $currentVolume->wo_id)
                 ->get();
 
-            // Jika hanya ada satu volume terkait, perbarui aktivitas untuk volume tersebut
-            if ($relatedVolumes->count() <= 1) {
-                $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
-                    ->where('user_id', $user_id)
-                    ->where('volume_id', $volume_id)
-                    ->firstOrFail();
+            // Pengecekan apakah data sudah ada
+            if ($request->filled('execution_date')) {
+                $exists = Timesheet::where('user_id', $user_id)
+                    ->whereIn('volume_id', $relatedVolumes->pluck('volume_id')) // Periksa semua volume terkait
+                    ->whereDate('execution_date', $request->execution_date)
+                    ->where('timesheet_id', '!=', $request->timesheet_id) // Pastikan bukan data yang sedang diedit
+                    ->exists();
 
-                if ($request->filled('execution_date')) {
-                    $activity->execution_date = $request->execution_date;
+                if ($exists) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Data dengan tanggal ini sudah ada untuk WP volume yang sama.'
+                    ], 422);
                 }
-
-                if ($request->filled('duration')) {
-                    $activity->duration = $request->duration;
-                }
-
-                if ($request->filled('activity')) {
-                    $activity->activity = $request->activity;
-                }
-
-                $activity->save();
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Data berhasil diperbarui.',
-                    'data' => $activity
-                ]);
             }
 
-            // Jika ada lebih dari satu volume terkait, perbarui aktivitas untuk semua volume
+            // Perbarui aktivitas untuk semua volume terkait
             $updatedActivities = [];
             foreach ($relatedVolumes as $volume) {
                 $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
@@ -340,6 +343,15 @@ class TimesheetController extends Controller
 
                     $activity->save();
                     $updatedActivities[] = $activity;
+                } else {
+                    // Jika tidak ada data sebelumnya, buat data baru
+                    $updatedActivities[] = Timesheet::create([
+                        'user_id' => $user_id,
+                        'volume_id' => $volume->volume_id,
+                        'duration' => $request->duration,
+                        'execution_date' => $request->execution_date,
+                        'activity' => $request->activity,
+                    ]);
                 }
             }
 
