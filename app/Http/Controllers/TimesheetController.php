@@ -382,9 +382,12 @@ class TimesheetController extends Controller
                 }
             }
 
+             $message = count($timesheetIds) > 1 
+                ? 'Data berhasil diperbarui untuk semua volume terkait.' 
+                : 'Data berhasil diperbarui.';
             return response()->json([
                 'success' => true,
-                'message' => 'Data berhasil diperbarui untuk semua volume terkait.',
+                'message' => $message,
                 // 'data' => $updatedActivities
             ]);
         } catch (\Exception $e) {

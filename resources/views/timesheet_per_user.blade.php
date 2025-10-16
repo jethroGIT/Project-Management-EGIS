@@ -245,9 +245,9 @@
                                 <div class="input-group">
                                     <select class="form-select" name="duration" id="duration_day" required>
                                         <option value="0.5">0.5</option>
-                                        <option value="1.0">1.0</option>
+                                        <option value="1">1</option>
                                         <option value="1.5">1.5</option>
-                                        <option value="2.0">2.0</option>
+                                        <option value="2">2</option>
                                     </select>
                                     <span class="input-group-text">Hari</span>
                                 </div>

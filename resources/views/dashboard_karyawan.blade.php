@@ -129,7 +129,7 @@
                                                 {{$wp->timesheetStatus}}
                                         </div>
                                         <div class="text-gray-800 fw-semibold fs-6 mt-1">
-                                            WP {{$wp->wp_number}} {{$wp->name}}
+                                            <span class="badge badge-light text-dark">WO {{$wp->wo_number ?? 0}}</span> WP {{$wp->wp_number}} {{$wp->name}}
                                         </div>
                                         <div class="text-gray-700 fw-semibold fs-7 mt-1 mb-2">
                                             @if($wp->activeVolume)
@@ -154,7 +154,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-center me-2">
+                                    <div class="d-flex align-items-center me-2 ms-1">
                                         @if($wp->activeVolume)
                                             <!-- Volume aktif ditemukan -->
                                             <button class="btn btn-secondary btn-sm d-flex align-items-center p-2 ms-1" 
@@ -317,6 +317,7 @@
                     console.log('Response JSON:', response);
                     if (response.success && response.html) {
                         document.getElementById('diagram-timeline').innerHTML = response.html;
+                        window.initTooltips();
                     } else {
                         document.getElementById('diagram-timeline').innerHTML = '<div class="text-danger py-5">Gagal memuat data.</div>';
                     }

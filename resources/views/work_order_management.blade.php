@@ -210,7 +210,7 @@
                     <thead>
                         <tr class="text-center fw-bold fs-6 text-gray-800 px-7">
                             <th scope="col" style="display:none;">WO Group</th>
-                            <th scope="col" class="align-middle border-bottom">No. Volume</th>
+                            <th scope="col" class="align-middle border-bottom">Volume ke-</th>
                             <th scope="col" class="align-middle border-bottom">Periode</th>
                         </tr>
                     </thead>

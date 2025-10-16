@@ -12,6 +12,7 @@
             <table class="table table-sm align-middle mb-0">
                 <thead>
                     <tr style="font-size: 0.99rem;">
+                        <th rowspan="2" class="fw-bold">WO</th>
                         <th rowspan="2" class="fw-bold">No.</th>
                         <th rowspan="2" class="fw-bold">Work Package</th>
                         <th colspan="2" class="text-center fw-bold p-0">Mandays</th>
@@ -28,6 +29,7 @@
                 <tbody>
                     @forelse($workPackages as $wp)
                         <tr style="font-size: 0.93rem;">
+                            <td>{{ $wp->wo_number }}</td>
                             <td>{{ $wp->wp_number }}</td>
                             <td>{{ $wp->name }}</td>
                             <td class="text-center">{{$wp->planned_mandays}}</td>

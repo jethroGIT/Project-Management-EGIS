@@ -1130,86 +1130,91 @@ class DashboardController extends Controller
         ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
         ->get();
         
-        $wpCount = $workPackages->count();
-        $selesai = 0;
-        $berjalan = 0;
+        $wpDetails = collect();
         $today = now();
         
-        // 4. Proses status untuk setiap WP
+        // 4. Proses setiap WP dan kelompokkan berdasarkan wo_id
         foreach ($workPackages as $wp) {
-            // Cek apakah ada volume dari WP ini yang dikerjakan user
-            $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->first();
-            $woId = $userVolume ? $userVolume->wo_id : null;
-            
-            // if (!$woId) {
-            //     $wp->volumes_count = 0;
-            //     $wp->execution_year = '-';
-            //     $wp->status = 'Berjalan';
-            //     $wp->performance = 0;
-            //     $berjalan++;
-            //     $wp->planned_mandays = 0;
-            //     $wp->actual_mandays = 0;
-            //     continue;
-            // }
-            
-            // Ambil volume dengan WO yang sama
-            $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);
-            $wp->volumes_count = $volumesWithSameWo->count();
-            
-            // Ambil execution_year dari volume
-            $executionYears = $volumesWithSameWo->pluck('execution_year')->unique()->filter();
-            $wp->execution_year = $executionYears->count() === 1 
-                ? $executionYears->first() 
-                : $executionYears->implode(', ');
-            
-            // Hitung performance & cek tanggal
-            $allDatesExpired = true;
-            $performance = $this->calculateWpPerformance($volumesWithSameWo, $today, $allDatesExpired);
-            $wp->performance = $performance;
-            $wp->allDatesExpired = $allDatesExpired;
-            
-            // Tentukan status WP
-            if ($allDatesExpired && $performance >= 100) {
-                $wp->status = 'Selesai';
-                $selesai++;
-            } else {
-                $wp->status = 'Berjalan';
-                $berjalan++;
-            }
+            $volumesByWo = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->groupBy('wo_id');
 
-            $userWork = Work::where('user_id', $user->user_id)
-            ->whereIn('volume_id', $volumesWithSameWo->pluck('volume_id'))
-            ->first();
-        
-            $role_id = $userWork ? $userWork->role_id : null;
-            
-            // Tambahan: Hitung mandays rencana (JHK) dari humanResources berdasarkan role
-            $humanResource = $wp->humanResources
-                ->where('role_id', $role_id)
-                ->first();
-            
-            $planned_mandays = $humanResource ? $humanResource->jhk : 0;
-            $wp->planned_mandays = $planned_mandays;
-            
-            // Tambahan: Hitung mandays realisasi dari timesheet
-            $volumeIdsInWp = $volumesWithSameWo->pluck('volume_id')->toArray();
-            $actual_mandays = Timesheet::where('user_id', $user->user_id)
-                ->whereIn('volume_id', $volumeIdsInWp)
-                ->sum('duration'); // Konversi dari menit ke jam
-            
-            $wp->actual_mandays = round($actual_mandays, 2);
-            
-            // Hitung persentase mandays terhadap rencana
-            $wp->mandays_percentage = $planned_mandays > 0 ? 
-                round(($actual_mandays / $planned_mandays) * 100, 2) : 0;
+            foreach ($volumesByWo as $woId => $volumes) {
+                if (!$woId) continue; // Abaikan volume tanpa WO
+
+                $wpClone = clone $wp; // Clone WP untuk menghindari konflik data
+                $wpClone->volumes_count = $volumes->count();
+
+                // Ambil execution_year dari volume
+                $executionYears = $volumes->pluck('execution_year')->unique()->filter();
+                $wpClone->execution_year = $executionYears->count() === 1
+                    ? $executionYears->first()
+                    : $executionYears->implode(', ');
+
+                // Hitung performance & cek tanggal
+                $allDatesExpired = true;
+                $performance = $this->calculateWpPerformance($volumes, $today, $allDatesExpired);
+                $wpClone->performance = $performance;
+                $wpClone->allDatesExpired = $allDatesExpired;
+
+                // Tentukan status WP
+                if ($allDatesExpired && $performance >= 100) {
+                    $wpClone->status = 'Selesai';
+                } else {
+                    $wpClone->status = 'Berjalan';
+                }
+
+                // Tambahkan wo_number
+                $wpClone->wo_number = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+
+                // Tambahan: Hitung mandays rencana (JHK) dari humanResources
+                $userWork = Work::where('user_id', $user->user_id)
+                    ->whereIn('volume_id', $volumes->pluck('volume_id'))
+                    ->first();
+
+                $role_id = $userWork ? $userWork->role_id : null;
+
+                $humanResource = $wp->humanResources
+                    ->where('role_id', $role_id)
+                    ->first();
+
+                $planned_mandays = $humanResource ? $humanResource->jhk : 0;
+                $wpClone->planned_mandays = $planned_mandays;
+
+                // Tambahan: Hitung mandays realisasi dari timesheet
+                $volumeIdsInWp = $volumes->pluck('volume_id')->toArray();
+
+                // Ambil semua aktivitas timesheet untuk volume terkait
+                $timesheets = Timesheet::where('user_id', $user->user_id)
+                    ->whereIn('volume_id', $volumeIdsInWp)
+                    ->get();
+
+                // Kelompokkan aktivitas berdasarkan tanggal
+                $timesheetsGroupedByDate = $timesheets->groupBy('execution_date');
+
+                // Hitung rata-rata durasi per hari
+                $averageDurations = $timesheetsGroupedByDate->map(function ($activities) {
+                    return $activities->avg('duration'); // Rata-rata durasi per hari
+                });
+
+                // Hitung rata-rata keseluruhan
+                $actual_mandays = $averageDurations->sum(); // Rata-rata dari rata-rata harian
+
+                $wpClone->actual_mandays = round($actual_mandays, 2);
+
+                // Hitung persentase mandays terhadap rencana
+                $wpClone->mandays_percentage = $planned_mandays > 0
+                    ? round(($actual_mandays / $planned_mandays) * 100, 2)
+                    : 0;
+
+                $wpDetails->push($wpClone);
+            }
         }
         
         $html = view('partials.user_wp_details', [
-            'workPackages' => $workPackages,
-            'username' => $username,
-            'totalWp' => $wpCount,
-            'selesai' => $selesai,
-            'berjalan' => $berjalan
+            'workPackages' => $wpDetails,
+            'username' => $user->name,
+            'totalWp' => $wpDetails->count(),
+            'selesai' => $wpDetails->where('status', 'Selesai')->count(),
+            'berjalan' => $wpDetails->where('status', 'Berjalan')->count(),
         ])->render();
         
         return response()->json([

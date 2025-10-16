@@ -128,32 +128,25 @@
 
 @push('scripts')
 <script>
-    (function () {
+    function initTooltips() {
         if (!window.bootstrap) return;
         document.querySelectorAll('.progress-bar-container[data-bs-toggle="tooltip"]').forEach(function (el) {
-            if (!bootstrap.Tooltip.getInstance(el)) {
-                new bootstrap.Tooltip(el);
+            // Pastikan tidak ada instance tooltip yang sudah ada untuk menghindari duplikasi
+            const tooltipInstance = bootstrap.Tooltip.getInstance(el);
+            if (tooltipInstance) {
+                tooltipInstance.dispose(); // Hapus instance lama jika ada
             }
+            new bootstrap.Tooltip(el);
         });
-    })();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initTooltips();
+    });
 </script>
 @endpush
 
 <style>
-    /* Hover effect for the pills */
-    /* .rounded-pill:hover {
-        /* filter: brightness(1.05);
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-        transition: all 0.2s ease-in-out;
-    } */
-    
-    /* Handle text overflow */
-    /* .rounded-pill span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    } */
-
     /* Month grid lines */
     .month-grid-line {
         position: absolute;
@@ -183,10 +176,7 @@
     }
 
     .tooltip {
-        background-color: #fff !important; /* Warna latar belakang putih */
         color: #000 !important; /* Warna teks hitam */
-        border: 1px solid #ddd; /* Tambahkan border abu-abu */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Tambahkan bayangan */
     }
 
     .tooltip .tooltip-inner {
@@ -195,19 +185,10 @@
         font-size: 0.875rem; /* Ukuran font */
         font-weight: 400; /* Berat font */
         border-radius: 5px; /* Sudut melengkung */
-        padding: 8px 12px; /* Padding dalam tooltip */
     }
 
     .tooltip-arrow {
         border-top-color: #fff !important; /* Warna panah putih */
         border-bottom-color: #fff !important; /* Warna panah putih */
     }
-    
-    /* Responsive adjustments */
-    /* @media (max-width: 767.98px) {
-        .rounded-pill {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-    } */
 </style>
