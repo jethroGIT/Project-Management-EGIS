@@ -141,7 +141,7 @@
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end rounded-0">
                                             <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" href="#" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
-                                                data-timesheet-id="{{ $activity->timesheet_id }}"
+                                                data-timesheet-ids="{{ implode(',', $activity->related_timesheet_ids) }}"
                                                 data-execution-date="{{ $activity->execution_date }}"
                                                 data-duration="{{ $activity->duration }}"
                                                 data-activity="{{ $activity->activity }}"
@@ -230,7 +230,7 @@
                 <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id, Auth::user()->user_id])}}" id="editActivityForm">
                     @csrf
                     @method('PUT')
-                    <input type="hidden" name="timesheet_id" id="form_timesheet_id">
+                    <input type="hidden" name="timesheet_ids[]" id="form_timesheet_ids">
                     
                     <div class="form-group mb-6">
                         <div class="row">
@@ -471,11 +471,15 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         document.body.addEventListener('click', function(event) {
-            // Pastikan elemen yang diklik adalah tombol edit aktivitas
             if (event.target.closest('.edit-activity-btn')) {
                 const button = event.target.closest('.edit-activity-btn');
-                // Isi input tersembunyi timesheet_id
-                document.getElementById('form_timesheet_id').value = button.dataset.timesheetId;
+                const timesheetIds = button.dataset.timesheetIds.split(','); // Ambil semua timesheet_id terkait
+
+                // Isi input hidden dengan array yang dipisahkan koma
+                const formTimesheetIds = document.getElementById('form_timesheet_ids');
+                formTimesheetIds.value = timesheetIds.join(','); // Kirim sebagai string yang dipisahkan koma
+
+                // Isi input lainnya
                 document.getElementById('executionDate').value = button.dataset.executionDate;
                 document.getElementById('duration_day').value = button.dataset.duration;
                 document.getElementById('activityTimesheet').value = button.dataset.activity;
@@ -491,6 +495,7 @@
             const executionDate = document.getElementById('executionDate').value.trim();
             const duration = document.getElementById('duration_day').value.trim();
             const activity = document.getElementById('activityTimesheet').value.trim();
+            const timesheetIdsString = document.getElementById('form_timesheet_ids').value; // Ambil string timesheet IDs
 
             // Validasi input
             if (!executionDate || !duration || !activity) {
@@ -505,14 +510,20 @@
                 return; // Hentikan proses jika validasi gagal
             }
 
-            const formData = new FormData(editActivityForm);
+            const formData = {
+                execution_date: executionDate,
+                duration: duration,
+                activity: activity,
+                timesheet_ids: timesheetIdsString.split(',').map(id => parseInt(id, 10)) // Kirim sebagai array integer
+            };
             const url = editActivityForm.action;
 
             // Kirim permintaan AJAX
             fetch(url, {
-                method: 'POST',
-                body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+                method: 'PUT',
+                body: JSON.stringify(formData), // FormData akan otomatis mengatur Content-Type: multipart/form-data
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
                 }

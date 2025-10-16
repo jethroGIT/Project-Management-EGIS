@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\WorkPackageVolume;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class TimesheetController extends Controller
@@ -157,11 +158,40 @@ class TimesheetController extends Controller
         $workPackage = $volume->workPackage;
         
         // timesheet activity
-        $activities= Timesheet::with('user.roles')
+        $activities = Timesheet::with('user.roles', 'volume')
             ->where('user_id', $user_id)
-            ->where('volume_id', $volume_id)
+            ->whereIn('volume_id', function ($query) use ($volume) {
+                $query->select('volume_id')
+                    ->from('work_package_volume')
+                    ->where('wp_id', $volume->wp_id)
+                    ->where('wo_id', $volume->wo_id);
+            })
             ->orderBy('execution_date', 'asc')
-            ->get();
+            ->get()
+            ->groupBy(function ($activity) {
+                // Kelompokkan berdasarkan execution_date dan wo_id
+                return $activity->execution_date . '-' . $activity->volume->wo_id;
+            })
+            ->map(function ($group) {
+                // Ambil aktivitas pertama dalam grup
+                $firstActivity = $group->first();
+
+                // Gabungkan aktivitas menjadi satu string (ambil salah satu saja)
+                $firstActivity->activity = $group->pluck('activity')->unique()->first();
+
+                // Jumlahkan durasi dan hitung rata-rata
+                $totalDuration = $group->sum('duration');
+                $averageDuration = $totalDuration / $group->count();
+
+                // Set durasi menjadi rata-rata
+                $firstActivity->duration = round($averageDuration, 2);
+
+                // Tambahkan related_timesheet_ids
+                $firstActivity->related_timesheet_ids = $group->pluck('timesheet_id')->toArray();
+
+                return $firstActivity;
+            })
+            ->values();
 
         // user info
         $user = User::with('roles')->findOrFail($user_id);
@@ -293,24 +323,29 @@ class TimesheetController extends Controller
             $request->validate([
                 'execution_date' => 'nullable|date',
                 'duration' => 'nullable|numeric',
-                'activity' => 'nullable|string'
+                'activity' => 'nullable|string',
+                'timesheet_ids' => 'required' // Pastikan timesheet_ids diterima sebagai array atau string
             ]);
 
-            // Ambil volume yang sedang diproses
-            $currentVolume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
-
-            // Cari semua volume milik WP yang memiliki wo_id yang sama
-            $relatedVolumes = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
-                ->where('wo_id', $currentVolume->wo_id)
-                ->get();
+            // Ambil data langsung dari request JSON
+            $timesheetIds = $request->input('timesheet_ids');
 
             // Pengecekan apakah data sudah ada
             if ($request->filled('execution_date')) {
+                // Ambil volume yang sedang diproses
+                $currentVolume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
+
+                // Cari semua volume milik WP yang memiliki wo_id yang sama
+                $relatedVolumes = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
+                                                    ->where('wo_id', $currentVolume->wo_id)
+                                                    ->pluck('volume_id');
+                
+                // Periksa apakah ada entri timesheet lain pada tanggal yang sama
                 $exists = Timesheet::where('user_id', $user_id)
-                    ->whereIn('volume_id', $relatedVolumes->pluck('volume_id')) // Periksa semua volume terkait
-                    ->whereDate('execution_date', $request->execution_date)
-                    ->where('timesheet_id', '!=', $request->timesheet_id) // Pastikan bukan data yang sedang diedit
-                    ->exists();
+                                    ->whereIn('volume_id', $relatedVolumes)
+                                    ->whereDate('execution_date', $request->execution_date)
+                                    ->whereNotIn('timesheet_id', $timesheetIds) // Pastikan bukan data yang sedang diedit
+                                    ->exists();
 
                 if ($exists) {
                     return response()->json([
@@ -320,45 +355,37 @@ class TimesheetController extends Controller
                 }
             }
 
-            // Perbarui aktivitas untuk semua volume terkait
-            $updatedActivities = [];
-            foreach ($relatedVolumes as $volume) {
-                $activity = Timesheet::where('timesheet_id', $request->timesheet_id)
-                    ->where('user_id', $user_id)
-                    ->where('volume_id', $volume->volume_id)
-                    ->first();
+            // Perbarui semua timesheet_id yang diberikan
+            $updateData = [];
+            if ($request->filled('execution_date')) {
+                $updateData['execution_date'] = $request->execution_date;
+            }
+            if ($request->filled('duration')) {
+                $updateData['duration'] = $request->duration;
+            }
+            if ($request->filled('activity')) {
+                $updateData['activity'] = $request->activity;
+            }
+            
+            // Periksa apakah ada data yang perlu diperbarui
+            if (!empty($updateData)) {
+                $updatedRows = Timesheet::whereIn('timesheet_id', $timesheetIds)
+                                        ->where('user_id', $user_id)
+                                        ->update($updateData);
 
-                if ($activity) {
-                    if ($request->filled('execution_date')) {
-                        $activity->execution_date = $request->execution_date;
-                    }
-
-                    if ($request->filled('duration')) {
-                        $activity->duration = $request->duration;
-                    }
-
-                    if ($request->filled('activity')) {
-                        $activity->activity = $request->activity;
-                    }
-
-                    $activity->save();
-                    $updatedActivities[] = $activity;
-                } else {
-                    // Jika tidak ada data sebelumnya, buat data baru
-                    $updatedActivities[] = Timesheet::create([
-                        'user_id' => $user_id,
-                        'volume_id' => $volume->volume_id,
-                        'duration' => $request->duration,
-                        'execution_date' => $request->execution_date,
-                        'activity' => $request->activity,
-                    ]);
+                // Jika tidak ada baris yang diperbarui, berikan pesan
+                if ($updatedRows === 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Tidak ada data yang diperbarui. Mungkin timesheet_id tidak ditemukan atau user tidak memiliki izin.'
+                    ], 404);
                 }
             }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui untuk semua volume terkait.',
-                'data' => $updatedActivities
+                // 'data' => $updatedActivities
             ]);
         } catch (\Exception $e) {
             return response()->json([
