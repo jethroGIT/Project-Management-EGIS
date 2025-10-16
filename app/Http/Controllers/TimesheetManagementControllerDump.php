@@ -21,30 +21,7 @@ class TimesheetManagementController extends Controller
         $timesheets = Timesheet::with(['user.roles', 'volume.workPackage'])
             ->orderByRaw('volume_id ASC, execution_date ASC')
             ->get();
-
-        // users
-        $users = $timesheets->pluck('user')
-            ->filter() // pastikan user tidak null
-            ->unique('user_id')
-            ->sortBy('user_id')
-            ->values();
-
-        // Pemendekan nama untuk $users
-        $usedShortNames = [];
-        $users = $users->map(function($user) use (&$usedShortNames) {
-            $parts = explode(' ', trim($user->name));
-            $short = $parts[0];
-            if (in_array(strtolower($short), $usedShortNames) && count($parts) > 1) {
-                $short .= ' ' . strtoupper(substr($parts[1], 0, 1));
-            }
-            $usedShortNames[] = strtolower($short);
-
-            // Kembalikan user dengan nama pendek
-            $user->short_name = $short;
-            return $user;
-        })->values();
-
-        // Group aktivitas berdasarkan WP, WO, dan tanggal
+        
         $groupedActivities = $timesheets->groupBy(function ($timesheet) {
             // Gabungkan berdasarkan wp_id, wo_id, dan execution_date
             $wpId = optional($timesheet->volume->workPackage)->wp_id;
@@ -89,54 +66,83 @@ class TimesheetManagementController extends Controller
             ];
         })->sortBy('wp_number')->values();
 
-        // Ambil semua WO dan WP
-        $workOrders = WorkPackageVolume::whereNotNull('wo_id')
-            ->with(['workPackage'])
-            ->get()
-            ->groupBy('wo_id')
-            ->map(function ($volumes, $woId) {
-                return [
-                    'wo_id' => $woId,
-                    'wo_number' => optional($volumes->first()->workOrder)->wo_number,
-                    'year' => optional($volumes->first())->execution_year,
-                    'work_packages' => $volumes->pluck('workPackage')->unique('wp_id')->values(),
-                ];
+        // Log::info('Grouped Activities:', $groupedActivities->toArray());
+
+        // Ambil semua user unique di timesheet untuk semua bulan
+        $users = $timesheets->pluck('user')
+            ->filter() // pastikan user tidak null
+            ->unique('user_id')
+            ->sortBy('user_id')
+            ->values();
+
+        // Pemendekan nama untuk $users
+        $usedShortNames = [];
+        $users = $users->map(function($user) use (&$usedShortNames) {
+            $parts = explode(' ', trim($user->name));
+            $short = $parts[0];
+            if (in_array(strtolower($short), $usedShortNames) && count($parts) > 1) {
+                $short .= ' ' . strtoupper(substr($parts[1], 0, 1));
+            }
+            $usedShortNames[] = strtolower($short);
+
+            // Kembalikan user dengan nama pendek
+            $user->short_name = $short;
+            return $user;
+        })->values();
+
+        // ambil semua work package dari database, pastikan untuk menghindari duplikasi
+        $workPackages = WorkPackage::with(['workPackageVolumes.users'])
+            ->whereHas('workPackageVolumes', function ($query) {
+                $query->whereNotNull('wo_id'); // Filter hanya volume yang memiliki wo_id
             })
-            ->sortBy('wo_number')->values();
+            ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
+            ->get();
 
-        // Ambil WP berdasarkan WO
-        $wpByWo = WorkPackageVolume::whereNotNull('wo_id')
-            ->with(['workPackage'])
-            ->get()
-            ->groupBy('wo_id')
-            ->map(function ($volumes) {
-                // Hitung jumlah volume dan periode pengerjaan
-                $startDates = $volumes->pluck('start_date')->filter()->sort()->values();
-                $endDates = $volumes->pluck('end_date')->filter()->sort()->values();
+        // Ambil hanya volume_id yang memiliki wo_id tidak null
+        $validVolumes = WorkPackageVolume::whereNotNull('wo_id')
+            ->get(['volume_id', 'volume_number', 'wp_id'])
+            ->groupBy('wp_id')
+            ->map(function ($group) {
+                return $group->sortBy('volume_number') // Urutkan berdasarkan volume_number
+                    ->map(function ($volume) {
+                        return [
+                            'volume_id' => $volume->volume_id,
+                            'volume_number' => $volume->volume_number,
+                        ];
+                    })->values();
+            })
+            ->toArray();
 
-                $period = 'N/A';
-                if ($startDates->isNotEmpty() && $endDates->isNotEmpty()) {
-                    $startDate = \Carbon\Carbon::parse($startDates->first())->translatedFormat('d M Y');
-                    $endDate = \Carbon\Carbon::parse($endDates->last())->translatedFormat('d M Y');
-                    $period = "$startDate - $endDate";
+        // Proses data untuk personnelByVolume
+        $personnelByVolume = [];
+        foreach ($workPackages as $wp) {
+            foreach ($wp->workPackageVolumes as $vol) {
+                // Pastikan hanya memproses volume yang ada di validVolumeIds
+                if (in_array($vol->volume_id, array_column($validVolumes, 'volume_id'))) {
+                    continue;
                 }
 
-                // Gabungkan data WP berdasarkan wp_id
-                $workPackages = $volumes->groupBy('wp_id')->map(function ($wpVolumes) {
-                    $firstVolume = $wpVolumes->first();
-                    return [
-                        'wp_id' => $firstVolume->workPackage->wp_id,
-                        'wp_number' => $firstVolume->workPackage->wp_number,
-                        'name' => $firstVolume->workPackage->name,
-                        'volume_count' => $wpVolumes->count(), // Hitung jumlah volume dalam WP
-                    ];
-                })->sortBy('wp_number')->values(); // Pastikan hasilnya adalah array
+                $personnelByVolume[$vol->volume_id] = $vol->users->map(function ($user) use ($vol) {
+                    // Ambil work record user pada volume ini
+                    $workRecord = $user->work->where('volume_id', $vol->volume_id)->first();
+                    $roleId = $workRecord->role_id ?? null;
+                    $roleName = $workRecord && $workRecord->role ? $workRecord->role->name : 'No Role';
 
-                return [
-                    'period' => $period, // Periode pengerjaan
-                    'work_packages' => $workPackages, // Daftar WP dalam WO
-                ];
-            })->toArray(); // Konversi hasil akhir menjadi array
+                    return [
+                        'user_id' => $user->user_id,
+                        'name' => $user->name,
+                        'role_id' => $roleId,
+                        'role_name' => $roleName,
+                        'roles' => $user->roles->map(function ($role) {
+                            return [
+                                'id' => $role->id,
+                                'name' => $role->name
+                            ];
+                        })->values()
+                    ];
+                })->values();
+            }
+        }
 
         $workPackagesFilter = WorkPackage::whereIn('wp_id', function($query) {
             $query->select('wp_id')
@@ -149,22 +155,8 @@ class TimesheetManagementController extends Controller
         ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
         ->get();
 
-        $personnelByWp = Work::with(['user.roles'])
-            ->get()
-            ->groupBy('wp_id')
-            ->map(function ($works) {
-                return $works->map(function ($work) {
-                    return [
-                        'role_id' => optional($work->role)->role_id,
-                        'user_id' => $work->user->user_id,
-                        'name' => $work->user->name,
-                        'role_name' => optional($work->role)->name,
-                    ];
-                });
-            })->sortBy('role_id')->toArray();
-
-        return view('timesheet_management', compact('groupedActivities', 'workOrders', 'wpByWo',
-                                                    'workPackagesFilter', 'users', 'personnelByWp'));
+        return view('timesheet_management', compact('workPackagesFilter', 'groupedActivities', 'users', 
+                                                    'workPackages', 'personnelByVolume', 'validVolumes'));
     }
 
     public function add(Request $request)

@@ -187,16 +187,35 @@
                 <form id="addActivityForm" method="POST" action="{{route('timesheet.add')}}">
                     @csrf
                     @method('POST')
+
+                    <div class="form-group mb-6">
+                        <label for="work_package_select" class="form-label fw-bold">Kategori Work Package</label>
+                        <div class="input-group">
+                            @php
+                                function wpOptionText($wp) {
+                                    $maxLength = 100; // atur sesuai kebutuhan
+                                    $text = trim($wp->wp_number . ' ' . $wp->name);
+                                    return strlen($text) > $maxLength
+                                        ? mb_substr($text, 0, $maxLength) . '...'
+                                        : $text;
+                                }
+                            @endphp
+                            <select class="form-select form-select-solid" name="wp_id" id="work_package_select" required>
+                                <option value="">Pilih Kategori Work Package</option>
+                                {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
+                                @foreach($workPackages as $wp)
+                                    <option value="{{ $wp->wp_id }}">{{ wpOptionText($wp) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <div class="form-group mb-6">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="wo_select" class="form-label fw-bold">Work Order</label>
+                                <label for="volume_select" class="form-label fw-bold">Volume Ke-</label>
                                 <div class="input-group">
-                                    <select class="form-select" name="wo_id" id="wo_select" required> 
-                                        <option value="">Pilih Work Order</option>
-                                        @foreach($workOrders as $wo)
-                                            <option value="{{ $wo['wo_id'] }}">WO {{ $wo['wo_number'] }} - ({{ $wo['year'] }})</option>
-                                        @endforeach
+                                    <select class="form-select form-select-solid" name="volume_id" id="volume_select" required>
+                                        <option value="">Pilih Volume</option>
                                     </select>
                                 </div>
                             </div>
@@ -204,32 +223,6 @@
                                 <label class="form-label fw-bold">Tanggal</label>
                                 <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31" required/>
                             </div>
-                        </div>
-                    </div>
-                    <div class="form-group mb-6 rounded border border-info wo-info-container" style="display: none;">
-                        <div class="fw-bold text-info mt-2 mb-1 ms-3">
-                            <i class="bi bi-clipboard-check me-1"></i>
-                            Work Order Info
-                        </div>
-                        <!-- Spinner -->
-                        <div class="spinner-container text-center mt-2" style="display: none;">
-                            <div class="spinner-border text-info" role="status" style="width: 1.5rem; height: 1.5rem;">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-                        <div class="text-dark fw-bold small wo-assigned-info ms-3" style="display: flex;">
-                            <span>Periode: <span class="period-info">0</span></span>
-                        </div>
-                        <div class="wo-assigned-info-container">
-                        </div>
-                    </div>
-                    {{-- jika wp dalam wo lebih dari 1 --}}
-                    <div class="col-md-12 mb-6" id="wpSelectContainer" style="display: none;">
-                        <label for="wp_select" class="form-label fw-bold">Kategori Work Package</label>
-                        <div class="input-group">
-                            <select class="form-select form-select-solid" name="wp_id" id="wp_select" required>
-                                <option value="">Pilih Kategori Work Package</option>
-                            </select>
                         </div>
                     </div>
                     <div id="personelActivityContainer">
@@ -259,9 +252,9 @@
                                                 <div class="input-group">
                                                     <select class="form-select duration-select" name="durations[]" id="duration_0" required>
                                                         <option value="0.5">0.5</option>
-                                                        <option value="1">1</option>
+                                                        <option value="1.0">1.0</option>
                                                         <option value="1.5">1.5</option>
-                                                        <option value="2">2</option>
+                                                        <option value="2.0">2.0</option>
                                                     </select>
                                                     <span class="input-group-text" style="min-width:40px; padding-left:6px; padding-right:6px;">Hari</span>
                                                 </div>
@@ -324,6 +317,18 @@
                     <input type="hidden" name="timesheet_id" id="edit_timesheet_id" value="">
                     <input type="hidden" name="deleted_timesheet_ids" id="deleted_timesheet_ids" value="">
                     <div class="form-group mb-6">
+                        <label for="edit_work_package_select" class="form-label fw-bold">Kategori Work Package</label>
+                        <div class="input-group">
+                            <select class="form-select form-select-solid" name="wp_id" id="edit_work_package_select" required>
+                                <option value="">Pilih Kategori Work Package</option>
+                                {{-- Loop melalui koleksi Work Package yang tersedia dari controller --}}
+                                @foreach($workPackages as $wp)
+                                    <option value="{{ $wp->wp_id }}">{{ $wp->wp_number }} {{ $wp->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group mb-6">
                         <div class="row">
                             <div class="col-md-6">
                                 <label for="edit_volume_select" class="form-label fw-bold">Volume Ke-</label>
@@ -384,9 +389,9 @@
                         <div class="input-group">
                             <select class="form-select edit-duration-select" name="durations[]" id="duration_0" required>
                                 <option value="0.5">0.5</option>
-                                <option value="1">1</option>
+                                <option value="1.0">1.0</option>
                                 <option value="1.5">1.5</option>
-                                <option value="2">2</option>
+                                <option value="2.0">2.0</option>
                             </select>
                             <span class="input-group-text" style="min-width:40px; padding-left:6px; padding-right:6px;">Hari</span>
                         </div>
@@ -514,118 +519,74 @@
         $('#filterCollapse').collapse('hide');
     }
 
-    // Data WO, WP, dan Personel
-    const wpByWo = @json($wpByWo); // Format: { wo_id: { period: '...', work_packages: [...] } }
-    const personnelByWp = @json($personnelByWp); // Format: { wp_id: [{ user_id, name, role_name }] }
+    // menampilkan volume berdasarkan work package yang dipilih
+    const volumeData = @json($validVolumes);
+    const volumeSelect = document.getElementById('volume_select');
+    const editVolumeSelect = document.getElementById('edit_volume_select');
 
     document.addEventListener('DOMContentLoaded', function () {
-        const woSelect = document.getElementById('wo_select');
-        const wpSelect = document.getElementById('wp_select');
-        const wpSelectContainer = document.getElementById('wpSelectContainer');
-        const woInfoContainer = document.querySelector('.wo-info-container');
-        const spinnerContainer = woInfoContainer.querySelector('.spinner-container');
-        const woAssignedInfo = woInfoContainer.querySelectorAll('.wo-assigned-info');
-        const personelSelects = document.querySelectorAll('.personel-select');
+        const wpSelect = document.getElementById('work_package_select');
+        const editWpSelect = document.getElementById('edit_work_package_select');
 
-        // Event listener untuk WO
-        woSelect.addEventListener('change', function () {
-            const woId = this.value;
+        wpSelect.addEventListener('change', function () {
+            updateVolumeOptions(this.value, volumeSelect);
+            updateAllPersonelSelects('');
+        });
 
-            // Reset WP dropdown
-            wpSelect.innerHTML = '<option value="">Pilih Kategori Work Package</option>';
-            wpSelect.disabled = true;
-            wpSelectContainer.style.display = 'none'; // Sembunyikan dropdown WP secara default
+        volumeSelect.addEventListener('change', function () {
+            updateAllPersonelSelects(this.value);
+        });
 
-            // Reset WO Info
-            woInfoContainer.style.display = 'none';
-            spinnerContainer.style.display = 'block';
+        editWpSelect.addEventListener('change', function () {
+            updateVolumeOptions(this.value, editVolumeSelect);
+            updateAllPersonelSelects('');
+        });
 
-            // Reset Personel dropdown
-            personelSelects.forEach(select => {
-                select.innerHTML = '<option value="">Pilih Personel</option>';
-                select.disabled = true;
+        editVolumeSelect.addEventListener('change', function () {
+            updateAllPersonelSelects(this.value);
+        });
+    });
+
+    // menampilkan personel berdasarkan volume yang dipilih
+    const personnelData = @json($personnelByVolume);
+
+    function updateAllPersonelSelects(volumeId) {
+        const selects = document.querySelectorAll('.personel-select, .edit-personel-select');
+        const personnelList = personnelData[volumeId] || [];
+
+        selects.forEach((select) => {
+            // Simpan nilai terpilih sebelumnya (jika ada)
+            const selectedValue = select.value;
+
+            // Kosongkan dulu semua opsi
+            select.innerHTML = '<option value="">Pilih Personel</option>';
+
+            // Tambahkan opsi personel baru
+            personnelList.forEach(person => {
+                const option = document.createElement('option');
+                option.value = person.user_id;
+                option.textContent = `${person.name} - ${person.role_name}`;
+                select.appendChild(option);
             });
 
-            // Jika WO dipilih, tampilkan WP terkait dan informasi WO
-            if (woId && wpByWo[woId]) {
-                const woData = wpByWo[woId];
-                const periodInfo = woData.period || 'N/A'; // Ambil periode dari WO
-                const woAssignedInfoContainer = woInfoContainer.querySelector('.wo-assigned-info-container');
-
-                // Kosongkan kontainer informasi WO
-                woAssignedInfoContainer.innerHTML = '';
-
-                // Tambahkan informasi WP dalam WO
-                woData.work_packages.forEach(wp => {
-                    const wpInfoElement = document.createElement('div');
-                    wpInfoElement.classList.add('text-dark', 'small', 'wo-assigned-info', 'ms-3', 'mb-1', 'd-flex', 'justify-content-start', 'gap-2');
-                    wpInfoElement.innerHTML = `
-                        <span>WP ${wp.wp_number}:</span>
-                        <span>${wp.volume_count} Volume</span>
-                    `;
-                    woAssignedInfoContainer.appendChild(wpInfoElement);
-                });
-
-                // Perbarui periode
-                woInfoContainer.querySelector('.period-info').textContent = periodInfo;
-
-                // Tampilkan informasi WO
-                spinnerContainer.style.display = 'none';
-                woInfoContainer.style.display = 'block';
-
-                // Tampilkan WP di dropdown jika lebih dari 1 WP
-                if (woData.work_packages.length > 1) {
-                    woData.work_packages.forEach(wp => {
-                        const option = document.createElement('option');
-                        option.value = wp.wp_id;
-                        option.textContent = `${wp.wp_number} - ${wp.name}`;
-                        wpSelect.appendChild(option);
-                    });
-                    wpSelect.disabled = false;
-                    wpSelectContainer.style.display = 'block'; // Tampilkan dropdown WP
-                } else if (woData.work_packages.length === 1) {
-                    // Jika hanya ada 1 WP, pilih otomatis dan sembunyikan dropdown
-                    const singleWp = woData.work_packages[0];
-                    wpSelect.innerHTML = `<option value="${singleWp.wp_id}" selected>${singleWp.wp_number} - ${singleWp.name}</option>`;
-                    wpSelect.disabled = true;
-                    wpSelectContainer.style.display = 'none'; // Sembunyikan dropdown WP
-                    // Perbarui dropdown Personel
-                    updatePersonelDropdown(singleWp.wp_id);
-                    console.log('Selected WP ID:', singleWp.wp_id);
-                }
+            // Coba kembalikan nilai terpilih jika masih ada di list baru
+            if (personnelList.find(p => p.user_id == selectedValue)) {
+                select.value = selectedValue;
             }
         });
+    }
 
-        // Event listener untuk WP
-        wpSelect.addEventListener('change', function () {
-            const wpId = this.value;
+    function updateVolumeOptions(wpId, volumeSelectElement) {
+        const volumes = volumeData[wpId] || [];
+        volumeSelectElement.innerHTML = '<option value="">Pilih Volume</option>';
 
-            // Perbarui dropdown Personel
-            updatePersonelDropdown(wpId);
+        volumes.forEach(vol => {
+            const option = document.createElement('option');
+            option.value = vol.volume_id;
+            option.textContent = vol.volume_number;
+            volumeSelectElement.appendChild(option);
         });
-
-        // Fungsi untuk memperbarui dropdown Personel
-        function updatePersonelDropdown(wpId) {
-            console.log('Updating personnel for WP ID:', wpId);
-            personelSelects.forEach(select => {
-                select.innerHTML = '<option value="">Pilih Personel</option>';
-                select.disabled = true;
-
-                if (wpId && personnelByWp[wpId]) {
-                    personnelByWp[wpId].forEach(person => {
-                        const option = document.createElement('option');
-                        option.value = person.user_id;
-                        option.textContent = `${person.name} - ${person.role_name}`;
-                        select.appendChild(option);
-                    });
-                    select.disabled = false;
-                    console.warn(`Personel untuk WP ID ${wpId} ditemukan.`);
-                } else {
-                    console.warn(`Personel untuk WP ID ${wpId} tidak ditemukan.`);
-                }
-            });
-        }
-    });
+    }
 
     function updateMandaysInfo(selectElement, volumeId) {
         const personelId = selectElement.value; // Ambil ID personel yang dipilih
@@ -774,6 +735,7 @@
         personelActivityContainer.appendChild(newGroup);
         updatePersonelActivityButtons(); // Perbarui status tombol
 
+        updateAllPersonelSelects(volumeSelect.value);
         updatePersonelSelectOptions(); // Tambahkan ini
     }
 
@@ -822,6 +784,7 @@
         personelActivityContainer.innerHTML = '';
         // Tambahkan satu grup personel secara default
         addPersonelActivityGroup();
+        updateAllPersonelSelects(volumeSelect.value);
     });
 
     // Ketika modal ditutup, reset seluruh isian form
@@ -1041,6 +1004,8 @@
 
                 editCurrentPersonelGroups = 0;
 
+                // menggantikan updateEditPersonelSelects(volumeId);
+                updateAllPersonelSelects(volumeId);
                 updateEditPersonelSelectOptions();
 
                 // Panggil updateMandaysInfo untuk setiap personel yang sudah ada
@@ -1318,6 +1283,7 @@
             }
             // Tambahkan group kosong baru
             editPersonelActivityGroup({ activity: '', user_id: '' });
+            updateAllPersonelSelects(editVolumeSelect.value);
             updateEditGroupNumbering();
             updateEditPersonelSelectOptions();
         });
