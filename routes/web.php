@@ -76,10 +76,13 @@ Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin'])->group(
     // Manajemen Timesheet
     Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');
     Route::post('/timesheet-management/add', [TimesheetManagementController::class, 'add'])->name('timesheet.add');
-    Route::get('/timesheet-management/{volume_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
+    // Route::get('/timesheet-management/{timesheet_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
+    Route::get('/timesheet-management/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
     Route::post('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
     Route::delete('/timesheet-management/{id}/delete-all', [TimesheetManagementController::class, 'deleteAll'])->name('timesheet.delete.all');
     Route::get('/timesheet-management/personel-mandays/{personelId}/{volumeId}', [TimesheetManagementController::class, 'getPersonelMandays']);
+    Route::get('/timesheet-management/personel', [TimesheetManagementController::class, 'getPersonelByWO'])->name('timesheet.personnel');
+    Route::get('/timesheet-management/{woId}/work-packages', [TimesheetManagementController::class, 'getWorkPackagesByWO']);
     // Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
 
     // performance task

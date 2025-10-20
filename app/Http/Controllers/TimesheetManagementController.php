@@ -28,6 +28,8 @@ class TimesheetManagementController extends Controller
             ->unique('user_id')
             ->sortBy('user_id')
             ->values();
+        
+        $usersCount = $users->count();
 
         // Pemendekan nama untuk $users
         $usedShortNames = [];
@@ -149,86 +151,138 @@ class TimesheetManagementController extends Controller
         ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
         ->get();
 
-        $personnelByWp = Work::with(['user.roles'])
-            ->get()
-            ->groupBy('wp_id')
-            ->map(function ($works) {
-                return $works->map(function ($work) {
-                    return [
-                        'role_id' => optional($work->role)->role_id,
-                        'user_id' => $work->user->user_id,
-                        'name' => $work->user->name,
-                        'role_name' => optional($work->role)->name,
-                    ];
-                });
-            })->sortBy('role_id')->toArray();
+        // $personnelByWp = Work::with(['user.roles'])
+        //     ->get()
+        //     ->groupBy('wp_id')
+        //     ->map(function ($works) {
+        //         return $works->map(function ($work) {
+        //             return [
+        //                 'role_id' => optional($work->role)->role_id,
+        //                 'user_id' => $work->user->user_id,
+        //                 'name' => $work->user->name,
+        //                 'role_name' => optional($work->role)->name,
+        //             ];
+        //         });
+        //     })->sortBy('role_id')->toArray();
 
-        return view('timesheet_management', compact('groupedActivities', 'workOrders', 'wpByWo',
-                                                    'workPackagesFilter', 'users', 'personnelByWp'));
+        return view('timesheet_management', compact('groupedActivities', 'workOrders', 'wpByWo', 'usersCount',
+                                                    'workPackagesFilter', 'users'));
     }
 
     public function add(Request $request)
     {
         try {
+            // Validasi input
             $request->validate([
-                'volume_id' => 'required|exists:work_package_volume,volume_id',
+                'wo_id' => 'required|exists:work_package_volume,wo_id',
                 'execution_date' => 'required|date',
-                'activities' => 'required'
+                'activities' => 'required|array',
+                'personel_ids' => 'required|array',
+                'durations' => 'required|array',
+                'wp_id' => [
+                    'nullable', // wp_id bersifat opsional
+                    function ($attribute, $value, $fail) use ($request) {
+                        // Validasi wp_id hanya jika diperlukan
+                        $woId = $request->input('wo_id');
+                        $workPackages = WorkPackageVolume::where('wo_id', $woId)
+                            ->pluck('wp_id')
+                            ->unique()
+                            ->toArray();
+
+                        if (count($workPackages) > 1 && !$value) {
+                            $fail('Kategori Work Package wajib dipilih untuk Work Order ini.');
+                        }
+                    },
+                ],
             ]);
 
-            $personelIds = $request->input('personel_ids', []);
-            $durations = $request->input('durations', []);
-            $activities = $request->input('activities', []);
+            $woId = $request->input('wo_id');
+            $wpId = $request->input('wp_id'); // Optional jika WP tidak dipilih
+            $executionDate = $request->input('execution_date');
+            $personelIds = $request->input('personel_ids');
+            $durations = $request->input('durations');
+            $activities = $request->input('activities');
+
+            // Ambil semua volume_id berdasarkan work order dan work package
+            $volumeQuery = WorkPackageVolume::where('wo_id', $woId);
+            if ($wpId) {
+                $volumeQuery->where('wp_id', $wpId);
+            }
+            $volumes = $volumeQuery->get();
+
+            if ($volumes->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada volume yang ditemukan untuk Work Order dan Work Package yang dipilih.',
+                ], 404);
+            }
+
+            $volumeIds = $volumes->pluck('volume_id')->toArray();
 
             // Cek apakah sudah ada aktivitas di volume & tanggal yang sama untuk user ini
             $exists = Timesheet::whereIn('user_id', $personelIds)
-                ->where('volume_id', $request->volume_id)
-                ->whereDate('execution_date', $request->execution_date)
+                ->whereIn('volume_id', $volumeIds)
+                ->whereDate('execution_date', $executionDate)
                 ->exists();
 
             if ($exists) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda sudah mengisi aktivitas untuk WP volume dan tanggal ini.'
+                    'message' => 'Anda sudah mengisi aktivitas untuk WP volume dan tanggal ini.',
                 ], 422);
             }
 
-            // dd($request->all());
-            $timesheets =[];
-            foreach ($personelIds as $index => $userId) {
-                if (!isset($activities[$index])) {
-                    continue; // atau return error jika ingin strict
-                }
-                $timesheet = Timesheet::create([
-                    'user_id' => $userId, // ingat: user_id = personel_id
-                    'volume_id' => $request->volume_id,
-                    'execution_date' => $request->execution_date,
-                    'duration' => $durations[$index],
-                    'activity' => $activities[$index]
-                ]);
-                $timesheets[] = $timesheet;
+            // Simpan data ke tabel timesheet untuk setiap volume
+            $timesheets = [];
+            foreach ($volumeIds as $volumeId) {
+                foreach ($personelIds as $index => $userId) {
+                    if (!isset($activities[$index])) {
+                        continue; // Skip jika aktivitas tidak ada
+                    }
 
+                    $timesheet = Timesheet::create([
+                        'user_id' => $userId,
+                        'volume_id' => $volumeId,
+                        'execution_date' => $executionDate,
+                        'duration' => $durations[$index],
+                        'activity' => $activities[$index],
+                    ]);
+
+                    $timesheets[] = $timesheet;
+                }
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil ditambahkan.',
-                'data' => $timesheets
+                'data' => $timesheets,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
 
     // to get data for edit modal
-    public function editData($volumeId, $executionDate)
+    public function editData(Request $request)
     {
         try {
-            // Jika volumeId adalah array (untuk mendukung lebih dari satu volume), pecah menjadi array
-            $volumeIds = explode(',', $volumeId);
+            $volumeIds = json_decode($request->query('volume_ids', '[]'), true);
+            $executionDate = $request->query('execution_date');
+
+            Log::info('editData called with:', [
+                'volume_ids' => $volumeIds,
+                'execution_date' => $executionDate,
+            ]);
+
+            if (empty($volumeIds) || !$executionDate) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parameter volume_ids atau execution_date tidak valid.'
+                ], 400);
+            }
 
             // Ambil semua aktivitas berdasarkan volume_id dan execution_date
             $activities = Timesheet::whereIn('volume_id', $volumeIds)
@@ -244,11 +298,42 @@ class TimesheetManagementController extends Controller
                 ], 404);
             }
 
+            // Gabungkan aktivitas berdasarkan user_id, execution_date, dan activity
+            $groupedActivities = $activities->groupBy(function ($activity) {
+                return $activity->user_id . '-' . $activity->execution_date . '-' . $activity->activity;
+            })->map(function ($group) {
+                $firstActivity = $group->first();
+
+                return [
+                    'user_id' => $firstActivity->user_id,
+                    'user' => $firstActivity->user,
+                    'execution_date' => $firstActivity->execution_date,
+                    'activity' => $firstActivity->activity,
+                    'duration' => $group->avg('duration'), // Total durasi dari semua volume
+                    'volume_ids' => $group->pluck('volume.volume_id')->unique()->values()->toArray(), // Gabungkan volume_ids
+                    'timesheet_ids' => $group->pluck('timesheet_id')->values()->toArray(), // Gabungkan timesheet_ids
+                    'work_package' => $firstActivity->volume->workPackage, // Ambil work package dari aktivitas pertama
+                    'wo_id' => $firstActivity->volume->wo_id, // Ambil work order ID dari aktivitas pertama
+                ];
+            })->values();
+
+            // Log hasil penggabungan
+            Log::info('editData: Grouped activities result:', [
+                'grouped_activities_count' => $groupedActivities->count(),
+                'grouped_activities' => $groupedActivities->toArray(),
+            ]);
+
             return response()->json([
                 'success' => true,
-                'data' => $activities
+                'data' => $groupedActivities
             ]);
         } catch (\Exception $e) {
+            // Log error
+            Log::error('editData: Terjadi kesalahan.', [
+                'error_message' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
@@ -260,20 +345,22 @@ class TimesheetManagementController extends Controller
     {
         try {
             $request->validate([
-                'execution_date' => 'required|date',
-                'activities' => 'required|array',
-                'durations' => 'required|array',
-                'personel_ids' => 'required|array',
-                'volume_ids' => 'required|array',
+                'execution_date' => 'date',
+                'activities' => 'array',
+                'durations' => 'array',
+                'personel_ids' => 'array',
+                'volume_ids' => 'array',
             ]);
 
-            $executionDate = $request->input('execution_date');
-            $activities = $request->input('activities');
-            $durations = $request->input('durations');
-            $personelIds = $request->input('personel_ids');
-            $volumeIds = $request->input('volume_ids');
-            $timesheetIds = $request->input('timesheet_ids', []);
-            $deletedTimesheetIds = json_decode($request->input('deleted_timesheet_ids', '[]'), true);
+            Log::info('edit called with:', $request->all());
+
+            $executionDate = $request->input('execution_date') ?? null;
+            $activities = $request->input('activities') ?? [];
+            $durations = $request->input('durations') ?? [];
+            $personelIds = $request->input('personel_ids') ?? [];
+            $volumeIds = $request->input('volume_ids') ?? [];
+            // $timesheetIds = $request->input('timesheet_ids', []) ?? [];
+            $deletedTimesheetIds = json_decode($request->input('deleted_timesheet_ids', '[]'), true) ?? [];
 
             // Hapus data berdasarkan deletedTimesheetIds
             if (!empty($deletedTimesheetIds)) {
@@ -287,18 +374,21 @@ class TimesheetManagementController extends Controller
             foreach ($personelIds as $index => $userId) {
                 $activity = $activities[$index] ?? null;
                 $duration = $durations[$index] ?? null;
-                $timesheetId = $timesheetIds[$index] ?? null;
 
                 if ($activity === null || $duration === null) continue;
 
                 foreach ($volumeIds as $volumeId) {
-                    // Update jika ada ID, Create jika tidak
-                    if ($timesheetId) {
-                        $timesheet = Timesheet::findOrFail($timesheetId);
+                    // Ambil timesheet berdasarkan kombinasi volume_id, execution_date, dan user_id
+                    $timesheet = Timesheet::where('volume_id', $volumeId)
+                        ->where('execution_date', $executionDate)
+                        ->where('user_id', $userId)
+                        ->first();
 
+                    if ($timesheet) {
+                        // Periksa apakah ada perubahan pada data
                         $isUserChanged = $userId != $timesheet->user_id;
                         $isVolumeChanged = $volumeId != $timesheet->volume_id;
-                        $isDateChanged = $executionDate != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
+                        $isDateChanged = Carbon::parse($executionDate)->format('Y-m-d') != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
                         $isDurationChanged = $duration != $timesheet->duration;
                         $isActivityChanged = $activity != $timesheet->activity;
 
@@ -314,6 +404,7 @@ class TimesheetManagementController extends Controller
                             $updatedOrCreated[] = $timesheet;
                         }
                     } else {
+                        // Jika tidak ada timesheet, buat entri baru
                         $new = Timesheet::create([
                             'user_id' => $userId,
                             'volume_id' => $volumeId,
@@ -405,6 +496,118 @@ class TimesheetManagementController extends Controller
                 'mandays_real' => $mandaysReal,
             ]);
         } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getWorkPackagesByWO($woId)
+    {
+        try {
+            // Ambil data work packages berdasarkan wo_id
+            $volumes = WorkPackageVolume::where('wo_id', $woId)
+                ->with('workPackage') // Relasi ke tabel work_package
+                ->get();
+
+            if ($volumes->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada work package yang ditemukan untuk Work Order ini.',
+                ], 404);
+            }
+
+            // Ambil periode dari salah satu volume (karena semua volume dalam WO memiliki periode yang sama)
+            $firstVolume = $volumes->first();
+            $startDate = \Carbon\Carbon::parse($firstVolume->start_date)->translatedFormat('d M Y');
+            $endDate = \Carbon\Carbon::parse($firstVolume->end_date)->translatedFormat('d M Y');
+            $period = "$startDate - $endDate";
+
+            // Kelompokkan data work packages berdasarkan wp_id
+            $workPackages = $volumes->groupBy('wp_id')->map(function ($wpVolumes) {
+                $firstVolume = $wpVolumes->first();
+                return [
+                    'wp_id' => $firstVolume->workPackage->wp_id,
+                    'wp_number' => $firstVolume->workPackage->wp_number,
+                    'name' => $firstVolume->workPackage->name,
+                    'volume_count' => $wpVolumes->count(), // Hitung jumlah volume dalam WP
+                ];
+            })->sortBy('wp_number')->values(); // Ubah hasil menjadi array numerik
+
+            return response()->json([
+                'success' => true,
+                'period' => $period, // Periode pengerjaan WO
+                'work_packages' => $workPackages,
+            ]);
+        } catch (\Exception $e) {
+            // Tangani error
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getPersonelByWO(Request $request)
+    {
+        try {
+            $woId = $request->query('wo_id'); // Ambil Work Order ID dari query parameter
+            $wpId = $request->query('wp_id') ?? null; // Ambil Work Package ID dari query parameter (opsional)
+
+            // Validasi bahwa wo_id wajib ada
+            if (!$woId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Work Order ID tidak ditemukan.',
+                ], 400);
+            }
+
+            // Ambil salah satu volume_id berdasarkan wo_id dan wp_id (jika ada)
+            $volumeQuery = WorkPackageVolume::where('wo_id', $woId);
+
+            if ($wpId) {
+                $volumeQuery->where('wp_id', $wpId);
+            }
+
+            $volume = $volumeQuery->first(); // Ambil salah satu volume
+
+            if (!$volume) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Volume tidak ditemukan untuk Work Order dan Work Package yang dipilih.',
+                ], 404);
+            }
+
+            $volumeId = $volume->volume_id;
+
+            // Query untuk mengambil personel berdasarkan volume_id
+            $personnel = Work::with(['user', 'role']) // Tambahkan relasi 'role'
+                ->where('volume_id', $volumeId)
+                ->get()
+                ->map(function ($work) {
+                    return [
+                        'user_id' => $work->user->user_id,
+                        'name' => $work->user->name,
+                        'role' => $work->role ? $work->role->name : null, // Ambil nama role jika ada
+                    ];
+                });
+
+            // Jika tidak ada personel ditemukan
+            if ($personnel->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada personel yang ditemukan untuk Volume ID ini.',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'personnel' => $personnel,
+                'volume_id' => $volumeId, // Sertakan volume_id untuk referensi di frontend
+            ]);
+        } catch (\Exception $e) {
+            // Tangani error
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
