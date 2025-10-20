@@ -1545,12 +1545,32 @@
                 }
             });
         } else {
-            const timesheetId = group.querySelector('.remove-edit-personel-btn').getAttribute('data-timesheet-id');
-            if (timesheetId) {
-                deletedTimesheetIds.push(timesheetId);
-            }
-            group.remove();
-            updateEditGroupNumbering();
+            Swal.fire({
+                title: "Hapus Aktivitas?",
+                text: `Apakah Anda yakin ingin menghapus aktivitas personel?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Hapus",
+                cancelButtonText: "Batal",
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: "btn btn-danger me-2",
+                    cancelButton: "btn btn-secondary"
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const timesheetId = group.querySelector('.remove-edit-personel-btn').getAttribute('data-timesheet-id');
+                    console.log('Menghapus aktivitas personel dengan timesheetId:', timesheetId);
+
+                    if (timesheetId) {
+                        deletedTimesheetIds.push(timesheetId);
+                    }
+
+                    // Hapus elemen grup dari DOM
+                    group.remove();
+                    updateEditGroupNumbering();
+                }
+            });
         }
     }
 
