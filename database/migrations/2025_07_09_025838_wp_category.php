@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('wp_category', function (Blueprint $table) {
             $table->id('category_id');
+            $table->unsignedBigInteger('project_id');
             $table->string('category_number')->unique();
             $table->string('name', 100)->unique();
             $table->timestamps();
+
+            $table->foreign('project_id')->references('project_id')->on('projects')->onDelete('cascade');
         });
     }
 
