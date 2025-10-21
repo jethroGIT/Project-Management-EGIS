@@ -344,69 +344,103 @@ class TimesheetManagementController extends Controller
     public function edit(Request $request)
     {
         try {
+            $volumeIds = json_decode($request->input('volume_ids', '[]'), true);
+            $deletedTimesheetIds = $request->input('deleted_timesheet_ids', '[]');
+
+            Log::info('Raw Deleted Timesheet IDs:', ['value' => $deletedTimesheetIds]);
+
+            // Perbaiki parsing deleted_timesheet_ids
+            if (is_string($deletedTimesheetIds)) {
+                $decoded = json_decode($deletedTimesheetIds, true);
+                if (is_array($decoded)) {
+                    // Jika elemen pertama adalah string JSON, decode lagi
+                    if (isset($decoded[0]) && is_string($decoded[0]) && str_starts_with($decoded[0], '[')) {
+                        $decoded = json_decode($decoded[0], true);
+                    }
+                    $deletedTimesheetIds = $decoded;
+                } else {
+                    $deletedTimesheetIds = [];
+                }
+            }
+
+            // Pastikan deletedTimesheetIds adalah array numerik
+            $deletedTimesheetIds = array_map('intval', $deletedTimesheetIds);
+
+            Log::info('Volume IDs type:', ['type' => gettype($volumeIds), 'value' => $volumeIds]);
+            Log::info('Deleted Timesheet IDs:', ['type' => gettype($deletedTimesheetIds), 'value' => $deletedTimesheetIds]);
+
+            $request->merge(['volume_ids' => $volumeIds, 'deleted_timesheet_ids' => $deletedTimesheetIds]);
+
             $request->validate([
                 'execution_date' => 'date',
                 'activities' => 'array',
                 'durations' => 'array',
-                'personel_ids' => 'array',
+                'timesheet_ids' => 'array',
                 'volume_ids' => 'array',
             ]);
 
             Log::info('edit called with:', $request->all());
 
-            $executionDate = $request->input('execution_date') ?? null;
-            $activities = $request->input('activities') ?? [];
-            $durations = $request->input('durations') ?? [];
-            $personelIds = $request->input('personel_ids') ?? [];
-            $volumeIds = $request->input('volume_ids') ?? [];
-            // $timesheetIds = $request->input('timesheet_ids', []) ?? [];
-            $deletedTimesheetIds = json_decode($request->input('deleted_timesheet_ids', '[]'), true) ?? [];
+            $executionDate = $request->input('execution_date');
+            $activities = $request->input('activities');
+            $durations = $request->input('durations');
+            $timesheetIds = $request->input('timesheet_ids');
+
+            // Log data yang diterima
+            Log::info('Received data:', [
+                'execution_date' => $executionDate,
+                'activities' => $activities,
+                'durations' => $durations,
+                'timesheet_ids' => $timesheetIds,
+                'volume_ids' => $volumeIds,
+                'deleted_timesheet_ids' => $deletedTimesheetIds,
+            ]);
 
             // Hapus data berdasarkan deletedTimesheetIds
             if (!empty($deletedTimesheetIds)) {
                 Timesheet::whereIn('timesheet_id', $deletedTimesheetIds)->delete();
+                Log::info('Deleted timesheet IDs:', $deletedTimesheetIds);
             }
 
             $hasChanges = false;
             $updatedOrCreated = [];
 
-            // Proses pembaruan atau penambahan data
-            foreach ($personelIds as $index => $userId) {
+            // Proses pembaruan data berdasarkan timesheet_ids
+            foreach ($timesheetIds as $index => $timesheetId) {
                 $activity = $activities[$index] ?? null;
                 $duration = $durations[$index] ?? null;
 
-                if ($activity === null || $duration === null) continue;
+                if ($executionDate === null || $activity === null || $duration === null) {
+                    continue;
+                }
 
-                foreach ($volumeIds as $volumeId) {
-                    // Ambil timesheet berdasarkan kombinasi volume_id, execution_date, dan user_id
-                    $timesheet = Timesheet::where('volume_id', $volumeId)
-                        ->where('execution_date', $executionDate)
-                        ->where('user_id', $userId)
-                        ->first();
+                $timesheet = Timesheet::find($timesheetId);
 
-                    if ($timesheet) {
-                        // Periksa apakah ada perubahan pada data
-                        $isUserChanged = $userId != $timesheet->user_id;
-                        $isVolumeChanged = $volumeId != $timesheet->volume_id;
-                        $isDateChanged = Carbon::parse($executionDate)->format('Y-m-d') != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
-                        $isDurationChanged = $duration != $timesheet->duration;
-                        $isActivityChanged = $activity != $timesheet->activity;
+                if ($timesheet) {
+                    // Periksa apakah ada perubahan pada data
+                    $isDateChanged = Carbon::parse($executionDate)->format('Y-m-d') != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
+                    $isDurationChanged = (float)$duration !== (float)$timesheet->duration;
+                    $isActivityChanged = trim($activity) !== trim($timesheet->activity);
 
-                        if ($isUserChanged || $isVolumeChanged || $isDateChanged || $isDurationChanged || $isActivityChanged) {
-                            $timesheet->update([
-                                'user_id' => $userId,
-                                'volume_id' => $volumeId,
-                                'execution_date' => $executionDate,
-                                'duration' => $duration,
-                                'activity' => $activity,
-                            ]);
-                            $hasChanges = true;
-                            $updatedOrCreated[] = $timesheet;
-                        }
-                    } else {
-                        // Jika tidak ada timesheet, buat entri baru
+                    Log::info('Change detection for timesheet ID ' . $timesheetId . ':', [
+                        'isDateChanged' => $isDateChanged,
+                        'isDurationChanged' => $isDurationChanged,
+                        'isActivityChanged' => $isActivityChanged,
+                    ]);
+
+                    if ($isDateChanged || $isDurationChanged || $isActivityChanged) {
+                        $timesheet->update([
+                            'execution_date' => $executionDate,
+                            'duration' => $duration,
+                            'activity' => $activity,
+                        ]);
+                        $hasChanges = true;
+                        $updatedOrCreated[] = $timesheet;
+                    }
+                } else {
+                    // Jika tidak ada timesheet, buat entri baru
+                    foreach ($volumeIds as $volumeId) {
                         $new = Timesheet::create([
-                            'user_id' => $userId,
                             'volume_id' => $volumeId,
                             'execution_date' => $executionDate,
                             'duration' => $duration,
@@ -419,11 +453,14 @@ class TimesheetManagementController extends Controller
             }
 
             if (!$hasChanges && empty($deletedTimesheetIds)) {
+                Log::info('No changes detected.');
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak ada perubahan yang dilakukan.'
                 ], 400);
             }
+
+            Log::info('Changes applied:', $updatedOrCreated);
 
             return response()->json([
                 'success' => true,
@@ -431,6 +468,11 @@ class TimesheetManagementController extends Controller
                 'data' => $updatedOrCreated
             ]);
         } catch (\Exception $e) {
+            Log::error('Error in edit:', [
+                'error_message' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()

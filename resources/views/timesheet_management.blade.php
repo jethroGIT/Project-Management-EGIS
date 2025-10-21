@@ -1290,6 +1290,14 @@
         editPersonelActivityContainer.innerHTML = '';
         deletedTimesheetIds = [];
 
+        // Simpan volume_ids sebagai hidden input
+        const volumeIdsInput = document.createElement('input');
+        volumeIdsInput.type = 'hidden';
+        volumeIdsInput.name = 'volume_ids';
+        volumeIdsInput.id = 'edit_volume_ids';
+        volumeIdsInput.value = JSON.stringify(volumeIds);
+        hiddenInputContainer.appendChild(volumeIdsInput);
+
         console.log('volumeIds: ', volumeIds);
         console.log('executionDate: ', executionDate);
 
@@ -1344,6 +1352,7 @@
                                 });
 
                                 editWpSelect.value = firstActivity.work_package.wp_id;
+                                editWpSelect.setAttribute('disabled', 'true');
                             } else {
                                 editWpSelectContainer.style.display = 'none';
                             }
@@ -1356,11 +1365,13 @@
 
                 // Tambahkan data personel dan aktivitas ke dalam modal
                 activities.forEach(activity => {
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'timesheet_ids[]';
-                    hiddenInput.value = JSON.stringify(activity.timesheet_ids); // Gabungkan semua timesheet_ids
-                    hiddenInputContainer.appendChild(hiddenInput);
+                    activity.timesheet_ids.forEach(timesheetId => {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'timesheet_ids[]';
+                        hiddenInput.value = timesheetId; 
+                        hiddenInputContainer.appendChild(hiddenInput);
+                    });
 
                     addEditPersonelActivityGroup(activity);
                 });
@@ -1424,7 +1435,7 @@
             }
 
             // Isi dropdown personel (hanya satu option, disabled)
-            personelSelect.innerHTML = `<option value="${activity.user.user_id}">${activity.user.name}</option>`;
+            personelSelect.innerHTML = `<option value="${activity.user.user_id}">${activity.user.name} - ${activity.user.roles[1].name || 'Tidak Ada Role'}</option>`;
             personelSelect.value = activity.user.user_id;
             personelSelect.disabled = true;
 
@@ -1636,6 +1647,9 @@
         const editActivityForm = $('#editActivityForm');
         const formData = new FormData(document.getElementById('editActivityForm'));
 
+        // Log data yang akan dikirim
+        console.log('Submitting edit form with data:', Object.fromEntries(formData.entries()));
+
         $.ajax({
             url: editActivityForm.attr('action'),
             method: 'POST',
@@ -1646,7 +1660,6 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Ambil CSRF token dari meta tag
             },
             beforeSend: function () {
-                // Nonaktifkan semua input dan tombol di dalam form
                 editActivityForm.find('input, button, select, textarea').prop('disabled', true);
 
                 Swal.fire({
@@ -1661,7 +1674,7 @@
                 });
             },
             success: function (response) {
-                // Tampilkan pesan sukses
+                console.log('Edit success response:', response);
                 Swal.fire({
                     title: "Berhasil Diperbarui",
                     text: response.message || "Data berhasil diperbarui!",
@@ -1670,13 +1683,12 @@
                     confirmButtonText: "Tutup",
                     customClass: { confirmButton: "btn btn-secondary" }
                 }).then(() => {
-                    // Tutup modal dan refresh halaman
                     $('#editActivityModal').modal('hide');
                     window.location.reload();
                 });
             },
             error: function (xhr) {
-                // Tangani error dan tampilkan pesan kesalahan
+                console.error('Edit error response:', xhr);
                 let errorMessage = "Terjadi kesalahan saat memperbarui aktivitas";
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMessage = xhr.responseJSON.message;
@@ -1691,7 +1703,6 @@
                 });
             },
             complete: function () {
-                // Aktifkan kembali semua input dan tombol di dalam form
                 editActivityForm.find('input, button, select, textarea').prop('disabled', false);
             }
         });
