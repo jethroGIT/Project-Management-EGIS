@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('work_package_volume', function (Blueprint $table) {
             $table->id('volume_id');
             $table->unsignedBigInteger('wp_id');
+            $table->unsignedBigInteger('wo_id')->nullable();
             $table->integer('volume_number');
             $table->integer('execution_year')->nullable();
-            $table->unsignedBigInteger('wo_id')->nullable();
             // $table->decimal('completeness', 5, 2)->default(0.00);
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
