@@ -159,6 +159,7 @@
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" title="Hapus Aktivitas"
                                                     data-timesheet-ids="{{ json_encode($activity['timesheets']['timesheet_ids']) }}"
+                                                    data-execution-date="{{ json_encode($activity['execution_date']) }}"
                                                 >
                                                     <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                     Hapus
@@ -1269,10 +1270,15 @@
 
     // Fungsi untuk memperbarui tombol tambah aktivitas
     function updateEditPersonelActivityButtons() {
-        if (currentPersonelGroups >= maxPersonelGroups || maxPersonelGroups === 0) {
-            editPersonelActivityBtn.setAttribute('disabled', 'true');
-        } else {
+        const editPersonelActivityBtn = document.getElementById('editPersonelActivityBtn');
+
+        console.log('Current Personel Groups:', currentPersonelGroups);
+        console.log('Max Personel Groups:', maxPersonelGroups);
+        // Aktifkan tombol jika jumlah personel yang ada masih kurang dari jumlah maksimal
+        if (currentPersonelGroups < maxPersonelGroups) {
             editPersonelActivityBtn.removeAttribute('disabled');
+        } else {
+            editPersonelActivityBtn.setAttribute('disabled', 'true');
         }
     }
 
@@ -1583,6 +1589,7 @@
                 }
             });
         }
+        updateEditPersonelActivityButtons();
     }
 
     // Fungsi untuk memperbarui nomor grup personel di modal edit
@@ -1714,6 +1721,68 @@
 
     document.getElementById('editActivityModal').addEventListener('hidden.bs.modal', function () {
         this.setAttribute('aria-hidden', 'true');
+    });
+
+    // ===================== DELETE ACTIVITY =====================
+    $(document).on('click', '.btn-delete-activity', function(e) {
+        e.preventDefault();
+        const timesheetId = $(this).data('timesheet-id');
+        console.log('Hapus seluruh aktivitas personel dengan timesheetId:', timesheetId);
+        const executionDate = $(this).data('execution-date');
+        let formattedDate = executionDate;
+        if (executionDate) {
+            const dateObj = new Date(executionDate);
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            formattedDate = dateObj.toLocaleDateString('id-ID', options);
+        }
+        Swal.fire({
+            title: "Konfirmasi Hapus Aktivitas",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus seluruh aktivitas personel pada tanggal</span>
+                <p>${formattedDate}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
+            icon: "warning",
+            buttonsStyling: false,
+            showCancelButton: true,
+            cancelButtonText: 'Batal',
+            confirmButtonText: "Ya, Hapus",
+            customClass: {
+                confirmButton: "btn btn-danger",
+                cancelButton: 'btn btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/timesheet-management/${timesheetId}/delete-all`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title:'Berhasil!', 
+                            text: data.message, 
+                            icon: 'success',
+                            buttonsStyling: false,
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Gagal', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
+                });
+            }
+        });
     });
 </script>
 @endpush
