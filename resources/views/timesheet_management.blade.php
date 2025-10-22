@@ -1726,8 +1726,8 @@
     // ===================== DELETE ACTIVITY =====================
     $(document).on('click', '.btn-delete-activity', function(e) {
         e.preventDefault();
-        const timesheetId = $(this).data('timesheet-id');
-        console.log('Hapus seluruh aktivitas personel dengan timesheetId:', timesheetId);
+        const timesheetIds = $(this).data('timesheet-ids');
+        console.log('Hapus seluruh aktivitas personel dengan timesheetIds:', timesheetIds);
         const executionDate = $(this).data('execution-date');
         let formattedDate = executionDate;
         if (executionDate) {
@@ -1753,7 +1753,7 @@
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch(`/timesheet-management/${timesheetId}/delete-all`, {
+                fetch(`/timesheet-management/${timesheetIds}/delete-all`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

@@ -483,16 +483,14 @@ class TimesheetManagementController extends Controller
     public function deleteAll($id)
     {
         try {
-            $activity = Timesheet::findOrFail($id);
+            // $activity = Timesheet::findOrFail($id);
 
             // Ambil execution_date dan volume_id dari entri tersebut
-            $executionDate = $activity->execution_date;
-            $volumeId = $activity->volume_id;
+            // $executionDate = $activity->execution_date;
+            // $volumeId = $activity->volume_id;
 
             // Hapus semua entri di tanggal & volume yang sama
-            Timesheet::where('execution_date', $executionDate)
-                ->where('volume_id', $volumeId)
-                ->delete();
+            Timesheet::where('timesheet_id', $id)->delete();
 
             return response()->json([
                 'success' => true,
