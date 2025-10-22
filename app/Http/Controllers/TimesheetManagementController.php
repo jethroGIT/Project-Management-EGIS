@@ -365,16 +365,13 @@ class TimesheetManagementController extends Controller
 
             // Pastikan deletedTimesheetIds adalah array numerik
             $deletedTimesheetIds = array_map('intval', $deletedTimesheetIds);
-
-            Log::info('Volume IDs type:', ['type' => gettype($volumeIds), 'value' => $volumeIds]);
-            Log::info('Deleted Timesheet IDs:', ['type' => gettype($deletedTimesheetIds), 'value' => $deletedTimesheetIds]);
-
             $request->merge(['volume_ids' => $volumeIds, 'deleted_timesheet_ids' => $deletedTimesheetIds]);
 
             $request->validate([
                 'execution_date' => 'date',
                 'activities' => 'array',
                 'durations' => 'array',
+                'personel_ids' => 'array',
                 'timesheet_ids' => 'array',
                 'volume_ids' => 'array',
             ]);
@@ -384,29 +381,19 @@ class TimesheetManagementController extends Controller
             $executionDate = $request->input('execution_date');
             $activities = $request->input('activities');
             $durations = $request->input('durations');
+            $personelIds = $request->input('personel_ids');
             $timesheetIds = $request->input('timesheet_ids');
-
-            // Log data yang diterima
-            Log::info('Received data:', [
-                'execution_date' => $executionDate,
-                'activities' => $activities,
-                'durations' => $durations,
-                'timesheet_ids' => $timesheetIds,
-                'volume_ids' => $volumeIds,
-                'deleted_timesheet_ids' => $deletedTimesheetIds,
-            ]);
 
             // Hapus data berdasarkan deletedTimesheetIds
             if (!empty($deletedTimesheetIds)) {
                 Timesheet::whereIn('timesheet_id', $deletedTimesheetIds)->delete();
-                Log::info('Deleted timesheet IDs:', $deletedTimesheetIds);
             }
 
             $hasChanges = false;
             $updatedOrCreated = [];
 
             // Proses pembaruan data berdasarkan timesheet_ids
-            foreach ($timesheetIds as $index => $timesheetId) {
+            foreach ($personelIds as $index => $userId) {
                 $activity = $activities[$index] ?? null;
                 $duration = $durations[$index] ?? null;
 
@@ -414,33 +401,39 @@ class TimesheetManagementController extends Controller
                     continue;
                 }
 
-                $timesheet = Timesheet::find($timesheetId);
+                foreach ($volumeIds as $volumeId) {
+                    $timesheet = Timesheet::where('volume_id', $volumeId)
+                        ->where('user_id', $userId)
+                        ->first();
 
-                if ($timesheet) {
-                    // Periksa apakah ada perubahan pada data
-                    $isDateChanged = Carbon::parse($executionDate)->format('Y-m-d') != Carbon::parse($timesheet->execution_date)->format('Y-m-d');
-                    $isDurationChanged = (float)$duration !== (float)$timesheet->duration;
-                    $isActivityChanged = trim($activity) !== trim($timesheet->activity);
+                    if ($timesheet) {
+                        // Periksa perubahan
+                        $isDurationChanged = (float)$duration !== (float)$timesheet->duration;
+                        $isActivityChanged = trim($activity) !== trim($timesheet->activity);
+                        $isExecutionDateChanged = $executionDate !== $timesheet->execution_date;
 
-                    Log::info('Change detection for timesheet ID ' . $timesheetId . ':', [
-                        'isDateChanged' => $isDateChanged,
-                        'isDurationChanged' => $isDurationChanged,
-                        'isActivityChanged' => $isActivityChanged,
-                    ]);
-
-                    if ($isDateChanged || $isDurationChanged || $isActivityChanged) {
-                        $timesheet->update([
-                            'execution_date' => $executionDate,
-                            'duration' => $duration,
-                            'activity' => $activity,
+                        Log::info('Checking timesheet:', [
+                            'timesheet_id' => $timesheet->timesheet_id,
+                            'user_id' => $userId,
+                            'volume_id' => $volumeId,
+                            'isDurationChanged' => $isDurationChanged,
+                            'isActivityChanged' => $isActivityChanged,
                         ]);
-                        $hasChanges = true;
-                        $updatedOrCreated[] = $timesheet;
-                    }
-                } else {
-                    // Jika tidak ada timesheet, buat entri baru
-                    foreach ($volumeIds as $volumeId) {
+
+                        if ($isDurationChanged || $isActivityChanged || $isExecutionDateChanged) {
+                            $timesheet->update([
+                                'execution_date' => $executionDate,
+                                'duration' => $duration,
+                                'activity' => $activity,
+                            ]);
+                            $hasChanges = true;
+                            $updatedOrCreated[] = $timesheet;
+                            Log::info('Updated timesheet:', ['timesheet_id' => $timesheet->timesheet_id]);
+                        }
+                    } else {
+                        // Buat entri baru untuk user ini di volume ini
                         $new = Timesheet::create([
+                            'user_id' => $userId,
                             'volume_id' => $volumeId,
                             'execution_date' => $executionDate,
                             'duration' => $duration,
@@ -448,24 +441,24 @@ class TimesheetManagementController extends Controller
                         ]);
                         $hasChanges = true;
                         $updatedOrCreated[] = $new;
+                        Log::info('Created new timesheet:', ['timesheet_id' => $new->timesheet_id, 'user_id' => $userId]);
                     }
                 }
             }
 
             if (!$hasChanges && empty($deletedTimesheetIds)) {
-                Log::info('No changes detected.');
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak ada perubahan yang dilakukan.'
                 ], 400);
             }
 
-            Log::info('Changes applied:', $updatedOrCreated);
+            $responseData = $this->formatResponseData($updatedOrCreated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui.',
-                'data' => $updatedOrCreated
+                'data' => $responseData
             ]);
         } catch (\Exception $e) {
             Log::error('Error in edit:', [
@@ -478,6 +471,28 @@ class TimesheetManagementController extends Controller
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function formatResponseData($timesheets){
+
+        $timesheets = collect($timesheets);
+
+        return $timesheets->map(function ($timesheet) {
+            $user = $timesheet->user;
+            $workPackage = $timesheet->volume->workPackage;
+
+            return [
+                'user_id' => $user->user_id,
+                'user' => $user->load('roles'),
+                'execution_date' => $timesheet->execution_date,
+                'activity' => $timesheet->activity,
+                'duration' => $timesheet->duration,
+                'volume_ids' => $timesheet->volume->pluck('volume_id')->toArray(),
+                'timesheet_ids' => [$timesheet->timesheet_id],
+                'work_package' => $workPackage,
+                'wo_id' => $timesheet->volume->wo_id,
+            ];
+        });
     }
 
     public function deleteAll($ids)

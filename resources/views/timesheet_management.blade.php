@@ -1370,14 +1370,22 @@
                     });
 
                 // Tambahkan data personel dan aktivitas ke dalam modal
-                activities.forEach(activity => {
+                activities.forEach((activity, index) => {
+                    // Simpan timesheet_ids
                     activity.timesheet_ids.forEach(timesheetId => {
                         const hiddenInput = document.createElement('input');
                         hiddenInput.type = 'hidden';
                         hiddenInput.name = 'timesheet_ids[]';
-                        hiddenInput.value = timesheetId; 
+                        hiddenInput.value = timesheetId;
                         hiddenInputContainer.appendChild(hiddenInput);
                     });
+
+                    // Simpan personel_ids dengan index yang sama
+                    const personelInput = document.createElement('input');
+                    personelInput.type = 'hidden';
+                    personelInput.name = 'personel_ids[]';
+                    personelInput.value = activity.user_id;
+                    hiddenInputContainer.appendChild(personelInput);
 
                     addEditPersonelActivityGroup(activity);
                 });
