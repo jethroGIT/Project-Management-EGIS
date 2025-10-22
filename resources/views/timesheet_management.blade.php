@@ -1190,16 +1190,12 @@
     // ===================== EDIT ACTIVITY =====================
     let deletedTimesheetIds = []; // Array untuk menyimpan ID timesheet yang dihapus
 
-    
     document.addEventListener('DOMContentLoaded', function () {
         // Event listener untuk tombol edit aktivitas
         const editButtons = document.querySelectorAll('.btn-edit-activity');
         const editPersonelActivityBtn = document.getElementById('editPersonelActivityBtn');
         const editPersonelActivityContainer = document.getElementById('editPersonelActivityContainer');
         const editPersonelActivityTemplate = document.getElementById('editPersonelActivityTemplate');
-        let maxPersonelGroups = 0; // Jumlah maksimal user dari WP
-        let currentPersonelGroups = 0; // Jumlah grup personel yang ada saat ini
-        let currentPersonnel = []; // Data user dari WP
 
         editButtons.forEach(button => {
             button.addEventListener('click', function () {
@@ -1224,49 +1220,44 @@
                 populateEditModal(volumeIds, executionDate, personelIds);
             });
         });
+    });
 
-        // Fungsi untuk memuat data personel dari WP
-        function loadPersonnelData(woId, wpId) {
-            fetch(`/timesheet-management/personel?wo_id=${woId}${wpId ? `&wp_id=${wpId}` : ''}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        currentPersonnel = data.personnel;
-                        maxPersonelGroups = currentPersonnel.length;
-                        updateEditPersonelActivityButtons();
-                    } else {
-                        Swal.fire({
-                            title: "Gagal Memuat Data",
-                            text: data.message || "Tidak ada data personel untuk work package ini.",
-                            icon: "error",
-                            buttonsStyling: false,
-                            confirmButtonText: "Tutup",
-                            customClass: { confirmButton: "btn btn-secondary" }
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching personnel:', error);
+    // Fungsi untuk memuat data personel dari WP
+    function loadPersonnelData(woId, wpId) {
+        fetch(`/timesheet-management/personel?wo_id=${woId}${wpId ? `&wp_id=${wpId}` : ''}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentPersonnel = data.personnel;
+                    maxPersonelGroups = currentPersonnel.length;
+                    console.log('Loaded personnel data:', {
+                        count: currentPersonnel.length,
+                        maxPersonelGroups: maxPersonelGroups
+                    });
+                    updateEditPersonelActivityButtons();
+                } else {
                     Swal.fire({
-                        title: "Kesalahan",
-                        text: "Terjadi kesalahan saat memuat data personel.",
+                        title: "Gagal Memuat Data",
+                        text: data.message || "Tidak ada data personel untuk work package ini.",
                         icon: "error",
                         buttonsStyling: false,
                         confirmButtonText: "Tutup",
                         customClass: { confirmButton: "btn btn-secondary" }
                     });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching personnel:', error);
+                Swal.fire({
+                    title: "Kesalahan",
+                    text: "Terjadi kesalahan saat memuat data personel.",
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
                 });
-        }
-
-        document.getElementById('editActivityModal').addEventListener('shown.bs.modal', function () {
-            const woId = document.getElementById('edit_wo_select').value;
-            const wpId = document.getElementById('edit_wp_select').value;
-
-            if (woId && wpId) {
-                loadPersonnelData(woId, wpId);
-            }
-        });
-    });
+            });
+    }
 
     // Fungsi untuk memperbarui tombol tambah aktivitas
     function updateEditPersonelActivityButtons() {
@@ -1295,6 +1286,7 @@
         hiddenInputContainer.innerHTML = '';
         editPersonelActivityContainer.innerHTML = '';
         deletedTimesheetIds = [];
+        currentPersonelGroups = 0;
 
         // Simpan volume_ids sebagai hidden input
         const volumeIdsInput = document.createElement('input');
@@ -1362,6 +1354,8 @@
                             } else {
                                 editWpSelectContainer.style.display = 'none';
                             }
+                            console.log('Loading personnel for WO:', firstActivity.wo_id, 'WP:', firstActivity.work_package.wp_id);
+                            loadPersonnelData(firstActivity.wo_id, firstActivity.work_package.wp_id);
                         }
                     })
                     .catch(error => {
@@ -1506,8 +1500,9 @@
             personelSelect.addEventListener('change', function() {
                 const selectedUserId = this.value;
                 if (selectedUserId) {
-                    // Asumsikan volumeId dari konteks (misalnya dari edit_wp_select atau ambil dari data lain)
-                    const volumeId = document.getElementById('edit_wp_select').value;  // Sesuaikan
+                    const volumeIds = JSON.parse(document.getElementById('edit_volume_ids').value);
+                    const volumeId = volumeIds[0]; // Ambil volume pertama
+                    
                     mandaysSpinner.style.display = 'flex';
                     fetch(`/timesheet-management/personel-mandays/${selectedUserId}/${volumeId}`)
                         .then(response => response.json())
@@ -1523,6 +1518,7 @@
                             mandaysSpinner.style.display = 'none';
                         });
                 }
+                updateEditPersonelSelectOptions();
             });
 
             // Untuk remove button di new group, tidak perlu data-timesheet-id (karena baru)
@@ -1537,7 +1533,10 @@
         });
 
         editPersonelActivityContainer.appendChild(newGroupDiv);
-        currentPersonelGroups++;  // Update count
+        currentPersonelGroups++;
+        if(!activity){
+            updateEditPersonelDropdowns();
+        }
         updateEditPersonelActivityButtons();
     }
 
@@ -1566,7 +1565,10 @@
                         deletedTimesheetIds.push(timesheetId);
                     }
                     group.remove();
+                    currentPersonelGroups--;
                     updateEditGroupNumbering();
+                    updateEditPersonelDropdowns();
+                    updateEditPersonelActivityButtons();
                 }
             });
         } else {
@@ -1593,7 +1595,10 @@
 
                     // Hapus elemen grup dari DOM
                     group.remove();
+                    currentPersonelGroups--;
                     updateEditGroupNumbering();
+                    updateEditPersonelDropdowns();
+                    updateEditPersonelActivityButtons();
                 }
             });
         }
@@ -1730,6 +1735,67 @@
     document.getElementById('editActivityModal').addEventListener('hidden.bs.modal', function () {
         this.setAttribute('aria-hidden', 'true');
     });
+
+    // Fungsi untuk memperbarui dropdown personel dengan data baru di modal edit
+    function updateEditPersonelDropdowns() {
+        const allSelects = document.querySelectorAll('.edit-personel-select');
+        
+        allSelects.forEach(select => {
+            const currentValue = select.value; // Simpan nilai yang dipilih
+            const isDisabled = select.disabled; // Simpan status disabled
+            
+            if (isDisabled) {
+                return;
+            }
+            
+            select.innerHTML = '<option value="">Pilih Personel</option>';
+            
+            if (currentPersonnel.length > 0) {
+                currentPersonnel.forEach(person => {
+                    const option = document.createElement('option');
+                    option.value = person.user_id;
+                    const roleName = person.role ? ` - ${person.role}` : '';
+                    option.textContent = `${person.name}${roleName}`;
+                    option.setAttribute('data-user-id', person.user_id);
+                    select.appendChild(option);
+                });
+                
+                if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                    select.value = currentValue;
+                }
+            }
+        });
+        
+        updateEditPersonelSelectOptions();
+    }
+
+    // Fungsi untuk memperbarui opsi select agar disable personel yang sudah dipilih di modal edit
+    function updateEditPersonelSelectOptions() {
+        const allSelects = document.querySelectorAll('.edit-personel-select');
+        const selectedUserIds = [];
+        
+        allSelects.forEach(select => {
+            if (select.value !== '') {
+                selectedUserIds.push(select.value);
+            }
+        });
+
+        allSelects.forEach(select => {
+            if (select.disabled) {
+                return;
+            }
+            
+            Array.from(select.options).forEach(option => {
+                if (option.value !== '') {
+                    if (selectedUserIds.includes(option.value) && option.value !== select.value) {
+                        option.disabled = true;
+                    } else {
+                        option.disabled = false;
+                    }
+                }
+            });
+        });
+    }
 
     // ===================== DELETE ACTIVITY =====================
     $(document).on('click', '.btn-delete-activity', function(e) {

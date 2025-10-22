@@ -382,7 +382,7 @@ class TimesheetManagementController extends Controller
             $activities = $request->input('activities');
             $durations = $request->input('durations');
             $personelIds = $request->input('personel_ids');
-            $timesheetIds = $request->input('timesheet_ids');
+            // $timesheetIds = $request->input('timesheet_ids');
 
             // Hapus data berdasarkan deletedTimesheetIds
             if (!empty($deletedTimesheetIds)) {
