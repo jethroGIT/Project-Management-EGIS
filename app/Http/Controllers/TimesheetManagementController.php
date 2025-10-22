@@ -480,7 +480,7 @@ class TimesheetManagementController extends Controller
         }
     }
 
-    public function deleteAll($id)
+    public function deleteAll($ids)
     {
         try {
             // $activity = Timesheet::findOrFail($id);
@@ -489,8 +489,10 @@ class TimesheetManagementController extends Controller
             // $executionDate = $activity->execution_date;
             // $volumeId = $activity->volume_id;
 
+            $timesheetIds = explode(',', $ids);
+
             // Hapus semua entri di tanggal & volume yang sama
-            Timesheet::where('timesheet_id', $id)->delete();
+            Timesheet::whereIn('timesheet_id', $timesheetIds)->delete();
 
             return response()->json([
                 'success' => true,
