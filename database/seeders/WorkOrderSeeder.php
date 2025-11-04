@@ -14,6 +14,60 @@ class WorkOrderSeeder extends Seeder
      */
     public function run(): void
     {
+        // $workOrders = [
+        //     [
+        //         'wo_number' => 1
+        //     ],
+        //     [
+        //         'wo_number' => 2
+        //     ],
+        //     [
+        //         'wo_number' => 3
+        //     ],
+        //     [
+        //         'wo_number' => 4
+        //     ],
+        //     [
+        //         'wo_number' => 5
+        //     ],
+        //     [
+        //         'wo_number' => 6
+        //     ],
+        //     [
+        //         'wo_number' => 7
+        //     ],
+        //     [
+        //         'wo_number' => 8
+        //     ],
+        //     [
+        //         'wo_number' => 9
+        //     ],
+        //     [
+        //         'wo_number' => 10
+        //     ],
+        //     [
+        //         'wo_number' => 11
+        //     ],
+        //     [
+        //         'wo_number' => 12
+        //     ],
+        //     [
+        //         'wo_number' => 13
+        //     ],
+        //     [
+        //         'wo_number' => 14
+        //     ],
+        //     [
+        //         'wo_number' => 15
+        //     ],
+        //     [
+        //         'wo_number' => 16
+        //     ],
+        //     [
+        //         'wo_number' => 17
+        //     ],
+        // ];
+
         $workOrders = [
             [
                 'wo_number' => 1
@@ -35,36 +89,6 @@ class WorkOrderSeeder extends Seeder
             ],
             [
                 'wo_number' => 7
-            ],
-            [
-                'wo_number' => 8
-            ],
-            [
-                'wo_number' => 9
-            ],
-            [
-                'wo_number' => 10
-            ],
-            [
-                'wo_number' => 11
-            ],
-            [
-                'wo_number' => 12
-            ],
-            [
-                'wo_number' => 13
-            ],
-            [
-                'wo_number' => 14
-            ],
-            [
-                'wo_number' => 15
-            ],
-            [
-                'wo_number' => 16
-            ],
-            [
-                'wo_number' => 17
             ],
         ];
 

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             UserSeeder::class,
             RolePermissionSeeder::class,
+            ProjectSeeder::class,
             WpCategorySeeder::class,
             WorkOrderSeeder::class,
             WorkPackageSeeder::class,
@@ -26,12 +27,12 @@ class DatabaseSeeder extends Seeder
             WorkSeeder::class,
             TaskSeeder::class,
             SubTaskSeeder::class,
-            Timesheet31Seeder::class,
-            Timesheet32Seeder::class,
-            Timesheet52Seeder::class,
-            Timesheet62Seeder::class,
-            Timesheet91Seeder::class,
-            ProjectSeeder::class,
+            TimesheetDummySeeder::class,
+            // Timesheet31Seeder::class,
+            // Timesheet32Seeder::class,
+            // Timesheet52Seeder::class,
+            // Timesheet62Seeder::class,
+            // Timesheet91Seeder::class,
         ]);
         
         // User::factory(10)->create();
