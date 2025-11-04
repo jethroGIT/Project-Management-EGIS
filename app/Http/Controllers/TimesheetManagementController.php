@@ -151,20 +151,6 @@ class TimesheetManagementController extends Controller
         ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
         ->get();
 
-        // $personnelByWp = Work::with(['user.roles'])
-        //     ->get()
-        //     ->groupBy('wp_id')
-        //     ->map(function ($works) {
-        //         return $works->map(function ($work) {
-        //             return [
-        //                 'role_id' => optional($work->role)->role_id,
-        //                 'user_id' => $work->user->user_id,
-        //                 'name' => $work->user->name,
-        //                 'role_name' => optional($work->role)->name,
-        //             ];
-        //         });
-        //     })->sortBy('role_id')->toArray();
-
         return view('timesheet_management', compact('groupedActivities', 'workOrders', 'wpByWo', 'usersCount',
                                                     'workPackagesFilter', 'users'));
     }
@@ -349,17 +335,16 @@ class TimesheetManagementController extends Controller
 
             Log::info('Raw Deleted Timesheet IDs:', ['value' => $deletedTimesheetIds]);
 
-            // Perbaiki parsing deleted_timesheet_ids
             if (is_string($deletedTimesheetIds)) {
                 $decoded = json_decode($deletedTimesheetIds, true);
                 if (is_array($decoded)) {
                     // Jika elemen pertama adalah string JSON, decode lagi
                     if (isset($decoded[0]) && is_string($decoded[0]) && str_starts_with($decoded[0], '[')) {
                         $decoded = json_decode($decoded[0], true);
-                    }
+                }
                     $deletedTimesheetIds = $decoded;
-                } else {
-                    $deletedTimesheetIds = [];
+            } else {
+                $deletedTimesheetIds = [];
                 }
             }
 
@@ -382,45 +367,93 @@ class TimesheetManagementController extends Controller
             $activities = $request->input('activities');
             $durations = $request->input('durations');
             $personelIds = $request->input('personel_ids');
-            // $timesheetIds = $request->input('timesheet_ids');
+            $timesheetIds = $request->input('timesheet_ids', []);
 
             // Hapus data berdasarkan deletedTimesheetIds
             if (!empty($deletedTimesheetIds)) {
+                // Ambil user_id yang terkait dengan deletedTimesheetIds
+                $deletedUserIds = Timesheet::whereIn('timesheet_id', $deletedTimesheetIds)
+                    ->pluck('user_id')
+                    ->unique()
+                    ->toArray();
+                Log::info('Excluded user_ids:', ['deleted_user_ids' => $deletedUserIds]);
+
+                // Hapus timesheet berdasarkan ID
                 Timesheet::whereIn('timesheet_id', $deletedTimesheetIds)->delete();
+                Log::info('Deleted timesheets:', ['deleted_timesheet_ids' => $deletedTimesheetIds]);
+
+                // Filter personelIds untuk mengecualikan user_id yang terkait dengan deletedTimesheetIds
+                $filteredPersonelIds = [];
+                $filteredActivities = [];
+                $filteredDurations = [];
+
+                foreach ($personelIds as $index => $userId) {
+                    // Jika user_id ada di deleted_user_ids, tambahkan null untuk menjaga sinkronisasi indeks
+                    if (in_array($userId, $deletedUserIds)) {
+                        $filteredPersonelIds[] = $userId; // Tetap tambahkan user_id untuk menjaga jumlah elemen
+                        $filteredActivities[] = null;    // Isi dengan null
+                        $filteredDurations[] = null;     // Isi dengan null
+                        continue;
+                    }
+
+                    // Jika tidak ada di deleted_user_ids, tambahkan nilai sebenarnya
+                    $filteredPersonelIds[] = $userId;
+                    $filteredActivities[] = $activities[$index] ?? null;
+                    $filteredDurations[] = $durations[$index] ?? null;
+                }
+                $personelIds = array_filter($filteredPersonelIds);
+                $activities = array_filter($filteredActivities);
+                $durations = array_filter($filteredDurations);
             }
+
+            Log::info('PersonelIds:', ['personel_id' => $personelIds]);
+            Log::info('Activities:', ['activities' => $activities]);
+            Log::info('Durations:', ['durations' => $durations]);
+
+            $filteredData = [];
+            foreach ($personelIds as $index => $userId) {
+                if ($activities[$index] === null || $durations[$index] === null) {
+                    continue;
+                }
+                $filteredData[] = [
+                    'user_id' => $userId,
+                    'activity' => $activities[$index], 
+                    'duration' => $durations[$index],
+                ];
+            }
+
+            Log::info('Filtered data:', ['count' => count($filteredData), 'data' => $filteredData]);
 
             $hasChanges = false;
             $updatedOrCreated = [];
 
+            $existingTimesheets = Timesheet::whereIn('timesheet_id', $timesheetIds)
+                ->get()
+                ->groupBy('user_id')
+                ->map(function($userTimesheets) {
+                    return $userTimesheets->keyBy('volume_id');
+                });
+
             // Proses pembaruan data berdasarkan timesheet_ids
-            foreach ($personelIds as $index => $userId) {
-                $activity = $activities[$index] ?? null;
-                $duration = $durations[$index] ?? null;
+            foreach ($filteredData as $index => $data) {
+                $userId = $data['user_id'];
+                $activity = $data['activity'];
+                $duration = $data['duration'];
 
                 if ($executionDate === null || $activity === null || $duration === null) {
                     continue;
                 }
 
                 foreach ($volumeIds as $volumeId) {
-                    $timesheet = Timesheet::where('volume_id', $volumeId)
-                        ->where('user_id', $userId)
-                        ->first();
+                    $timesheet = $existingTimesheets->get((string)$userId)?->get($volumeId);
 
                     if ($timesheet) {
                         // Periksa perubahan
                         $isDurationChanged = (float)$duration !== (float)$timesheet->duration;
                         $isActivityChanged = trim($activity) !== trim($timesheet->activity);
-                        $isExecutionDateChanged = $executionDate !== $timesheet->execution_date;
+                        $isDateChanged = Carbon::parse($executionDate)->format('Y-m-d') !== Carbon::parse($timesheet->execution_date)->format('Y-m-d');
 
-                        Log::info('Checking timesheet:', [
-                            'timesheet_id' => $timesheet->timesheet_id,
-                            'user_id' => $userId,
-                            'volume_id' => $volumeId,
-                            'isDurationChanged' => $isDurationChanged,
-                            'isActivityChanged' => $isActivityChanged,
-                        ]);
-
-                        if ($isDurationChanged || $isActivityChanged || $isExecutionDateChanged) {
+                        if ($isDurationChanged || $isActivityChanged || $isDateChanged) {
                             $timesheet->update([
                                 'execution_date' => $executionDate,
                                 'duration' => $duration,

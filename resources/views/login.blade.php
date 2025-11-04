@@ -56,7 +56,7 @@ License: For each use you must have a valid license purchased only from above li
 							<!--begin::Heading-->
 							<div class="text-center mb-10">
 								<!--begin::Title-->
-								<h1 class="text-dark mb-3">Masuk ke PMO EGIS</h1>
+								<h1 class="text-dark mb-3">Masuk ke PMO</h1>
 								<!--end::Title-->
 								<!--begin::Link-->
 								{{-- <div class="text-gray-400 fw-bold fs-4">New Here? --}}

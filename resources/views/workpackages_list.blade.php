@@ -232,8 +232,8 @@
                     <table class="table table-row-bordered table-hover border gy-4 gs-7 rounded">
                         <thead>
                             <tr class="fw-bold fs-6 text-gray-1000 bg-light">
-                                <th style="width: 170px;">Peran</th>
-                                <th style="width: 170px;">SDM</th>
+                                <th style="width: 170px;">Jabatan</th>
+                                <th style="width: 170px;">Personel</th>
                                 <th class="text-center">JTK (Jumlah Tenaga Kerja)</th>
                                 <th class="text-center">JHK (Jumlah Hari Kerja)</th>
                             </tr>
