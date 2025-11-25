@@ -27,12 +27,11 @@ class DatabaseSeeder extends Seeder
             WorkSeeder::class,
             TaskSeeder::class,
             SubTaskSeeder::class,
-            TimesheetDummySeeder::class,
-            // Timesheet31Seeder::class,
-            // Timesheet32Seeder::class,
-            // Timesheet52Seeder::class,
-            // Timesheet62Seeder::class,
-            // Timesheet91Seeder::class,
+            Timesheet31Seeder::class,
+            Timesheet32Seeder::class,
+            Timesheet52Seeder::class,
+            Timesheet62Seeder::class,
+            Timesheet91Seeder::class,
         ]);
         
         // User::factory(10)->create();

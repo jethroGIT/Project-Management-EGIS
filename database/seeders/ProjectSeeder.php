@@ -13,22 +13,13 @@ class ProjectSeeder extends Seeder
      */
     public function run(): void
     {
-        // $projects = [
-        //     [
-        //         'name' => 'Project EGIS',
-        //         'total_budget' => 12704350000, // Rp 12.704.350.000
-        //         'description' => 'Proyek EGIS (Enterprise Governance Information Security)'
-        //     ]
-        // ];
-
         $projects = [
             [
-                'name' => 'Project ABC',
-                'total_budget' => 12000000000, // Rp 12.000.000.000
-                'description' => 'Proyek ABC (Advanced Business Collaboration)'
+                'name' => 'Project EGIS',
+                'total_budget' => 12704350000, // Rp 12.704.350.000
+                'description' => 'Proyek EGIS (Enterprise Governance Information Security)'
             ]
         ];
-
         foreach ($projects as $project) {
             Project::create($project);
         }
