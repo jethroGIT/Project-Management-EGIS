@@ -1,14 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <h1 class="mt-0 mb-5">Work Package</h1>
+<div class="">
+    <h1 class="mt-0 mb-5">Work Package Volume</h1>
 
     <!-- Title Section -->
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         @if(isset($workPackage) && isset($volume))
-            <div>
-                <h4 class="">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
+            <div class="col-8">
+                <h4 class="">
+                    @if (isset($volume->workOrder) && isset($volume->workOrder->wo_number))
+                        <span class="badge badge-info badge-lg">WO {{ $volume->workOrder->wo_number }}</span>
+                    @endif
+                    WP {{ $workPackage->wp_number }} {{ $workPackage->name }}
+                </h4>
                 <p>Periode 
                     @if(isset($volume->start_date) && ($volume->end_date))
                         {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}
@@ -16,25 +21,58 @@
                         Belum Tersedia
                     @endif
                 </p>
+
+                <!-- Informasi Volume Group -->
+                @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+                    <div class="d-flex align-items-center">
+                        <span class="badge badge-light-info badge-lg">
+                            <i class="bi bi-collection me-1"></i>
+                            {{ $volumeGroupInfo['total_volumes'] }} Volume Dikelompokkan
+                        </span>
+                        <!-- <small class="text-muted ms-2">
+                            Vol {{ implode(', ', $volumeGroupInfo['volume_numbers']) }}
+                        </small> -->
+                    </div>
+                @endif
             </div>
         @endif
-        <div class="">
-            <a href="{{ $backUrl ?? route('wp-management') }}" class="btn btn-light me-2">
-                <i class="bi bi-arrow-left"></i> {{ $backText ?? 'Kembali' }}
-            </a>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                <i class="bi bi-pencil-square"></i> Edit Data
-            </button>
-        </div>
+
+        @if(auth()->user() && auth()->user()->hasRole('admin'))
+            <div class="d-flex flex-column justify-content-end">
+                @if(isset($showBackButton) && $showBackButton && isset($backUrl) && isset($backText))
+                    <a href="{{ $backUrl ?? route('wp-management') }}" class="btn btn-light me-2">
+                        <i class="bi bi-arrow-left"></i> {{ $backText }}
+                    </a>
+                @endif
+
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                    <i class="bi bi-pencil-square"></i> Edit Periode
+                </button>
+            </div>
+        @endif
     </div>
+
+    <!-- Volume Group Alert -->
+    <!-- @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+        <div class="alert alert-light-info d-flex align-items-center mb-6">
+            <i class="bi bi-info-circle fs-4 me-3"></i>
+            <div>
+                <div class="fw-bold">Volume Grouped Management</div>
+                <div class="small text-muted">
+                    Volume ini tergabung dengan {{ $volumeGroupInfo['total_volumes'] - 1 }} volume lain yang memiliki 
+                    periode dan Work Order yang sama. Perubahan completion akan tersinkronisasi ke semua volume dalam grup.
+                </div>
+            </div>
+        </div>
+    @endif -->
 
     <!-- Card Kuantitas -->
     <div class="card card-flush shadow-sm mb-8">
-        <div class="card-header py-0">
+        {{-- <div class="card-header py-0">
             <h3 class="card-title">Kuantitas</h3>
-        </div>
-        <div class="card-body py-0">
-            <div class="mb-6">
+        </div> --}}
+        <div class="card-body">
+            <div class="mb-0">
                 <div class="row">
                     <!-- Duration Section -->
                     <div class="col-md-4">
@@ -43,33 +81,33 @@
                                 <h3 class="card-title fw-bold">Duration</h3>
                             </div>
                             <div class="card-body">
-                                <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-3">
+                                <div class="d-flex align-items-center justify-content-center h-100 gap-2 mb-1">
                                     @if(isset($workPackage) && isset($volume))
-                                        <span class="fs-1 fw-bold text-primary duration-highlight">{{ $workPackage->duration }}</span>
+                                        <span class="fs-1 fw-bold text-primary duration-highlight">{{ $adjustedWpDuration ?? $workPackage->duration }}</span>
                                         <span class="fs-1 text-primary duration-highlight">Hari</span>
                                     @else
                                         <span class="fs-1 fw-bold text-primary duration-highlight">0</span>
                                         <span class="fs-1 text-primary duration-highlight">Hari</span>                                            
                                     @endif
                                 </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Finance Performance -->
-                    <div class="col-md-4">
-                        <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
-                            <div class="card-header">
-                                <h3 class="card-title fw-bold">Finance Performance</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center justify-content-center h-100 mb-3">
-                                    <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
-                                </div>
-                            </div>
-                            <!-- Overlay -->
-                            <div class="performance-overlay d-flex align-items-center justify-content-center">
-                                <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
+                                {{-- Show duration calculation info for grouped volumes --}}
+                                @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+                                    <div class="text-center">
+                                        <div class="small text-muted">
+                                            Durasi Disesuaikan
+                                        </div>
+                                        <div class="badge badge-light-info">
+                                            {{ $volumeGroupInfo['total_volumes'] }} volume
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-center">
+                                        <div class="small text-muted">
+                                            Durasi standar
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -91,17 +129,84 @@
                             </div>
                         </div>
                     </div>
-                    {{-- <div class="col-md-4">
-                    </div> --}}
+
+                    <!-- Finance Performance/mandays -->
+                    @if(auth()->user()->hasRole('admin'))
+                        <div class="col-md-4">
+                            <div class="card card-flush shadow-sm mb-4 performance-card position-relative overlay-performance-card" onclick="window.location.href='{{ route('performance-finance.detail', ['volume_id' => $volume_id ?? 1]) }}'" style="transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; cursor:pointer;">
+                                <div class="card-header">
+                                    <h3 class="card-title fw-bold">Finance Performance</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-center h-100 mb-3">
+                                        <span class="fs-1 fw-bold text-success">{{ number_format($realizationPercentage ?? 0, 0)}} %</span>
+                                    </div>
+                                </div>
+                                <!-- Overlay -->
+                                <div class="performance-overlay d-flex align-items-center justify-content-center">
+                                    <span class="text-white fs-4 fw-bold">lihat detail &rarr;</span>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        @if(isset($assignedUsers) && ($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
+                            <div class="col-md-4">
+                                <div class="card card-flush shadow-sm mb-4 my-mandays-card">
+                                    <div class="card-header title-mandays">
+                                        <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
+                                    </div>
+                                    <div class="card-body p-1">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            @php
+                                                $currentUser = $assignedUsers->firstWhere('user_id', auth()->user()->user_id);
+                                            @endphp
+                                            <div class="mini-mandays-card h-100 mb-4">
+                                                <div class="mb-1" style="font-size: 1.1rem;">Rencana</div>
+                                                <div class="fs-2 text-success">{{ $currentUser['jhk'] ?? 0 }}</div>
+                                            </div>
+                                            <div class="mini-mandays-card h-100 mb-4">
+                                                <div class="mb-1" style="font-size: 1.1rem;">Realisasi</div>
+                                                <div class="fs-2 text-success">{{ $currentUser['timesheets_count'] ?? 0 }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="col-md-4">
+                                <div class="card card-flush shadow-sm mb-4 my-mandays-card">
+                                    <div class="card-header title-mandays">
+                                        <h3 class="card-title fw-bold p-0">Mandays Anda</h3>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <div style="height: 80px">
+                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->wp_number }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endif
 
                     <!-- Timesheet Button -->
-                    <div class="d-flex justify-content-end mb-4">
-                        <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
-                            Timesheet
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                            </svg>
-                        </button>
+                    <div class="d-flex justify-content-end align-items-end col-12 mt-3">
+                        @if(auth()->user()->hasRole('admin') || isset($assignedUsers) && !($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
+                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail', $volume->volume_id) }}'">
+                                Timesheet
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                                </svg>
+                            </button>
+                        @else
+                            <button type="button" class="btn btn-light-primary" onclick="window.location.href='{{ route('timesheet.detail.user', [$volume->volume_id, auth()->user()->user_id]) }}'">
+                                Timesheet
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                                </svg>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -111,17 +216,21 @@
     <!-- Card Task List -->
     <div class="card card-flush shadow-sm mb-8">
         <div class="card-header py-0">
-            <h3 class="card-title">Task List</h3>
+            <h3 class="card-title">Daftar Task</h3>
         </div>
         <div class="card-body py-0">
             <div class="d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                        class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
-                        <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
-                    </svg>
-                    Tambah Task
-                </button>
+                @if(auth()->user() && auth()->user()->hasRole('admin'))
+                    <button type="button" class="btn btn-light-primary mb-3" data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
+                            class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
+                            <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                        Tambah Task
+                    </button>
+                @else
+                    <div></div>
+                @endif
                 <form class="d-flex justify-content-end" onsubmit="return false;">
                     <label class="me-5 mt-3" for="searchTaskInput">Cari: </label>
                     <input 
@@ -129,7 +238,7 @@
                         style="width:200px" 
                         type="search"
                         id="searchTaskInput" 
-                        placeholder="Cari Task" 
+                        placeholder="Cari Data" 
                         aria-label="Search"
                     >                    
                 </form>
@@ -140,11 +249,13 @@
                 <table id="tabel_wp_task" class="table gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="fw-bolder fs-4 text-gray-1000 px-7">
-                            <th></th>
+                            <th style="width: 20px"></th>
                             <th class="align-middle border-bottom" style="width: 20px;">No</th>
-                            <th class="align-middle border-bottom" style="width: 300px;">Task</th>
-                            <th class="align-middle border-bottom" style="width: 300px;">Sub Task</th>
-                            <th class="align-middle border-bottom">Action</th>
+                            <th class="align-middle border-bottom" style="min-width: 300px;">Task</th>
+                            <th class="align-middle border-bottom" style="min-width: 300px;">Sub Task</th>
+                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                <th class="align-middle border-bottom">Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.92rem;">
@@ -159,49 +270,51 @@
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $task->name }}</td>
                                     <td></td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
-                                                    <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
-                                                </svg>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
-                                                        <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
-                                                        Edit
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }})">
-                                                        <i class="bi bi-trash me-3 fs-2 text-dark"></i>
-                                                        Hapus
-                                                    </a>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                {{-- <li>
-                                                    <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
-                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                        Masukkan di Atas
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
-                                                        <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
-                                                        Masukkan di Bawah
-                                                    </a>
-                                                </li> --}}
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                        <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                        <span>Tambah Sub Task</span>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
+                                    @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-body btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="17.5" viewBox="0 0 448 512">
+                                                        <path d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/>
+                                                    </svg>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="editTask({{ $task->task_id }})">
+                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>
+                                                            Hapus
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    {{-- <li>
+                                                        <!-- data-bs-toggle="modal" data-bs-target="#kt_modal_insert_task" -->
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskAbove({{ $task->task_id }}, '{{ $task->name }}')">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Atas
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertTaskBelow({{ $task->task_id }}, '{{ $task->name }}')">
+                                                            <i class="bi bi-plus-circle me-3 fs-2 text-dark"></i>
+                                                            Masukkan di Bawah
+                                                        </a>
+                                                    </li> --}}
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="insertSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            <span>Tambah Sub Task</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    @endif
                                 </tr>
                                 @if($task->subTask->count() > 0)
                                     @foreach($task->subTask as $subTask)
@@ -210,23 +323,25 @@
                                             <th scope="row"></th>
                                             <td></td>
                                             <td>{{ $subTask->name }}</td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
+                                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                                <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            @endif
                                         </tr>                                              
                                     @endforeach
                                 @else
@@ -266,6 +381,7 @@
             </div>
         </div>
     </div>
+
     <!-- Modal for Adding Task -->
     <div class="modal fade" tabindex="-1" id="kt_modal_insert_task">
         <div class="modal-dialog modal-dialog-centered">
@@ -366,7 +482,6 @@
             <div class="modal-content">
                 <div class="modal-header flex-column align-items-start pb-1">
                     <h3 class="modal-title" id="editSubTaskModalTitle">Edit Sub Task</h3>
-                    <p id="editSubTaskModalSubTitle" class="mb-0 mt-1 text-muted">Task</p>
                 </div>
                 <div class="modal-body">
                     <form id="editSubTaskForm" method="POST">
@@ -375,8 +490,14 @@
                         <input type="hidden" name="sub_task_id" id="editSubTaskId" value="">
                         <input type="hidden" name="task_id" id="editSubTaskParentTaskId" value="">
                         <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Task</label>
+                            <input type="text" id="editSubTaskTaskName" class="form-control bg-light" readonly>
+                            <div class="form-text text-muted">Task induk untuk sub task ini</div>
+                        </div>
+                        <div class="form-group mb-4">
                             <label class="form-label fw-bold">Nama Sub Task</label>
                             <textarea name="name" id="editSubTaskName" class="form-control" placeholder="Masukkan Nama Sub Task" rows="3" required maxlength="255"></textarea>
+                            <div class="form-text text-muted">Deskripsi detail dari sub task (maksimal 255 karakter)</div>
                         </div>
                     </form>
                 </div>
@@ -389,24 +510,19 @@
     </div>
 
     <div class="card card-flush shadow mb-6">
-        <div class="card-body py-5">
+        <div class="card-header py-0">
+            <h3 class="card-title">
+                Informasi Work Package Volume
+            </h3>
+        </div>
+        <div class="card-body py-0">
             <div class="d-flex justify-content-end mb-4">
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                    <i class="bi bi-pencil-square"></i>
-                    Edit Data
-                </button>
-
+                <!-- Modal for Editing Volume Data -->
                 <div class="modal fade" tabindex="-1" id="kt_modal_edit_data">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">Edit Data</h3>
-
-                                <!--begin::Close-->
-                                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                                </div>
-                                <!--end::Close-->
+                                <h3 class="modal-title">Edit Periode Volume</h3>
                             </div>
 
                             <div class="modal-body">
@@ -450,11 +566,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group mb-4">
+                                    <!-- <div class="form-group">
                                         <div class="mb-1">
                                             <div class="row g-2">
                                                 <div class="col-md-8">
-                                                    <label class="form-label fw-bold">Resource Names</label>
+                                                    <label class="form-label fw-bold">Tenaga Kerja</label>
                                                 </div>
                                                 <div class="col-md-2">
                                                     <label class="form-label fw-bold">JHK</label>
@@ -462,12 +578,23 @@
                                             </div>
                                         </div>
                                         <div id="editResourceContainer">
-                                            <!-- Ditambahkan oleh JavaScript -->
                                         </div>
                                         <button type="button" class="btn btn-light-primary" id="addEditResourceBtn">
                                             <i class="bi bi-plus-lg"></i>
-                                            Tambah Resource
+                                            Tambah Tenaga Kerja
                                         </button>
+                                    </div> -->
+
+                                    <div class="alert alert-light-info d-flex align-items-start">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <div>
+                                            <div class="small">
+                                                <strong>Info:</strong> Tahun pelaksanaan akan diperbarui secara otomatis sesuai tanggal mulai
+                                                @if(isset($volumeGroupInfo) && $volumeGroupInfo['is_grouped'])
+                                                    <p>Perubahan akan diterapkan ke {{ $volumeGroupInfo['total_volumes'] }} volume dalam grup ini</p>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                 </form>
                             </div>
@@ -495,7 +622,7 @@
                                 <h3 class="card-title fw-bold">Actual Scope</h3>
                             </div>
                             <p class="mb-0 fs-6 text-dark fw-semibold">
-                                @if(isset($workPackage))
+                                @if(!empty($workPackage->actual_scope_contract))
                                     {{ $workPackage->actual_scope_contract ?? 'N/A' }}
                                 @else
                                     <p class="text-muted">
@@ -540,8 +667,8 @@
                                 </div>
                                 <h3 class="card-title fw-bold">Deliverables</h3>
                             </div>
-                            <div class="mb-2 fs-7">
-                                @if(isset($workPackage))
+                            <div class="mb-2 fs-7" style="overflow-y: auto; max-height: 300px;">
+                                @if(!empty($workPackage->deliverable))
                                     {!! nl2br(e($workPackage->deliverable ?? 'N/A')) !!}
                                 @else
                                     <p class="text-muted">
@@ -555,7 +682,7 @@
 
                 <!-- Resource Names -->
                 <div class="col-md-12 mb-4">
-                    <div class="card card-flush shadow-sm">
+                    <div class="card card-flush shadow-sm mb-6">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="symbol symbol-50px me-3">
@@ -563,7 +690,7 @@
                                         <i class="bi bi-people text-warning fs-2"></i>
                                     </div>
                                 </div>
-                                <h3 class="card-title fw-bold">Resource Names</h3>
+                                <h3 class="card-title fw-bold">Tenaga Kerja</h3>
                                 <span class="badge badge-light-success ms-auto">{{ isset($assignedUsers) ? $assignedUsers->count() : 0 }} Members</span>
                             </div>
                             <div class="row g-3 justify-content-center mb-4">
@@ -625,15 +752,17 @@
                                                     <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
                                                 </svg>
                                             </div>
-                                            <h5 class="text-muted fw-bold mb-2">Belum Ada Resource Yang Ditugaskan</h5>
+                                            <h5 class="text-muted fw-bold mb-2">Belum Ada Tenaga Kerja Yang Ditugaskan</h5>
                                             <p class="text-muted mb-4 text-center">
-                                                Resource belum ditugaskan untuk work package ini.<br>
-                                                Silakan assign resource terlebih dahulu.
+                                                Tenaga Kerja belum ditugaskan untuk work package ini.<br>
+                                                Silakan assign tenaga kerja terlebih dahulu.
                                             </p>
-                                            <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
-                                                <i class="bi bi-plus-circle me-2"></i>
-                                                Assign Resource
-                                            </button>
+                                            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                                                <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_data">
+                                                    <i class="bi bi-plus-circle me-2"></i>
+                                                    Assign Tenaga Kerja
+                                                </button>
+                                            @endif
                                         </div>
                                     </div>
                                 @endif
@@ -651,19 +780,22 @@
 <script>
 let editResourceCounter = 1;
 
+// Mendapatkan data human resource berdasarkan role
+const humanResourcesByRole = @json($humanResourcesByRole ?? []);
+console.log('Human Resources by Role:', humanResourcesByRole);
+
+// Data kapasitas role
+const roleCapacity = @json($roleCapacity ?? []);
+
 // Mendapatkan semua user yang tersedia untuk dropdown
-const availableUsers = @json(\App\Models\User::with('roles')->get()->map(function($user) {
-    return [
-        'user_id' => $user->user_id,
-        'name' => $user->name,
-        'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role'
-    ];
-}));
+const availableUsers = @json($availableUsersDropdown ?? []);
 console.log('availableUsers:', availableUsers);
 
 // Mendapatkan user saat ini
+// const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin'))->pluck('user_id') : []);
 const currentlyAssignedUsers = @json($assignedUsers ? $assignedUsers->pluck('user_id') : []);
-const currentlyAssignedUsersAllData = @json($assignedUsers);
+// const currentlyAssignedUsersAllData = @json($assignedUsers ? $assignedUsers->filter(fn($user) => !collect($user['roles'] ?? [])->contains('name', 'admin')) : []);
+const currentlyAssignedUsersAllData = @json($assignedUsers ?? []);
 console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
 
 console.log('Available users from Blade:', @json(\App\Models\User::with('roles')->get()));
@@ -684,6 +816,12 @@ $(document).ready(function () {
     // Inisialisasi edit modal ketika membuka
     $('#kt_modal_edit_data').on('show.bs.modal', function () {
         initializeEditModal();
+    });
+
+    // FIX: Bersihkan alert ketika modal ditutup
+    $('#kt_modal_edit_data').on('hidden.bs.modal', function () {
+        // Hapus semua alert info yang mungkin tertinggal
+        $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
     });
 
     @if(isset($tasksWithUtilization) && $tasksWithUtilization->count() > 0)
@@ -757,22 +895,96 @@ function setupTaskSearch(table) {
  */
 function initializeEditModal() {
     // Reset container
-    $('#editResourceContainer').empty();
-    editResourceCounter = 1;
+    // $('#editResourceContainer').empty();
+    // editResourceCounter = 0;
+
+    $('.modal-info-alert').remove();
 
     // Debug log
-    console.log('availableUsers:', availableUsers);
-    console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+    // console.log('availableUsers:', availableUsers);
+    // console.log('currentlyAssignedUsers:', currentlyAssignedUsers);
+    // console.log('currentlyAssignedUsersAllData:', currentlyAssignedUsersAllData);
+    // console.log('humanResourcesByRole:', humanResourcesByRole);
+    // console.log('roleCapacity:', roleCapacity);
+
+    // if (availableUsers && availableUsers.length > 0) {
+    //     const uniqueRoles = [...new Set(availableUsers.map(user => user.role_name))];
+    //     // console.log('Available roles in dropdown:', uniqueRoles);
+    //     // Build role capacity info
+    //     const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
+    //         const status = capacity.is_full ? 
+    //             `${capacity.current_count}/${capacity.jtk} (Penuh)` : 
+    //             `${capacity.current_count}/${capacity.jtk} (${capacity.available_slots} tersedia)`;
+            
+    //         return `${capacity.role_name}: ${status}`;
+    //     }).join('<br>');
+        
+    //     // Add info alert about role filtering
+    //     const infoHtml = `
+    //         <div class="alert alert-light-info modal-info-alert" id="roleInfo">
+    //             <div class="d-flex align-items-center mb-3">
+    //                 <i class="bi bi-info-circle me-2 text-info"></i>
+    //                 <div>
+    //                     <div>Personel dengan jabatan berdasarkan Work Package ini: <strong>${uniqueRoles.join(', ')}</strong></div>
+    //                 </div>
+    //             </div>
+    //             <div class="alert alert-info" id="roleCapacityInfo">
+    //                 <div class="fw-bold mb-1">Kebutuhan Tenaga Kerja:</div>
+    //                 <div class="">${roleCapacityInfo}</div>
+    //                 <div class="small mt-2">
+    //                     <i class="bi bi-exclamation-triangle me-1"></i>
+    //                     Personel dengan jabatan yang sudah penuh tidak dapat dipilih
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     `;
+    //     $('#addEditResourceBtn').after(infoHtml);
+    // } else {
+    //     // Show warning if no users available
+    //     const warningHtml = `
+    //         <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="roleFilterInfo">
+    //             <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+    //             <div>
+    //                 <strong>Tidak ada personel tersedia:</strong> 
+    //                 Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.
+    //             </div>
+    //         </div>
+    //     `;
+    //     $('#addEditResourceBtn').after(warningHtml);
+    // }
+
+    // Filter untuk exclude admin
+    // const filteredAssignedUsers = currentlyAssignedUsersAllData.filter(function(assignedUser) {
+    //     const userExists = availableUsers.some(function(user) {
+    //         return user.user_id == assignedUser.user_id;
+    //     });
+
+    //     // Jika user tidak ada di availableUsers, tambahkan ke availableUsers
+    //     if (!userExists && assignedUser.user_id) {
+    //         availableUsers.push({
+    //             user_id: assignedUser.user_id,
+    //             name: assignedUser.name,
+    //             role_name: assignedUser.role_name,
+    //             role_id: assignedUser.role_id,
+    //             default_jhk: assignedUser.jhk || 0,
+    //             is_role_full: false,
+    //             available_slots: 1,
+    //             jtk_limit: 999
+    //         });
+    //     }
+        
+    //     return assignedUser.user_id != null;
+    // });
     
     // Menambahkan assigned user saat ini
-    if (currentlyAssignedUsers && currentlyAssignedUsers.length > 0) {
-        currentlyAssignedUsers.forEach(function(userId) {
-            addEditResource(userId);
-        });
-    } else {
-        // Menambahkan setidaknya 1 field kosong
-        addEditResource();
-    }
+    // if (filteredAssignedUsers && filteredAssignedUsers.length > 0) {
+    //     filteredAssignedUsers.forEach(function(assignedUser, index) {
+    //         addEditResource(assignedUser.user_id);
+    //     });
+    // } else {
+    //     // Menambahkan setidaknya 1 field kosong
+    //     addEditResource();
+    // }
     
     // Update end date min when start date changes
     $('#editStartDate').on('change', function() {
@@ -819,8 +1031,8 @@ function submitEditData() {
     // Manual validation
     const startDate = formData.get('start_date');
     const endDate = formData.get('end_date');
-    const resources = formData.getAll('resources[]');
-    const jhk = formData.getAll('jhk[]');
+    // const resources = formData.getAll('resources[]');
+    // const jhk = formData.getAll('jhk[]');
 
     if (!startDate || !endDate) {
         Swal.fire({
@@ -850,17 +1062,17 @@ function submitEditData() {
 
     // Filter out empty resource selections
     // const validResources = resources.filter(resource => resource !== '');
-    const validResources = resources.filter(resource => {
-        return resource !== '' && resource !== null && resource !== undefined && !isNaN(resource);
-    });
+    // const validResources = resources.filter(resource => {
+    //     return resource !== '' && resource !== null && resource !== undefined && !isNaN(resource);
+    // });
     
     // Debug log
     console.log('Edit Data Form Submission:', {
         volumeId: volumeId,
         startDate: startDate,
-        endDate: endDate,
-        resources: validResources,
-        jhk: jhk
+        endDate: endDate
+        // resources: validResources,
+        // jhk: jhk
     });
     
     // Create clean FormData with filtered resources
@@ -871,14 +1083,14 @@ function submitEditData() {
     cleanFormData.append('end_date', endDate);
     
     // Add valid resources
-    validResources.forEach(function(resource) {
-        cleanFormData.append('resources[]', resource);
-    });
+    // validResources.forEach(function(resource) {
+    //     cleanFormData.append('resources[]', resource);
+    // });
 
     // Add JHK values
-    jhk.forEach(function(jhkValue) {
-        cleanFormData.append('jhk[]', jhkValue);
-    });
+    // jhk.forEach(function(jhkValue) {
+    //     cleanFormData.append('jhk[]', jhkValue);
+    // });
     
     // Submit via AJAX
     $.ajax({
@@ -988,100 +1200,355 @@ function submitEditData() {
 /**
  * Tambah resource field baru di edit modal
  */
-function addEditResource(selectedUserId = null) {
-    // Validasi availableUsers
-    if (!availableUsers || availableUsers.length === 0) {
-        console.error('No available users found in addEditResource');
-        Swal.fire({
-            text: "Tidak ada data user yang tersedia. Pastikan ada user dalam sistem.",
-            icon: "warning",
-            buttonsStyling: false,
-            confirmButtonText: "OK",
-            customClass: {
-                confirmButton: "btn btn-warning"
-            }
-        });
-        return;
-    }
+// function addEditResource(selectedUserId = null) {
+//     // Validasi availableUsers
+//     if (!availableUsers || availableUsers.length === 0) {
+//         console.error('No available users found in addEditResource');
 
-    let optionsHtml = '<option value="">Pilih Resource</option>';
-    let defaultJhk = 0; 
+//         // Hapus semua alert
+//         $('#roleFilterInfo, #noUsersAlert, .modal-info-alert').remove();
+
+//         const alertHtml = `
+//             <div class="alert alert-light-warning d-flex align-items-center mb-3 modal-info-alert" id="noUsersAlert">
+//                 <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+//                 <div>
+//                     Tidak ada personel dengan jabatan yang sesuai dengan tenaga kerja pada Work Package ini.<br>
+//                     <small class="text-muted">Pastikan ada personel dengan jabatan yang sudah di-assign di work package ini.</small>
+//                 </div>
+//             </div>
+//         `;
+//         $('#addEditResourceBtn').after(alertHtml);
+
+//         Swal.fire({
+//             text: "Tidak Ada Personel Tersedia.",
+//             text: "Tidak ada data personel dengan jabatan yang sesuai. Pastikan ada personel dengan jabatan yang sudah di-assign pada Work Package ini.",
+//             icon: "warning",
+//             buttonsStyling: false,
+//             confirmButtonText: "OK",
+//             customClass: {
+//                 confirmButton: "btn btn-warning"
+//             }
+//         });
+//         return;
+//     }
+
+//     const currentlySelectedUsers = [];
+//     $('#editResourceContainer select[name="resources[]"]').each(function() {
+//         const selectedValue = $(this).val();
+//         if (selectedValue && selectedValue !== '') {
+//             currentlySelectedUsers.push(parseInt(selectedValue));
+//         }
+//     });
+
+//     // Hitung index berdasarkan jumlah container yang ada
+//     const currentResourceCount = $('#editResourceContainer .input-group').length;
+//     const resourceIndex = currentResourceCount;
+
+//     let optionsHtml = '<option value="">Pilih Tenaga Kerja</option>';
+//     let defaultJhk = 0; 
     
-    availableUsers.forEach(function(user) {
-        const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
-        optionsHtml += `<option value="${user.user_id}" ${selected}>${user.name} (${user.role_name})</option>`;
-        if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
-            const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
-            if (assigned) {
-                defaultJhk = assigned.jhk;
-            }
-            console.log('selected:', selected, 'assigned', assigned);
-        }
-    });
+//     // Group users berdasarkan role untuk pengecekan kapasitas
+//     const usersByRole = {};
+//     availableUsers.forEach(function(user) {
+//         if (!usersByRole[user.role_id]) {
+//             usersByRole[user.role_id] = [];
+//         }
+//         usersByRole[user.role_id].push(user);
+//     });
+
+//     // Membuat opsi dengan validasi kapasitas
+//     Object.keys(usersByRole).forEach(function(roleId) {
+//         const users = usersByRole[roleId];
+//         const capacity = roleCapacity[roleId];
+        
+//         if (!capacity) return;
+
+//         // Hitung user yang dipilih untuk role ini
+//         const currentSelectedForRole = currentlySelectedUsers.filter(userId => {
+//             const user = availableUsers.find(u => u.user_id === userId);
+//             return user && user.role_id == roleId;
+//         }).length;
+
+//         // Cek apakah role ini sudah penuh
+//         const isRoleAtCapacity = currentSelectedForRole >= capacity.jtk;
+        
+//         users.forEach(function(user) {
+//             const isAlreadySelected = currentlySelectedUsers.includes(user.user_id) && 
+//                                     selectedUserId !== user.user_id;
+            
+//             if (!isAlreadySelected) {
+//                 const selected = selectedUserId && selectedUserId == user.user_id ? 'selected' : '';
+
+//                 // Cek jika dapat menambahkan user ini berdasarkan kapasitas role
+//                 const canSelectUser = selectedUserId == user.user_id || !isRoleAtCapacity;
+//                 const disabledAttr = canSelectUser ? '' : 'disabled';
+//                 const roleStatus = isRoleAtCapacity ? ' (Penuh)' : '';
+                
+//                 optionsHtml += `<option value="${user.user_id}" 
+//                                data-role-id="${user.role_id}" 
+//                                data-default-jhk="${user.default_jhk}"
+//                                data-role-capacity="${capacity.jtk}"
+//                                data-current-count="${currentSelectedForRole}"
+//                                ${disabledAttr} ${selected}>
+//                                ${user.name} (${user.role_name}) ${roleStatus}
+//                                </option>`;
+
+//                 if (selectedUserId && selectedUserId == user.user_id && typeof currentlyAssignedUsersAllData !== 'undefined') {
+//                     const assigned = currentlyAssignedUsersAllData.find(a => a.user_id == selectedUserId);
+//                     if (assigned && assigned.jhk) {
+//                         defaultJhk = assigned.jhk;
+//                     } else {
+//                         defaultJhk = user.default_jhk || 0;
+//                     }
+//                 }
+//             }
+//         });
+//     });
     
-    const resourceHtml = `
-        <div class="input-group mb-2" id="edit-resource-${editResourceCounter}">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-8">
-                    <select class="form-select" name="resources[]" onchange="handleResourceChange(this)">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="number" class="form-control" name="jhk[]" placeholder="0" min="0" value="${defaultJhk}"/>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${editResourceCounter})">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
+//     const resourceHtml = `
+//         <div class="input-group mb-2" id="edit-resource-${resourceIndex}" data-resource-index="${resourceIndex}">
+//             <div class="row g-2 align-items-end">
+//                 <div class="col-md-8">
+//                     <select class="form-select resource-select" 
+//                             name="resources[]" 
+//                             onchange="handleResourceChange(this)" 
+//                             data-resource-index="${resourceIndex}">
+//                         ${optionsHtml}
+//                     </select>
+//                 </div>
+//                 <div class="col-md-2">
+//                     <input type="number" 
+//                             class="form-control jhk-input" 
+//                             name="jhk[]" 
+//                             placeholder="0" 
+//                             min="0" 
+//                             value="${defaultJhk}" 
+//                             data-resource-index="${resourceIndex}"/>
+//                 </div>
+//                 <div class="col-md-2 d-flex align-items-end">
+//                     <button type="button" class="btn btn-light-danger" onclick="removeEditResource(${resourceIndex})">
+//                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+//                             <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+//                         </svg>
+//                     </button>
+//                 </div>
+//             </div>
+//         </div>
+//     `;
     
-    $('#editResourceContainer').append(resourceHtml);
-    editResourceCounter++;
-}
+//     $('#editResourceContainer').append(resourceHtml);
+//     // editResourceCounter++;
+// }
 
 /**
  * Menghapus resource field di edit modal
  */
-function removeEditResource(index) {
-    const resourceCount = $('#editResourceContainer .input-group').length;
+// function removeEditResource(index) {
+//     // const resourceCount = $('#editResourceContainer .input-group').length;
 
-    $(`#edit-resource-${index}`).remove();
-}
+//     $(`#edit-resource-${index}, [data-resource-index="${index}"]`).remove();
+
+//     reindexResources();
+//     updateRoleCapacityDisplay();
+// }
+
+/**
+ * Function untuk reindex semua resource containers
+ */
+// function reindexResources() {
+//     $('#editResourceContainer .input-group').each(function(newIndex) {
+//         const container = $(this);
+//         const oldIndex = container.attr('data-resource-index');
+
+//         // Update container attributes
+//         container.attr('id', `edit-resource-${newIndex}`);
+//         container.attr('data-resource-index', newIndex);
+
+//         // Update select element
+//         const selectElement = container.find('select');
+//         selectElement.attr('name', 'resources[]');
+//         selectElement.attr('data-resource-index', newIndex);
+
+//         // Update input element
+//         const inputElement = container.find('input[type="number"]');
+//         inputElement.attr('name', 'jhk[]');
+//         inputElement.attr('data-resource-index', newIndex);
+        
+//         // Update button onclick
+//         const buttonElement = container.find('button');
+//         buttonElement.attr('onclick', `removeEditResource(${newIndex})`);
+        
+//         console.log(`Reindexed resource from ${oldIndex} to ${newIndex}`);
+//     });
+// }
 
 /**
  * Menangani perubahan seleksi resource untuk menghindari duplikasi
  */
-function handleResourceChange(selectElement) {
-    const selectedValue = selectElement.value;
-    const allSelects = document.querySelectorAll('#editResourceContainer select');
+// function handleResourceChange(selectElement) {
+//     const selectedValue = selectElement.value;
+//     const resourceIndex = selectElement.getAttribute('data-resource-index');
+//     const jhkInput = document.querySelector(`input[data-resource-index="${resourceIndex}"]`);
+
+//     const allSelects = document.querySelectorAll('#editResourceContainer select');
     
-    // Check for duplicates
-    let duplicateCount = 0;
-    allSelects.forEach(function(select) {
-        if (select.value === selectedValue && selectedValue !== '') {
-            duplicateCount++;
-        }
-    });
+//     // Check for duplicates
+//     let duplicateCount = 0;
+//     allSelects.forEach(function(select) {
+//         if (select.value === selectedValue && selectedValue !== '') {
+//             duplicateCount++;
+//         }
+//     });
     
-    if (duplicateCount > 1) {
-        Swal.fire({
-            text: "User ini sudah dipilih di resource lain!",
-            icon: "warning",
-            buttonsStyling: false,
-            confirmButtonText: "OK",
-            customClass: {
-                confirmButton: "btn btn-warning"
-            }
-        });
-        selectElement.value = ''; // Reset selection
-    }
-}
+//     if (duplicateCount > 1) {
+//         Swal.fire({
+//             text: "Personel ini sudah dipilih di penugasan tenaga kerja lain!",
+//             icon: "warning",
+//             buttonsStyling: false,
+//             confirmButtonText: "OK",
+//             customClass: {
+//                 confirmButton: "btn btn-warning"
+//             }
+//         });
+//         selectElement.value = ''; // Reset selection
+//         jhkInput.value = 0; // Reset JHK
+//         return;
+//     }
+
+//     // Auto populate JHK based on user roles
+//     if (selectedValue !== '') {
+//         const selectedOption = selectElement.querySelector(`option[value="${selectedValue}"]`);
+//         const roleId = selectedOption.getAttribute('data-role-id');
+//         const defaultJhk = selectedOption.getAttribute('data-default-jhk');
+//         const capacity = roleCapacity[roleId];
+
+//         if (capacity) {
+//             // Count current selections for this role (excluding this select)
+//             let currentSelectionCount = 0;
+//             allSelects.forEach(function(select) {
+//                 if (select !== selectElement && select.value !== '') {
+//                     const option = select.querySelector(`option[value="${select.value}"]`);
+//                     if (option && option.getAttribute('data-role-id') === roleId) {
+//                         currentSelectionCount++;
+//                     }
+//                 }
+//             });
+
+//             // Check if adding this user would exceed capacity
+//             if (currentSelectionCount >= capacity.jtk) {
+//                 Swal.fire({
+//                     title: "Kapasitas Jabatan Penuh",
+//                     html: `
+//                         <div class="text-center">
+//                             <p class="mb-3">Jabatan <strong>${capacity.role_name}</strong> sudah mencapai batas maksimum!</p>
+//                             <div class="alert alert-light-warning py-2">
+//                                 <div class="small">
+//                                     <strong>Kapasitas:</strong> ${capacity.jtk} orang<br>
+//                                     <strong>Sudah terisi:</strong> ${currentSelectionCount} orang<br>
+//                                     <strong>Sisa slot:</strong> ${Math.max(0, capacity.jtk - currentSelectionCount)} orang
+//                                 </div>
+//                             </div>
+//                             <p class="small text-muted">
+//                                 Untuk menambah personel dengan jabatan ini, hapus salah satu personel dengan jabatan yang sama terlebih dahulu.
+//                             </p>
+//                         </div>
+//                     `,
+//                     icon: "warning",
+//                     buttonsStyling: false,
+//                     confirmButtonText: "OK",
+//                     customClass: {
+//                         confirmButton: "btn btn-warning"
+//                     }
+//                 });
+//                 selectElement.value = '';
+//                 jhkInput.value = 0;
+//                 return;
+//             }
+//         }
+        
+//         // Check if this role already exists in Human Resources
+//         let jhkValue = 0;
+//         if (roleId && humanResourcesByRole[roleId]) {
+//             jhkValue = humanResourcesByRole[roleId].jhk;
+//             console.log(`Found existing role ${roleId} with JHK: ${jhkValue}`);
+//         } else if (defaultJhk && defaultJhk > 0) {
+//             jhkValue = parseInt(defaultJhk);
+//             console.log(`Using default JHK: ${jhkValue}`);
+//         }
+
+//         // Set JHK value in input
+//         if (jhkInput) {
+//             jhkInput.value = jhkValue;
+            
+//             // Show visual feedback if auto-populated
+//             if (jhkValue > 0) {
+//                 jhkInput.style.backgroundColor = '#e8f5e8';
+//                 jhkInput.setAttribute('title', `Auto-populated from existing role data (${jhkValue} days)`);
+                
+//                 // Remove highlight after 3 seconds
+//                 setTimeout(() => {
+//                     jhkInput.style.backgroundColor = '';
+//                     jhkInput.removeAttribute('title');
+//                 }, 3000);
+//             }
+//         }
+
+//         // Update capacity info in real-time
+//         updateRoleCapacityDisplay();
+
+//     } else {
+//         // Reset JHK jika tidak ada user yang dipilih
+//         if (jhkInput) {
+//             jhkInput.value = 0;
+//             jhkInput.style.backgroundColor = '';
+//             jhkInput.removeAttribute('title');
+//         }
+//         updateRoleCapacityDisplay();
+//     }
+// }
+
+/**
+ * Function untuk update tampilan kapasitas role secara real-time
+ */
+// function updateRoleCapacityDisplay() {
+//     const allSelects = document.querySelectorAll('#editResourceContainer select');
+//     const currentSelections = {};
+    
+//     // Count current selections by role
+//     allSelects.forEach(function(select) {
+//         if (select.value !== '') {
+//             const option = select.querySelector(`option[value="${select.value}"]`);
+//             if (option) {
+//                 const roleId = option.getAttribute('data-role-id');
+//                 if (roleId) {
+//                     currentSelections[roleId] = (currentSelections[roleId] || 0) + 1;
+//                 }
+//             }
+//         }
+//     });
+
+//     // Update capacity info display
+//     const roleCapacityInfo = Object.values(roleCapacity).map(capacity => {
+//         const currentCount = currentSelections[capacity.role_id] || 0;
+//         const availableSlots = Math.max(0, capacity.jtk - currentCount);
+//         const isFull = currentCount >= capacity.jtk;
+        
+//         const status = isFull ? 
+//             `${currentCount}/${capacity.jtk} (Penuh)` : 
+//             `${currentCount}/${capacity.jtk} (${availableSlots} tersedia)`;
+        
+//         return `${capacity.role_name}: ${status}`;
+//     }).join('<br>');
+
+//     // Update the info alert
+//     const infoAlert = document.getElementById('roleCapacityInfo');
+//     if (infoAlert) {
+//         const infoContent = infoAlert.querySelector('div div:nth-child(2)');
+//         if (infoContent) {
+//             infoContent.innerHTML = roleCapacityInfo;
+//         }
+//     }
+// }
 
 // Function untuk toggle sub-rows
 function toggleSubRows(rowId) {
@@ -1098,92 +1565,6 @@ function toggleSubRows(rowId) {
         icon.classList.add('bi-chevron-down');
     }
 }
-
-/** TASK MANAGEMENT **/
-/** Insert Task */
-/**
- * Function untuk menambah task pertama (jika belum ada task di tabel)
- */
-// function insertFirstTask() {
-//     // Reset semua field reference
-//     $('#referenceTaskId').val('');
-//     $('#insertPosition').val('');
-//     $('#insertTaskModalTitle').text('Tambah Task');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     } else {
-//         Swal.fire({
-//             text: "Volume ID tidak ditemukan. Tidak dapat menambahkan task.",
-//             icon: "error",
-//             buttonsStyling: false,
-//             confirmButtonText: "Tutup",
-//             customClass: {
-//                 confirmButton: "btn btn-secondary"
-//             }
-//         });
-//         return;
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#modalVolumeId').val(volumeId);
-//     $('#referenceTaskId').val('');
-//     $('#insertPosition').val('');
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
-/**
- * Function untuk insert task di atas
- */
-// function insertTaskAbove(taskId, taskName) {
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('above');
-//     $('#insertTaskModalTitle').text('Masukkan Task di Atas');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('above');
-//     $('#modalVolumeId').val(volumeId);
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
-
-/**
- * Function untuk insert task di bawah
- */
-// function insertTaskBelow(taskId, taskName) {
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('below');
-//     $('#insertTaskModalTitle').text('Masukkan Task di Bawah');
-
-//     // Pastikan volume_id tersedia
-//     const volumeId = {{ $volume_id ?? 'null' }};
-//     if (volumeId) {
-//         $('#modalVolumeId').val(volumeId);
-//     }
-
-//     // Reset form
-//     $('#insertTaskForm')[0].reset();
-//     $('#referenceTaskId').val(taskId);
-//     $('#insertPosition').val('below');
-//     $('#modalVolumeId').val(volumeId);
-
-//     // Show modal
-//     $('#kt_modal_insert_task').modal('show');
-// }
 
 /**
  * Function untuk insert sub task
@@ -1220,7 +1601,7 @@ function editSubTask(subTaskId) {
                 // if (response.subtask.completeness !== undefined) {
                 //     $('#editSubTaskCompleteness').val(response.subtask.completeness);
                 // }
-                $('#editSubTaskModalSubTitle').text(response.subtask.task_name || 'Task');
+                $('#editSubTaskTaskName').val(response.subtask.task_name || 'Task');
 
                 // Set form action jika perlu
                 // $('#editSubTaskForm').attr('action', `/work-package/subtask/${subTaskId}`);
@@ -1615,7 +1996,7 @@ function submitEditTask() {
 /**
  * Function untuk delete task
  */
-function deleteTask(taskId) {
+function deleteTask(taskId, taskName) {
     // Validasi taskId
     if (!taskId) {
         Swal.fire({
@@ -1638,13 +2019,14 @@ function deleteTask(taskId) {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
-            let warningText = "Apakah Anda yakin ingin menghapus task ini?";
+            let warningText = `Apakah Anda yakin ingin menghapus task "<b>${taskName}</b>"?`;
             if (response.success && response.subtask_count > 0) {
-                warningText = `Task ini memiliki ${response.subtask_count} sub task. Menghapus task akan menghapus semua sub task terkait. Lanjutkan?`;
+                warningText = `<span style="font-size:0.95em">Task "<b>${taskName}</b>" ini memiliki ${response.subtask_count} sub task.<br>Menghapus task akan menghapus semua sub task terkait.<br></span>`;
             }
+            warningText += `<br><span class="text-muted" style="font-size:0.85em;">Tindakan ini tidak dapat dibatalkan.</span>`;
             Swal.fire({
                 title: "Konfirmasi Hapus Task",
-                text: warningText,
+                html: warningText,
                 icon: "warning",
                 buttonsStyling: false,
                 showCancelButton: true,
@@ -1664,7 +2046,7 @@ function deleteTask(taskId) {
             // Jika gagal cek subtask (tidak ada sub task), tetap tampilkan konfirmasi standar
             Swal.fire({
                 title: "Konfirmasi Hapus Task",
-                text: "Apakah Anda yakin ingin menghapus task ini?",
+                html: `Apakah Anda yakin ingin menghapus task ${taskName}?`,
                 icon: "warning",
                 buttonsStyling: false,
                 showCancelButton: true,
@@ -1980,7 +2362,11 @@ function submitEditSubTask() {
 function deleteSubTaskConfirmation(subTaskId, subTaskName) {
     Swal.fire({
         title: "Konfirmasi Hapus Sub Task",
-        text: `Apakah Anda yakin ingin menghapus sub task "${subTaskName}"?`,
+        html: `
+            <span>Apakah Anda yakin ingin menghapus sub task:</span>
+            <p>${subTaskName}?</p>
+            <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+        `,
         icon: "warning",
         buttonsStyling: false,
         showCancelButton: true,
@@ -2125,6 +2511,10 @@ document.addEventListener("DOMContentLoaded", function () {
     transform: scale(1.18);
 }
 
+.my-mandays-card .card-body{
+    min-height: 83px;
+}
+
 /* HOVER EFFECT UNTUK RESOURCE NAMES CARDS */
 .card-bordered {
     transition: all 0.3s ease;
@@ -2202,5 +2592,48 @@ document.addEventListener("DOMContentLoaded", function () {
     border-top: 1px solid #dee2e6;
     box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
     padding: 1rem;
+}
+
+.title-mandays {
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
+    min-height: 56px !important;
+    /* height: 34px !important; */
+    line-height: 1.1 !important;
+    background: transparent !important;
+    border-bottom: none !important;
+    display: flex;
+    align-items: center;
+}
+
+.title-mandays .card-title {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+
+.mini-mandays-card {
+    min-width: 110px;
+    max-width: 140px;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e3e6ef;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(33, 37, 41, 0.08);
+    margin-right: 12px;
+    /* padding-bottom: 0px; */
+}
+
+.mini-mandays-card:hover {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px) scale(0.98);
+    /* border-color: #b7d4f4; */
+}
+
+.mini-mandays-card:last-child {
+    margin-right: 0;
 }
 </style>

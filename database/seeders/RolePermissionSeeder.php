@@ -19,14 +19,14 @@ class RolePermissionSeeder extends Seeder
             'manage users',
             'manage roles',
             'manage timesheets',
+            'edit wpv details',
+            'manage tasks',
+            'edit financial data',
         ];
 
         $generalPermissions = [
             // halaman work package volume
             'view wpv details',
-            'edit wpv details',
-            'manage tasks',
-            'edit financial data',
             'view timesheet summary',
             'manage timesheet activity',    
             // halaman profil user

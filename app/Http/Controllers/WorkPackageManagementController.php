@@ -12,11 +12,14 @@ use App\Models\Task;
 use App\Models\SubTask;
 use App\Models\Work;
 use App\Models\Timesheet;
+use App\Models\WorkOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Carbon\Carbon;
 use Exception;
 
@@ -35,7 +38,7 @@ class WorkPackageManagementController extends Controller
                 'workPackageVolumes' => function($query) {
                     $query->orderBy('volume_number', 'asc');
                 }
-            ])-> orderBy('wp_number', 'asc')->get();
+            ])->orderBy('wp_number', 'asc')->get();
 
             // Transform data untuk keperluan view
             $workPackagesData = $workPackages->map(function ($wp) {
@@ -46,10 +49,10 @@ class WorkPackageManagementController extends Controller
                 $resourceNames = collect();
                 foreach ($wp->workPackageVolumes as $volume) {
                     foreach ($volume->work as $work) {
-                        if ($work->user && $work->user->roles->isNotEmpty()) {
+                        if ($work->user && $work->role) {
                             $resourceNames->push([
                                 'name' => $work->user->name,
-                                'role' => $work->user->getRoleNames()->get(1) ?? $work->user->getRoleNames()->first() ?? 'No Role'
+                                'role' => $work->role->name
                             ]);
                         }
                     }
@@ -64,19 +67,21 @@ class WorkPackageManagementController extends Controller
 
                 return [
                     'wp_id' => $wp->wp_id,
+                    'category_number' => $wp->wpCategory->category_number,
                     'category_name' => $wp->wpCategory->name ?? 'Tidak Berkategori',
                     'wp_number' => $wp->wp_number,
                     'name' => $wp->name,
                     'volume_count' => $volumeCount,
+                    'volume_qty' => $wp->volume_qty,
                     'duration' => $wp->duration,
                     'actual_scope_contract' => $wp->actual_scope_contract,
                     'deliverable' => $wp->deliverable,
-                    'resource_names' => $uniqueResources->implode(', ') ?: 'Belum ada resource'
+                    'resource_names' => $uniqueResources->implode(', ') ?: 'Belum ada tenaga kerja'
                 ];
             });
 
             // Ambil semua kategori untuk filter
-            $categories = WpCategory::orderBy('name', 'asc')->get();
+            $categories = WpCategory::orderByRaw('CAST(category_number AS INTEGER) ASC')->get();
 
             Log::info('Work Package Management data loaded successfully', [
                 'total_wp' => $workPackages->count(),
@@ -112,16 +117,24 @@ class WorkPackageManagementController extends Controller
                     $query->orderBy('volume_number', 'asc');
                 },
                 'workPackageVolumes.work.user.roles',
+                'workPackageVolumes.workOrder',
                 'humanResources.role'
             ])->findOrFail($wp_id);
 
+            // Volume untuk ditampilkan di card
+            $volumesDisplay = $workPackage->workPackageVolumes->filter(function($volume) {
+                return $volume->wo_id !== null ||
+                        ($volume->start_date !== null &&
+                        $volume->end_date !== null &&
+                        $volume->execution_year !== null);
+            });
+
             // Transform volume data untuk tampilan
-            $volumesData = $workPackage->workPackageVolumes->map(function ($volume) use($workPackage) {
+            $volumesData = $volumesDisplay->map(function ($volume) use($workPackage) {
                 // Ambil resource names untuk volume ini
                 $resourceNames = $volume->work->map(function ($work) {
-                    if ($work->user && $work->user->roles->isNotEmpty()) {
-                        $roleName = $work->user->getRoleNames()->get(1) ?? $work->user->getRoleNames()->first() ?? 'No Role';
-                        return $work->user->name . ' (' . $roleName . ')';
+                    if ($work->user && $work->role) {
+                        return $work->user->name . ' (' . $work->role->name . ')';
                     }
                     return null;
                 })->filter()->unique()->values();
@@ -134,6 +147,12 @@ class WorkPackageManagementController extends Controller
                                         Carbon::parse($volume->end_date)->format('d M Y');
                 }
 
+                // Mendapatkan nomor work order
+                $woNumber = null;
+                if ($volume->wo_id && $volume->workOrder) {
+                    $woNumber = $volume->workOrder->wo_number;
+                }
+
                 return [
                     'volume_id' => $volume->volume_id,
                     'volume_number' => $volume->volume_number,
@@ -142,19 +161,53 @@ class WorkPackageManagementController extends Controller
                     'execution_year' => $volume->execution_year,
                     'period_formatted' => $periodFormatted,
                     'duration_days' => $workPackage->duration,
-                    'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada resource',
-                    'resource_count' => $resourceNames->count()
+                    'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada tenaga kerja',
+                    'resource_count' => $resourceNames->count(),
+                    'wo_id' => $volume->wo_id,
+                    'wo_number' => $woNumber,
+                    'has_work_order' => !is_null($volume->wo_id)
                 ];
             });
 
             // Transform human resources data
-            $humanResourcesData = $workPackage->humanResources->map(function ($hr) {
+            $humanResourcesData = $workPackage->humanResources->map(function ($hr) use ($workPackage) {
+                $roleName = $hr->role->name ?? 'No Role';
+
+                // Ambil semua user yang di-assign dengan role ini di semua volume WP
+                $usersWithRole = collect();
+
+                foreach ($workPackage->workPackageVolumes as $volume) {
+                    $volumeUsers = $volume->work->filter(function ($work) use ($hr) {
+                        return $work->role_id == $hr->role_id && $work->user;
+                    })->map(function ($work) {
+                        return [
+                            'user_id' => $work->user->user_id,
+                            'name' => $work->user->name,
+                            'volume_number' => $work->volume->volume_number ?? 'N/A'
+                        ];
+                    });
+
+                    $usersWithRole = $usersWithRole->merge($volumeUsers);
+                }
+
+                // Hapus duplikat user
+                $uniqueUsers = $usersWithRole->unique('user_id')->values();
+
                 return [
-                    'role_name' => $hr->role->name ?? 'Unknown Role',
+                    'hr_id' => $hr->hresource_id,
+                    'role_id' => $hr->role_id,
+                    'role_name' => $roleName,
                     'jtk' => $hr->jtk,
-                    'jhk' => $hr->jhk
+                    'jhk' => $hr->jhk,
+                    'assigned_users' => $uniqueUsers,
+                    'assigned_users_count' => $uniqueUsers->count()
                 ];
             });
+
+            // Hitung total volumes
+            $totalVolumesCount = WorkPackageVolume::where('wp_id', $wp_id)->count();
+            $volumesWithWorkOrderCount = $volumesData->count();
+            $volumesWithoutWorkOrderCount = $totalVolumesCount - $volumesWithWorkOrderCount;
 
             Log::info('Work Package detail loaded successfully', [
                 'wp_id' => $wp_id,
@@ -162,7 +215,14 @@ class WorkPackageManagementController extends Controller
                 'volumes_count' => $volumesData->count()
             ]);
 
-            return view('workpackage_management_detail', compact('workPackage', 'volumesData', 'humanResourcesData'));
+            return view('workpackage_management_detail', compact(
+                'workPackage', 
+                'volumesData', 
+                'humanResourcesData',
+                'totalVolumesCount',
+                'volumesWithWorkOrderCount',
+                'volumesWithoutWorkOrderCount'
+            ));
 
         } catch (ModelNotFoundException $e) {
             Log::error('Work Package not found', ['wp_id' => $wp_id]);
@@ -212,14 +272,6 @@ class WorkPackageManagementController extends Controller
                 'message' => 'Gagal mengambil data Work Package'
             ], 500);
         }
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -349,16 +401,23 @@ class WorkPackageManagementController extends Controller
                 // Step 1: Basic Work Package Data
                 'category_id' => 'required|exists:wp_category,category_id',
                 'wp_sequence' => 'required|integer|min:1',
-                'name' => 'required|string|max:255',
+                'name' => [
+                    'required',
+                    'string', 
+                    'max:255',
+                    Rule::unique('work_package', 'name')
+                ],
                 'actual_scope_contract' => 'nullable|string',
                 'deliverable' => 'nullable|string',
                 'duration' => 'required|integer|min:1',
                 'volume_qty' => 'required|integer|min:1',
 
                 // Step 2: Resource Data
-                'resources' => 'required|array|min:1',
-                'resources.*.user_id' => 'required|exists:user,user_id',
-                'resources.*.jhk' => 'required|integer|min:1',
+                'role_assignments' => 'required|array|min:1',
+                'role_assignments.*.role_id' => 'required|exists:roles,id',
+                'role_assignments.*.jhk' => 'required|integer|min:1',
+                'role_assignments.*.users' => 'required|array|min:1',
+                'role_assignments.*.users.*.user_id' => 'required|exists:user,user_id',
 
                 // Step 3: Task Data
                 'tasks' => 'nullable|array',
@@ -382,6 +441,40 @@ class WorkPackageManagementController extends Controller
                 ], 422);
             }
 
+            // Validasi total JHK dan Durasi Kerja
+            $totalJhk = 0;
+            $roleJhkDetails = [];
+
+            foreach ($validatedData['role_assignments'] as $index => $roleAssignment) {
+                $jhk = (int) $roleAssignment['jhk'];
+                $totalJhk += $jhk;
+
+                // Dapatkan role name untuk detail error message
+                $role = Role::find($roleAssignment['role_id']);
+                $roleJhkDetails[] = [
+                    'role_name' => $role->name ?? "Role ID {$roleAssignment['role_id']}",
+                    'jhk' => $jhk,
+                    'users_count' => count($roleAssignment['users'])
+                ];
+            }
+
+            if ($totalJhk > $duration) {
+                $overLimit = $totalJhk - $duration;
+
+                return response()->json([
+                    'success' => false,
+                    'message' => "Total Jumlah Hari Kerja melebihi durasi work package",
+                    'validation_error' => [
+                        'type' => 'jhk_duration_exceeded',
+                        'total_jhk' => $totalJhk,
+                        'duration' => $duration,
+                        'over_limit' => $overLimit,
+                        'role_details' => $roleJhkDetails
+                    ],
+                    'suggestion' => 'Kurangi JHK pada beberapa jabatan atau tingkatkan durasi pengerjaan kategori work package'
+                ], 422);
+            }
+
             Log::info('Creating work package with data:', $validatedData);
 
             // STEP 1: Create Work Package
@@ -395,7 +488,40 @@ class WorkPackageManagementController extends Controller
                 'deliverable' => $validatedData['deliverable'],
             ]);
 
-            // STEP 2: Create Work Package Volume and Resource
+            // STEP 2: Create Resource Assignments and Human Resources
+            foreach ($validatedData['role_assignments'] as $roleAssignment) {
+                $roleId = $roleAssignment['role_id'];
+                $jhk = (int) $roleAssignment['jhk'];
+                $users = $roleAssignment['users'];
+
+                // Validate role exists
+                $role = Role::find($roleId);
+                if (!$role) {
+                    throw new Exception("Role dengan ID {$roleId} tidak ditemukan");
+                }
+
+                // Count Jumlah Tenaga Kerja
+                $jtk = count($users);
+
+                // Validate all users exist
+                foreach ($users as $userAssignment) {
+                    $userId = $userAssignment['user_id'];
+                    $user = User::find($userId);
+                    if (!$user) {
+                        throw new Exception("User dengan ID {$userId} tidak ditemukan");
+                    }
+                }
+
+                // Create Human Resource for this role 
+                HumanResource::create([
+                    'wp_id' => $workPackage->wp_id,
+                    'role_id' => $roleId,
+                    'jtk' => $jtk,
+                    'jhk' => $jhk,
+                ]);
+            }
+
+            // STEP 3: Create Work Package Volumes and Resource Assignments
             $volumes = [];
             for ($i = 1; $i <= $volumeQty; $i++) {
                 $volume = WorkPackageVolume::create([
@@ -404,99 +530,66 @@ class WorkPackageManagementController extends Controller
                     'start_date' => null,
                     'end_date' => null,
                     'execution_year' => null,
+                    'wo_id' => null,
                 ]);
 
                 $volumes[] = $volume;
             }
-            
+
             foreach ($volumes as $volume) {
-                foreach ($validatedData['resources'] as $resourceData) {
-                    $user = User::with('roles')->find($resourceData['user_id']);
+                foreach ($validatedData['role_assignments'] as $roleAssignment) {
+                    $roleId = $roleAssignment['role_id'];
+                    $users = $roleAssignment['users'];
 
-                    if (!$user || $user->roles->isEmpty()) {
-                        throw new Exception("User dengan ID {$resourceData['user_id']} tidak ditemukan atau belum memiliki role");
+                    foreach ($users as $userAssignment) {
+                        $userId = $userAssignment['user_id'];
+
+                        // Assign role to user
+                        $user = User::find($userId);
+                        $role = Role::find($roleId);
+
+                        if ($user && $role) {
+                            // Ensure the user have 'karyawan' role
+                            if (!$user->hasRole('karyawan')) {
+                                $user->assignRole('karyawan');
+                            }
+                            
+                            // Assign chosen role if not exist
+                            if (!$user->hasRole($role->name)) {
+                                $user->assignRole($role->name);
+                            }
+                        }
+                        
+                        // Create work record for each user on volume
+                        Work::create([
+                            'volume_id' => $volume->volume_id,
+                            'user_id' => $userId,
+                            'role_id' => $roleId,
+                        ]);
+                        
+                        Log::info('Created Work assignment:', [
+                            'volume_id' => $volume->volume_id,
+                            'volume_number' => $volume->volume_number,
+                            'wp_id' => $workPackage->wp_id,
+                            'user_id' => $userId,
+                            'user_name' => $user->name,
+                            'role_id' => $roleId,
+                            'role_name' => $role->name,
+                            'jhk' => $roleAssignment['jhk']
+                        ]);
                     }
-
-                    // Create work record for each user on volume
-                    Work::create([
-                        'volume_id' => $volume->volume_id,
-                        'user_id' => $resourceData['user_id'],
-                    ]);
-
-                    Log::info('Created Work record:', [
-                        'volume_id' => $volume->volume_id,
-                        'volume_number' => $volume->volume_number,
-                        'user_id' => $resourceData['user_id'],
-                        'user_name' => $user->name,
-                        'role_name' => $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role',
-                    ]);
                 }
-            }
-
-            // Create Human Resources for each volume
-            $resourcesByRole = [];
-
-            foreach ($validatedData['resources'] as $resourceData) {
-                $user = User::with('roles')->find($resourceData['user_id']);
-
-                if (!$user || $user->roles->isEmpty()) {
-                    throw new Exception("User dengan ID {$resourceData['user_id']} tidak ditemukan atau belum memiliki role");
-                }
-                
-                $roleId = $user->roles->first()?->id ?? null;
-                $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first() ?? 'No Role';
-
-                // Group by role_id and count JTK
-                if (!isset($resourcesByRole[$roleId])) {
-                    $resourcesByRole[$roleId] = [
-                        'role_id' => $roleId,
-                        'role_name' => $roleName,
-                        'jtk' => 0,
-                        'total_jhk' => 0,
-                        'users' => []
-                    ];
-                }
-
-                // Count jumlah orang dengan role yang sama
-                $resourcesByRole[$roleId]['jtk'] += 1;
-
-                // Total hari kerja untuk role ini
-                $resourcesByRole[$roleId]['total_jhk'] += (int) $resourceData['jhk'];
-                
-                $resourcesByRole[$roleId]['users'][] = [
-                    'user_id' => $user->user_id,
-                    'name' => $user->name,
-                    'jhk' => (int) $resourceData['jhk']
-                ];
-            }
-
-            // Create Human resource
-            foreach ($resourcesByRole as $roleData) {
-                HumanResource::create([
-                    'wp_id' => $workPackage->wp_id,
-                    'role_id' => $roleData['role_id'],
-                    'jtk' => $roleData['jtk'],
-                    'jhk' => $roleData['total_jhk'],
-                ]);
             }
             
-            // STEP 3: Create Tasks and Sub Tasks
+            // STEP 4: Create Tasks and Sub Tasks
             if (!empty($validatedData['tasks'])) {
                 foreach ($validatedData['tasks'] as $taskIndex => $taskData) {
-                    // Create task for the first volume (you can modify this logic)
-                    // $firstVolume = $workPackage->workPackageVolumes()->first();
-
                     // Create task for all volumes
                     foreach ($volumes as $volume) {
-                        // Calculate order index for proper ordering
-                        // $maxOrderIndex = Task::where('volume_id', $volume->volume_id)
-                        //     ->max('order_index') ?? 0;
-
                         $task = Task::create([
                             'volume_id' => $volume->volume_id,
                             'name' => $taskData['name'],
                             'status' => 'open',
-                            // 'order_index' => $maxOrderIndex + 1
                         ]);
 
                         // Create sub tasks if provided
@@ -515,12 +608,28 @@ class WorkPackageManagementController extends Controller
 
             DB::commit();
 
+            $totalUsersAssigned = 0;
+            $roleAssignmentSummary = [];
+
+            foreach ($validatedData['role_assignments'] as $roleAssignment) {
+                $roleId = $roleAssignment['role_id'];
+                $role = Role::find($roleId);
+                $usersCount = count($roleAssignment['users']);
+                $totalUsersAssigned += $usersCount;
+
+                $roleAssignmentSummary[] = [
+                    'role_name' => $role->name,
+                    'jtk' => $usersCount,
+                    'jhk' => $roleAssignment['jhk'],
+                    'users_assigned' => $usersCount
+                ];
+            }
+
             Log::info('Work Package created successfully', [
                 'wp_id' => $workPackage->wp_id,
                 'wp_number' => $workPackage->wp_number,
                 'name' => $workPackage->name,
                 'volumes_created' => $validatedData['volume_qty'],
-                'resources_count' => count($validatedData['resources']),
                 'tasks_count' => count($validatedData['tasks'] ?? [])
             ]);
 
@@ -532,7 +641,10 @@ class WorkPackageManagementController extends Controller
                     'volumes_created' => $volumeQty,
                     'tasks_per_volume' => count($validatedData['tasks'] ?? []),
                     'total_tasks_created' => (count($validatedData['tasks'] ?? []) * $volumeQty),
-                    'resources_assigned' => count($validatedData['resources'])
+                    'role_assignments' => count($validatedData['role_assignments']),
+                    'total_users_assigned' => $totalUsersAssigned,
+                    'human_resources_created' => count($validatedData['role_assignments']),
+                    'role_assignment_summary' => $roleAssignmentSummary
                 ]
             ]);
 
@@ -567,8 +679,25 @@ class WorkPackageManagementController extends Controller
     public function getUsersWithRoles()
     {
         try {
-            $users = User::with('roles')->orderBy('name', 'asc')->get();
-            $roles = Role::orderBy('name', 'asc')->get();
+            $users = User::with('roles')
+                    ->whereDoesntHave('roles', function($query) {
+                        $query->where('name', 'admin');
+                    })
+                    ->orderBy('name', 'asc')
+                    ->get()
+                    ->map(function($user) {
+                        return [
+                            'user_id' => $user->user_id,
+                            'name' => $user->name,
+                            'current_roles' => $user->getRoleNames()->toArray()
+                        ];
+                    })
+                    ->filter()
+                    ->values();
+            
+            $roles = Role::whereNotIn('name', ['admin', 'karyawan'])
+                        ->orderBy('name', 'asc')
+                        ->get();
 
             return response()->json([
                 'success' => true,
@@ -579,17 +708,9 @@ class WorkPackageManagementController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data users'
+                'message' => 'Gagal mengambil data users dan roles'
             ], 500);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
     }
 
     /**
@@ -605,26 +726,40 @@ class WorkPackageManagementController extends Controller
                     $query->orderBy('volume_number', 'asc');
                 },
                 'workPackageVolumes.work.user.roles',
+                'workPackageVolumes.workOrder',
                 'humanResources.role'
-            ])->findOrfail($wp_id);
+            ])->findOrFail($wp_id);
 
             // Ambil semua kategori untuk dropdown
-            $categories = WpCategory::orderBy('name', 'asc')->get();
+            $categories = WpCategory::orderByRaw('CAST(category_number AS INTEGER) ASC')->get();
 
             // Ambil semua users dengan roles untuk resource management
             $users = User::with('roles')->orderBy('name', 'asc')->get();
             $roles = Role::orderBy('name', 'asc')->get();
 
             // Transform volume data untuk edit form
-            $volumesData = $workPackage->workPackageVolumes->map(function ($volume) {
+            $volumesWithWorkOrder = $workPackage->workPackageVolumes()
+                ->where(function($query) {
+                    $query->whereNotNull('wo_id')
+                        ->orWhere(function($subQuery) {
+                            $subQuery->whereNotNull('start_date')
+                                    ->whereNotNull('end_date')
+                                    ->whereNotNull('execution_year');
+                        });
+                })
+                ->orderBy('volume_number', 'asc')
+                ->get();
+
+            $volumesData = $volumesWithWorkOrder->map(function ($volume) {
                 // Ambil resource data untuk volume ini
                 $resources = $volume->work->map(function ($work) {
-                    if ($work->user && $work->user->roles->isNotEmpty()) {
+                    if ($work->user && $work->role) {
                         return [
                             'work_id' => $work->work_id,
                             'user_id' => $work->user->user_id,
                             'user_name' => $work->user->name,
-                            'role_name' => $work->user->getRoleNames()->get(1) ?? $work->user->getRoleNames()->first() ?? 'No Role',
+                            'role_id' => $work->role_id,
+                            'role_name' => $work->role->name
                         ];
                     }
                     return null;
@@ -638,6 +773,12 @@ class WorkPackageManagementController extends Controller
                                     Carbon::parse($volume->end_date)->format('d M Y');
                 }
 
+                // Mendapatkan nomor work order
+                $woNumber = null;
+                if ($volume->wo_id && $volume->workOrder) {
+                    $woNumber = $volume->workOrder->wo_number;
+                }
+
                 return [
                     'volume_id' => $volume->volume_id,
                     'volume_number' => $volume->volume_number,
@@ -645,18 +786,48 @@ class WorkPackageManagementController extends Controller
                     'end_date' => $volume->end_date,
                     'execution_year' => $volume->execution_year,
                     'period_formatted' => $periodFormatted,
-                    'resources' => $resources
+                    'resources' => $resources,
+                    'wo_id' => $volume->wo_id,
+                    'wo_number' => $woNumber,
+                    'has_work_order' => true
                 ];
             });
 
-            // Transform human resources data untuk edit form
-            $humanResourcesData = $workPackage->humanResources->map(function ($hr) {
+            // Hitung remaining volumes
+            $totalVolumeQty = $workPackage->volume_qty;
+            $totalVolumesCreated = WorkPackageVolume::where('wp_id', $wp_id)->count();
+            $volumesWithWorkOrderCount = $volumesData->count();
+            $volumesWithoutWorkOrderCount = $totalVolumesCreated - $volumesWithWorkOrderCount;
+            $remainingVolumeSlots = $totalVolumeQty - $volumesWithWorkOrderCount;
+
+            // Transform human resources data dengan assigned users
+            $humanResourcesData = $workPackage->humanResources->map(function ($hr) use ($workPackage) {
+                $roleName = $hr->role->name ?? 'No Role';
+
+                $assignedUsers = collect();
+                foreach($workPackage->workPackageVolumes as $volume) {
+                    $volumeUsers = $volume->work->filter(function($work) use ($hr) {
+                        return $work->role_id == $hr['role_id'] && $work->user;
+                    })->map(function($work) {
+                        return [
+                            'user_id' => $work->user->user_id,
+                            'name' => $work->user->name,
+                            'email' => $work->user->email,
+                            'volume_number' => $work->volume->volume_number ?? 'N/A'
+                        ];
+                    });
+                    $assignedUsers = $assignedUsers->merge($volumeUsers);
+                }
+                $assignedUsers = $assignedUsers->unique('user_id')->values();
+
                 return [
                     'hr_id' => $hr->hresource_id,
                     'role_id' => $hr->role_id,
-                    'role_name' => $hr->role->name ?? 'Unknown Role',
+                    'role_name' => $roleName,
                     'jtk' => $hr->jtk,
-                    'jhk' => $hr->jhk
+                    'jhk' => $hr->jhk,
+                    'assigned_users' => $assignedUsers,
+                    'assigned_users_count' => $assignedUsers->count()
                 ];
             });
 
@@ -671,7 +842,11 @@ class WorkPackageManagementController extends Controller
                 'humanResourcesData',
                 'categories',
                 'users',
-                'roles'
+                'roles',
+                'totalVolumeQty',
+                'volumesWithWorkOrderCount',
+                'volumesWithoutWorkOrderCount',
+                'remainingVolumeSlots'
             ));
 
         } catch (ModelNotFoundException $e) {
@@ -702,7 +877,12 @@ class WorkPackageManagementController extends Controller
 
             Log::info('Updating work package', [
                 'wp_id' => $wp_id, 
-                'data' => $request->all()
+                'data' => $request->all(),
+                'has_resources' => $request->has('resources'),
+                'resources_data' => $request->input('resources', []),
+                'has_work_order_assignments' => $request->has('work_order_assignments'),
+                'request_method' => $request->method(),
+                'content_type' => $request->header('Content-Type')
             ]);
 
             // Temukan data work package
@@ -713,15 +893,20 @@ class WorkPackageManagementController extends Controller
                 // Informasi umum work package
                 'category_id' => 'required|exists:wp_category,category_id',
                 'wp_sequence' => 'required|integer|min:1',
-                'name' => 'required|string|max:255',
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('work_package', 'name')->ignore($wp_id, 'wp_id')
+                ],
                 'actual_scope_contract' => 'nullable|string',
                 'deliverable' => 'nullable|string',
                 'duration' => 'required|integer|min:1',
 
                 // Volume data
-                'volumes' => 'required|array|min:1',
-                'volumes.*.volume_id' => 'required',
-                'volumes.*.volume_number' => 'required|integer|min:1',
+                // 'volumes' => 'nullable|array|min:0',
+                // 'volumes.*.volume_id' => 'required_with:volumes|integer',
+                // 'volumes.*.volume_number' => 'required_with:volumes|integer|min:1',
 
                 // Deleted volumes
                 'deleted_volumes' => 'nullable|array',
@@ -729,9 +914,18 @@ class WorkPackageManagementController extends Controller
 
                 // Resource data
                 'resources' => 'required|array|min:1',
+                'resources.*.hr_id' => 'nullable',
                 'resources.*.role_id' => 'required|exists:roles,id',
                 'resources.*.jtk' => 'required|integer|min:1',
                 'resources.*.jhk' => 'required|integer|min:1',
+                'resources.*.users' => 'nullable|array',
+                'resources.*.users.*.user_id' => 'required_with:resources.*.users|exists:user,user_id',
+
+                // Volume changes validation
+                'volume_changes' => 'nullable|string',
+            ], [
+                'name.unique' => 'Nama Work Package sudah digunakan. Silakan pilih nama yang berbeda.',
+                'name.required' => 'Nama Work Package harus diisi.',
             ]);
 
             // CHECK DATA UPDATE CHANGES
@@ -742,28 +936,32 @@ class WorkPackageManagementController extends Controller
             $originalActualScope = trim($workPackage->actual_scope_contract ?? '');
             $originalDeliverable = trim($workPackage->deliverable ?? '');
             $originalDuration = (int)$workPackage->duration;
-
-            // Mendapatkan data original volumes
-            $originalVolumes = $workPackage->workPackageVolumes()
-                ->orderBy('volume_number', 'asc')
-                ->get()
-                ->map(function($volume) {
-                    return [
-                        'volume_id' => $volume->volume_id,
-                        'volume_number' => $volume->volume_number
-                    ];
-                })
-                ->toArray();
             
             // Mendapatkan data original human resources
             $originalHumanResources = $workPackage->humanResources()
+                ->with(['role'])
                 ->orderBy('role_id', 'asc')
                 ->get()
-                ->map(function($hr) {
+                ->map(function($hr) use ($workPackage) {
+                    // Ambil user assignments untuk role ini dari semua volume
+                    $userAssignments = collect();
+                    foreach($workPackage->workPackageVolumes as $volume) {
+                        $volumeUsers = $volume->work->filter(function($work) use ($hr) {
+                            return $work->role_id == $hr->role_id && $work->user;
+                        })->map(function($work) {
+                            return $work->user_id;
+                        });
+                        $userAssignments = $userAssignments->merge($volumeUsers);
+                    }
+                    
+                    // Hapus duplikat dan sort untuk comparison
+                    $uniqueUserIds = $userAssignments->unique()->sort()->values()->toArray();
+
                     return [
                         'role_id' => $hr->role_id,
                         'jtk' => $hr->jtk,
-                        'jhk' => $hr->jhk
+                        'jhk' => $hr->jhk,
+                        'assigned_user_ids' => $uniqueUserIds 
                     ];
                 })
                 ->toArray();
@@ -785,39 +983,45 @@ class WorkPackageManagementController extends Controller
             $deliverableChanged = $originalDeliverable !== $newDeliverable;
             $durationChanged = $originalDuration !== $newDuration;
 
-            // Cek perubahan volume
-            $newVolumes = collect($validatedData['volumes'])
-                ->filter(function($volume) {
-                    return $volume['volume_id'] !== 'new';
-                })
-                ->map(function($volume) {
-                    return [
-                        'volume_id' => (int)$volume['volume_id'],
-                        'volume_number' => (int)$volume['volume_number']
-                    ];
-                })
-                ->sortBy('volume_number')
-                ->values()
-                ->toArray();
-            
-            $hasNewVolumes = collect($validatedData['volumes'])->contains(function($volume) {
-                return $volume['volume_id'] === 'new';
-            });
+            // Cek perubahan dengan parse volume
+            $volumeChanges = null;
+            $hasVolumeChanges = false;
 
-            $hasDeletedVolumes = !empty($validatedData['deleted_volumes']);
+            if ($request->has('volume_changes') && !empty($request->input('volume_changes'))) {
+                try {
+                    $volumeChanges = json_decode($request->input('volume_changes'), true);
 
-            $volumesChanged = $hasNewVolumes ||
-                            $hasDeletedVolumes ||
-                            count($originalVolumes) !== count($newVolumes) ||
-                            $originalVolumes !== $newVolumes;
+                    // Validate JSON decode 
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $volumeChanges = null;
+                    } else {
+                        $hasNewVolumes = !empty($volumeChanges['new_volumes']);
+                        $hasRemovedVolumes = !empty($volumeChanges['removed_volumes']);
+                        $hasVolumeChanges = $hasNewVolumes || $hasRemovedVolumes;
+                    }
+                    
+                } catch (Exception $e) {
+                    $volumeChanges = null;
+                    $hasVolumeChanges = false;
+                }
+            }
 
             // Cek perubahan human resources
             $newHumanResources = collect($validatedData['resources'])
                 ->map(function($resource) {
+                    // Extract user IDs dan sort untuk comparison
+                    $userIds = collect($resource['users'] ?? [])
+                        ->pluck('user_id')
+                        ->map(function($id) { return (int)$id; })
+                        ->sort()
+                        ->values()
+                        ->toArray();
+
                     return [
                         'role_id' => (int)$resource['role_id'],
                         'jtk' => (int)$resource['jtk'],
-                        'jhk' => (int)$resource['jhk']
+                        'jhk' => (int)$resource['jhk'],
+                        'assigned_user_ids' => $userIds
                     ];
                 })
                 ->sortBy('role_id')
@@ -832,9 +1036,9 @@ class WorkPackageManagementController extends Controller
                         $nameChanged || 
                         $actualScopeChanged || 
                         $deliverableChanged || 
-                        $durationChanged || 
-                        $volumesChanged || 
-                        $humanResourcesChanged;
+                        $durationChanged ||
+                        $humanResourcesChanged ||
+                        $hasVolumeChanges;
 
             // Log Perbandingan Perubahan
             Log::info('Final change detection result', [
@@ -847,36 +1051,14 @@ class WorkPackageManagementController extends Controller
                     'actual_scope_changed' => $actualScopeChanged,
                     'deliverable_changed' => $deliverableChanged,
                     'duration_changed' => $durationChanged,
-                    'volumes_changed' => $volumesChanged,
-                    'human_resources_changed' => $humanResourcesChanged
+                    'human_resources_changed' => $humanResourcesChanged,
+                    'volume_changes' => $hasVolumeChanges
                 ],
-                'comparisons' => [
-                    'category' => ['old' => $originalCategoryId, 'new' => $newCategoryId],
-                    'wp_number' => ['old' => $originalWpNumber, 'new' => $newWpNumber],
-                    'name' => ['old' => $originalName, 'new' => $newName],
-                    'duration' => ['old' => $originalDuration, 'new' => $newDuration],
-                    'volumes' => ['old' => $originalVolumes, 'new' => $newVolumes],
-                    'human_resources' => ['old' => $originalHumanResources, 'new' => $newHumanResources]
-                ]
+                'volume_changes_detail' => $volumeChanges
             ]);
             
             if (!$hasChanges) {
                 DB::rollback();
-
-                Log::info('No changes detected in work package update', [
-                    'wp_id' => $wp_id,
-                    'wp_number' => $workPackage->wp_number,
-                    'validation_details' => [
-                        'category_changed' => $categoryChanged,
-                        'wp_number_changed' => $wpNumberChanged,
-                        'name_changed' => $nameChanged,
-                        'actual_scope_changed' => $actualScopeChanged,
-                        'deliverable_changed' => $deliverableChanged,
-                        'duration_changed' => $durationChanged,
-                        'volumes_changed' => $volumesChanged,
-                        'human_resources_changed' => $humanResourcesChanged
-                    ]
-                ]);
 
                 return response()->json([
                     'success' => false,
@@ -887,26 +1069,11 @@ class WorkPackageManagementController extends Controller
                         'name' => $workPackage->name,
                         'category' => $workPackage->wpCategory->name ?? 'Unknown',
                         'duration' => $workPackage->duration . ' hari',
-                        'volumes_count' => count($originalVolumes),
-                        'resources_count' => count($originalHumanResources)
+                        'resources_count' => count($originalHumanResources),
+                        'volume_changes_detected' => $hasVolumeChanges
                     ]
                 ], 200);
             }
-
-            // Log detected changes
-            Log::info('Changes detected, proceeding with update', [
-                'wp_id' => $wp_id,
-                'changes' => [
-                    'category_changed' => $categoryChanged,
-                    'wp_number_changed' => $wpNumberChanged,
-                    'name_changed' => $nameChanged,
-                    'actual_scope_changed' => $actualScopeChanged,
-                    'deliverable_changed' => $deliverableChanged,
-                    'duration_changed' => $durationChanged,
-                    'volumes_changed' => $volumesChanged,
-                    'human_resources_changed' => $humanResourcesChanged
-                ]
-            ]);
 
             // UPDATE OPERATION
             // Step 0: Update WP Number if category or sequence changed
@@ -929,6 +1096,8 @@ class WorkPackageManagementController extends Controller
             }
 
             // Step 1: Update informasi umum work package
+            $currentVolumeCount = WorkPackageVolume::where('wp_id', $wp_id)->count();
+
             $workPackage->update([
                 'category_id' => $validatedData['category_id'],
                 'wp_number' => $newWpNumber,
@@ -936,69 +1105,93 @@ class WorkPackageManagementController extends Controller
                 'duration' => $validatedData['duration'],
                 'actual_scope_contract' => $validatedData['actual_scope_contract'],
                 'deliverable' => $validatedData['deliverable'],
-                'volume_qty' => count($validatedData['volumes'])
+                'volume_qty' => $currentVolumeCount
             ]);
 
             // Step 2: Update volume data
-            if (!empty($validatedData['deleted_volumes'])) {
-                foreach ($validatedData['deleted_volumes'] as $volumeId) {
-                    $volume = WorkPackageVolume::find($volumeId);
-                    if ($volume) {
-                        // Double check associations before deletion
-                        $hasAssociations = Task::where('volume_id', $volumeId)->exists() ||
-                                        Work::where('volume_id', $volumeId)->exists() ||
-                                        Timesheet::where('volume_id', $volumeId)->exists();
-
-                        if (!$hasAssociations) {
-                            $volume->delete();
-                            Log::info('Volume deleted', ['volume_id' => $volumeId]);
-                        } else {
-                            Log::warning('Attempted to delete volume with associations', ['volume_id' => $volumeId]);
-                        }
-                    }
-                }
-            }
-
-            // Create new volumes and update exisitng ones
-            foreach ($validatedData['volumes'] as $volumeData) {
-                if ($volumeData['volume_id'] === 'new') {
-                    // Create new volume
-                    WorkPackageVolume::create([
-                        'wp_id' => $wp_id,
-                        'volume_number' => $volumeData['volume_number'],
-                        'start_date' => null,
-                        'end_date' => null,
-                        'execution_year' => null,
-                    ]);
-                    Log::info('New volume created', ['volume_number' => $volumeData['volume_number']]);
-
-                } else {
-                    // Update existing volume number if changed
-                    $volume = WorkPackageVolume::find($volumeData['volume_id']);
-                    
-                    if ($volume && $volume->volume_number != $volumeData['volume_number']) {
-                        $volume->update(['volume_number' => $volumeData['volume_number']]);
-                        
-                        Log::info('Volume number updated', [
-                            'volume_id' => $volumeData['volume_id'],
-                            'new_number' => $volumeData['volume_number']
-                        ]);
-                    }
-                }
+            if ($hasVolumeChanges && $volumeChanges) {
+                $this->processVolumeChanges($volumeChanges, $wp_id);
             }
 
             // Step 3: Update human resources
+            // Get current role IDs from the request
+            $newRoleIds = collect($validatedData['resources'])->pluck('role_id')->unique()->toArray();
+        
+            // Get existing role IDs from current Human Resources
+            $existingRoleIds = HumanResource::where('wp_id', $wp_id)->pluck('role_id')->toArray();
+            
+            // Find roles that are being removed
+            $removedRoleIds = array_diff($existingRoleIds, $newRoleIds);
+
+            // Remove Work assignments for users with removed roles from all volumes
+            if (!empty($removedRoleIds)) {
+                $volumeIds = WorkPackageVolume::where('wp_id', $wp_id)->pluck('volume_id');
+
+                // Delete Work assignments for removed roles
+                $deletedWorkCount = Work::whereIn('volume_id', $volumeIds)
+                    ->whereIn('role_id', $removedRoleIds)
+                    ->delete();
+                
+                // Delete Timesheet records for removed roles
+                $deletedTimesheetCount = Timesheet::whereIn('volume_id', $volumeIds)
+                    ->whereHas('user', function($query) use ($removedRoleIds) {
+                        $query->whereHas('roles', function($subQuery) use ($removedRoleIds) {
+                            $subQuery->whereIn('id', $removedRoleIds);
+                        });
+                    })
+                    ->delete();
+            }
+
             // Delete existing human resources
             HumanResource::where('wp_id', $wp_id)->delete();
 
-            // Buat human resources baru
+            // Get all volume IDs for this work package
+            $volumeIds = WorkPackageVolume::where('wp_id', $wp_id)->pluck('volume_id');
+
+            // Create new human resources and update work assignments
             foreach ($validatedData['resources'] as $resourceData) {
-                HumanResource::create([
+                $roleId = $resourceData['role_id'];
+                $jtk = $resourceData['jtk'];
+                $jhk = $resourceData['jhk'];
+                $users = $resourceData['users'] ?? [];
+
+                // Create Human Resource
+                $humanResource = HumanResource::create([
                     'wp_id' => $wp_id,
-                    'role_id' => $resourceData['role_id'],
-                    'jtk' => $resourceData['jtk'],
-                    'jhk' => $resourceData['jhk'],
+                    'role_id' => $roleId,
+                    'jtk' => $jtk,
+                    'jhk' => $jhk,
                 ]);
+
+                // Remove existing work assignments for this role in all volumes
+                Work::whereIn('volume_id', $volumeIds)
+                    ->where('role_id', $roleId)
+                    ->delete();
+
+                // Create new work assignemnts for each user and each volume
+                foreach ($users as $userData) {
+                    $userId = $userData['user_id'];
+
+                    // Validate user exists
+                    $user = User::find($userId);
+                    if (!$user) {
+                        throw new Exception("User dengan ID {$userId} tidak ditemukan");
+                    }
+
+                    // Assign role to user if not already assigned
+                    if (!$user->hasRole(Role::find($roleId)->name)) {
+                        $user->assignRole(Role::find($roleId)->name);
+                    }
+
+                    // Create work assignment for each volume
+                    foreach ($volumeIds as $volumeId) {
+                        Work::create([
+                            'volume_id' => $volumeId,
+                            'user_id' => $userId,
+                            'role_id' => $roleId,
+                        ]);
+                    }
+                }
             }
 
             DB::commit();
@@ -1018,8 +1211,13 @@ class WorkPackageManagementController extends Controller
                     'name' => $workPackage->name,
                     'category' => $category->name,
                     'duration' => $workPackage->duration,
-                    'volumes_count' => count($validatedData['volumes']),
-                    'resources_count' => count($validatedData['resources'])
+                    'volumes_count' => 0,
+                    'resources_count' => count($validatedData['resources']),
+                    'total_users_assigned' => collect($validatedData['resources'])
+                        ->sum(function($resource) {
+                            return count($resource['users'] ?? []);
+                        }),
+                    'volume_changes_applied' => $hasVolumeChanges
                 ]
             ]);
 
@@ -1049,113 +1247,404 @@ class WorkPackageManagementController extends Controller
     }
 
     /**
-     * Check volume associations before deletion
+     * Check if work package name is available
      */
-    public function checkVolumeAssociations($volume_id) 
+    public function checkWorkPackageName(Request $request)
     {
         try {
-            $volume = WorkPackageVolume::findOrFail($volume_id);
+            $name = trim($request->get('name'));
+            $excludeId = $request->get('exclude_id'); // Untuk edit
 
-            // Check for associated data
-            $tasksCount = Task::where('volume_id', $volume_id)->count();
-            $subtasksCount = SubTask::whereHas('task', function($query) use ($volume_id) {
-                $query->where('volume_id', $volume_id);
-            })->count();
-            $resourcesCount = Work::where('volume_id', $volume_id)->count();
-            $timesheetsCount = Timesheet::where('volume_id', $volume_id)->count();
+            if (!$name) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nama Work Package diperlukan'
+                ], 400);
+            }
 
-            $hasAssociations = $tasksCount > 0 || $subtasksCount > 0 || $resourcesCount > 0 || $timesheetsCount > 0;
+            $query = WorkPackage::where('name', $name);
+
+            // Exclude current work package ID saat edit
+            if ($excludeId) {
+                $query->where('wp_id', '!=', $excludeId);
+            }
+
+            $exists = $query->exists();
 
             return response()->json([
                 'success' => true,
-                'has_associations' => $hasAssociations,
-                'associations' => [
-                    'tasks_count' => $tasksCount,
-                    'subtasks_count' => $subtasksCount,
-                    'resources_count' => $resourcesCount,
-                    'timesheets_count' => $timesheetsCount
-                ] 
+                'available' => !$exists,
+                'name' => $name,
+                'message' => $exists ? 'Nama Sub Work Package sudah digunakan' : 'Nama Sub Work Package tersedia'
             ]);
 
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Volume tidak ditemukan'
-            ], 404);
-
         } catch (Exception $e) {
-            Log::error('Error checking volume associations', [
-                'volume_id' => $volume_id,
+            Log::error('Error checking work package name availability', [
+                'name' => $request->get('name'),
+                'exclude_id' => $request->get('exclude_id'),
                 'error' => $e->getMessage()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memeriksa data volume'
+                'message' => 'Gagal memeriksa ketersediaan nama Work Package'
             ], 500);
         }
     }
 
     /**
-     * Force delete volume with all associated data
+     * Process volume changes
      */
-    public function forceDeleteVolume(Request $request, $volume_id)
+    private function processVolumeChanges($volumeChanges, $wp_id) 
+    {
+        try {
+            // Process removed volumes
+            if (!empty($volumeChanges['removed_volumes'])) {
+                foreach ($volumeChanges['removed_volumes'] as $volumeId) {
+                    $volume = WorkPackageVolume::find($volumeId);
+
+                    if ($volume && $volume->wp_id == $wp_id) {
+                        $volume->update([
+                            'wo_id' => null,
+                            'start_date' => null,
+                            'end_date' => null,
+                            'execution_year' => null
+                        ]);
+                    }
+                }
+            }
+
+            // Process new volumes
+            if (!empty($volumeChanges['new_volumes'])) {
+                foreach ($volumeChanges['new_volumes'] as $newVolumeData) {
+                    $volume = WorkPackageVolume::where('wp_id', $wp_id)
+                        ->where('volume_number', $newVolumeData['volume_number'])
+                        ->first();
+                    
+                    if ($volume) {
+                        $volume->update([
+                            'start_date' => $newVolumeData['start_date'],
+                            'end_date' => $newVolumeData['end_date'],
+                            'execution_year' => $newVolumeData['execution_year']
+                        ]);
+                    }
+                }
+            }
+
+        } catch (Exception $e) {
+            Log::error('Error processing volume changes', [
+                'wp_id' => $wp_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Check if a role has user assignments in work packages volumes
+     */
+    public function checkRoleAssignments(Request $request)
+    {
+        try {
+            $wpId = $request->input('wp_id');
+            $roleId = $request->input('role_id');
+
+            // Validate input
+            if (!$wpId || !$roleId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Work Package dan Peran tidak ditemukan'
+                ], 400);
+            }
+
+            // Get work package
+            $workPackage = WorkPackage::findOrFail($wpId);
+
+            // Get all volume IDs for this work package
+            $volumeIds = WorkPackageVolume::where('wp_id', $wpId)->pluck('volume_id');
+
+            if ($volumeIds->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'has_assignments' => false,
+                    'assignment_details' => null,
+                    'message' => 'Tidak ada volume dalam work package ini'
+                ]);
+            }
+
+            // Get users with this specific role
+            $userWithRoles = User::whereHas('roles', function($query) use ($roleId) {
+                $query->where('id', $roleId);
+            })->with('roles')->get();
+
+            if ($userWithRoles->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'has_assignments' => false,
+                    'assignment_details' => null,
+                    'message' => 'Tidak ada user dengan role ini'
+                ]);
+            }
+
+            $userIds = $userWithRoles->pluck('user_id')->toArray();
+
+            // Check if any of these users have Work assignments in the work package volumes
+            $workAssignments = Work::whereIn('volume_id', $volumeIds)
+                ->whereIn('user_id', $userIds)
+                ->with(['user', 'volume'])
+                ->get();
+            
+            if ($workAssignments->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'has_assignments' => false,
+                    'assignment_details' => null,
+                    'message' => 'User dengan role ini belum di-assign pada volume work package'
+                ]);
+            }
+
+            // Build assignment details
+            $affectedUsers = $workAssignments->groupBy('user_id')->map(function($assignments, $userId) {
+                $user = $assignments->first()->user;
+                return [
+                    'user_id' => $userId,
+                    'name' => $user->name,
+                    'volumes' => $assignments->map(function($assignment) {
+                        return [
+                            'volume_id' => $assignment->volume_id,
+                            'volume_number' => $assignment->volume->volume_number ?? 'Unknown'
+                        ];
+                    })->unique('volume_id')->values()->toArray()
+                ];
+            })->values();
+
+            // Count statistics
+            $stats = [
+                'total_assignments' => $workAssignments->count(),
+                'affected_users_count' => $affectedUsers->count(),
+                'affected_volumes_count' => $workAssignments->pluck('volume_id')->unique()->count(),
+                'total_timesheets' => Timesheet::whereIn('volume_id', $volumeIds)
+                    ->whereIn('user_id', $userIds)
+                    ->count()
+            ];
+
+            $assignmentDetails = [
+                'affected_users' => $affectedUsers->toArray(),
+                'volumes_count' => $stats['affected_volumes_count'],
+                'assignments_count' => $stats['total_assignments'],
+                'timesheets_count' => $stats['total_timesheets'],
+                'stats' => $stats
+            ];
+
+            return response()->json([
+                'success' => true,
+                'has_assignments' => true,
+                'assignment_details' => $assignmentDetails,
+                'message' => 'Role memiliki user yang di-assign pada volume work package'
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            Log::error('Work Package not found during role assignment check', [
+                'wp_id' => $request->input('wp_id'),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Work Package tidak ditemukan'
+            ], 404);
+
+        } catch (Exception $e) {
+            Log::error('Error checking role assignments', [
+                'wp_id' => $request->input('wp_id'),
+                'role_id' => $request->input('role_id'),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memeriksa assignment role: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check work package associations before deletion
+     */
+    public function checkWorkPackageAssociations($wp_id) 
+    {
+        try {
+            $workPackage = WorkPackage::findOrFail($wp_id);
+
+            // Mendapatkan semua volumes untuk work package ini
+            $volumes = WorkPackageVolume::where('wp_id', $wp_id)->get();
+            $volumeIds = $volumes->pluck('volume_id');
+
+            // Cek data asosiasi di seluruh volume
+            $volumesCount = $volumes->count();
+            $tasksCount = Task::whereIn('volume_id', $volumeIds)->count();
+            $subtasksCount = SubTask::whereHas('task', function($query) use ($volumeIds) {
+                $query->whereIn('volume_id', $volumeIds);
+            })->count();
+            $workAssignmentsCount = Work::whereIn('volume_id', $volumeIds)->count();
+            $timesheetsCount = Timesheet::whereIn('volume_id', $volumeIds)->count();
+            $humanResourcesCount = HumanResource::where('wp_id', $wp_id)->count();
+
+            $hasAssociations = $volumesCount > 0 || $tasksCount > 0 || $subtasksCount > 0 ||
+                                $workAssignmentsCount > 0 || $timesheetsCount > 0 || $humanResourcesCount > 0;
+            
+            return response()->json([
+                'success' => true,
+                'has_associations' => $hasAssociations,
+                'associations' => [
+                    'volumes_count' => $volumesCount,
+                    'tasks_count' => $tasksCount,
+                    'subtasks_count' => $subtasksCount,
+                    'work_assignments_count' => $workAssignmentsCount,
+                    'timesheets_count' => $timesheetsCount,
+                    'human_resources_count' => $humanResourcesCount
+                ]
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Work Package tidak ditemukan'
+            ], 404);
+
+        } catch (Exception $e) {
+            Log::error('Error checking work package associations', [
+                'wp_id' => $wp_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memeriksa data work package'
+            ], 500);
+        }
+    }
+
+    /**
+     * Force delete the specified work package with all associated data
+     */
+    public function forceDeleteWorkPackage(Request $request, $wp_id)
     {
         try {
             DB::beginTransaction();
 
-            $volume = WorkPackageVolume::findOrFail($volume_id);
-            
-            // Count association before deletion for logging
-            $tasksCount = Task::where('volume_id', $volume_id)->count();
-            $subtasksCount = SubTask::whereHas('task', function($query) use ($volume_id) {
-                $query->where('volume_id', $volume_id);
+            $workPackage = WorkPackage::with(['wpCategory'])->findOrFail($wp_id);
+
+            Log::info('Force deleting work package with associations', [
+                'wp_id' => $wp_id,
+                'wp_number' => $workPackage->wp_number,
+                'wp_name' => $workPackage->name,
+                'force' => $request->input('force', false)
+            ]);
+
+            // Mendapatkan seluruh volume dari work package ini
+            $volumes = WorkPackageVolume::where('wp_id', $wp_id)->get();
+            $volumeIds = $volumes->pluck('volume_id');
+
+            // Hitung asosiasi sebelum melakukan penghapusan
+            $volumesCount = $volumes->count();
+            $tasksCount = Task::whereIn('volume_id', $volumeIds)->count();
+            $subtasksCount = SubTask::whereHas('task', function($query) use ($volumeIds) {
+                $query->whereIn('volume_id', $volumeIds);
             })->count();
-            $resourcesCount = Work::where('volume_id', $volume_id)->count();
-            $timesheetsCount = Timesheet::where('volume_id', $volume_id)->count();
+            $workAssignmentsCount = Work::whereIn('volume_id', $volumeIds)->count();
+            $timesheetsCount = Timesheet::whereIn('volume_id', $volumeIds)->count();
+            $humanResourcesCount = HumanResource::where('wp_id', $wp_id)->count();
 
-            // Delete all sub tasks for task in this volume
+            // Hapus semua sub tasks dari suatu task pada semua volume
             if ($subtasksCount > 0) {
-                $taskIds = Task::where('volume_id', $volume_id)->pluck('task_id');
+                $taskIds = Task::whereIn('volume_id', $volumeIds)->pluck('task_id');
                 SubTask::whereIn('task_id', $taskIds)->delete();
+
+                Log::info('Deleted sub tasks', [
+                    'wp_id' => $wp_id,
+                    'subtasks_deleted' => $subtasksCount
+                ]);
             }
 
-            // Delete all tasks in this volume
+            // Hapus semua task pada semua volume
             if ($tasksCount > 0) {
-                Task::where('volume_id', $volume_id)->delete();
+                Task::whereIn('volume_id', $volumeIds)->delete();
+
+                Log::info('Deleted tasks', [
+                    'wp_id' => $wp_id,
+                    'tasks_deleted' => $tasksCount
+                ]);
             }
 
-            // Delete all timesheets for this volume
+            // Hapus semua timesheet pada semua volume
             if ($timesheetsCount > 0) {
-                Timesheet::where('volume_id', $volume_id)->delete();
+                Timesheet::whereIn('volume_id', $volumeIds)->delete();
+
+                Log::info('Deleted timesheets', [
+                    'wp_id' => $wp_id,
+                    'timesheets_deleted' => $timesheetsCount
+                ]);
             }
 
-            // Delete all work assignment (resources) for this volume
-            if ($resourcesCount > 0) {
-                Work::where('volume_id', $volume_id)->delete();
+            // Hapus semua work assignment (resources) pada semua volume
+            if ($workAssignmentsCount > 0) {
+                Work::whereIn('volume_id', $volumeIds)->delete();
+
+                Log::info('Deleted work assignments', [
+                    'wp_id' => $wp_id,
+                    'work_assignments_deleted' => $workAssignmentsCount
+                ]);
             }
 
-            // Delete the volume
-            $volumeData = [
-                'volume_id' => $volume->volume_id,
-                'volume_number' => $volume->volume_number,
-                'wp_id' => $volume->wp_id,
-                'start_date' => $volume->start_date,
-                'end_date' => $volume->end_date,
-                'execution_year' => $volume->execution_year
+            // Hapus semua human resources untuk work package ini
+            if ($humanResourcesCount > 0) {
+                HumanResource::where('wp_id', $wp_id)->delete();
+
+                Log::info('Deleted human resources', [
+                    'wp_id' => $wp_id,
+                    'human_resources_deleted' => $humanResourcesCount
+                ]);
+            }
+
+            // Hapus semua volume untuk work package ini
+            if ($volumesCount > 0) {
+                WorkPackageVolume::where('wp_id', $wp_id)->delete();
+
+                Log::info('Deleted volumes', [
+                    'wp_id' => $wp_id,
+                    'volumes_deleted' => $volumesCount
+                ]);
+            }
+
+            // Hapus work package itu sendiri
+            $workPackageData = [
+                'wp_id' => $workPackage->wp_id,
+                'wp_number' => $workPackage->wp_number,
+                'name' => $workPackage->name,
+                'category_id' => $workPackage->category_id,
+                'category_name' => $workPackage->wpCategory->name ?? 'Unknown',
+                'duration' => $workPackage->duration,
+                'volume_qty' => $workPackage->volume_qty,
+                'actual_scope_contract' => $workPackage->actual_scope_contract,
+                'deliverable' => $workPackage->deliverable
             ];
 
-            $volume->delete();
+            $workPackage->delete();
 
             DB::commit();
 
-            Log::info('Volume force deleted successfully', [
-                'deleted_volume' => $volumeData,
+            Log::info('Work Package force deleted successfully', [
+                'deleted_work_package' => $workPackageData,
                 'associated_data_deleted' => [
+                    'volumes' => $volumesCount,
                     'tasks' => $tasksCount,
                     'subtasks' => $subtasksCount,
-                    'work_assignments' => $resourcesCount,
-                    'timesheets' => $timesheetsCount
+                    'work_assignments' => $workAssignmentsCount,
+                    'timesheets' => $timesheetsCount,
+                    'human_resources' => $humanResourcesCount
                 ],
                 'deleted_by' => auth()->id() ?? 'system',
                 'deleted_at' => now()->format('Y-m-d H:i:s')
@@ -1163,49 +1652,43 @@ class WorkPackageManagementController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Volume dan semua data terkait berhasil dihapus',
+                'message' => 'Work Package dan semua data terkait berhasil dihapus',
                 'deleted_data' => [
-                    'volume' => $volumeData,
+                    'work_package' => $workPackageData,
+                    'volumes_deleted' => $volumesCount,
                     'tasks_deleted' => $tasksCount,
                     'subtasks_deleted' => $subtasksCount,
-                    'resources_deleted' => $resourcesCount,
+                    'work_assignments_deleted' => $workAssignmentsCount,
                     'timesheets_deleted' => $timesheetsCount,
+                    'human_resources_deleted' => $humanResourcesCount
                 ]
             ]);
 
         } catch (ModelNotFoundException $e) {
             DB::rollback();
 
-            Log::warning('Volume not found for force deletion', [
-                'volume_id' => $volume_id
+            Log::warning('Work Package not found for deletion', [
+                'wp_id' => $wp_id
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Volume tidak ditemukan',
+                'message' => 'Work Package tidak ditemukan'
             ], 404);
 
         } catch (Exception $e) {
             DB::rollback();
 
-            Log::error('Error force deleting volume', [
-                'volume_id' => $volume_id,
+            Log::error('Error force deleting work package', [
+                'wp_id' => $wp_id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus volume: ' . $e->getMessage()
+                'message' => 'Gagal menghapus Work Package: ' . $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

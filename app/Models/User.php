@@ -21,10 +21,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'role_id',
+        // 'role_id',
         'name',
         'email',
         'password',
+        'desc',
     ];
 
     /**
@@ -63,4 +64,31 @@ class User extends Authenticatable
     // protected $casts = [
     //     'email_verified_at' => 'datetime',
     // ];
+
+    /**
+     * Helper method untuk mendapatkan role utama
+     */
+    public function getPrimaryRoleAttribute()
+    {
+        $roles = $this->getRoleNames();
+
+        if ($roles->contains('admin')) {
+            return 'admin';
+        }
+
+        $primaryRole = $roles->filter(function ($roleName) {
+            return !in_array($roleName, ['karyawan', 'admin']);
+        })->first();
+
+        return $primaryRole ?? 'karyawan';
+    }
+
+    /**
+     * Helper method untuk mendapatkan role Id
+     */
+    public function getPrimaryRoleIdAttribute()
+    {
+        $primaryRoleName = $this->primary_role;
+        return $this->roles()->where('name', $primaryRoleName)->first()?->id;
+    }
 }

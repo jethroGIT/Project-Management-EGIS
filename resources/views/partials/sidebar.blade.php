@@ -37,6 +37,7 @@
                     </div>
                 </div>
                 <div class="menu-item">
+                    @if(auth()->user() && auth()->user()->hasRole('admin'))
                     <a
                         class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                         href="{{ route('dashboard') }}"
@@ -92,273 +93,202 @@
                         </span>
                         <span class="menu-title">Dashboard</span>
                     </a>
-                </div>
-                
-                <div class="menu-item">
-                    <div class="menu-content pt-8 pb-2">
-                        <span
-                            class="menu-section text-muted text-uppercase fs-8 ls-1"
-                            >Layanan Kelola</span
-                        >
-                    </div>
-                </div>
-                <div class="menu-item">
+                    @else
                     <a
-                        class="menu-link {{ request()->routeIs('task') ? 'active' : '' }}"
-                        href="{{ route('task') }}"
+                        class="menu-link {{ request()->routeIs('dashboard-karyawan', ['user_id' => Auth::user()->user_id]) ? 'active' : '' }}"
+                        href="{{ route('dashboard-karyawan', ['user_id' => Auth::user()->user_id]) }}"
                     >
                         <span class="menu-icon">
+                            <!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
                             <span class="svg-icon svg-icon-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path opacity="0.3" fill-rule="evenodd" clip-rule="evenodd" d="M2 4.63158C2 3.1782 3.1782 2 4.63158 2H13.47C14.0155 2 14.278 2.66919 13.8778 3.04006L12.4556 4.35821C11.9009 4.87228 11.1726 5.15789 10.4163 5.15789H7.1579C6.05333 5.15789 5.15789 6.05333 5.15789 7.1579V16.8421C5.15789 17.9467 6.05333 18.8421 7.1579 18.8421H16.8421C17.9467 18.8421 18.8421 17.9467 18.8421 16.8421V13.7518C18.8421 12.927 19.1817 12.1387 19.7809 11.572L20.9878 10.4308C21.3703 10.0691 22 10.3403 22 10.8668V19.3684C22 20.8218 20.8218 22 19.3684 22H4.63158C3.1782 22 2 20.8218 2 19.3684V4.63158Z" fill="black"/>
-                                    <path d="M10.9256 11.1882C10.5351 10.7977 10.5351 10.1645 10.9256 9.77397L18.0669 2.6327C18.8479 1.85165 20.1143 1.85165 20.8953 2.6327L21.3665 3.10391C22.1476 3.88496 22.1476 5.15129 21.3665 5.93234L14.2252 13.0736C13.8347 13.4641 13.2016 13.4641 12.811 13.0736L10.9256 11.1882Z" fill="black"/>
-                                    <path d="M8.82343 12.0064L8.08852 14.3348C7.8655 15.0414 8.46151 15.7366 9.19388 15.6242L11.8974 15.2092C12.4642 15.1222 12.6916 14.4278 12.2861 14.0223L9.98595 11.7221C9.61452 11.3507 8.98154 11.5055 8.82343 12.0064Z" fill="black"/>
+                                <svg
+                                    fill="none"
+                                    height="24"
+                                    viewbox="0 0 24 24"
+                                    width="24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        rx="2"
+                                        width="9"
+                                        x="2"
+                                        y="2"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="13"
+                                        y="2"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="13"
+                                        y="13"
+                                    ></rect>
+                                    <rect
+                                        fill="black"
+                                        height="9"
+                                        opacity="0.3"
+                                        rx="2"
+                                        width="9"
+                                        x="2"
+                                        y="13"
+                                    ></rect>
                                 </svg>
                             </span>
+                            <!--end::Svg Icon-->
                         </span>
-                        <span class="menu-title">Task</span>
+                        <span class="menu-title">Dashboard</span>
                     </a>
+                    @endif
                 </div>
-                <!-- <div
-                    class="menu-item menu-accordion {{ request()->routeIs('perencanaan') || request()->routeIs('realisasi') ? 'show' : '' }}"
-                    data-kt-menu-trigger="click"
-                >
-                    <span class="menu-link">
-                        <span class="menu-icon">
-                            <span class="svg-icon svg-icon-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path opacity="0.3" fill-rule="evenodd" clip-rule="evenodd" d="M2 4.63158C2 3.1782 3.1782 2 4.63158 2H13.47C14.0155 2 14.278 2.66919 13.8778 3.04006L12.4556 4.35821C11.9009 4.87228 11.1726 5.15789 10.4163 5.15789H7.1579C6.05333 5.15789 5.15789 6.05333 5.15789 7.1579V16.8421C5.15789 17.9467 6.05333 18.8421 7.1579 18.8421H16.8421C17.9467 18.8421 18.8421 17.9467 18.8421 16.8421V13.7518C18.8421 12.927 19.1817 12.1387 19.7809 11.572L20.9878 10.4308C21.3703 10.0691 22 10.3403 22 10.8668V19.3684C22 20.8218 20.8218 22 19.3684 22H4.63158C3.1782 22 2 20.8218 2 19.3684V4.63158Z" fill="black"/>
-                                    <path d="M10.9256 11.1882C10.5351 10.7977 10.5351 10.1645 10.9256 9.77397L18.0669 2.6327C18.8479 1.85165 20.1143 1.85165 20.8953 2.6327L21.3665 3.10391C22.1476 3.88496 22.1476 5.15129 21.3665 5.93234L14.2252 13.0736C13.8347 13.4641 13.2016 13.4641 12.811 13.0736L10.9256 11.1882Z" fill="black"/>
-                                    <path d="M8.82343 12.0064L8.08852 14.3348C7.8655 15.0414 8.46151 15.7366 9.19388 15.6242L11.8974 15.2092C12.4642 15.1222 12.6916 14.4278 12.2861 14.0223L9.98595 11.7221C9.61452 11.3507 8.98154 11.5055 8.82343 12.0064Z" fill="black"/>
-                                </svg>
-                            </span>
-                        </span>
-                        <span class="menu-title">Task</span>
-                        <span class="menu-arrow"></span>
-                    </span>
-                    <div class="menu-sub menu-sub-accordion menu-active-bg">
-                        <div class="menu-item">
-                            <a
-                                class="menu-link {{ request()->routeIs('perencanaan') ? 'active' : '' }}"
-                                href="{{ route('perencanaan') }}"
+                
+                @if(auth()->user() && auth()->user()->hasRole('admin'))
+                    <div class="menu-item">
+                        <div class="menu-content pt-8 pb-2">
+                            <span
+                                class="menu-section text-muted text-uppercase fs-8 ls-1"
+                                >Layanan Kelola</span
                             >
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
-                                </span>
-                                <span class="menu-title">Perencanaan</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a
-                                class="menu-link {{ request()->routeIs('realisasi') ? 'active' : '' }}"
-                                href="{{ route('realisasi') }}"
-                            >
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
-                                </span>
-                                <span class="menu-title">Realisasi</span>
-                            </a>
                         </div>
                     </div>
-                </div> -->
-                <!-- <div 
-                    data-kt-menu-trigger="click" 
-                    class="menu-item menu-accordion {{ request()->routeIs('work-package') ? 'show' : '' }}"
-                >
-                    <span class="menu-link">
-                        <span class="menu-icon">
-                            <span class="svg-icon svg-icon-muted svg-icon-2">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M11.2929 2.70711C11.6834 2.31658 12.3166 2.31658 12.7071 2.70711L15.2929 5.29289C15.6834 5.68342 15.6834 6.31658 15.2929 6.70711L12.7071 9.29289C12.3166 9.68342 11.6834 9.68342 11.2929 9.29289L8.70711 6.70711C8.31658 6.31658 8.31658 5.68342 8.70711 5.29289L11.2929 2.70711Z" fill="currentColor"/>
-                                    <path d="M11.2929 14.7071C11.6834 14.3166 12.3166 14.3166 12.7071 14.7071L15.2929 17.2929C15.6834 17.6834 15.6834 18.3166 15.2929 18.7071L12.7071 21.2929C12.3166 21.6834 11.6834 21.6834 11.2929 21.2929L8.70711 18.7071C8.31658 18.3166 8.31658 17.6834 8.70711 17.2929L11.2929 14.7071Z" fill="currentColor"/>
-                                    <path opacity="0.3" d="M5.29289 8.70711C5.68342 8.31658 6.31658 8.31658 6.70711 8.70711L9.29289 11.2929C9.68342 11.6834 9.68342 12.3166 9.29289 12.7071L6.70711 15.2929C6.31658 15.6834 5.68342 15.6834 5.29289 15.2929L2.70711 12.7071C2.31658 12.3166 2.31658 11.6834 2.70711 11.2929L5.29289 8.70711Z" fill="currentColor"/>
-                                    <path opacity="0.3" d="M17.2929 8.70711C17.6834 8.31658 18.3166 8.31658 18.7071 8.70711L21.2929 11.2929C21.6834 11.6834 21.6834 12.3166 21.2929 12.7071L18.7071 15.2929C18.3166 15.6834 17.6834 15.6834 17.2929 15.2929L14.7071 12.7071C14.3166 12.3166 14.3166 11.6834 14.7071 11.2929L17.2929 8.70711Z" fill="currentColor"/>
-                                </svg>
-                            </span>
-                        </span>
-                        <span class="menu-title">Work Package</span>
-                        <span class="menu-arrow"></span>
-                    </span>
-                    <div class="menu-sub menu-sub-accordion menu-active-bg">
-                        <div 
-                            data-kt-menu-trigger="click" 
-                            class="menu-item menu-accordion {{ request()->routeIs('work-package') ? 'show' : '' }}"
+                    <div class="menu-item">
+                        <a
+                            class="menu-link {{ request()->routeIs('workpackages-list') ? 'active' : '' }}"
+                            href="{{ route('workpackages-list') }}"
                         >
-                            <span class="menu-link">
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
+                            <span class="menu-icon">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-journal-bookmark-fill" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M6 1h6v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8z"/>
+                                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+                                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                                    </svg>
                                 </span>
-                                <span class="menu-title">2024</span>
-                                <span class="menu-arrow"></span>
                             </span>
-                            <div class="menu-sub menu-sub-accordion menu-active-bg">
-                                <div class="menu-item">
-                                    <a 
-                                        class="menu-link {{ request()->routeIs('work-package') ? 'active' : '' }}" 
-                                        href="{{ route('work-package') }}"
+                            <span class="menu-title">Work Packages</span>
+                        </a>
+                    </div>
+                    <div
+                        data-kt-menu-trigger="click" 
+                        class="menu-item menu-accordion {{ request()->routeIs('wo.content-list*') ? 'show' : '' }}"
+                    >
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 16 16">
+                                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0L6 9.707a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                        <path d="M8 1.5a1.5 1.5 0 0 1 1.415 1H12a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1h2.585A1.5 1.5 0 0 1 8 1.5m0-1A2.5 2.5 0 0 0 5.5 3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1.5A2.5 2.5 0 0 0 8 .5"/>
+                                    </svg>
+                                </span>
+                            </span>
+                            <span class="menu-title">Work Orders</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <div class="menu-sub menu-sub-accordion menu-active-bg">
+                            @if(isset($workOrdersByYear))
+                                @foreach($workOrdersByYear as $year => $workOrders)
+                                    @php
+                                        // Urutkan work orders berdasarkan nomor WO
+                                        $sortedWorkOrders = $workOrders->sortBy('wo_number');
+
+                                        // Cek jika tahun tersebut memiliki volume yang aktif
+                                        $isYearActive = false;
+                                        $hasActiveWo = false;
+                                        if (isset($currentWoId)) {
+                                            foreach ($sortedWorkOrders as $workOrder) {
+                                                if ($workOrder->wo_id == $currentWoId) {
+                                                    $isYearActive = true;
+                                                    $hasActiveWo = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    @endphp
+
+                                    <div 
+                                        data-kt-menu-trigger="click" 
+                                        class="menu-item menu-accordion {{ $hasActiveWo ? 'show' : '' }}"
                                     >
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
+                                        <span class="menu-link">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot"></span>
+                                            </span>
+                                            <span class="menu-title">{{ $year }}</span>
+                                            <span class="menu-arrow"></span>
                                         </span>
-                                        <span class="menu-title">3.1 Human Security Risk Awareness Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">3.2 Human Security Capabilities Development Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">6.2 Revisit Advisory & Consultancy - Information Security Management System (ISMS)</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-                            <span class="menu-link">
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
-                                </span>
-                                <span class="menu-title">2025</span>
-                                <span class="menu-arrow"></span>
-                            </span>
-                            <div class="menu-sub menu-sub-accordion menu-active-bg">
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">3.1 Human Security Risk Awareness Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">3.2 Human Security Capabilities Development Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">6.2 Revisit Advisory & Consultancy - Information Security Management System (ISMS)</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-                            <span class="menu-link">
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
-                                </span>
-                                <span class="menu-title">2026</span>
-                                <span class="menu-arrow"></span>
-                            </span>
-                            <div class="menu-sub menu-sub-accordion menu-active-bg">
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">3.1 Human Security Risk Awareness Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">3.2 Human Security Capabilities Development Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">6.2 Revisit Advisory & Consultancy - Information Security Management System (ISMS)</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-                            <span class="menu-link">
-                                <span class="menu-bullet">
-                                    <span class="bullet bullet-dot"></span>
-                                </span>
-                                <span class="menu-title">2027</span>
-                                <span class="menu-arrow"></span>
-                            </span>
-                            <div class="menu-sub menu-sub-accordion menu-active-bg">
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">3.1 Human Security Risk Awareness Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">3.2 Human Security Capabilities Development Program Planning</span>
-                                    </a>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link" href="#">
-                                        <span class="menu-bullet">
-                                            <span class="bullet bullet-dot"></span>
-                                        </span>
-                                        <span class="menu-title">6.2 Revisit Advisory & Consultancy - Information Security Management System (ISMS)</span>
-                                    </a>
-                                </div>
-                            </div>
+                                        <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveWo ? 'show' : '' }}">
+                                            @foreach($sortedWorkOrders as $workOrder)
+                                                @php
+                                                    $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->wo_id;
+
+                                                    // Hitung jumlah volume dan WP
+                                                    $volumeCount = $workOrder->workPackageVolumes->count();
+                                                    $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.wp_number')->unique()->count();
+
+                                                    $fullTitle = "WO {$workOrder->wo_number} ({$volumeCount} Volume, {$wpCount} WP)";
+                                                    $maxLength = 35;
+                                                    $truncatedTitle = strlen($fullTitle) > $maxLength ?
+                                                        substr($fullTitle, 0, $maxLength) . "..." :
+                                                        $fullTitle;
+                                                @endphp
+                                                <div class="menu-item">
+                                                    <a 
+                                                        class="menu-link {{ $isWoActive ? 'active' : '' }}" 
+                                                        href="{{ route('wo.content-list', ['wo_id' => $workOrder->wo_id]) }}"
+                                                        data-bs-toggle="tooltip" 
+                                                        data-bs-placement="right" 
+                                                        data-bs-custom-class="sidebar-tooltip" 
+                                                        title="{{ $fullTitle }}"
+                                                    >
+                                                        <span class="menu-bullet">
+                                                            <span class="bullet bullet-dot"></span>
+                                                        </span>
+                                                        <span class="menu-title">
+                                                            {{ $truncatedTitle }}
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
                         </div>
                     </div>
-                </div> -->
-
-                <div
-                    data-kt-menu-trigger="click" 
-                    class="menu-item menu-accordion {{ request()->routeIs('work-package*') ? 'show' : '' }}"
-                >
-                    <span class="menu-link">
-                        <span class="menu-icon">
-                            <span class="svg-icon svg-icon-muted svg-icon-2">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M11.2929 2.70711C11.6834 2.31658 12.3166 2.31658 12.7071 2.70711L15.2929 5.29289C15.6834 5.68342 15.6834 6.31658 15.2929 6.70711L12.7071 9.29289C12.3166 9.68342 11.6834 9.68342 11.2929 9.29289L8.70711 6.70711C8.31658 6.31658 8.31658 5.68342 8.70711 5.29289L11.2929 2.70711Z" fill="currentColor"/>
-                                    <path d="M11.2929 14.7071C11.6834 14.3166 12.3166 14.3166 12.7071 14.7071L15.2929 17.2929C15.6834 17.6834 15.6834 18.3166 15.2929 18.7071L12.7071 21.2929C12.3166 21.6834 11.6834 21.6834 11.2929 21.2929L8.70711 18.7071C8.31658 18.3166 8.31658 17.6834 8.70711 17.2929L11.2929 14.7071Z" fill="currentColor"/>
-                                    <path opacity="0.3" d="M5.29289 8.70711C5.68342 8.31658 6.31658 8.31658 6.70711 8.70711L9.29289 11.2929C9.68342 11.6834 9.68342 12.3166 9.29289 12.7071L6.70711 15.2929C6.31658 15.6834 5.68342 15.6834 5.29289 15.2929L2.70711 12.7071C2.31658 12.3166 2.31658 11.6834 2.70711 11.2929L5.29289 8.70711Z" fill="currentColor"/>
-                                    <path opacity="0.3" d="M17.2929 8.70711C17.6834 8.31658 18.3166 8.31658 18.7071 8.70711L21.2929 11.2929C21.6834 11.6834 21.6834 12.3166 21.2929 12.7071L18.7071 15.2929C18.3166 15.6834 17.6834 15.6834 17.2929 15.2929L14.7071 12.7071C14.3166 12.3166 14.3166 11.6834 14.7071 11.2929L17.2929 8.70711Z" fill="currentColor"/>
-                                </svg>
-                            </span>
-                        </span>
-                        <span class="menu-title">Work Package</span>
-                        <span class="menu-arrow"></span>
-                    </span>
-                    <div class="menu-sub menu-sub-accordion menu-active-bg">
-                        @if(isset($workPackagesByYear))
-                            @foreach($workPackagesByYear as $year => $volumes)
+                @else
+                    <div class="menu-item">
+                        <div class="menu-content pt-8 pb-2">
+                            <span
+                                class="menu-section text-muted text-uppercase fs-8 ls-1"
+                                >Work Orders</span
+                            >
+                        </div>
+                    </div>
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion menu-active-bg">
+                        @if(isset($workOrdersByYear))
+                            @foreach($workOrdersByYear as $year => $workOrders)
                                 @php
+                                    // Urutkan work orders berdasarkan nomor WO
+                                    $sortedWorkOrders = $workOrders->sortBy('wo_number');
+
                                     // Cek jika tahun tersebut memiliki volume yang aktif
                                     $isYearActive = false;
-                                    $hasActiveVolume = false;
-                                    if (isset($currentVolumeId)) {
-                                        foreach ($volumes as $volume) {
-                                            if ($volume->volume_id == $currentVolumeId) {
+                                    $hasActiveWo = false;
+                                    if (isset($currentWoId)) {
+                                        foreach ($sortedWorkOrders as $workOrder) {
+                                            if ($workOrder->wo_id == $currentWoId) {
                                                 $isYearActive = true;
-                                                $hasActiveVolume = true;
+                                                $hasActiveWo = true;
                                                 break;
                                             }
                                         }
@@ -367,7 +297,7 @@
 
                                 <div 
                                     data-kt-menu-trigger="click" 
-                                    class="menu-item menu-accordion {{ $hasActiveVolume ? 'show' : '' }}"
+                                    class="menu-item menu-accordion {{ $hasActiveWo ? 'show' : '' }}"
                                 >
                                     <span class="menu-link">
                                         <span class="menu-bullet">
@@ -376,24 +306,35 @@
                                         <span class="menu-title">{{ $year }}</span>
                                         <span class="menu-arrow"></span>
                                     </span>
-                                    <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveVolume ? 'show' : '' }}">
-                                        @foreach($volumes as $volume)
+                                    <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveWo ? 'show' : '' }}">
+                                        @foreach($sortedWorkOrders as $workOrder)
                                             @php
-                                                $isVolumeActive = isset($currentVolumeId) && $currentVolumeId == $volume->volume_id;
+                                                $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->wo_id;
+
+                                                // Hitung jumlah volume dan WP
+                                                $volumeCount = $workOrder->workPackageVolumes->count();
+                                                $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.wp_number')->unique()->count();
+
+                                                $fullTitle = "WO {$workOrder->wo_number} ({$volumeCount} Volume, {$wpCount} WP)";
+                                                $maxLength = 35;
+                                                $truncatedTitle = strlen($fullTitle) > $maxLength ?
+                                                    substr($fullTitle, 0, $maxLength) . "..." :
+                                                    $fullTitle;
                                             @endphp
                                             <div class="menu-item">
                                                 <a 
-                                                    class="menu-link {{ $isVolumeActive ? 'active' : '' }}" 
-                                                    href="{{ route('work-package.detail', ['volume_id' => $volume->volume_id]) }}"
+                                                    class="menu-link {{ $isWoActive ? 'active' : '' }}" 
+                                                    href="{{ route('wo.content-list', ['wo_id' => $workOrder->wo_id]) }}"
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="right" 
+                                                    data-bs-custom-class="sidebar-tooltip" 
+                                                    title="{{ $fullTitle }}"
                                                 >
                                                     <span class="menu-bullet">
                                                         <span class="bullet bullet-dot"></span>
                                                     </span>
                                                     <span class="menu-title">
-                                                        {{ $volume->workPackage->wp_number }} {{ $volume->workPackage->name }}
-                                                        @if($volume->volume_number > 1)
-                                                            (Vol. {{ $volume->volume_number }})
-                                                        @endif
+                                                        {{ $truncatedTitle }}
                                                     </span>
                                                 </a>
                                             </div>
@@ -403,92 +344,110 @@
                             @endforeach
                         @endif
                     </div>
-                </div>
+                @endif
 
                 <!-- Section CMS -->
-                <div class="menu-item">
-                    <div class="menu-content pt-8 pb-2">
-                        <span
-                            class="menu-section text-muted text-uppercase fs-8 ls-1"
-                            >Manajemen Kelola</span
-                        >
+                @if(auth()->user() && auth()->user()->hasRole('admin'))
+                    <div class="menu-item">
+                        <div class="menu-content pt-8 pb-2">
+                            <span
+                                class="menu-section text-muted text-uppercase fs-8 ls-1"
+                                >Manajemen Kelola</span
+                            >
+                        </div>
                     </div>
-                </div>
-                <div class="menu-item">
-                    <a
-                        class="menu-link {{ request()->routeIs('wp-management') ? 'active' : '' }}"
-                        href="{{ route('wp-management') }}"
-                    >
-                        <span class="menu-icon">
-                            <span class="svg-icon svg-icon-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-journal-bookmark-fill" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M6 1h6v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8z"/>
-                                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
-                                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                    <div class="menu-item">
+                        <a
+                            class="menu-link {{ request()->routeIs('work-order') ? 'active' : '' }}"
+                            href="{{ route('work-order') }}"
+                        >
+                            <span class="menu-icon">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 16 16">
+                                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0L6 9.707a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                        <path d="M8 1.5a1.5 1.5 0 0 1 1.415 1H12a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1h2.585A1.5 1.5 0 0 1 8 1.5m0-1A2.5 2.5 0 0 0 5.5 3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1.5A2.5 2.5 0 0 0 8 .5"/>
+                                    </svg>
+                                </span>
+                            </span>
+                            <span class="menu-title">Manajemen Work Order</span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a
+                            class="menu-link {{ request()->routeIs('wp-management') ? 'active' : '' }}"
+                            href="{{ route('wp-management') }}"
+                        >
+                            <span class="menu-icon">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-journal-bookmark-fill" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M6 1h6v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8z"/>
+                                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+                                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                                    </svg>
+                                </span>
+                            </span>
+                            <span class="menu-title">Manajemen Kategori Work Package</span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a
+                            class="menu-link {{ request()->routeIs('wpcategory.management') ? 'active' : '' }}"
+                            href="{{ route('wpcategory.management') }}"
+                        >
+                            <span class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tag-fill" viewBox="0 0 16 16">
+                                    <path d="M2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l6.414 6.414a1 1 0 0 1 0 1.414l-5.586 5.586a1 1 0 0 1-1.414 0L2.293 9.707A1 1 0 0 1 2 9V3a1 1 0 0 1 1-1z"/>
                                 </svg>
                             </span>
-                        </span>
-                        <span class="menu-title">Manajemen Work Package</span>
-                    </a>
-                </div>
-                <div class="menu-item">
-                    <a
-                        class="menu-link {{ request()->routeIs('wpcategory.management') ? 'active' : '' }}"
-                        href="{{ route('wpcategory.management') }}"
-                    >
-                        <span class="menu-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tag-fill" viewBox="0 0 16 16">
-                                <path d="M2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l6.414 6.414a1 1 0 0 1 0 1.414l-5.586 5.586a1 1 0 0 1-1.414 0L2.293 9.707A1 1 0 0 1 2 9V3a1 1 0 0 1 1-1z"/>
-                            </svg>
-                        </span>
-                        <span class="menu-title">Manajemen Kategori WP</span>
-                    </a>
-                </div>
-                <div class="menu-item">
-                    <a
-                        class="menu-link {{ request()->routeIs('resource.management') ? 'active' : '' }}"
-                        href="{{ route('resource.management') }}"
-                    >
-                        <span class="menu-icon">
-                            <span class="svg-icon svg-icon-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                            <span class="menu-title">Manajemen Work Package</span>
+                        </a>
+                    </div>
+                    <div class="menu-item">
+                        <a
+                            class="menu-link {{ request()->routeIs('resource.management') ? 'active' : '' }}"
+                            href="{{ route('resource.management') }}"
+                        >
+                            <span class="menu-icon">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                                    </svg>
+                                </span>
+                            </span>
+                            <span class="menu-title">Manajemen SDM</span>
+                        </a>
+                    </div>
+                    <!-- <div class="menu-item">
+                        <a
+                            class="menu-link {{ request()->routeIs('roles.management') ? 'active' : '' }}"
+                            href="{{ route('roles.management') }}"
+                        >
+                            <span class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill-check" viewBox="0 0 16 16">
+                                    <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
                                 </svg>
                             </span>
-                        </span>
-                        <span class="menu-title">Manajemen SDM</span>
-                    </a>
-                </div>
-                <div class="menu-item">
-                    <a
-                        class="menu-link {{ request()->routeIs('roles.management') ? 'active' : '' }}"
-                        href="{{ route('roles.management') }}"
-                    >
-                        <span class="menu-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill-check" viewBox="0 0 16 16">
-                                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                                <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
-                            </svg>
-                        </span>
-                        <span class="menu-title">Manajemen Peran</span>
-                    </a>
-                </div>
-                 <div class="menu-item">
-                    <a
-                        class="menu-link {{ request()->routeIs('timesheet.management') ? 'active' : '' }}"
-                        href="{{ route('timesheet.management') }}"
-                    >
-                        <span class="menu-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-week" viewBox="0 0 16 16">
-                                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v1H0V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM16 14V5H0v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zM4.5 7.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"/>
-                            </svg>
-                        </span>
-                        <span class="menu-title">Manajemen Timesheet</span>
-                    </a>
-                </div>
+                            <span class="menu-title">Manajemen Peran</span>
+                        </a>
+                    </div> -->
+                    <div class="menu-item">
+                        <a
+                            class="menu-link {{ request()->routeIs('timesheet.management') ? 'active' : '' }}"
+                            href="{{ route('timesheet.management') }}"
+                        >
+                            <span class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-week" viewBox="0 0 16 16">
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v1H0V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM16 14V5H0v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zM4.5 7.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"/>
+                                </svg>
+                            </span>
+                            <span class="menu-title">Manajemen Timesheet</span>
+                        </a>
+                    </div>
+                @endif
             
                 <!-- Section Board -->
-                <div class="menu-item">
+                {{-- <div class="menu-item">
                     <div class="menu-content pt-8 pb-2">
                         <span
                             class="menu-section text-muted text-uppercase fs-8 ls-1"
@@ -514,7 +473,7 @@
                         </span>
                         <span class="menu-title">Kanban</span>
                     </a>
-                </div>
+                </div> --}}
             </div>
             <!--end::Menu-->
 

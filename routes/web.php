@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardKaryawanController;
 use App\Http\Controllers\PerencanaanController;
 use App\Http\Controllers\RealisasiController;
 use App\Http\Controllers\KanbanController;
@@ -15,18 +17,28 @@ use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\RolesManagementController;
 use App\Http\Controllers\SignInController;
 use App\Http\Controllers\TimesheetManagementController;
+use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WPCategoryManagementController;
 use App\Http\Controllers\WorkPackageManagementController;
+use App\Http\Controllers\WOContentListController;
+use App\Http\Controllers\WorkOrderManagementController;
+use App\Http\Controllers\WorkPackagesListController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('login');
 });
 
 // Route::get('/test', function () {
 //     return view('test');
 // });
 
-// Route::middleware(['role:admin'])->group(function(){
+Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin'])->group(function(){
+    // dashboard admin
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/wp-progress-data', [DashboardController::class, 'getWpProgressDataByYear'])->name('dashboard.wp-progress-data');
+    Route::get('/dashboard-data', [DashboardController::class, 'getPeriodAllWPByYear'])->name('dashboard.period-data');
+    Route::get('/dashboard/user-wp-details', [DashboardController::class, 'getUserWorkPackageDetails'])->name('dashboard.user-wp-details');
+
     // Manajemen Work Package
     Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
     Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
@@ -36,14 +48,17 @@ Route::get('/', function () {
     Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
     Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
     Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
-    Route::get('/wp-management/volume/{volume_id}/check-associations', [WorkPackageManagementController::class, 'checkVolumeAssociations'])->name('wp-management.check-volume-associations');
-    Route::delete('/wp-management/volume/{volume_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteVolume'])->name('wp-management.force-delete-volume');
+    Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
+    Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
+    Route::get('/wp-management/check-role-assignments', [WorkPackageManagementController::class, 'checkRoleAssignments'])->name('wp-management.check-role-assignments');
+    Route::get('/wp-management/check-wp-name', [WorkPackageManagementController::class, 'checkWorkPackageName'])->name('wp-management.check-wp-name');
 
     // manajemen kategori work package
     Route::get('/wpcategory-management', [WPCategoryManagementController::class, 'index'])->name('wpcategory.management');
     Route::post('/wpcategory-management/add', [WPCategoryManagementController::class, 'add'])->name('wpcategory.add');
     Route::put('/wpcategory-management/edit', [WPCategoryManagementController::class, 'edit'])->name('wpcategory.edit');
     Route::delete('/wpcategory-management/{id}/delete', [WPCategoryManagementController::class, 'delete'])->name('wpcategory.delete');
+    Route::get('/wpcategory-management/{id}/related-data', [WPCategoryManagementController::class, 'getRelatedData']);
 
     // Manajemen Resource
     Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('resource.management');
@@ -61,9 +76,14 @@ Route::get('/', function () {
     // Manajemen Timesheet
     Route::get('/timesheet-management', [TimesheetManagementController::class, 'index'])->name('timesheet.management');
     Route::post('/timesheet-management/add', [TimesheetManagementController::class, 'add'])->name('timesheet.add');
-    Route::get('/timesheet-management/{volume_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
+    // Route::get('/timesheet-management/{timesheet_id}/{execution_date}/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
+    Route::get('/timesheet-management/edit-data', [TimesheetManagementController::class, 'editData'])->name('timesheet.edit.data');
     Route::post('/timesheet-management/edit', [TimesheetManagementController::class, 'edit'])->name('timesheet.edit');
-    Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
+    Route::delete('/timesheet-management/{ids}/delete-all', [TimesheetManagementController::class, 'deleteAll'])->name('timesheet.delete.all');
+    Route::get('/timesheet-management/personel-mandays/{personelId}/{volumeId}', [TimesheetManagementController::class, 'getPersonelMandays']);
+    Route::get('/timesheet-management/personel', [TimesheetManagementController::class, 'getPersonelByWO'])->name('timesheet.personnel');
+    Route::get('/timesheet-management/{woId}/work-packages', [TimesheetManagementController::class, 'getWorkPackagesByWO']);
+    // Route::delete('/timesheet-management/{id}/delete', [TimesheetManagementController::class, 'delete'])->name('timesheet.delete');
 
     // performance task
     Route::post('/performance-task/sub-task', [PerformanceTaskController::class, 'storeSubTask'])->name('performance-task.sub-task.store');
@@ -73,7 +93,7 @@ Route::get('/', function () {
     Route::delete('/performance-task/sub-task/{id}', [PerformanceTaskController::class, 'destroySubTask'])->name('performance-task.sub-task.destroy');
 
     // performance finance
-    Route::put('/performance-finance/{volume_id}', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
+    Route::put('/performance-finance', [PerformanceFinanceController::class, 'edit'])->name('performance-finance.edit');
 
     // work package volume page
     Route::put('/work-package/volume/{volume_id}/data', [WorkPackageController::class, 'updateVolumeData'])->name('work-package.volume.update-data');
@@ -89,12 +109,22 @@ Route::get('/', function () {
     Route::delete('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'deleteSubTask'])->name('work-package.subtask.delete');
     Route::put('/work-package/subtask/{subTaskId}', [WorkPackageController::class, 'updateSubTask'])->name('work-package.subtask.update');
 
-// });
+    // work order
+    Route::get('/work-order', [WorkOrderManagementController::class, 'index'])->name('work-order');
+    Route::post('/work-order/add', [WorkOrderManagementController::class, 'add'])->name('work-order.add');
+    Route::put('/work-order/assign', [WorkOrderManagementController::class, 'assign'])->name('work-order.assign');
+    Route::put('/work-order/update', [WorkOrderManagementController::class, 'updateWO'])->name('work-order.update');
+});
 
-// Route::middleware(['role:admin|karyawan'])->group(function(){
+Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin|karyawan'])->group(function(){
     // general
-    Route::get('/login', [SignInController::class, 'index'])->name('login');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/logout', function () {
+        // Redirect ke halaman sebelumnya jika akses via GET
+        return redirect()->back();
+    });
     Route::get('/profile', [ProfileUserController::class, 'index'])->name('profile');
+    Route::put('/profile/{userId}', [ProfileUserController::class, 'edit'])->name('profile.edit');
 
     // performance task
     Route::get('/performance-task', [PerformanceTaskController::class, 'index'])->name('performance-task');
@@ -111,18 +141,32 @@ Route::get('/', function () {
     // work package volume page
     Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
     Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
-// });
 
-// Route::middleware(['role:karyawan'])->group(function(){
+    Route::get('/work-order/{wo_id}/content', [WOContentListController::class, 'index'])->name('wo.content-list');
+
+    // work packages list
+    Route::get('/workpackages-list', [WorkPackagesListController::class, 'index'])->name('workpackages-list');
+});
+
+Route::middleware(['web', 'auth', 'prevent-back-history', 'role:karyawan'])->group(function(){
+    // dashboard karyawan
+    Route::get('/dashboard-karyawan/{user_id}', [DashboardKaryawanController::class, 'index'])->name('dashboard-karyawan');
+    Route::get('/dashboard-karyawan-data', [DashboardKaryawanController::class, 'getPeriodAllWPByYear'])->name('dashboard-karyawan.period-data');
+    Route::get('/dashboard-karyawan/user-wp-details/{user_id}', [DashboardKaryawanController::class, 'getUserWorkPackageDetails'])->name('dashboard-karyawan.user-wp-details');
     // timesheet activity per user
     Route::get('/timesheet-user/{volume_id}/{user_id}', [TimesheetController::class, 'detailperUser'])->name('timesheet.detail.user');
     Route::post('/timesheet-user/{volume_id}/{user_id}/add', [TimesheetController::class, 'addperUser'])->name('timesheet.user.add');
     Route::put('/timesheet-user/{volume_id}/{user_id}/edit', [TimesheetController::class, 'editperUser'])->name('timesheet.user.edit');
     Route::delete('/timesheet-user/{timesheet_id}/delete', [TimesheetController::class, 'deleteperUser'])->name('timesheet.user.delete');
 
-// });
+});
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// login routes
+Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.confirm');
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
 Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('perencanaan');
 Route::get('/realisasi', [RealisasiController::class, 'index'])->name('realisasi');
 Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban');

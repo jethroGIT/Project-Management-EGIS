@@ -38,13 +38,14 @@
                 <table class="table table-hover border border-gray-300 table-row-bordered table-row-gray-300 gy-4 gs-3" id="kt_datatable_example_2">
                     <thead class="border border-1 border-secondary bg-light fs-5">
                         <tr class="border-bottom border-1 border-secondary">
-                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary fw-bold py-0" style="width: 160px">Personel</th>
-                            <th scope="col" colspan="2" class="text-center align-middle border-end border-secondary fw-bold py-2">Mandays</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary fw-bold py-0" style="width: 160px">Jabatan</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle border-end border-start border-secondary fw-bold py-0">JTK</th>
+                            <th scope="col" colspan="2" class="text-center align-middle border-end border-secondary fw-bold py-2">Mandays (JHK)</th>
                             <th scope="col" colspan="4" class="text-center align-middle border-start border-secondary fw-bold py-2">Biaya</th>
                         </tr>
                         <tr>
-                            <th class="text-center fw-bold">Realisasi</th>                            
                             <th class="text-center fw-bold">Rencana</th>
+                            <th class="text-center fw-bold">Realisasi</th>                            
                             <th class="text-center fw-bold">Tenaga Kerja</th>                            
                             <th class="text-center fw-bold">By YoY
                                 <i class="bi bi-info-circle text-primary ms-2"
@@ -73,8 +74,9 @@
                         @foreach($costsPerRole as $cost)
                             <tr>
                                 <td class="text-start align-middle">{{ $cost['role_name'] }}</td>
-                                <td class="text-center align-middle">{{ $cost['timesheet_count'] }}</td>
+                                <td class="text-center align-middle">{{ $cost['jtk'] }}</td>
                                 <td class="text-center align-middle">{{ $cost['jhk'] }}</td>
+                                <td class="text-center align-middle">{{ $cost['timesheet_count'] }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['resource_cost'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['by_yoy'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['realization_cost'], 0, ',', '.') }}</td>
@@ -125,13 +127,13 @@
                 <h3 class="modal-title">Kelola Finansial</h3>
             </div>
             <div class="modal-body pb-2">
-                <form method="POST" action="{{route('performance-finance.edit', $volume_id)}}" id="editFinanceForm">
+                <form method="POST" action="{{route('performance-finance.edit')}}" id="editFinanceForm">
                     @csrf
                     @method('PUT') 
                     <input type="hidden" name="category_id" id="form_category_id">
                     <div class="row">
                         <div class="col-md-5">
-                            <label class="form-label fw-bolder">Personel</label>
+                            <label class="form-label fw-bolder">Jabatan</label>
                         </div>
                         <div class="col-md-7">
                             <label class="form-label fw-bolder">Biaya Tenaga Kerja</label>
@@ -220,36 +222,74 @@
         submitEditFinanceForm.addEventListener('click', function() {
             e.preventDefault();
 
-            const formData = new FormData(editFinanceForm);
-            const url = editFinanceForm.action;
+            // Validasi jika ada input lebih dari 15 digit
+            let isValid = true;
+            let isChanged = false;
+            $('[id^=editResCost_]').each(function() {
+                let value = $(this).val().replace(/[^\d]/g, ''); // Hapus semua kecuali angka
+                let originalValue = $(this).data('original').replace(/[^\d]/g, '');
 
-            fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                if (value.length > 13) { // 15 digit termasuk desimal
+                    isValid = false;
+                    Swal.fire({
+                        text: "Nominal biaya tenaga kerja tidak boleh lebih dari 15 digit termasuk desimal. Silakan periksa kembali.",
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "OK",
+                        customClass: { confirmButton: "btn btn-danger" }
                     });
+                    return false; // Hentikan iterasi jika ditemukan input tidak valid
                 }
-                return response.json();
-            })
-            .then(data => {
+
+                if (value !== originalValue) {
+                    isChanged = true;
+                }
+            });
+
+            if (!isValid) return;
+
+            if (!isChanged) {
                 Swal.fire({
-                    text: "Perubahan biaya tenaga kerja akan diterapkan ke semua Work Package.",
-                    icon: "warning",
+                    text: "Tidak ada perubahan pada biaya tenaga kerja.",
+                    icon: "info",
                     buttonsStyling: false,
-                    cancelButtonText: "Batal",
-                    confirmButtonText: "Lanjutkan",
-                    showCancelButton: true,
-                    customClass: { cancelButton: "btn btn-secondary", confirmButton: "btn btn-warning" }
-                }).then((result) => {
-                    if(result.isConfirmed){
+                    confirmButtonText: "Batal",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return;
+            }
+
+            Swal.fire({
+                text: "Perubahan biaya tenaga kerja akan diterapkan ke semua Work Package.",
+                icon: "warning",
+                buttonsStyling: false,
+                cancelButtonText: "Batal",
+                confirmButtonText: "Lanjutkan",
+                showCancelButton: true,
+                customClass: { cancelButton: "btn btn-secondary", confirmButton: "btn btn-warning" }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna menekan "Lanjutkan", kirim data ke server
+                    const formData = new FormData(editFinanceForm);
+                    const url = editFinanceForm.action;
+
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
                         Swal.fire({
                             text: data.message || "Data berhasil diubah!",
                             icon: "success",
@@ -260,18 +300,18 @@
                             editFinanceModal.hide();
                             location.reload();
                         });
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error adding category:', error);
-                Swal.fire({
-                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "OK",
-                    customClass: { confirmButton: "btn btn-danger" }
-                });
+                    })
+                    .catch(error => {
+                        console.error('Error adding category:', error);
+                        Swal.fire({
+                            text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                            icon: "error",
+                            buttonsStyling: false,
+                            confirmButtonText: "OK",
+                            customClass: { confirmButton: "btn btn-danger" }
+                        });
+                    });
+                }
             });
         });
     });

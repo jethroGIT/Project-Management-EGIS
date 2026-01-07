@@ -50,8 +50,10 @@
                             <th scope="col" style="width: 70px;">Status</th>
                             <th scope="col" style="width: 170px;">Task</th>
                             <th scope="col" style="width: 170px;">Sub Task</th>
-                            <th scope="col" style="width: 90px;">% Utilisasi</th>
-                            <th scope="col" style="width: 50px;">Action</th>
+                            <th scope="col" style="min-width: 50px;">% Utilisasi</th>
+                            @if(auth()->user()->hasRole('admin'))
+                                <th scope="col" style="width: 50px;">Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.92rem;">
@@ -80,21 +82,23 @@
                                     <td>{{ $task->name }}</td>
                                     <td></td>
                                     <td>{{ $task->utilization }}%</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                            </a>
-                                            <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
-                                                <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onClick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                        <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
-                                                        <span>Tambah Sub Baris</span>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
+                                    @if(auth()->user()->hasRole('admin'))
+                                        <td>
+                                            <div class="dropdown">
+                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                </a>
+                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">                                        
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="#" onClick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>
+                                                            <span>Tambah Sub Task</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    @endif
                                 </tr>
                                 
                                 <!-- Sub Tasks -->
@@ -106,23 +110,25 @@
                                             <td></td>
                                             <td>{{ $subTask->name }}</td>
                                             <td>{{ $subTask->completeness }}%</td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
-                                                            <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center text-danger" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
-                                                            <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
+                                            @if(auth()->user()->hasRole('admin'))
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
+                                                                <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                                <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            @endif
                                         </tr>                                              
                                     @endforeach
                                 @else
@@ -132,20 +138,22 @@
                                         <td></td>
                                         <td class="text-muted">Tidak ada sub task</td>
                                         <td>0%</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots fs-3 text-dark"></i>
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                                    <li>
-                                                        <a class="dropdown-item d-flex align-items-center" href="#" onclick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
-                                                            <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>Tambah Sub Task
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
+                                        @if(auth()->user()->hasRole('admin'))
+                                            <td>
+                                                <div class="dropdown">
+                                                    <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-three-dots fs-3 text-dark"></i>
+                                                    </a>
+                                                    <ul class="dropdown-menu dropdown-menu-end rounded-0">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center" href="#" onclick="addSubTask({{ $task->task_id }}, '{{ addslashes($task->name) }}')">
+                                                                <i class="bi bi-plus-square me-3 fs-2 text-dark"></i>Tambah Sub Task
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endif
                             @endforeach
@@ -172,7 +180,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Sub Task Personel</h3>
+                <h3 class="modal-title">Tambah Sub Task</h3>
 
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
@@ -738,25 +746,17 @@
 
         // Show confirmation dialog
         Swal.fire({
-            title: "Konfirmasi Hapus",
-            // html: `
-            //     <p>Apakah Anda yakin ingin menghapus sub task ini?</p>
-            //     <div class="mt-3 p-3 bg-light rounded">
-            //         <strong>Sub Task:</strong> ${subTaskName}
-            //     </div>
-            //     <div class="mt-2">
-            //         <small class="text-danger">
-            //             <i class="bi bi-exclamation-triangle me-1"></i>
-            //             Tindakan ini tidak dapat dibatalkan
-            //         </small>
-            //     </div>
-            // `,
-            text: "Apakah yakin ingin menghapus sub task ini?",
+            title: "Konfirmasi Hapus Sub Task",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus sub task:</span>
+                <p>${subTaskName}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
             icon: "warning",
             buttonsStyling: false,
             showCancelButton: true,
             cancelButtonText: 'Batal',
-            confirmButtonText: "Hapus",
+            confirmButtonText: "Ya, Hapus",
             customClass: {
                 confirmButton: "btn btn-danger",
                 cancelButton: 'btn btn-secondary'
@@ -795,14 +795,7 @@
                 if (response.success) {
                     Swal.fire({
                         title: "Berhasil Dihapus",
-                        html: `
-                            <p>${response.message}</p>
-                            <div class="mt-3 p-3 bg-light rounded">
-                                <strong>Sub Task yang Dihapus</strong><br>
-                                <strong>Nama:</strong> ${response.deleted_sub_task.name}<br>
-                                <strong>Task:</strong> ${response.deleted_sub_task.task_name}<br>
-                            </div>
-                        `,
+                        text: 'Sub task berhasil dihapus',
                         icon: "success",
                         buttonStyling: false,
                         confirmButton: "Tutup",

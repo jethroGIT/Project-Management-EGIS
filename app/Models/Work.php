@@ -14,6 +14,7 @@ class Work extends Model
         // 'mandays_realization',
         'user_id',
         'volume_id',
+        'role_id',
         // 'resource_cost',
     ];
 
@@ -25,5 +26,10 @@ class Work extends Model
     public function volume()
     {
         return $this->belongsTo(WorkPackageVolume::class, 'volume_id', 'volume_id');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 }

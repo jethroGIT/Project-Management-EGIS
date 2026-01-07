@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
+<div class="">
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         <div>
-            <h1 class="mt-0 mb-5">Detail Work Package</h1>
+            <h1 class="mt-0 mb-5">Detail Kategori Work Package</h1>
             <h4 class="">{{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
         </div>
         <div class="text-end">
@@ -22,7 +22,7 @@
         <div class="card-header py-0">
             <h3 class="card-title">
                 <i class="bi bi-info-circle text-primary me-2"></i>
-                Informasi Work Package
+                Informasi Kategori Work Package
             </h3>
         </div>
         <div class="card-body py-0">
@@ -41,7 +41,7 @@
                                 <td class="fw-bold">{{ $workPackage->name }}</td>
                             </tr> -->
                             <tr>
-                                <td class="fw-bold text-muted">Kategori</td>
+                                <td class="fw-bold text-muted">Work Package</td>
                                 <td class="fw-bold text-muted">:</td>
                                 <td>{{ $workPackage->wpCategory->name ?? 'Tidak Berkategori' }}</td>
                             </tr>
@@ -89,7 +89,7 @@
         <div class="card-header py-0">
             <h3 class="card-title">
                 <i class="bi bi-collection text-primary me-2"></i>
-                Work Package Volumes ({{ $volumesData->count() }})
+                Work Package Volumes ({{ $volumesWithWorkOrderCount }} dari {{ $totalVolumesCount }} volume)
             </h3>
         </div>
         <div class="card-body py-0">
@@ -100,7 +100,7 @@
                         <div class="volume-cards-wrapper" id="volumeCardsWrapper">
                             @foreach($volumesData as $volume)
                                 <div class="volume-card-item col-md-6 col-lg-4 mb-2">
-                                    <div class="card card-bordered h-100 shadow hover-elevate-up">
+                                    <div class="card card-bordered h-100 shadow-sm hover-elevate-up">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <h4 class="card-title mb-0">
@@ -118,6 +118,20 @@
                                                         Belum Konfigurasi
                                                     </span>
                                                 @endif
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-hash me-1"></i>
+                                                    Work Order
+                                                </div>
+                                                <div class="fs-7">
+                                                    @if ($volume['wo_number'])
+                                                        WO {{ $volume['wo_number'] }}
+                                                    @else
+                                                        <span>Belum tersedia</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                             
                                             <div class="mb-4">
@@ -152,8 +166,9 @@
                                                     class="btn btn-light-primary btn-sm w-100 fs-6" 
                                                     onclick="manageVolume({{ $volume['volume_id'] }})" 
                                                 >
-                                                    <i class="bi bi-gear me-1"></i>
-                                                    Kelola Volume
+                                                    <!-- <i class="bi bi-pencil-square me-1"></i> -->
+                                                    <i class="bi bi-eye me-1"></i>
+                                                    Lihat Detail
                                                 </button>
                                             </div>
                                         </div>
@@ -174,6 +189,20 @@
                                                     Volume {{ $volume['volume_number'] }}
                                                 </h4>
                                                 <span class="badge badge-light-info">{{ $volume['execution_year'] }}</span>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <div class="fw-bold mb-1">
+                                                    <i class="bi bi-hash me-1"></i>
+                                                    Work Order
+                                                </div>
+                                                <div class="fs-7">
+                                                    @if ($volume['wo_number'])
+                                                        WO {{ $volume['wo_number'] }}
+                                                    @else
+                                                        <span>Belum tersedia</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                             
                                             <div class="mb-4">
@@ -200,8 +229,8 @@
                                                     class="btn btn-light-primary btn-sm w-100 fs-6" 
                                                     onclick="manageVolume({{ $volume['volume_id'] }})" 
                                                 >
-                                                    <i class="bi bi-gear me-1"></i>
-                                                    Kelola Volume
+                                                    <i class="bi bi-eye me-1"></i>
+                                                    Lihat Detail
                                                 </button>
                                             </div>
                                         </div>
@@ -212,10 +241,13 @@
                     @endif
                 </div>
             @else
-                <div class="text-center py-5">
+                <div class="text-center py-8">
                     <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
-                    <h6 class="text-muted">Belum ada volume</h6>
-                    <p class="text-muted">Volume akan dibuat secara otomatis saat work package dibuat</p>
+                    <h6 class="text-muted">Belum ada volume yang berjalan</h6>
+                    <p class="text-muted">Work Package belum dipanggil ke dalam Work Order</p>
+                    <button type="button" class="btn btn-light-primary btn-sm me-2" onclick="openAssignWPtoWO()">
+                        <i class="bi bi-plus-circle"></i> Assign Kategori WP ke WO
+                    </button>
                 </div>
             @endif
         </div>
@@ -232,21 +264,31 @@
         <div class="card-body py-0">
             @if($humanResourcesData->count() > 0)
                 <div class="table-responsive mb-6">
-                    <table class="table table-striped table-hover border gy-4 gs-7 rounded">
+                    <table class="table table-row-bordered table-hover border gy-4 gs-7 rounded">
                         <thead>
-                            <tr class="fw-bold text-gray-800">
-                                <th>Peran</th>
+                            <tr class="fw-bold fs-4 text-gray-1000 bg-light">
+                                <th></th>
+                                <th style="width: 170px;">Jabatan</th>
+                                <th style="width: 170px;">Personel</th>
                                 <th class="text-center">JTK (Jumlah Tenaga Kerja)</th>
                                 <th class="text-center">JHK (Jumlah Hari Kerja)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($humanResourcesData as $hr)
-                                <tr>
+                            @foreach($humanResourcesData as $index => $hr)
+                                <tr class="role-row">
+                                    <td style="cursor:pointer;">
+                                        <a class="toggle-collapse" data-bs-toggle="collapse" data-bs-target="#role{{ $hr['hr_id'] }}-details" aria-expanded="false" aria-controls="role{{ $hr['hr_id'] }}-details">
+                                            <i class="bi bi-plus fs-2 me-2 text-dark" id="icon-role{{ $hr['hr_id'] }}"></i>
+                                        </a>
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             {{ $hr['role_name'] }}
                                         </div>
+                                    </td>
+                                    <td>
+                                        
                                     </td>
                                     <td class="text-center">
                                         <span class="badge badge-light-primary badge-lg">{{ $hr['jtk'] }} Orang</span>
@@ -255,6 +297,28 @@
                                         <span class="badge badge-light-success badge-lg">{{ $hr['jhk'] }} Hari</span>
                                     </td>
                                 </tr>
+
+                                @if($hr['assigned_users']->count() > 0)
+                                    @foreach($hr['assigned_users'] as $user)
+                                        <tr class="collapse deskripsi-row" id="role{{ $hr['hr_id'] }}-details">
+                                            <td></td>
+                                            <td></td>
+                                            <td>
+                                                {{ $user['name'] }}
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr class="collapse deskripsi-row" id="role{{ $hr['hr_id'] }}-details">
+                                        <td></td>
+                                        <td colspan="4" class="text-center text-muted py-3">
+                                            <i class="bi bi-person-x me-2"></i>
+                                            Belum ada personel yang di-assign untuk jabatan ini
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>
@@ -263,7 +327,7 @@
                 <div class="text-center py-5">
                     <i class="bi bi-people fs-1 text-muted mb-3"></i>
                     <h6 class="text-muted">Belum ada data kebutuhan tenaga kerja</h6>
-                    <p class="text-muted">Data akan tersedia setelah resource ditugaskan</p>
+                    <p class="text-muted">Data akan tersedia setelah tenaga kerja ditugaskan</p>
                 </div>
             @endif
         </div>
@@ -352,12 +416,6 @@
     height: 100%;
 }
 
-/* Scroll Indicators */
-.volume-scroll-indicators {
-    text-align: center;
-    margin-top: 15px;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .volume-card-item {
@@ -382,12 +440,6 @@
     }
 }
 
-/* BUTTON STATES */
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 /* CARD HOVER EFFECTS */
 .volume-card-item .card:hover {
     border-color: #0d6efd;
@@ -408,6 +460,19 @@
 
 @push('scripts')
 <script>
+$(document).ready(function() {
+    @if(isset($humanResourcesData) && $humanResourcesData->count() > 0)
+        @foreach($humanResourcesData as $hr)
+            $('#role{{ $hr['hr_id'] }}-details').on('show.bs.collapse', function () {
+                $('#icon-role{{ $hr['hr_id'] }}').removeClass('bi-plus').addClass('bi-dash');
+            });
+            $('#role{{ $hr['hr_id'] }}-details').on('hide.bs.collapse', function () {
+                $('#icon-role{{ $hr['hr_id'] }}').removeClass('bi-dash').addClass('bi-plus');
+            });
+        @endforeach
+    @endif
+});
+
 /**
  * Function untuk edit work package (placeholder)
  */
@@ -420,8 +485,14 @@ function editWorkPackage(wpId) {
  */
 function manageVolume(volumeId) {
     const referrerUrl = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId) + '?referrer=detail&wp_id={{ $workPackage->wp_id }}';
-    // window.location.href = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId);
     window.location.href = referrerUrl;
+}
+
+/**
+ * Navigation to Work Order Management
+ */
+function openAssignWPtoWO() {
+    window.location.href='{{route('work-order')}}';
 }
 
 // Toast notification if redirected with success/error message
@@ -452,134 +523,5 @@ function manageVolume(volumeId) {
         }
     });
 @endif
-
-/** 
- * Volume Scroll Functionality 
- */
-$(document).ready(function() {
-    const wrapper = document.getElementById('volumeCardsWrapper');
-    // const scrollLeftBtn = document.getElementById('scrollLeft');
-    // const scrollRightBtn = document.getElementById('scrollRight');
-
-    if (wrapper && scrollLeftBtn && scrollRightBtn) {
-        const cardWidth = 340;
-        // const visibleCards = Math.floor(wrapper.offsetWidth / cardWidth);
-
-        // Scroll Left Button
-        scrollLeftBtn.addEventListener('click', function() {
-            wrapper.scrollBy({
-                left: -cardWidth * 2,
-                behavior: 'smooth'
-            });
-            updateButtonStates();
-        });
-
-        // Scroll Right Button
-        scrollLeftBtn.addEventListener('click', function() {
-            wrapper.scrollBy({
-                left: cardWidth * 2,
-                behavior: 'smooth'
-            });
-            updateButtonStates();
-        });
-
-        // Scroll Indicators Click
-        // scrollDots.forEach((dot, index) => {
-        //     dot.addEventListener('click', function() {
-        //         const scrollPosition = index * (cardWidth * 2);
-        //         wrapper.scrollTo({
-        //             left: scrollPosition,
-        //             behavior: 'smooth'
-        //         });
-                
-        //         updateActiveDot(index);
-        //         updateButtonStates();
-        //     });
-        // });
-
-        // Update active dot on scroll
-        wrapper.addEventListener('scroll', function() {
-            const scrollLeft = wrapper.scrollLeft;
-            const activeIndex = Math.round(scrollLeft / (cardWidth * 2));
-            // updateActiveDot(activeIndex);
-            
-            // Update button states
-            updateButtonStates();
-        });
-
-        // Update active dot
-        // function updateActiveDot(activeIndex) {
-        //     scrollDots.forEach((dot, index) => {
-        //         dot.classList.toggle('active', index === activeIndex);
-        //     });
-        // }
-
-        // Update button states
-        function updateButtonStates() {
-            const maxScrollLeft = wrapper.scrollWidth - wrapper.clientWidth;
-            
-            // Update left button
-            if (wrapper.scrollLeft <= 0) {
-                scrollLeftBtn.disabled = true;
-                scrollLeftBtn.classList.add('opacity-50');
-            } else {
-                scrollLeftBtn.disabled = false;
-                scrollLeftBtn.classList.remove('opacity-50');
-            }
-            
-            // Update right button
-            if (wrapper.scrollLeft >= maxScrollLeft - 10) { // -10 for tolerance
-                scrollRightBtn.disabled = true;
-                scrollRightBtn.classList.add('opacity-50');
-            } else {
-                scrollRightBtn.disabled = false;
-                scrollRightBtn.classList.remove('opacity-50');
-            }
-        }
-
-        // Initial button state
-        updateButtonStates();
-
-        // Keyword navigation
-        wrapper.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                scrollLeftBtn.click();
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                scrollRightBtn.click();
-            }
-        });
-
-        // Touch/swipe support for mobile
-        let startX = 0;
-        let scrollStart = 0;
-
-        wrapper.addEventListener('touchstart', function(e) {
-            startX = e.touches[0].clientX;
-            scrollStart = wrapper.scrollLeft;
-        }, { passive: true });
-        
-        wrapper.addEventListener('touchmove', function(e) {
-            if (!startX) return;
-            
-            const currentX = e.touches[0].clientX;
-            const diffX = startX - currentX;
-            
-            wrapper.scrollLeft = scrollStart + diffX;
-        }, { passive: true });
-
-        wrapper.addEventListener('touchend', function() {
-            startX = 0;
-            scrollStart = 0;
-            updateButtonStates();
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            updateButtonStates();
-        });
-    }
-});
 </script>
 @endpush

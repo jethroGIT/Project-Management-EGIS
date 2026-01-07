@@ -6,17 +6,13 @@
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
             <div class="d-flex align-items-center mb-7">
-                <a href="{{route('timesheet.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <div>
                     <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
                     <div class="mb-2 px-2 rounded-1"  style="background-color: #d7e7f5; color: #1c1f21; width: fit-content;">
                         {{$user->name}}
-                        @php
-                            // Menggunakan first() untuk mendapatkan role pertama jika ada
-                            $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
-                        @endphp
                         <i class="bi bi-info-circle text-primary ms-1"
                             data-bs-toggle="tooltip"
                             data-bs-placement="bottom"
@@ -25,7 +21,7 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-end mt-10">
+            <div class="d-flex justify-content-between mt-10">
                 {{-- <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#filterCard" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel me-2" viewBox="0 0 16 16">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
@@ -33,11 +29,17 @@
                     Filter Data
                 </button> --}}
                 <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#addActivityModal" aria-expanded="false" aria-controls="filterCard" style="padding: 8px 12px">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                        class="bi bi-plus mb-1 me-2" viewBox="0 0 15 15">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-plus mb-1 me-2" viewBox="0 0 16 16">
                         <path d="M8 4a.5.5 0 0 1 .5.5V7.5H11.5a.5.5 0 0 1 0 1H8.5V11.5a.5.5 0 0 1-1 0V8.5H4.5a.5.5 0 0 1 0-1H7.5V4.5A.5.5 0 0 1 8 4z"/>
                     </svg>
                     Tambah Aktivitas
+                </button>
+                <button type="button" class="btn btn-light-primary" aria-expanded="false" aria-controls="lihatAktivitas" onclick="window.location.href='{{ route('timesheet.detail', [$volume->volume_id]) }}'">
+                    Lihat Timesheet Summary
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                    </svg>
                 </button>
             </div>
             <div class="collapse" id="filterCard">
@@ -105,7 +107,7 @@
                                     style="width:200px" 
                                     type="search"
                                     id="searchActivityUser" 
-                                    placeholder="Cari aktivitas" 
+                                    placeholder="Cari Data" 
                                     aria-label="Search"
                                 >                    
                             </form>
@@ -121,6 +123,7 @@
                                 <th scope="col" style="width: 40px;">No</th>
                                 <th scope="col" style="width: 70px; min-width: 40px;">Tanggal</th>
                                 <th scope="col">Aktivitas</th>                       
+                                <th scope="col text-center" style="width: 110px">Durasi (Hari)</th>                       
                                 <th scope="col" style="width: 40px;">Action</th>
                             </tr>
                         </thead>
@@ -130,23 +133,28 @@
                                 <th scope="row">{{$loop->index+1}}</th>
                                 <td>{{\Carbon\Carbon::parse($activity->execution_date)->format('d M')}}</td>
                                 <td>{{$activity->activity}}</td>
-                                <td>
+                                <td class="text-center">{{$activity->duration}}</td>
+                                <td class="text-center">
                                     <div class="dropdown">
                                         <a href="#" class="text-dark" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-three-dots fs-3 text-dark"></i>
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end rounded-0">
-                                            <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
-                                                data-timesheet-id="{{ $activity->timesheet_id }}"
+                                            <li><a class="dropdown-item d-flex align-items-center edit-activity-btn" href="#" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
+                                                data-timesheet-ids="{{ implode(',', $activity->related_timesheet_ids) }}"
                                                 data-execution-date="{{ $activity->execution_date }}"
+                                                data-duration="{{ $activity->duration }}"
                                                 data-activity="{{ $activity->activity }}"
                                                 >
                                                 <i class="bi bi-pencil ms-1 me-3 text-dark"></i>Edit</a>
                                             </li>
-                                            <li><a class="dropdown-item d-flex align-items-center btn-delete-activity" data-timesheet-id="{{$activity->timesheet_id}}">
+                                            {{-- <li><a class="dropdown-item d-flex align-items-center text-danger btn-delete-activity" href="#" 
+                                                    data-timesheet-id="{{$activity->timesheet_id}}"
+                                                    data-activity="{{$activity->activity}}"
+                                                >
                                                     <i class="bi bi-trash ms-1 me-3 text-dark"></i>Hapus
                                                 </a>
-                                            </li>
+                                            </li> --}}
                                         </ul>
                                     </div>
                                 </td>
@@ -168,22 +176,38 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
+                <h3 class="modal-title">Tambah Aktivitas Timesheet</h3>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{{route('timesheet.user.add', [$volume->volume_id,1])}}" id="addActivityForm">
+                <form method="POST" action="{{route('timesheet.user.add', [$volume->volume_id, Auth::user()->user_id])}}" id="addActivityForm">
                     @csrf
                     @method('POST')
 
                     <div class="form-group mb-6">
-                        <label class="form-label fw-bold">Tanggal</label>
-                        <div class="input-group">
-                            <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Tanggal</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="execution_date" id="execution_date" placeholder="Masukkan Tanggal" min="1" max="31" required/>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Durasi</label>
+                                <div class="input-group">
+                                    <select class="form-select" name="duration" id="duration" required>
+                                        <option value="0.5">0.5</option>
+                                        <option value="1">1</option>
+                                        <option value="1.5">1.5</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                    <span class="input-group-text">Hari</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="mb-6">
                         <label class="form-label fw-bolder">Aktivitas</label>
-                        <textarea class="form-control" id="activity" name="activity" rows="3" placeholder="Aktivitas"></textarea>
+                        <textarea class="form-control" id="activity" name="activity" rows="3" placeholder="Aktivitas" required></textarea>
                     </div>
                 </form>
             </div>
@@ -200,20 +224,36 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Aktivitas Timesheet</h3>
+                <h3 class="modal-title">Edit Aktivitas Timesheet</h3>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id,1])}}" id="editActivityForm">
+                <form method="POST" action="{{route('timesheet.user.edit', [$volume->volume_id, Auth::user()->user_id])}}" id="editActivityForm">
                     @csrf
                     @method('PUT')
-                    <input type="hidden" name="timesheet_id" id="form_timesheet_id">
+                    <input type="hidden" name="timesheet_ids[]" id="form_timesheet_ids">
                     
                     <div class="form-group mb-6">
-                        <label class="form-label fw-bold">Tanggal</label>
-                        <div class="input-group">
-                            <input type="date" class="form-control" name="execution_date" id="executionDate" placeholder="Masukkan Tanggal" min="1" max="31"/>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Tanggal</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="execution_date" id="executionDate" placeholder="Masukkan Tanggal" min="1" max="31" required/>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Durasi</label>
+                                <div class="input-group">
+                                    <select class="form-select" name="duration" id="duration_day" required>
+                                        <option value="0.5">0.5</option>
+                                        <option value="1">1</option>
+                                        <option value="1.5">1.5</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                    <span class="input-group-text">Hari</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="mb-6">
                         <label class="form-label fw-bolder">Aktivitas</label>
                         <textarea class="form-control" id="activityTimesheet" name="activity" rows="3" placeholder="Aktivitas"></textarea>
@@ -231,10 +271,50 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-
+    const activitiesCount = {{ $activitiesCount }};
+    const mandaysPlan = {{ $humanResources->jhk ?? 0 }};
+    const periodValid = {{ $periodValid ? 'true' : 'false' }};
+    console.log('periodValid: ' + periodValid);
      // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
+
+
+        // Handler tombol tambah aktivitas
+        $('[data-bs-target="#addActivityModal"]').on('click', function(e) {
+            if (activitiesCount >= mandaysPlan && !periodValid) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Mandays dan Periode Melewati Batas',
+                    text: 'Jumlah aktivitas Anda sudah sama atau lebih dari rencana mandays, dan periode pelaksanaan WP sudah berakhir.',
+                    confirmButtonText: 'Ok',
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false;
+            }else if(!periodValid){
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Periode Melewati Batas',
+                    text: 'Periode pelaksanaan WP sudah berakhir.',
+                    confirmButtonText: 'Ok',
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false;
+            }else if(activitiesCount >= mandaysPlan){
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Mandays Penuh',
+                    text: 'Jumlah aktivitas Anda sudah sama atau lebih dari rencana mandays.',
+                    confirmButtonText: 'Ok',
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return false;
+            }
+            // Jika belum penuh, modal tetap muncul
+        });
     });
 
     function initTabelTimesheet() {
@@ -287,52 +367,99 @@
         submitAddActivitykForm.addEventListener('click', function(e) {
             e.preventDefault();
 
-            const formData = new FormData(addActivityForm);
-            const url = addActivityForm.action;
+            const executionDate = document.getElementById('execution_date').value.trim();
+            const duration = document.getElementById('duration').value.trim();
+            const activity = document.getElementById('activity').value.trim();
 
-            // Kirim permintaan AJAX
-            fetch(url, {
-                method: 'POST',
-                body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
-                    });
-                }
-                return response.json(); // Parse respons JSON
-            })
-            .then(data => {
-                // Logika jika permintaan sukses
+            // Validasi input
+            if (!executionDate || !duration || !activity) {
                 Swal.fire({
-                    text: data.message || "Data berhasil ditambahkan!",
-                    icon: "success",
+                    title: "Data Belum Lengkap",
+                    text: "Tanggal, Durasi, dan Aktivitas wajib diisi.",
+                    icon: "info",
                     buttonsStyling: false,
                     confirmButtonText: "Tutup",
                     customClass: { confirmButton: "btn btn-secondary" }
-                }).then(() => {
-                    addActivityModal.hide(); // Sembunyikan modal
-                    location.reload(); // Reload halaman untuk melihat perubahan
-                    // ATAU update UI tanpa reload:
-                    // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
                 });
-            })
-            .catch(error => {
-                // Logika jika ada error (jaringan, validasi, server error)
-                console.error('Error updating resource:', error);
+                return; // Hentikan proses jika validasi gagal
+            }
+
+            let durationNow = activitiesCount + parseFloat(duration);
+            console.log('durationNow:' + durationNow);
+            console.log('mandaysPlan:' + mandaysPlan);
+            if (durationNow >= mandaysPlan) {
                 Swal.fire({
-                    text: error.message || "Terjadi kesalahan yang tidak terduga.",
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "OK",
-                    customClass: { confirmButton: "btn btn-danger" }
+                    icon: 'info',
+                    title: 'Mandays penuh',
+                    text: 'Penambahan aktivitas berikut akan memenuhi/melebihi mandays yang direncanakan.',
+                    cancelButtonText: 'Batal',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    customClass: { confirmButton: "btn btn-primary", cancelButton: 'btn btn-light' }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jika user menekan tombol "Ok", lanjutkan ke tahap fetch POST
+                        submitAddActivity();
+                    }
                 });
+                return; // Hentikan proses jika mandays penuh
+            }
+
+            // Jika tidak penuh, langsung lanjut ke tahap fetch POST
+            submitAddActivity();
+        });
+    }
+
+    function submitAddActivity() {
+        const formData = new FormData(addActivityForm);
+        const url = addActivityForm.action;
+
+        // Kirim permintaan AJAX
+        fetch(url, {
+            method: 'POST',
+            body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Jika respons bukan 2xx
+                if (response.status === 422) {
+                    // Jika status 422, tangani validasi khusus
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Validasi gagal.');
+                    });
+                }
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
+                });
+            }
+            return response.json(); // Parse respons JSON
+        })
+        .then(data => {
+            // Logika jika permintaan sukses
+            Swal.fire({
+                text: data.message || "Data berhasil ditambahkan!",
+                icon: "success",
+                buttonsStyling: false,
+                confirmButtonText: "Tutup",
+                customClass: { confirmButton: "btn btn-secondary" }
+            }).then(() => {
+                addActivityModal.hide(); // Sembunyikan modal
+                location.reload(); // Reload halaman untuk melihat perubahan
+            });
+        })
+        .catch(error => {
+            // Logika jika ada error (jaringan, validasi, server error)
+            console.error('Error:', error.message);
+            Swal.fire({
+                text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "OK",
+                customClass: { confirmButton: "btn btn-danger" }
             });
         });
     }
@@ -344,12 +471,17 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         document.body.addEventListener('click', function(event) {
-            // Pastikan elemen yang diklik adalah tombol edit aktivitas
             if (event.target.closest('.edit-activity-btn')) {
                 const button = event.target.closest('.edit-activity-btn');
-                // Isi input tersembunyi timesheet_id
-                document.getElementById('form_timesheet_id').value = button.dataset.timesheetId;
+                const timesheetIds = button.dataset.timesheetIds.split(','); // Ambil semua timesheet_id terkait
+
+                // Isi input hidden dengan array yang dipisahkan koma
+                const formTimesheetIds = document.getElementById('form_timesheet_ids');
+                formTimesheetIds.value = timesheetIds.join(','); // Kirim sebagai string yang dipisahkan koma
+
+                // Isi input lainnya
                 document.getElementById('executionDate').value = button.dataset.executionDate;
+                document.getElementById('duration_day').value = button.dataset.duration;
                 document.getElementById('activityTimesheet').value = button.dataset.activity;
             }
         });
@@ -359,21 +491,52 @@
         submitEditActivitykForm.addEventListener('click', function(e) {
             e.preventDefault();
 
-            const formData = new FormData(editActivityForm);
+            // Ambil nilai dari form
+            const executionDate = document.getElementById('executionDate').value.trim();
+            const duration = document.getElementById('duration_day').value.trim();
+            const activity = document.getElementById('activityTimesheet').value.trim();
+            const timesheetIdsString = document.getElementById('form_timesheet_ids').value; // Ambil string timesheet IDs
+
+            // Validasi input
+            if (!executionDate || !duration || !activity) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Tanggal, Durasi, dan Aktivitas wajib diisi.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return; // Hentikan proses jika validasi gagal
+            }
+
+            const formData = {
+                execution_date: executionDate,
+                duration: duration,
+                activity: activity,
+                timesheet_ids: timesheetIdsString.split(',').map(id => parseInt(id, 10)) // Kirim sebagai array integer
+            };
             const url = editActivityForm.action;
 
             // Kirim permintaan AJAX
             fetch(url, {
-                method: 'POST',
-                body: formData, // FormData akan otomatis mengatur Content-Type: multipart/form-data
+                method: 'PUT',
+                body: JSON.stringify(formData), // FormData akan otomatis mengatur Content-Type: multipart/form-data
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest', // Menandai ini adalah permintaan AJAX
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF token
                 }
             })
             .then(response => {
                 if (!response.ok) {
-                    // Jika respons bukan 2xx (misal 422 untuk validasi, 500 untuk error server)
+                    // Jika respons bukan 2xx
+                    if (response.status === 422) {
+                        // Jika status 422, tangani validasi khusus
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.message || 'Validasi gagal.');
+                        });
+                    }
                     return response.json().then(errorData => {
                         throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
                     });
@@ -391,8 +554,6 @@
                 }).then(() => {
                     editActivityModal.hide(); // Sembunyikan modal
                     location.reload(); // Reload halaman untuk melihat perubahan
-                    // ATAU update UI tanpa reload:
-                    // updateTableRow(data.data); // Panggil fungsi untuk update baris di tabel utama
                 });
             })
             .catch(error => {
@@ -413,18 +574,24 @@
     $(document).on('click', '.btn-delete-activity', function(e) {
         e.preventDefault();
         const timesheetId = $(this).data('timesheet-id');
+        const activity = $(this).data('activity');
 
         Swal.fire({
-            title: 'Yakin ingin menghapus aktivitas?',
-            icon: 'warning',
+            title: "Konfirmasi Hapus Aktivitas",
+            html: `
+                <span>Apakah Anda yakin ingin menghapus aktivitas:</span>
+                <p>${activity}?</p>
+                <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan</small></p>
+            `,
+            icon: "warning",
+            buttonsStyling: false,
             showCancelButton: true,
-            confirmButtonText: 'Hapus',
             cancelButtonText: 'Batal',
+            confirmButtonText: "Ya, Hapus",
             customClass: {
-                confirmButton: 'btn btn-danger',
+                confirmButton: "btn btn-danger",
                 cancelButton: 'btn btn-secondary'
-            },
-            buttonsStyling: false
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`/timesheet-user/${timesheetId}/delete`, {

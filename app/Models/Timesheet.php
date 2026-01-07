@@ -13,8 +13,10 @@ class Timesheet extends Model
     protected $fillable = [
         'user_id',
         'volume_id',
+        // 'sub_task_id',
         'execution_date',
         'activity',
+        'duration'
     ];
 
     public function user()

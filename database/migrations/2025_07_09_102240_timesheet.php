@@ -15,12 +15,15 @@ return new class extends Migration
             $table->id('timesheet_id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('volume_id');
+            // $table->unsignedBigInteger('sub_task_id');
             $table->date('execution_date');
             $table->text('activity');
+            $table->decimal('duration', 2, 1);
             $table->timestamps();
 
             $table->foreign('user_id')->references('user_id')->on('user')->onDelete('cascade');
             $table->foreign('volume_id')->references('volume_id')->on('work_package_volume')->onDelete('cascade');
+            // $table->foreign('sub_task_id')->references('sub_task_id')->on('sub_task')->onDelete('cascade');
         });
     }
 

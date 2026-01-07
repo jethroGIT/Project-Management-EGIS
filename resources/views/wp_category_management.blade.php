@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="mt-0 mb-5">Manajemen Kategori Work Package</h1>
+    <h1 class="mt-0 mb-5">Manajemen Work Package</h1>
 
     <!-- Card Category -->
      <div class="card card-flush shadow-sm">
@@ -12,7 +12,7 @@
                 <div class="d-flex justify-content-start mb-4">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_category">
                         <i class="bi bi-plus-lg fs-2 me-1"></i>
-                        Tambah Kategori WP
+                        Tambah Work Package
                     </button>
                 </div>
 
@@ -24,7 +24,7 @@
                         style="width:200px" 
                         type="search"
                         id="searchCategory" 
-                        placeholder="Cari Kategori" 
+                        placeholder="Cari Data" 
                         aria-label="Search"
                     >                    
                 </form>
@@ -34,16 +34,18 @@
             <div class="table-responsive mb-2">
                 <table id="tabel_category" class="table table-striped table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
-                        <tr class="fw-bolder fs-4 text-gray-1000 px-7">
-                            <th class="align-middle border-bottom">No</th>
-                            <th class="align-middle border-bottom">Kategori</th>
+                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
+                            <th class="align-middle border-bottom text-center">No</th>
+                            <th class="align-middle border-bottom text-center" style="min-width: 110px">No. WP</th>
+                            <th class="align-middle border-bottom">Work Package</th>
                             <th class="align-middle border-bottom" style="width: 140px">Action</th>
                         </tr>
                     </thead>
                      <tbody style="font-size: 0.92rem;">
                         @forelse($wpCategories as $wpCategory)
                         <tr>
-                            <th scope="row" class="align-middle">{{$loop->index+1}}</th>
+                            <th scope="row" class="align-middle text-center">{{$loop->index+1}}</th>
+                            <td class="align-middle text-center">{{$wpCategory->category_number}}</td>
                             <td class="align-middle">{{$wpCategory->name}}</td>
                             <td>
                                 <div class="d-flex gap-2">
@@ -51,13 +53,17 @@
                                     <button type="button" class="btn btn-warning btn-sm btn-edit-category" title="Edit Kategori WP" 
                                             data-bs-toggle="modal" data-bs-target="#kt_modal_edit_category"
                                             data-category-id="{{$wpCategory->category_id}}" 
+                                            data-category-number="{{$wpCategory->category_number}}"
                                             data-category-name="{{$wpCategory->name}}"
                                     >
                                         <i class="bi bi-pencil-square fs-6"></i>
                                     </button>
 
                                     <!-- Delete Button -->
-                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Hapus Kategori WP" data-category-id="{{$wpCategory->category_id}}">
+                                    <button type="button" class="btn btn-danger btn-sm btn-delete-category" title="Hapus Kategori WP" 
+                                            data-category-id="{{$wpCategory->category_id}}"
+                                            data-category-name="{{$wpCategory->name}}"
+                                    >
                                         <i class="bi bi-trash fs-6"></i>
                                     </button>
                                 </div>                                    
@@ -68,8 +74,8 @@
                             <td colspan="5" class="text-center text-muted py-4">
                                 <div class="d-flex flex-column align-items-center justify-content-center">
                                     <i class="bi bi-people fs-1 text-muted mb-2"></i>
-                                    <h6 class="text-muted">Belum Ada Kategori WP</h6>
-                                    <p class="text-muted">Tidak ada data kategori WP dalam sistem</p>
+                                    <h6 class="text-muted">Belum Ada Work Package</h6>
+                                    <p class="text-muted">Tidak ada data Work Package dalam sistem</p>
                                 </div>
                             </td>
                         </tr>
@@ -87,15 +93,21 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+                <h3 class="modal-title">Tambah Work Package</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.add')}}" id="addCategoryForm">
                     @csrf
-                    @method('POST')                   
-                    <div class="mb-6">
-                        <label class="form-label fw-bolder">Kategori WP</label>
-                        <input class="form-control" id="name" name="name" placeholder="Kategori"></input>
+                    @method('POST')   
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bolder">No. WP</label>
+                            <input type="number" class="form-control" id="category_number" name="category_number" min="1"></input>
+                        </div>                
+                        <div class="col-md-10">
+                            <label class="form-label fw-bolder">Work Package</label>
+                            <input class="form-control" id="name" name="name" placeholder="Work Package"></input>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -112,16 +124,22 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kelola Kategori Work Package</h3>
+                <h3 class="modal-title">Edit Work Package</h3>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{route('wpcategory.edit')}}" id="editCategoryForm">
                     @csrf
                     @method('PUT') 
                     <input type="hidden" name="category_id" id="form_category_id">
-                    <div class="mb-6">
-                        <label class="form-label fw-bolder">Kategori WP</label>
-                        <input class="form-control" id="categoryName" name="name" placeholder="Kategori"></input>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bolder">No. WP</label>
+                            <input type="number" class="form-control" id="categoryNumber" name="category_number" min="1" required></input>
+                        </div>                
+                        <div class="col-md-10">
+                            <label class="form-label fw-bolder">Work Package</label>
+                            <input class="form-control" id="categoryName" name="name" placeholder="Work Package" required></input>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -182,58 +200,111 @@
     }
 
     // Modal and form handling for adding a new category
-    const addCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_add_category'));
-    const submitAddCategoryForm = document.getElementById('submitAddCategoryForm');
-    const addCategoryForm = document.getElementById('addCategoryForm');
+    $(document).ready(function () {
+        const addCategoryModal = new bootstrap.Modal(document.getElementById('kt_modal_add_category'));
+        const addCategoryForm = $('#addCategoryForm');
+        const submitAddCategoryForm = $('#submitAddCategoryForm');
 
-    document.addEventListener('DOMContentLoaded', function () {
-        if (submitAddCategoryForm) {
-            submitAddCategoryForm.addEventListener('click', function (e) {
-                e.preventDefault();
+        submitAddCategoryForm.on('click', function (e) {
+            e.preventDefault();
 
-                const formData = new FormData(addCategoryForm);
-                const url = addCategoryForm.action;
+            // Validasi manual
+            const categoryNumber = $('#category_number').val().trim();
+            const categoryName = $('#name').val().trim();
 
-                fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(errorData => {
-                                throw new Error(errorData.message || 'Terjadi kesalahan saat memproses permintaan.');
-                            });
+            if (!categoryNumber || !categoryName) {
+                Swal.fire({
+                    title: "Data Belum Lengkap",
+                    text: "Nomor WP & Nama Work Package wajib diisi.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return;
+            }
+            if (parseInt(categoryNumber) <= 0) {
+                Swal.fire({
+                    title: "Nomor WP Tidak Valid",
+                    text: "Nomor WP harus berupa angka positif.",
+                    icon: "info",
+                    buttonsStyling: false,
+                    confirmButtonText: "Tutup",
+                    customClass: { confirmButton: "btn btn-secondary" }
+                });
+                return;
+            }
+
+            // Siapkan FormData
+            const formData = new FormData(addCategoryForm[0]);
+
+            $.ajax({
+                url: addCategoryForm.attr('action'),
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                beforeSend: function () {
+                    // Disable form elements
+                    addCategoryForm.find('input, button').prop('disabled', true);
+
+                    Swal.fire({
+                        title: 'Menambahkan Work Package...',
+                        text: 'Sedang memproses penambahan Work Package baru',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading()
                         }
-                        return response.json();
-                    })
-                    .then(data => {
+                    });
+                },
+                success: function (response) {
+                    if (response.success || response.message) {
                         Swal.fire({
-                            text: data.message || "Data berhasil ditambahkan!",
+                            title: "Berhasil Ditambahkan",
                             icon: "success",
                             buttonsStyling: false,
                             confirmButtonText: "Tutup",
                             customClass: { confirmButton: "btn btn-secondary" }
                         }).then(() => {
                             addCategoryModal.hide();
-                            location.reload();
+                            window.location.reload();
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error adding category:', error);
+                    } else {
                         Swal.fire({
-                            text: error.message || "Terjadi kesalahan yang tidak terduga.",
+                            title: "Gagal",
+                            text: response.message || "Gagal menambahkan Work Package",
                             icon: "error",
                             buttonsStyling: false,
-                            confirmButtonText: "OK",
-                            customClass: { confirmButton: "btn btn-danger" }
+                            confirmButtonText: "Tutup",
+                            customClass: { confirmButton: "btn btn-secondary" }
                         });
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Terjadi kesalahan saat menambahkan Work Package";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        title: "Gagal Menambahkan Work Package",
+                        text: errorMessage,
+                        icon: "error",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-secondary" }
                     });
+                },
+                complete: function () {
+                    // Enable form elements
+                    addCategoryForm.find('input, button').prop('disabled', false);
+                }
             });
-        }
+        });
     });
 
     // Modal and form handling for editing a new category
@@ -248,12 +319,13 @@
                 const button = event.target.closest('.btn-edit-category');
                 // Isi input tersembunyi timesheet_id
                 document.getElementById('form_category_id').value = button.dataset.categoryId;
+                document.getElementById('categoryNumber').value = button.dataset.categoryNumber;
                 document.getElementById('categoryName').value = button.dataset.categoryName;
 
                 console.log("Button Data:", {
                 id: button.dataset.categoryId,
                 name: button.dataset.categoryName,
-            });
+                });
             }
         });
     });
@@ -265,6 +337,21 @@
 
                 const formData = new FormData(editCategoryForm);
                 const url = editCategoryForm.action;
+
+                const categoryNumber = $('#categoryNumber').val().trim();
+                const categoryName = $('#categoryName').val().trim();
+
+                if (!categoryNumber || !categoryName) {
+                    Swal.fire({
+                        title: "Data Belum Lengkap",
+                        text: "Nomor WP & Work Package wajib diisi.",
+                        icon: "info",
+                        buttonsStyling: false,
+                        confirmButtonText: "Tutup",
+                        customClass: { confirmButton: "btn btn-primary" }
+                    });
+                    return;
+                }
 
                 fetch(url, {
                     method: 'POST',
@@ -284,18 +371,19 @@
                     })
                     .then(data => {
                         Swal.fire({
-                            text: data.message || "Data berhasil diubah!",
+                            title: "Berhasil",
+                            text: data.message || "Data berhasil diperbarui!",
                             icon: "success",
                             buttonsStyling: false,
                             confirmButtonText: "Tutup",
                             customClass: { confirmButton: "btn btn-secondary" }
                         }).then(() => {
-                            addCategoryModal.hide();
+                            editCategoryModal.hide();
                             location.reload();
                         });
                     })
                     .catch(error => {
-                        console.error('Error adding category:', error);
+                        console.error('Error adding Work Package:', error);
                         Swal.fire({
                             text: error.message || "Terjadi kesalahan yang tidak terduga.",
                             icon: "error",
@@ -309,54 +397,85 @@
     });
 
     // delete category
-    $(document).on('click', '.btn-delete-category', function(e) {
+    $(document).on('click', '.btn-delete-category', function (e) {
         e.preventDefault();
         const categoryId = $(this).data('category-id');
+        const categoryName = $(this).data('category-name');
 
-        Swal.fire({
-            title: 'Yakin ingin menghapus kategori?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Hapus',
-            cancelButtonText: 'Batal',
-            customClass: {
-                confirmButton: 'btn btn-danger',
-                cancelButton: 'btn btn-secondary'
-            },
-            buttonsStyling: false
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/wpcategory-management/${categoryId}/delete`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title:'Berhasil!', 
-                            text: data.message, 
-                            icon: 'success',
-                            buttonsStyling: false,
-                            confirmButtonText: "Tutup",
-                            customClass: { confirmButton: "btn btn-secondary" }
-                        }).then(() => {
-                            // location.reload(); // atau remove baris dari DOM langsung
-                            $(`[data-category-id="${categoryId}"]`).closest('tr').remove();
-                        });
-                    } else {
-                        Swal.fire('Gagal', data.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
-                });
+        fetch(`/wpcategory-management/${categoryId}/related-data`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
             }
-        });
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Tampilkan daftar Work Package yang akan dihapus
+                    const workPackages = data.deleted_work_packages.map(wp => `${wp.wp_number} - ${wp.name}</br>`).join('');
+                    const htmlContent = `
+                        <p>Apakah Anda yakin ingin menghapus Work Package <strong>${categoryName}</strong>?</p>
+                        <p>Seluruh data Kategori Work Package berikut akan ikut terhapus:</p>
+                        <ul style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-start: 5px;">${workPackages}</ul>
+                        <p class="text-muted"><small>Tindakan ini tidak dapat dibatalkan.</small></p>
+                    `;
+
+                    Swal.fire({
+                        title: "Konfirmasi Hapus Work Package",
+                        html: htmlContent,
+                        icon: "warning",
+                        buttonsStyling: false,
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonText: "Ya, Hapus",
+                        customClass: {
+                            confirmButton: "btn btn-danger",
+                            cancelButton: 'btn btn-secondary'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Lakukan penghapusan
+                            fetch(`/wpcategory-management/${categoryId}/delete`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                                .then(res => res.json())
+                                .then(deleteResponse => {
+                                    if (deleteResponse.success) {
+                                        Swal.fire({
+                                            title: 'Berhasil!',
+                                            text: deleteResponse.message,
+                                            icon: 'success',
+                                            buttonsStyling: false,
+                                            confirmButtonText: "Tutup",
+                                            customClass: { confirmButton: "btn btn-secondary" }
+                                        }).then(() => {
+                                            // Hapus baris dari tabel
+                                            location.reload();
+                                            // $(`[data-category-id="${categoryId}"]`).closest('tr').remove();
+                                        });
+                                    } else {
+                                        Swal.fire('Gagal', deleteResponse.message, 'error');
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data.', 'error');
+                                });
+                        }
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error', 'Gagal mengambil data terkait kategori.', 'error');
+            });
     });
 </script>
 @endpush

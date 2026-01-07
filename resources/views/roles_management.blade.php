@@ -2,6 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
+    {{-- @can('manage roles') --}}
     <h1 class="mt-0 mb-5">Manajemen Peran</h1>
 
     <!-- Card Roles -->
@@ -34,7 +35,7 @@
             <div class="table-responsive mb-2">
                 <table id="tabel_role" class="table table-striped gy-4 gs-3 border rounded w-100">
                     <thead>
-                        <tr class="fw-bolder fs-4 text-gray-1000 px-7">
+                        <tr class="fw-bolder fs-6 text-gray-800 px-7">
                             <th class="align-middle border-bottom">No</th>
                             <th class="align-middle border-bottom min-w-200px">Nama Peran</th>
                             <th class="align-middle border-bottom">Singkatan</th>
@@ -56,7 +57,7 @@
                                         type="button" 
                                         class="btn btn-warning btn-sm" 
                                         title="Edit Peran"
-                                        onClick="editRole({{ $role->role_id }})"
+                                        onClick="editRole({{ $role->id }})"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                                             <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
@@ -69,7 +70,7 @@
                                         type="button" 
                                         class="btn btn-danger btn-sm" 
                                         title="Hapus Peran"
-                                        onClick="deleteRoleConfirmation({{ $role->role_id }}, '{{ addslashes($role->name) }}')"
+                                        onClick="deleteRoleConfirmation({{ $role->id }}, '{{ addslashes($role->name) }}')"
                                     >
                                         <!-- <i class="bi bi-power fs-6"></i> -->
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
@@ -99,7 +100,7 @@
 
             <!-- Modal Add Role -->
             <div class="modal fade" tabindex="-1" id="kt_modal_add_role">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Tambah Peran</h3>
@@ -150,7 +151,7 @@
 
             <!-- Modal Edit Role -->
             <div class="modal fade" tabindex="-1" id="kt_modal_edit_role">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">Edit Peran</h3>
@@ -219,6 +220,28 @@
             </div>
         </div>
     </div>
+    {{-- @else --}}
+    <!-- <div class="container-fluid">
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+            <div class="text-center">
+                <div class="mb-4">
+                    <i class="bi bi-shield-exclamation text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="text-danger mb-3">Akses Ditolak</h3>
+                <p class="text-muted mb-4">
+                    Anda tidak memiliki izin untuk mengakses halaman manajemen peran.<br>
+                    Hanya administrator yang dapat mengelola peran dalam sistem.
+                </p>
+                <a href="{{ route('dashboard') }}" class="btn btn-primary">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <i class="bi bi-house-fill me-2"></i>
+                        Kembali ke Dashboard
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div> -->
+    {{-- @endcan --}}
 </div>
 @endsection
 
@@ -227,8 +250,8 @@
 $(document).ready(function () {
     initTabelRole();
 
-    const addCostInput = $('#addRoleCost')c
-    const editCostInput = $('#editRoleCost')
+    const addCostInput = $('#addRoleCost');
+    const editCostInput = $('#editRoleCost');
 
     setupEditCurrencyFormatting(addCostInput);
     setupEditCurrencyFormatting(editCostInput);
@@ -611,7 +634,7 @@ function submitEditRole() {
         },
         success: function(response) {
             if (response.success) {
-                let successMessage = response.message || "Peran berhasil diperbarui!";
+                let successMessage = response.message || "Data berhasil diperbarui!";
 
                 Swal.fire({
                     title: "Berhasil",
@@ -719,7 +742,7 @@ function deleteRoleConfirmation(roleId, roleName) {
         buttonsStyling: false,
         showCancelButton: true,
         cancelButtonText: 'Batal',
-        confirmButtonText: "Ya, Hapus Peran",
+        confirmButtonText: "Ya, Hapus",
         customClass: {
             confirmButton: "btn btn-danger",
             cancelButton: 'btn btn-secondary'

@@ -2,45 +2,79 @@
 
 @section('content')
 <div class="container">
-    <h1 class="my-5 mt-2">Timesheet Activity Summary</h1>
+    <h1 class="my-5 mt-2">Timesheet Summary</h1>
     <div class="card bg-white shadow border-0 rounded-0 mb-5" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);">
         <div class="card-body">
-            <div class="d-flex align-items-center mb-7">
-                <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
-                </a>
+            <div class="d-flex align-items-center">
+                @if(auth()->user()->hasRole('admin') || isset($assignedUsers) && !($assignedUsers->contains(fn($user) => $user['user_id'] == auth()->user()->user_id)))
+                    <a href="{{route('work-package.detail', $volume->volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
+                    </a>
+                @else
+                    <a href="{{route('timesheet.detail.user', [$volume->volume_id, auth()->user()->user_id])}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
+                    </a>
+                @endif
                 <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
             </div>            
-            <div class="d-flex align-items-center justify-content-end">                
+            <div class="d-flex align-items-center justify-content-end">
                 <div class="d-flex align-items-center">
-                    <ul class="nav nav-tabs nav-line-tabs mb-7 fs-6 me-2">
+                    <ul class="nav flex-column nav-pills">
                         @foreach($months as $month)
-                        <li class="nav-item">
-                            <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
+                            </li>
                         @endforeach
                     </ul>
-                </div>                
+                    {{-- <div id="monthTabWrapper" class="filter-categories js-filter-categories js-shot-categories position-relative">
+                        <span class="scroll scroll-backward">
+                            <a class="active d-none" href="#" id="scrollLeft">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" role="img" class="icon">
+                                    <path d="M15 6L9 12L15 18" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </span>
+                        <span class="scroll scroll-forward">
+                            <a class="active" href="#" id="scrollRight">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" role="img" class="icon">
+                                    <path d="M9 6L15 12L9 18" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </span>
+                        <ul class="nav nav-tabs nav-line-tabs mb-7 fs-6" id="monthTabList" style="overflow: hidden; white-space: nowrap;">
+                            @foreach($months as $month)
+                            <li class="nav-item" style="display: inline-block;">
+                                <a class="nav-link {{$month === $selectedMonth? 'active' : ''}}" href="{{route('timesheet.detail', ['volume_id' => $volume->volume_id, 'month' => $month])}}">{{$month}}</a>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div> --}}
+                </div>
             </div>
+
             {{-- <div class="mb-2">
                 <label class="form-label">Filter Berdasarkan Tanggal</label>
                 <input type="text" class="form-control form-control-solid" placeholder="Pilih rentang tanggal" id="kt_daterangepicker_1" style="width: 35%"/>
             </div> --}}
-            <form class="d-flex justify-content-end align-items-center mb-5">
-                <label class="me-5 mb-0" for="searchActivity">Cari: </label>
-                <div>
-                    <form class="d-flex justify-content-end mb-4" onsubmit="return false;">
-                        <input 
-                            class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
-                            style="width:200px" 
-                            type="search"
-                            id="searchActivity" 
-                            placeholder="Cari aktivitas" 
-                            aria-label="Search"
-                        >                    
-                    </form>
-                </div>                  
-            </form>
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <button class="btn btn-light-primary mb-3" id="scrollToMandays">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-down mb-1 me-2" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
+                    </svg>
+                    Lihat Total Mandays
+                </button>
+                <form class="d-flex justify-content-end" onsubmit="return false;">
+                    <label class="me-5 mt-3" for="searchActivity">Cari: </label>
+                    <input 
+                        class="form-control rounded-0 bg-light border-0 border-bottom border-1 border-secondary" 
+                        style="width:200px" 
+                        type="search"
+                        id="searchActivity" 
+                        placeholder="Cari Data" 
+                        aria-label="Search"
+                    >                    
+                </form> 
+            </div>
             <div class="tab-content">
                 <div class="tab-pane fade show active">
                     <div class="table-responsive">
@@ -50,17 +84,17 @@
                                     <tr class="fw-semibold fs-4 text-gray-1000 bg-light">
                                         <th scope="col" style="width: 20px;">No</th>
                                         <th scope="col" style="width: 40px; min-width: 20px;">Tanggal</th>
-                                        @foreach($usersInSelectedMonth as $user)
-                                            <th scope="col" style="width: 100px;">
-                                                {{$user->name}}
-                                                @php
+                                        @foreach($assignedUsers as $user)
+                                            <th scope="col" style="min-width: 100px;">
+                                                {{ $user['name'] }}
+                                                {{-- @php
                                                     // Menggunakan first() untuk mendapatkan role pertama jika ada
                                                     $roleName = $user->getRoleNames()->get(1) ?? $user->getRoleNames()->first();
-                                                @endphp
+                                                @endphp --}}
                                                 <i class="bi bi-info-circle text-primary"
                                                     data-bs-toggle="tooltip"
                                                     data-bs-placement="top"
-                                                    title="{{$roleName}}">
+                                                    title="{{ $user['role_name'] }}">
                                                 </i>
                                             </th>     
                                         @endforeach                       
@@ -71,14 +105,25 @@
                                     <tr>
                                         <th scope="row">{{$loop->index+1}}</th>
                                         <td>{{\Carbon\Carbon::parse($date)->format('d')}}</td>
-                                        @foreach($usersInSelectedMonth as $user)
+                                        @foreach($assignedUsers as $user)
                                             <td>
                                                 @php
-                                                    $userEntry = $entries->where('user_id', $user->user_id)->first();
+                                                    $userEntry = $entries->where('user_id', $user['user_id'])->first();
                                                 @endphp
-                                                {{ $userEntry->activity ?? '-'}}
+                                                @if($userEntry)
+                                                    @if($userEntry->duration == 1.0)
+                                                        <span class="badge badge-light-info badge-square mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                                    @elseif($userEntry->duration == 0.5)
+                                                        <span class="badge badge-light-primary badge-square mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                                    @else
+                                                        <span class="badge badge-secondary badge-square mb-1">{{ $userEntry->duration }} Hari</span></br>
+                                                    @endif
+                                                    <span>{{ $userEntry->activity }}</span>
+                                                @else
+                                                    -
+                                                @endif
                                             </td>
-                                        @endforeach                                        
+                                        @endforeach                                       
                                     </tr>  
                                     @endforeach          
                                 </tbody>
@@ -90,49 +135,33 @@
                 </div>           
             </div>
             <div class="separator my-3"></div>                        
-            <div class="col">
-                <div class="d-flex justify-content-between mb-5">
-                    <button type="button" class="btn btn-light-primary" data-bs-toggle="collapse" data-bs-target="#mandaysSummaryTable" aria-expanded="false" aria-controls="mandaysSummaryTable">
-                        <i class="bi bi-chevron-down me-2"></i>
-                        Lihat Ringkasan Mandays
-                    </button>
-                    {{-- id user dummy terlebih dulu, nanti ambil dari session user --}}
-                    <button type="button" class="btn btn-light-primary" aria-expanded="false" aria-controls="kelolaAktivitas" onclick="window.location.href='{{ route('timesheet.detail.user', [$volume->volume_id, 1]) }}'">
-                        Kelola Aktivitas
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                        </svg>
-                    </button>
+            <div class="card card-flush shadow-sm border-0 mb-5" id="mandaysCard" style="box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
+                <div class="card-header pb-0">
+                    <h3 class="card-title fw-bold p-0">Total Mandays</h3>
                 </div>
-                <div class="collapse" id="mandaysSummaryTable">
+                <div class="card-body py-0">
                     <table class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
-                        <thead>
+                        <thead style="font-size: 1.1rem;">
                             <tr>
-                                <th scope="col" colspan="3" class="text-center bg-light py-1">Total Mandays</th>
+                                <th scope="col" rowspan="2" colspan="2" class="fw-bold text-center align-middle bg-light py-1">Tenaga Kerja</th>
+                                <th scope="col" colspan="2" class="fw-bold text-center align-middle bg-light py-2">Mandays</th>
                             </tr>
                             <tr>
-                                <th scope="col" rowspan="2" class="align-middle py-1">Personel</th>
-                                <th scope="col" colspan="2" class="text-center align-middle py-1">Mandays</th>
-                            </tr>
-                            <tr>
-                                <th class="text-center align-middle py-0">Rencana</th>
-                                <th class="text-center align-middle py-0">Realisasi</th>                            
+                                <th class="fw-bold text-center align-middle bg-light py-1">Rencana</th>
+                                <th class="fw-bold text-center align-middle bg-light py-1">Realisasi</th>                            
                             </tr>
                         </thead>
-                        <tbody style="font-size: 0.92rem;">
-                            @foreach($humanResources as $hResource)
+                        <tbody style="font-size: 0.97rem;">
+                            @foreach($assignedUsers as $personel)
                             <tr>
-                                <td class="align-middle">{{$hResource->role->name}}</td>
-                                <td class="text-center align-middle" style="color:gray">{{$hResource->jhk}}</td>
+                                <td class="align-middle">{{$personel['role_name']}}</td>
+                                <td class="align-middle">{{$personel['name']}}</td>
+                                <td class="text-center align-middle" style="color:gray">{{$personel['jhk']}}</td>
                                 <td class="text-center align-middle">
-                                    @php
-                                        // Ambil realisasi mandays untuk role ini. Jika tidak ada data, default 0.
-                                        $realisasiMandays = $timesheetCountPerRole[$hResource->role_id] ?? 0;
-                                    @endphp
-                                    {!! mandaysLabel($hResource->jhk, $realisasiMandays) !!}
+                                    {!! mandaysLabel($personel['jhk'], $personel['realisasiMandays']) !!}
                                 </td>
-                            </tr> 
-                            @endforeach                           
+                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -145,15 +174,67 @@
 @push('scripts')
 <script>
     let personelCounter = 1;
-
-     // Initialize the DataTable
     $(document).ready(function() {
         initTabelTimesheet();
+        // initTabScroll();  // Add this line
+
+        $('#scrollToMandays').on('click', function() {
+            $('html, body').animate({
+                scrollTop: $('#mandaysCard').offset().top - 60 // offset untuk header
+            }, 600);
+        });
     });
+
+    function initTabScroll() {
+        const wrapper = $('#monthTabWrapper');
+        const tabList = $('#monthTabList');
+        const scrollLeft = $('#scrollLeft');
+        const scrollRight = $('#scrollRight');
+        const scrollAmount = 150;  // Adjust scroll distance as needed
+
+        function checkScroll() {
+            const tabListWidth = tabList[0].scrollWidth;
+            const wrapperWidth = wrapper.width();
+            const isOverflow = tabListWidth > wrapperWidth || tabListWidth > 300;
+
+            if (isOverflow) {
+                wrapper.addClass('overflow-visible');
+                scrollRight.removeClass('d-none');
+                if (tabList.scrollLeft() > 0) {
+                    scrollLeft.removeClass('d-none');
+                } else {
+                    scrollLeft.addClass('d-none');
+                }
+                if (tabList.scrollLeft() >= tabListWidth - wrapperWidth) {
+                    scrollRight.addClass('d-none');
+                }
+            } else {
+                wrapper.removeClass('overflow-visible');
+                scrollLeft.addClass('d-none');
+                scrollRight.addClass('d-none');
+            }
+        }
+
+        scrollLeft.on('click', function(e) {
+            e.preventDefault();
+            tabList.animate({ scrollLeft: tabList.scrollLeft() - scrollAmount }, 300);
+            setTimeout(checkScroll, 300);
+        });
+
+        scrollRight.on('click', function(e) {
+            e.preventDefault();
+            tabList.animate({ scrollLeft: tabList.scrollLeft() + scrollAmount }, 300);
+            setTimeout(checkScroll, 300);
+        });
+
+        tabList.on('scroll', checkScroll);
+        $(window).on('resize', checkScroll);
+        checkScroll();  // Initial check
+    }
 
     function initTabelTimesheet() {
         const table = $('#kt_datatable_example_2').DataTable({
-            "scrollY": '350px',
+            "scrollY": '300px',
             "scrollX": true,
             "fixedHeader": {
                 "header": true,
@@ -192,68 +273,6 @@
             }
         });
     }
-
-    // datepicker
-    // let startDate = '';
-    // let endDate = '';
-
-    // moment.locale('id'); // Set locale to Indonesian
-    // $(document).ready(function () {
-    // $('#kt_daterangepicker_1').daterangepicker({
-    //         locale: {
-    //             format: 'D MMMM YYYY',
-    //             applyLabel: "Terapkan",
-    //             cancelLabel: "Batal",
-    //             weekLabel: "Minggu",
-    //             daysOfWeek: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
-    //             monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
-    //             firstDay: 1 // Set hari pertama minggu ke Senin
-    //         }
-    //     }, function(start, end) {
-    //         startDate = start.format('YYYY-MM-DD');
-    //         endDate = end.format('YYYY-MM-DD');
-    //     });
-    //      $('#applyFilter').on('click', function () {
-    //         if (!startDate || !endDate) {
-    //             Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
-    //             return;
-    //         }
-
-    //         const url = new URL(window.location.href);
-    //         url.searchParams.set('start_date', startDate);
-    //         url.searchParams.set('end_date', endDate);
-    //         window.location.href = url.toString();
-    //     });
-
-    //     $('#resetFilter').on('click', function () {
-    //         const url = new URL(window.location.href);
-    //         url.searchParams.delete('start_date');
-    //         url.searchParams.delete('end_date');
-    //         window.location.href = url.toString();
-    //     });
-    // });
-
-
-    // Saat tombol Terapkan diklik
-    // document.getElementById('applyFilter').addEventListener('click', function () {
-    //     if (!startDate || !endDate) {
-    //         Swal.fire("Peringatan", "Mohon pilih rentang tanggal terlebih dahulu.", "warning");
-    //         return;
-    //     }
-
-    //     const url = new URL(window.location.href);
-    //     url.searchParams.set('start_date', startDate);
-    //     url.searchParams.set('end_date', endDate);
-    //     window.location.href = url.toString(); // reload dengan query string
-    // });
-
-    // Reset filter
-    // document.getElementById('resetFilter').addEventListener('click', function () {
-    //     const url = new URL(window.location.href);
-    //     url.searchParams.delete('start_date');
-    //     url.searchParams.delete('end_date');
-    //     window.location.href = url.toString();
-    // });
 </script>
 @endpush
 
@@ -269,3 +288,45 @@
         return '<span class="'.$badge.'">'. $realization . '</span>';
     }
 @endphp
+
+<style>
+    .nav {
+        overflow-x: auto;
+        overflow-y: hidden;
+        height: 55px;
+        width: 300px;
+        border-color: gray;
+        margin-bottom: 10px !important;
+    }
+
+    .nav-item {
+        cursor: pointer;
+        /* margin: 15px 10px; */
+        width: auto;
+        height: 70px;
+        /* box-shadow: 0 4px 6px -6px #222; */
+    }
+
+    .nav-link {
+        margin:5px 0;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .nav-pills .nav-link {
+        color: #2c2b2b !important;
+        background-color: #fff !important;
+    }
+
+    .nav-pills .nav-link.active,
+    .nav-pills .nav-link.show {
+        color: #2c2b2b !important;
+        background-color: #efefef !important;
+    }
+
+    /* .nav-item.selected {
+        color: #fff;
+        background-color: #007bff;
+    } */
+
+</style>

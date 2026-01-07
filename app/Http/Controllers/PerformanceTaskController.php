@@ -60,22 +60,24 @@ class PerformanceTaskController extends Controller
         
         // Hitung utilisasi untuk setiap task dan total completion
         $tasksWithUtilization = $tasks->map(function ($task) {
-            $subTasks = $task->subTask;
-
-            if ($subTasks->count() > 0) {
-                // Hitung rata-rata completion dari semua sub tasks
-                $avgCompleteness = $subTasks->avg('completeness');
-                $task->utilization = round($avgCompleteness, 2);
-            } else {
-                $task->utilization = 0;
+            if($task->completeness == null){
+                $subTasks = $task->subTask;
+    
+                if ($subTasks->count() > 0) {
+                    // Hitung rata-rata completion dari semua sub tasks
+                    $avgCompleteness = $subTasks->avg('completeness');
+                    $task->utilization = round($avgCompleteness, 2);
+                } else {
+                    $task->utilization = 0;
+                }
+            }else{
+                $task->utilization = round($task->completeness, 2);
             }
-
             return $task;
         });
-
+            
         // Hitung total % complete dari rata-rata semua tasks
-        $totalCompletion = $tasksWithUtilization->avg('utilization');
-        $totalCompletion = round($totalCompletion, 2);
+        $totalCompletion = round($tasksWithUtilization->avg('utilization'), 2);
 
         return view('performance_task', compact(
             'workPackage',
@@ -114,6 +116,16 @@ class PerformanceTaskController extends Controller
                 'name' => trim($request->sub_task_name),
                 'completeness' => 0.00 // Default completeness
             ]);
+
+            // Cek status semua subtask pada task ini
+            $allSubTasks = SubTask::where('task_id', $task->task_id)->get();
+            $allComplete = $allSubTasks->count() > 0 && $allSubTasks->every(function($st) {
+                return $st->completeness >= 100;
+            });
+
+            // Update status task
+            $task->status = $allComplete ? 'closed' : 'open';
+            $task->save();
 
             DB::commit();
 
@@ -338,8 +350,20 @@ class PerformanceTaskController extends Controller
                 'updated_at' => $subTask->updated_at ? $subTask->updated_at->format('Y-m-d H:i:s') : null
             ];
 
+            $task = $subTask->task;
+
             // Delete sub task
             $subTask->delete();
+
+            // Cek status semua subtask pada task ini
+            $allSubTasks = SubTask::where('task_id', $task->task_id)->get();
+            $allComplete = $allSubTasks->count() > 0 && $allSubTasks->every(function($st) {
+                return $st->completeness >= 100;
+            });
+
+            // Update status task
+            $task->status = $allComplete ? 'closed' : 'open';
+            $task->save();
 
             DB::commit();
 

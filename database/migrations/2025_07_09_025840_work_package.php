@@ -14,16 +14,17 @@ return new class extends Migration
         Schema::create('work_package', function (Blueprint $table) {
             $table->id('wp_id');
             $table->unsignedBigInteger('category_id');
-            $table->string('wp_number')->unique();
+            $table->string('wp_number',10)->unique();
             $table->string('name');
             $table->integer('volume_qty')->default(1);
-            $table->integer('duration'); // in days
+            $table->integer('duration')->nullable(); // in days
             $table->text('actual_scope_contract')->nullable();
             $table->text('deliverable')->nullable();
             // $table->decimal('completeness', 5, 2)->default(0.00);
             $table->timestamps();
 
-            $table->foreign('category_id')->references('category_id')->on('wp_category')->onDelete('set null');
+            // semula on delete set null
+            $table->foreign('category_id')->references('category_id')->on('wp_category')->onDelete('cascade');
         });
     }
 

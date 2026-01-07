@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('work_package_volume', function (Blueprint $table) {
             $table->id('volume_id');
             $table->unsignedBigInteger('wp_id');
+            $table->unsignedBigInteger('wo_id')->nullable();
             $table->integer('volume_number');
             $table->integer('execution_year')->nullable();
             // $table->decimal('completeness', 5, 2)->default(0.00);
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('wp_id')->references('wp_id')->on('work_package')->onDelete('cascade');
+            $table->foreign('wo_id')->references('wo_id')->on('work_order')->onDelete('set null');
         });
     }
 

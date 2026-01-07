@@ -3,12 +3,50 @@
 namespace App\View\Composers;
 
 use Illuminate\View\View;
+use App\Models\WorkOrder;
 use App\Models\WorkPackageVolume;
 
 class SidebarComposer
 {
     public function compose(View $view)
     {
+        $user = auth()->user();
+        $isKaryawan = $user && method_exists($user, 'hasRole') && $user->hasRole('karyawan');
+        $userId = $user->user_id ?? null;
+
+        $workOrdersQuery = WorkOrder::with([
+            'workPackageVolumes' => function ($query) use ($isKaryawan, $userId) {
+                $query->with('workPackage')
+                    ->whereNotNull('start_date')
+                    ->whereNotNull('end_date')
+                    ->whereNotNull('execution_year');
+                if ($isKaryawan && $userId) {
+                    // Hanya volume yang dikerjakan user (dari tabel work)
+                    $query->whereHas('work', function ($w) use ($userId) {
+                        $w->where('work.user_id', $userId);
+                    });
+                }
+                $query->orderBy('volume_number');
+            }
+        ])
+        ->whereHas('workPackageVolumes', function ($query) use ($isKaryawan, $userId) {
+            $query->whereNotNull('start_date')
+                ->whereNotNull('end_date')
+                ->whereNotNull('execution_year');
+            if ($isKaryawan && $userId) {
+                $query->whereHas('work', function ($w) use ($userId) {
+                    $w->where('work.user_id', $userId);
+                });
+            }
+        })
+        ->orderBy('wo_number');
+
+        $workOrdersByYear = $workOrdersQuery->get()
+            ->groupBy(function($workOrder) {
+                $firstVolume = $workOrder->workPackageVolumes->first();
+                return $firstVolume ? $firstVolume->execution_year : 'Unknown';
+            });
+
         $workPackagesByYear = WorkPackageVolume::with('workPackage')
             ->whereNotNull('start_date')
             ->whereNotNull('end_date')
@@ -17,6 +55,12 @@ class SidebarComposer
             ->orderBy('volume_number')
             ->get()
             ->groupBy('execution_year');
+
+        // Mendapatkan wo_id yang sedang aktif dari route
+        $currentWoId = null;
+        if (request()->routeIs('wo.content-list')) {
+            $currentWoId = request()->route('wo_id');
+        }
         
         // Mendapatkan volume_id yang sedang aktif dari route
         $currentVolumeId = null;
@@ -26,6 +70,8 @@ class SidebarComposer
 
         // Mendapatkan year yang sedang aktif untuk expand sidebar
         $activeYear = null;
+        $activeWoYear = null;
+
         if ($currentVolumeId) {
             foreach ($workPackagesByYear as $year => $volumes) {
                 foreach ($volumes as $volume) {
@@ -37,10 +83,24 @@ class SidebarComposer
             }
         }
 
+        if ($currentWoId) {
+            foreach ($workOrdersByYear as $year => $workOrders) {
+                foreach ($workOrders as $workOrder) {
+                    if ($workOrder->wo_id == $currentWoId) {
+                        $activeWoYear = $year;
+                        break 2;
+                    }
+                }
+            }
+        }
+
         $view->with([
             'workPackagesByYear' => $workPackagesByYear,
+            'workOrdersByYear' => $workOrdersByYear,
             'currentVolumeId' => $currentVolumeId,
-            'activeYear' => $activeYear
+            'currentWoId' => $currentWoId,
+            'activeYear' => $activeYear,
+            'activeWoYear' => $activeWoYear
         ]);
     }
 }
