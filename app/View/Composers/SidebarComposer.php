@@ -23,7 +23,7 @@ class SidebarComposer
                 if ($isKaryawan && $userId) {
                     // Hanya volume yang dikerjakan user (dari tabel work)
                     $query->whereHas('work', function ($w) use ($userId) {
-                        $w->where('work.user_id', $userId);
+                        $w->where('trs_work.user_id', $userId);
                     });
                 }
                 $query->orderBy('volumeNumber');
