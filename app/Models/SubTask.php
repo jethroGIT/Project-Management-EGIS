@@ -6,14 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class SubTask extends Model
 {
-    protected $table = 'sub_task';
+    protected $table = 'trs_subTask';
 
-    protected $primaryKey = 'sub_task_id';
+    protected $primaryKey = 'subTask_id';
+
+    public $timestamps = false;
 
     protected $fillable = [
         'task_id',
         'name',
         'completeness',
+        'trs_subTaskcol',
     ];
 
     public function task()

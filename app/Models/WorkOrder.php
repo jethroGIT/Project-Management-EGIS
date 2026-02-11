@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class WorkOrder extends Model
 {
-    protected $table = 'work_order';
+    protected $table = 'mst_workOrder';
 
-    protected $primaryKey = 'wo_id';
+    protected $primaryKey = 'workOrder_id';
 
     protected $fillable = [
-        'wo_number'
+        'workNumber_id',
     ];
 
     public function workPackageVolumes()
     {
-        return $this->hasMany(WorkPackageVolume::class, 'wo_id', 'wo_id');
+        return $this->hasMany(WorkPackageVolume::class, 'workOrder_id', 'workOrder_id');
     }
 }

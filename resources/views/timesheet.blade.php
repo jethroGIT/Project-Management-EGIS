@@ -15,7 +15,7 @@
                         <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                     </a>
                 @endif
-                <h2 class="my-3 mb-3">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
+                <h2 class="my-3 mb-3">WP {{ $workPackage->workPack_number }} {{ $workPackage->name }}</h2>
             </div>            
             <div class="d-flex align-items-center justify-content-end">
                 <div class="d-flex align-items-center">

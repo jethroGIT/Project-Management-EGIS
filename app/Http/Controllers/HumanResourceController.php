@@ -22,7 +22,7 @@ class HumanResourceController extends Controller
         // $volume = WorkPackageVolume::with(['workPackage', 'task'])->findOrFail($volume_id);
         // $workPackage = $volume->workPackage;
         // $humanResources = HumanResource::with('role')
-        //     ->where('wp_id', $workPackage->wp_id)
+        //     ->where('workPackage_id', $workPackage->workPackage_id)
         //     ->get();
         
         // return view('workpackage', compact('workPackage', 'volume', 'humanResources'));

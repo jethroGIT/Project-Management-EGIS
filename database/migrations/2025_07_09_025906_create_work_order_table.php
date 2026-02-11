@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('work_order', function (Blueprint $table) {
-            $table->id('wo_id');
-            $table->integer('wo_number')->unique();
+        Schema::create('mst_workOrder', function (Blueprint $table) {
+            $table->id('workOrder_id');
+            $table->integer('workNumber_id');
             $table->timestamps();
         });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('work_order');
+        Schema::dropIfExists('mst_workOrder');
     }
 };

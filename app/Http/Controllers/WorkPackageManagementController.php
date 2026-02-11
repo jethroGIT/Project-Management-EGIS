@@ -36,9 +36,9 @@ class WorkPackageManagementController extends Controller
                 'wpCategory',
                 'workPackageVolumes.work.user.roles',
                 'workPackageVolumes' => function($query) {
-                    $query->orderBy('volume_number', 'asc');
+                    $query->orderBy('volumeNumber', 'asc');
                 }
-            ])->orderBy('wp_number', 'asc')->get();
+            ])->orderBy('workPack_number', 'asc')->get();
 
             // Transform data untuk keperluan view
             $workPackagesData = $workPackages->map(function ($wp) {
@@ -66,22 +66,22 @@ class WorkPackageManagementController extends Controller
                 })->values();
 
                 return [
-                    'wp_id' => $wp->wp_id,
-                    'category_number' => $wp->wpCategory->category_number,
+                    'workPackage_id' => $wp->workPackage_id,
+                    'categoryNumber' => $wp->wpCategory->categoryNumber,
                     'category_name' => $wp->wpCategory->name ?? 'Tidak Berkategori',
-                    'wp_number' => $wp->wp_number,
+                    'workPack_number' => $wp->workPack_number,
                     'name' => $wp->name,
                     'volume_count' => $volumeCount,
-                    'volume_qty' => $wp->volume_qty,
+                    'volumeQTY' => $wp->volumeQTY,
                     'duration' => $wp->duration,
-                    'actual_scope_contract' => $wp->actual_scope_contract,
+                    'actualScope' => $wp->actualScope,
                     'deliverable' => $wp->deliverable,
                     'resource_names' => $uniqueResources->implode(', ') ?: 'Belum ada tenaga kerja'
                 ];
             });
 
             // Ambil semua kategori untuk filter
-            $categories = WpCategory::orderByRaw('CAST(category_number AS INTEGER) ASC')->get();
+            $categories = WpCategory::orderByRaw('CAST(categoryNumber AS SIGNED) ASC')->get();
 
             Log::info('Work Package Management data loaded successfully', [
                 'total_wp' => $workPackages->count(),
@@ -107,26 +107,26 @@ class WorkPackageManagementController extends Controller
     /**
      * Display the detailed view of a specific work package
      */
-    public function detail($wp_id) 
+    public function detail($workPackage_id) 
     {
         try {
             // Ambil work package dengan semua relasi yang dibutuhkan
             $workPackage = WorkPackage::with([
                 'wpCategory',
                 'workPackageVolumes' => function($query) {
-                    $query->orderBy('volume_number', 'asc');
+                    $query->orderBy('volumeNumber', 'asc');
                 },
                 'workPackageVolumes.work.user.roles',
                 'workPackageVolumes.workOrder',
                 'humanResources.role'
-            ])->findOrFail($wp_id);
+            ])->findOrFail($workPackage_id);
 
             // Volume untuk ditampilkan di card
             $volumesDisplay = $workPackage->workPackageVolumes->filter(function($volume) {
-                return $volume->wo_id !== null ||
-                        ($volume->start_date !== null &&
-                        $volume->end_date !== null &&
-                        $volume->execution_year !== null);
+                return $volume->workOrder_id !== null ||
+                        ($volume->startDate !== null &&
+                        $volume->endDate !== null &&
+                        $volume->executionYear !== null);
             });
 
             // Transform volume data untuk tampilan
@@ -141,31 +141,31 @@ class WorkPackageManagementController extends Controller
 
                 // Menangani tanggal null
                 $periodFormatted = "Belum tersedia";
-                if ($volume->start_date && $volume->end_date) {
-                    $periodFormatted = Carbon::parse($volume->start_date)->format('d M Y') . 
+                if ($volume->startDate && $volume->endDate) {
+                    $periodFormatted = Carbon::parse($volume->startDate)->format('d M Y') . 
                                         ' - ' .
-                                        Carbon::parse($volume->end_date)->format('d M Y');
+                                        Carbon::parse($volume->endDate)->format('d M Y');
                 }
 
                 // Mendapatkan nomor work order
                 $woNumber = null;
-                if ($volume->wo_id && $volume->workOrder) {
-                    $woNumber = $volume->workOrder->wo_number;
+                if ($volume->workOrder_id && $volume->workOrder) {
+                    $woNumber = $volume->workOrder->workNumber_id;
                 }
 
                 return [
                     'volume_id' => $volume->volume_id,
-                    'volume_number' => $volume->volume_number,
-                    'start_date' => $volume->start_date,
-                    'end_date' => $volume->end_date,
-                    'execution_year' => $volume->execution_year,
+                    'volumeNumber' => $volume->volumeNumber,
+                    'startDate' => $volume->startDate,
+                    'endDate' => $volume->endDate,
+                    'executionYear' => $volume->executionYear,
                     'period_formatted' => $periodFormatted,
                     'duration_days' => $workPackage->duration,
                     'resource_names' => $resourceNames->implode(', ') ?: 'Belum ada tenaga kerja',
                     'resource_count' => $resourceNames->count(),
-                    'wo_id' => $volume->wo_id,
-                    'wo_number' => $woNumber,
-                    'has_work_order' => !is_null($volume->wo_id)
+                    'workOrder_id' => $volume->workOrder_id,
+                    'workNumber_id' => $woNumber,
+                    'has_mst_workOrder' => !is_null($volume->workOrder_id)
                 ];
             });
 
@@ -183,7 +183,7 @@ class WorkPackageManagementController extends Controller
                         return [
                             'user_id' => $work->user->user_id,
                             'name' => $work->user->name,
-                            'volume_number' => $work->volume->volume_number ?? 'N/A'
+                            'volumeNumber' => $work->volume->volumeNumber ?? 'N/A'
                         ];
                     });
 
@@ -205,13 +205,13 @@ class WorkPackageManagementController extends Controller
             });
 
             // Hitung total volumes
-            $totalVolumesCount = WorkPackageVolume::where('wp_id', $wp_id)->count();
+            $totalVolumesCount = WorkPackageVolume::where('workPackage_id', $workPackage_id)->count();
             $volumesWithWorkOrderCount = $volumesData->count();
             $volumesWithoutWorkOrderCount = $totalVolumesCount - $volumesWithWorkOrderCount;
 
             Log::info('Work Package detail loaded successfully', [
-                'wp_id' => $wp_id,
-                'wp_number' => $workPackage->wp_number,
+                'workPackage_id' => $workPackage_id,
+                'workPack_number' => $workPackage->workPack_number,
                 'volumes_count' => $volumesData->count()
             ]);
 
@@ -225,14 +225,14 @@ class WorkPackageManagementController extends Controller
             ));
 
         } catch (ModelNotFoundException $e) {
-            Log::error('Work Package not found', ['wp_id' => $wp_id]);
+            Log::error('Work Package not found', ['workPackage_id' => $workPackage_id]);
 
             return redirect()->route('wp-management')
                 ->with('error', 'Work Package tidak ditemukan.');
 
         } catch (Exception $e) {
             Log::error('Error loading work package detail', [
-                'wp_id' => $wp_id,
+                'workPackage_id' => $workPackage_id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -259,11 +259,11 @@ class WorkPackageManagementController extends Controller
                 $query->where('category_id', $categoryId);
             }
 
-            $workPackages = $query->orderBy('wp_number', 'asc')->get();
+            $workPackages = $query->orderBy('workPack_number', 'asc')->get();
 
             return response()->json([
                 'success' => true,
-                'work_packages' => $workPackages
+                'trs_workPackages' => $workPackages
             ]);
 
         } catch (Exception $e) {
@@ -292,7 +292,7 @@ class WorkPackageManagementController extends Controller
             $category = WpCategory::findOrFail($categoryId);
 
             // Cek apakah category memiliki nomor category_field
-            if (!isset($category->category_number) || $category->category_number === null) {
+            if (!isset($category->categoryNumber) || $category->categoryNumber === null) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Kategori belum memiliki nomor kategori yang valid'
@@ -300,24 +300,24 @@ class WorkPackageManagementController extends Controller
             }
 
             // Ambil nomor WP terakhir dalam kategori ini
-            $lastWp = WorkPackage::where('wp_number', 'LIKE', $category->category_number . '.%')
-                ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) DESC')
+            $lastWp = WorkPackage::where('workPack_number', 'LIKE', $category->categoryNumber . '.%')
+                ->orderByRaw("CAST(SUBSTRING_INDEX(workPack_number, '.', -1) AS SIGNED) DESC")
                 ->first();
 
             if (!$lastWp) {
                 // Jika belum ada WP dalam kategori ini, mulai dari .1
-                $nextNumber = $category->category_number . '.1';
+                $nextNumber = $category->categoryNumber . '.1';
             } else {
                 // Parse nomor terakhir dan tambahkan 1
-                $lastNumber = explode('.', $lastWp->wp_number);
+                $lastNumber = explode('.', $lastWp->workPack_number);
                 $nextSequence = (int)end($lastNumber) + 1;
-                $nextNumber = $category->category_number . '.' . $nextSequence;
+                $nextNumber = $category->categoryNumber . '.' . $nextSequence;
             }
 
             return response()->json([
                 'success' => true,
-                'wp_number' => $nextNumber,
-                'category_number' => $category->category_number
+                'workPack_number' => $nextNumber,
+                'categoryNumber' => $category->categoryNumber
             ]);
 
         } catch (Exception $e) {
@@ -353,23 +353,23 @@ class WorkPackageManagementController extends Controller
             $category = WpCategory::findOrFail($categoryId);
 
             // Cek apakah category memiliki nomor category_field
-            if (!isset($category->category_number) || $category->category_number === null) {
+            if (!isset($category->categoryNumber) || $category->categoryNumber === null) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Kategori belum memiliki nomor kategori yang valid'
                 ], 400);
             }
 
-            $wpNumber = $category->category_number . '.' . $sequence;
+            $wpNumber = $category->categoryNumber . '.' . $sequence;
 
-            $isAvailable = !WorkPackage::where('wp_number', $wpNumber)->exists();
+            $isAvailable = !WorkPackage::where('workPack_number', $wpNumber)->exists();
 
-            $wpNumber = $category->category_number . '.' . $sequence;
+            $wpNumber = $category->categoryNumber . '.' . $sequence;
 
             return response()->json([
                 'success' => true,
                 'available' => $isAvailable,
-                'wp_number' => $wpNumber
+                'workPack_number' => $wpNumber
             ]);
 
         } catch (Exception $e) {
@@ -399,25 +399,25 @@ class WorkPackageManagementController extends Controller
             // Validate the request
             $validatedData = $request->validate([
                 // Step 1: Basic Work Package Data
-                'category_id' => 'required|exists:wp_category,category_id',
+                'category_id' => 'required|exists:trs_category,category_id',
                 'wp_sequence' => 'required|integer|min:1',
                 'name' => [
                     'required',
                     'string', 
                     'max:255',
-                    Rule::unique('work_package', 'name')
+                    Rule::unique('trs_workPackage', 'name')
                 ],
-                'actual_scope_contract' => 'nullable|string',
+                'actualScope' => 'nullable|string',
                 'deliverable' => 'nullable|string',
                 'duration' => 'required|integer|min:1',
-                'volume_qty' => 'required|integer|min:1',
+                'volumeQTY' => 'required|integer|min:1',
 
                 // Step 2: Resource Data
                 'role_assignments' => 'required|array|min:1',
-                'role_assignments.*.role_id' => 'required|exists:roles,id',
+                'role_assignments.*.role_id' => 'required|exists:mst_roles,role_id',
                 'role_assignments.*.jhk' => 'required|integer|min:1',
                 'role_assignments.*.users' => 'required|array|min:1',
-                'role_assignments.*.users.*.user_id' => 'required|exists:user,user_id',
+                'role_assignments.*.users.*.user_id' => 'required|exists:users,user_id',
 
                 // Step 3: Task Data
                 'tasks' => 'nullable|array',
@@ -427,14 +427,14 @@ class WorkPackageManagementController extends Controller
             ]);
 
             $duration = (int) $validatedData['duration'];
-            $volumeQty = (int) $validatedData['volume_qty'];
+            $volumeQty = (int) $validatedData['volumeQTY'];
 
             // Generate WP number berdasarkan kategori
             $category = WpCategory::findOrFail($validatedData['category_id']);
-            $wpNumber = $category->category_number . '.' . $validatedData['wp_sequence'];
+            $wpNumber = $category->categoryNumber . '.' . $validatedData['wp_sequence'];
 
             // Cek apakah WP number sudah ada
-            if (WorkPackage::where('wp_number', $wpNumber)->exists()) {
+            if (WorkPackage::where('workPack_number', $wpNumber)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => "Nomor Work Package {$wpNumber} sudah digunakan. Silakan pilih nomor lain."
@@ -480,11 +480,11 @@ class WorkPackageManagementController extends Controller
             // STEP 1: Create Work Package
             $workPackage = WorkPackage::create([
                 'category_id' => $validatedData['category_id'],
-                'wp_number' => $wpNumber,
+                'workPack_number' => $wpNumber,
                 'name' => $validatedData['name'],
-                'volume_qty' => $volumeQty,
+                'volumeQTY' => $volumeQty,
                 'duration' => $duration,
-                'actual_scope_contract' => $validatedData['actual_scope_contract'],
+                'actualScope' => $validatedData['actualScope'],
                 'deliverable' => $validatedData['deliverable'],
             ]);
 
@@ -514,7 +514,7 @@ class WorkPackageManagementController extends Controller
 
                 // Create Human Resource for this role 
                 HumanResource::create([
-                    'wp_id' => $workPackage->wp_id,
+                    'workPackage_id' => $workPackage->workPackage_id,
                     'role_id' => $roleId,
                     'jtk' => $jtk,
                     'jhk' => $jhk,
@@ -525,12 +525,12 @@ class WorkPackageManagementController extends Controller
             $volumes = [];
             for ($i = 1; $i <= $volumeQty; $i++) {
                 $volume = WorkPackageVolume::create([
-                    'wp_id' => $workPackage->wp_id,
-                    'volume_number' => $i,
-                    'start_date' => null,
-                    'end_date' => null,
-                    'execution_year' => null,
-                    'wo_id' => null,
+                    'workPackage_id' => $workPackage->workPackage_id,
+                    'volumeNumber' => $i,
+                    'startDate' => null,
+                    'endDate' => null,
+                    'executionYear' => null,
+                    'workOrder_id' => null,
                 ]);
 
                 $volumes[] = $volume;
@@ -569,8 +569,8 @@ class WorkPackageManagementController extends Controller
                         
                         Log::info('Created Work assignment:', [
                             'volume_id' => $volume->volume_id,
-                            'volume_number' => $volume->volume_number,
-                            'wp_id' => $workPackage->wp_id,
+                            'volumeNumber' => $volume->volumeNumber,
+                            'workPackage_id' => $workPackage->workPackage_id,
                             'user_id' => $userId,
                             'user_name' => $user->name,
                             'role_id' => $roleId,
@@ -626,17 +626,17 @@ class WorkPackageManagementController extends Controller
             }
 
             Log::info('Work Package created successfully', [
-                'wp_id' => $workPackage->wp_id,
-                'wp_number' => $workPackage->wp_number,
+                'workPackage_id' => $workPackage->workPackage_id,
+                'workPack_number' => $workPackage->workPack_number,
                 'name' => $workPackage->name,
-                'volumes_created' => $validatedData['volume_qty'],
+                'volumes_created' => $validatedData['volumeQTY'],
                 'tasks_count' => count($validatedData['tasks'] ?? [])
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Work Package berhasil dibuat dengan lengkap',
-                'work_package' => $workPackage->load(['wpCategory', 'workPackageVolumes']),
+                'trs_workPackage' => $workPackage->load(['wpCategory', 'workPackageVolumes']),
                 'summary' => [
                     'volumes_created' => $volumeQty,
                     'tasks_per_volume' => count($validatedData['tasks'] ?? []),
@@ -716,22 +716,22 @@ class WorkPackageManagementController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($wp_id)
+    public function edit($workPackage_id)
     {
         try {
             // Ambil work package dengan semua relasi yang dibutuhkan
             $workPackage = WorkPackage::with([
                 'wpCategory',
                 'workPackageVolumes' => function($query) {
-                    $query->orderBy('volume_number', 'asc');
+                    $query->orderBy('volumeNumber', 'asc');
                 },
                 'workPackageVolumes.work.user.roles',
                 'workPackageVolumes.workOrder',
                 'humanResources.role'
-            ])->findOrFail($wp_id);
+            ])->findOrFail($workPackage_id);
 
             // Ambil semua kategori untuk dropdown
-            $categories = WpCategory::orderByRaw('CAST(category_number AS INTEGER) ASC')->get();
+            $categories = WpCategory::orderByRaw('CAST(categoryNumber AS SIGNED) ASC')->get();
 
             // Ambil semua users dengan roles untuk resource management
             $users = User::with('roles')->orderBy('name', 'asc')->get();
@@ -740,14 +740,14 @@ class WorkPackageManagementController extends Controller
             // Transform volume data untuk edit form
             $volumesWithWorkOrder = $workPackage->workPackageVolumes()
                 ->where(function($query) {
-                    $query->whereNotNull('wo_id')
+                    $query->whereNotNull('workOrder_id')
                         ->orWhere(function($subQuery) {
-                            $subQuery->whereNotNull('start_date')
-                                    ->whereNotNull('end_date')
-                                    ->whereNotNull('execution_year');
+                            $subQuery->whereNotNull('startDate')
+                                    ->whereNotNull('endDate')
+                                    ->whereNotNull('executionYear');
                         });
                 })
-                ->orderBy('volume_number', 'asc')
+                ->orderBy('volumeNumber', 'asc')
                 ->get();
 
             $volumesData = $volumesWithWorkOrder->map(function ($volume) {
@@ -767,35 +767,35 @@ class WorkPackageManagementController extends Controller
 
                 // Menangani period_formatted
                 $periodFormatted = 'Belum tersedia';
-                if ($volume->start_date && $volume->end_date) {
-                    $periodFormatted = Carbon::parse($volume->start_date)->format('d M Y') . 
+                if ($volume->startDate && $volume->endDate) {
+                    $periodFormatted = Carbon::parse($volume->startDate)->format('d M Y') . 
                                     ' - ' .
-                                    Carbon::parse($volume->end_date)->format('d M Y');
+                                    Carbon::parse($volume->endDate)->format('d M Y');
                 }
 
                 // Mendapatkan nomor work order
                 $woNumber = null;
-                if ($volume->wo_id && $volume->workOrder) {
-                    $woNumber = $volume->workOrder->wo_number;
+                if ($volume->workOrder_id && $volume->workOrder) {
+                    $woNumber = $volume->workOrder->workNumber_id;
                 }
 
                 return [
                     'volume_id' => $volume->volume_id,
-                    'volume_number' => $volume->volume_number,
-                    'start_date' => $volume->start_date,
-                    'end_date' => $volume->end_date,
-                    'execution_year' => $volume->execution_year,
+                    'volumeNumber' => $volume->volumeNumber,
+                    'startDate' => $volume->startDate,
+                    'endDate' => $volume->endDate,
+                    'executionYear' => $volume->executionYear,
                     'period_formatted' => $periodFormatted,
                     'resources' => $resources,
-                    'wo_id' => $volume->wo_id,
-                    'wo_number' => $woNumber,
-                    'has_work_order' => true
+                    'workOrder_id' => $volume->workOrder_id,
+                    'workNumber_id' => $woNumber,
+                    'has_mst_workOrder' => true
                 ];
             });
 
             // Hitung remaining volumes
-            $totalVolumeQty = $workPackage->volume_qty;
-            $totalVolumesCreated = WorkPackageVolume::where('wp_id', $wp_id)->count();
+            $totalVolumeQty = $workPackage->volumeQTY;
+            $totalVolumesCreated = WorkPackageVolume::where('workPackage_id', $workPackage_id)->count();
             $volumesWithWorkOrderCount = $volumesData->count();
             $volumesWithoutWorkOrderCount = $totalVolumesCreated - $volumesWithWorkOrderCount;
             $remainingVolumeSlots = $totalVolumeQty - $volumesWithWorkOrderCount;
@@ -813,7 +813,7 @@ class WorkPackageManagementController extends Controller
                             'user_id' => $work->user->user_id,
                             'name' => $work->user->name,
                             'email' => $work->user->email,
-                            'volume_number' => $work->volume->volume_number ?? 'N/A'
+                            'volumeNumber' => $work->volume->volumeNumber ?? 'N/A'
                         ];
                     });
                     $assignedUsers = $assignedUsers->merge($volumeUsers);
@@ -832,8 +832,8 @@ class WorkPackageManagementController extends Controller
             });
 
             Log::info('Work Package edit form loaded', [
-                'wp_id' => $wp_id,
-                'wp_number' => $workPackage->wp_number
+                'workPackage_id' => $workPackage_id,
+                'workPack_number' => $workPackage->workPack_number
             ]);
 
             return view('workpackage_management_edit', compact(
@@ -850,14 +850,14 @@ class WorkPackageManagementController extends Controller
             ));
 
         } catch (ModelNotFoundException $e) {
-            Log::error('Work Package not found for edit', ['wp_id' => $wp_id]);
+            Log::error('Work Package not found for edit', ['workPackage_id' => $workPackage_id]);
 
             return redirect()->route('wp-management')
                 ->with('error', 'Work Package tidak ditemukan.');
 
         } catch (Exception $e) {
             Log::error('Error loading work package edit form', [
-                'wp_id' => $wp_id,
+                'workPackage_id' => $workPackage_id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -870,56 +870,56 @@ class WorkPackageManagementController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $wp_id)
+    public function update(Request $request, $workPackage_id)
     {
         try {
             DB::beginTransaction();
 
             Log::info('Updating work package', [
-                'wp_id' => $wp_id, 
+                'workPackage_id' => $workPackage_id, 
                 'data' => $request->all(),
                 'has_resources' => $request->has('resources'),
                 'resources_data' => $request->input('resources', []),
-                'has_work_order_assignments' => $request->has('work_order_assignments'),
+                'has_mst_workOrder_assignments' => $request->has('mst_workOrder_assignments'),
                 'request_method' => $request->method(),
                 'content_type' => $request->header('Content-Type')
             ]);
 
             // Temukan data work package
-            $workPackage = WorkPackage::findOrFail($wp_id);
+            $workPackage = WorkPackage::findOrFail($workPackage_id);
 
             // Validasi request
             $validatedData = $request->validate([
                 // Informasi umum work package
-                'category_id' => 'required|exists:wp_category,category_id',
+                'category_id' => 'required|exists:trs_category,category_id',
                 'wp_sequence' => 'required|integer|min:1',
                 'name' => [
                     'required',
                     'string',
                     'max:255',
-                    Rule::unique('work_package', 'name')->ignore($wp_id, 'wp_id')
+                    Rule::unique('trs_workPackage', 'name')->ignore($workPackage_id, 'workPackage_id')
                 ],
-                'actual_scope_contract' => 'nullable|string',
+                'actualScope' => 'nullable|string',
                 'deliverable' => 'nullable|string',
                 'duration' => 'required|integer|min:1',
 
                 // Volume data
                 // 'volumes' => 'nullable|array|min:0',
                 // 'volumes.*.volume_id' => 'required_with:volumes|integer',
-                // 'volumes.*.volume_number' => 'required_with:volumes|integer|min:1',
+                // 'volumes.*.volumeNumber' => 'required_with:volumes|integer|min:1',
 
                 // Deleted volumes
                 'deleted_volumes' => 'nullable|array',
-                'deleted_volumes.*' => 'exists:work_package_volume,volume_id',
+                'deleted_volumes.*' => 'exists:trs_workPackVolume,volume_id',
 
                 // Resource data
                 'resources' => 'required|array|min:1',
                 'resources.*.hr_id' => 'nullable',
-                'resources.*.role_id' => 'required|exists:roles,id',
+                'resources.*.role_id' => 'required|exists:mst_roles,role_id',
                 'resources.*.jtk' => 'required|integer|min:1',
                 'resources.*.jhk' => 'required|integer|min:1',
                 'resources.*.users' => 'nullable|array',
-                'resources.*.users.*.user_id' => 'required_with:resources.*.users|exists:user,user_id',
+                'resources.*.users.*.user_id' => 'required_with:resources.*.users|exists:users,user_id',
 
                 // Volume changes validation
                 'volume_changes' => 'nullable|string',
@@ -931,9 +931,9 @@ class WorkPackageManagementController extends Controller
             // CHECK DATA UPDATE CHANGES
             // Ambil original data untuk perbandingan
             $originalCategoryId = $workPackage->category_id;
-            $originalWpNumber = $workPackage->wp_number;
+            $originalWpNumber = $workPackage->workPack_number;
             $originalName = trim($workPackage->name);
-            $originalActualScope = trim($workPackage->actual_scope_contract ?? '');
+            $originalActualScope = trim($workPackage->actualScope ?? '');
             $originalDeliverable = trim($workPackage->deliverable ?? '');
             $originalDuration = (int)$workPackage->duration;
             
@@ -967,11 +967,11 @@ class WorkPackageManagementController extends Controller
                 ->toArray();
 
             $category = WpCategory::findOrFail($validatedData['category_id']);
-            $newWpNumber = $category->category_number . '.' . $validatedData['wp_sequence'];
+            $newWpNumber = $category->categoryNumber . '.' . $validatedData['wp_sequence'];
 
             $newCategoryId = (int)$validatedData['category_id'];
             $newName = trim($validatedData['name']);
-            $newActualScope = trim($validatedData['actual_scope_contract'] ?? '');
+            $newActualScope = trim($validatedData['actualScope'] ?? '');
             $newDeliverable = trim($validatedData['deliverable'] ?? '');
             $newDuration = (int)$validatedData['duration'];
 
@@ -1042,11 +1042,11 @@ class WorkPackageManagementController extends Controller
 
             // Log Perbandingan Perubahan
             Log::info('Final change detection result', [
-                'wp_id' => $wp_id,
+                'workPackage_id' => $workPackage_id,
                 'has_changes' => $hasChanges,
                 'detailed_changes' => [
                     'category_changed' => $categoryChanged,
-                    'wp_number_changed' => $wpNumberChanged,
+                    'workPack_number_changed' => $wpNumberChanged,
                     'name_changed' => $nameChanged,
                     'actual_scope_changed' => $actualScopeChanged,
                     'deliverable_changed' => $deliverableChanged,
@@ -1065,7 +1065,7 @@ class WorkPackageManagementController extends Controller
                     'no_changes' => true,
                     'message' => 'Tidak ada perubahan data yang terdeteksi.',
                     'current_data' => [
-                        'wp_number' => $workPackage->wp_number,
+                        'workPack_number' => $workPackage->workPack_number,
                         'name' => $workPackage->name,
                         'category' => $workPackage->wpCategory->name ?? 'Unknown',
                         'duration' => $workPackage->duration . ' hari',
@@ -1078,11 +1078,11 @@ class WorkPackageManagementController extends Controller
             // UPDATE OPERATION
             // Step 0: Update WP Number if category or sequence changed
             $category = WpCategory::findOrFail($validatedData['category_id']);
-            $newWpNumber = $category->category_number . '.' . $validatedData['wp_sequence'];
+            $newWpNumber = $category->categoryNumber . '.' . $validatedData['wp_sequence'];
 
             // Cek jika nomor WP berubah dan nomor baru tersedia
-            if ($newWpNumber !== $workPackage->wp_number) {
-                if (WorkPackage::where('wp_number', $newWpNumber)->where('wp_id', '!=', $wp_id)->exists()) {
+            if ($newWpNumber !== $workPackage->workPack_number) {
+                if (WorkPackage::where('workPack_number', $newWpNumber)->where('workPackage_id', '!=', $workPackage_id)->exists()) {
                     return response()->json([
                         'success' => false,
                         'message' => "Nomor Work Package {$newWpNumber} sudah digunakan. Silahkan pilih nomor lain."
@@ -1090,27 +1090,27 @@ class WorkPackageManagementController extends Controller
                 }
 
                 Log::info('WP Number changed', [
-                    'old_wp_number' => $workPackage->wp_number,
-                    'new_wp_number' => $newWpNumber
+                    'old_workPack_number' => $workPackage->workPack_number,
+                    'new_workPack_number' => $newWpNumber
                 ]);
             }
 
             // Step 1: Update informasi umum work package
-            $currentVolumeCount = WorkPackageVolume::where('wp_id', $wp_id)->count();
+            $currentVolumeCount = WorkPackageVolume::where('workPackage_id', $workPackage_id)->count();
 
             $workPackage->update([
                 'category_id' => $validatedData['category_id'],
-                'wp_number' => $newWpNumber,
+                'workPack_number' => $newWpNumber,
                 'name' => $validatedData['name'],
                 'duration' => $validatedData['duration'],
-                'actual_scope_contract' => $validatedData['actual_scope_contract'],
+                'actualScope' => $validatedData['actualScope'],
                 'deliverable' => $validatedData['deliverable'],
-                'volume_qty' => $currentVolumeCount
+                'volumeQTY' => $currentVolumeCount
             ]);
 
             // Step 2: Update volume data
             if ($hasVolumeChanges && $volumeChanges) {
-                $this->processVolumeChanges($volumeChanges, $wp_id);
+                $this->processVolumeChanges($volumeChanges, $workPackage_id);
             }
 
             // Step 3: Update human resources
@@ -1118,14 +1118,14 @@ class WorkPackageManagementController extends Controller
             $newRoleIds = collect($validatedData['resources'])->pluck('role_id')->unique()->toArray();
         
             // Get existing role IDs from current Human Resources
-            $existingRoleIds = HumanResource::where('wp_id', $wp_id)->pluck('role_id')->toArray();
+            $existingRoleIds = HumanResource::where('workPackage_id', $workPackage_id)->pluck('role_id')->toArray();
             
             // Find roles that are being removed
             $removedRoleIds = array_diff($existingRoleIds, $newRoleIds);
 
             // Remove Work assignments for users with removed roles from all volumes
             if (!empty($removedRoleIds)) {
-                $volumeIds = WorkPackageVolume::where('wp_id', $wp_id)->pluck('volume_id');
+                $volumeIds = WorkPackageVolume::where('workPackage_id', $workPackage_id)->pluck('volume_id');
 
                 // Delete Work assignments for removed roles
                 $deletedWorkCount = Work::whereIn('volume_id', $volumeIds)
@@ -1143,10 +1143,10 @@ class WorkPackageManagementController extends Controller
             }
 
             // Delete existing human resources
-            HumanResource::where('wp_id', $wp_id)->delete();
+            HumanResource::where('workPackage_id', $workPackage_id)->delete();
 
             // Get all volume IDs for this work package
-            $volumeIds = WorkPackageVolume::where('wp_id', $wp_id)->pluck('volume_id');
+            $volumeIds = WorkPackageVolume::where('workPackage_id', $workPackage_id)->pluck('volume_id');
 
             // Create new human resources and update work assignments
             foreach ($validatedData['resources'] as $resourceData) {
@@ -1157,7 +1157,7 @@ class WorkPackageManagementController extends Controller
 
                 // Create Human Resource
                 $humanResource = HumanResource::create([
-                    'wp_id' => $wp_id,
+                    'workPackage_id' => $workPackage_id,
                     'role_id' => $roleId,
                     'jtk' => $jtk,
                     'jhk' => $jhk,
@@ -1197,17 +1197,17 @@ class WorkPackageManagementController extends Controller
             DB::commit();
 
             Log::info('Work Package updated successfully', [
-                'wp_id' => $wp_id,
-                'wp_number' => $workPackage->wp_number,
+                'workPackage_id' => $workPackage_id,
+                'workPack_number' => $workPackage->workPack_number,
                 'name' => $workPackage->name
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Work Package berhasil diperbarui',
-                'redirect_url' => route('wp-management.detail', $wp_id),
+                'redirect_url' => route('wp-management.detail', $workPackage_id),
                 'updated_data' => [
-                    'wp_number' => $workPackage->wp_number,
+                    'workPack_number' => $workPackage->workPack_number,
                     'name' => $workPackage->name,
                     'category' => $category->name,
                     'duration' => $workPackage->duration,
@@ -1234,7 +1234,7 @@ class WorkPackageManagementController extends Controller
             DB::rollback();
 
             Log::error('Error updating work package', [
-                'wp_id' => $wp_id,
+                'workPackage_id' => $workPackage_id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -1266,7 +1266,7 @@ class WorkPackageManagementController extends Controller
 
             // Exclude current work package ID saat edit
             if ($excludeId) {
-                $query->where('wp_id', '!=', $excludeId);
+                $query->where('workPackage_id', '!=', $excludeId);
             }
 
             $exists = $query->exists();
@@ -1295,7 +1295,7 @@ class WorkPackageManagementController extends Controller
     /**
      * Process volume changes
      */
-    private function processVolumeChanges($volumeChanges, $wp_id) 
+    private function processVolumeChanges($volumeChanges, $workPackage_id) 
     {
         try {
             // Process removed volumes
@@ -1303,12 +1303,12 @@ class WorkPackageManagementController extends Controller
                 foreach ($volumeChanges['removed_volumes'] as $volumeId) {
                     $volume = WorkPackageVolume::find($volumeId);
 
-                    if ($volume && $volume->wp_id == $wp_id) {
+                    if ($volume && $volume->workPackage_id == $workPackage_id) {
                         $volume->update([
-                            'wo_id' => null,
-                            'start_date' => null,
-                            'end_date' => null,
-                            'execution_year' => null
+                            'workOrder_id' => null,
+                            'startDate' => null,
+                            'endDate' => null,
+                            'executionYear' => null
                         ]);
                     }
                 }
@@ -1317,15 +1317,15 @@ class WorkPackageManagementController extends Controller
             // Process new volumes
             if (!empty($volumeChanges['new_volumes'])) {
                 foreach ($volumeChanges['new_volumes'] as $newVolumeData) {
-                    $volume = WorkPackageVolume::where('wp_id', $wp_id)
-                        ->where('volume_number', $newVolumeData['volume_number'])
+                    $volume = WorkPackageVolume::where('workPackage_id', $workPackage_id)
+                        ->where('volumeNumber', $newVolumeData['volumeNumber'])
                         ->first();
                     
                     if ($volume) {
                         $volume->update([
-                            'start_date' => $newVolumeData['start_date'],
-                            'end_date' => $newVolumeData['end_date'],
-                            'execution_year' => $newVolumeData['execution_year']
+                            'startDate' => $newVolumeData['startDate'],
+                            'endDate' => $newVolumeData['endDate'],
+                            'executionYear' => $newVolumeData['executionYear']
                         ]);
                     }
                 }
@@ -1333,7 +1333,7 @@ class WorkPackageManagementController extends Controller
 
         } catch (Exception $e) {
             Log::error('Error processing volume changes', [
-                'wp_id' => $wp_id,
+                'workPackage_id' => $workPackage_id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -1347,7 +1347,7 @@ class WorkPackageManagementController extends Controller
     public function checkRoleAssignments(Request $request)
     {
         try {
-            $wpId = $request->input('wp_id');
+            $wpId = $request->input('workPackage_id');
             $roleId = $request->input('role_id');
 
             // Validate input
@@ -1362,7 +1362,7 @@ class WorkPackageManagementController extends Controller
             $workPackage = WorkPackage::findOrFail($wpId);
 
             // Get all volume IDs for this work package
-            $volumeIds = WorkPackageVolume::where('wp_id', $wpId)->pluck('volume_id');
+            $volumeIds = WorkPackageVolume::where('workPackage_id', $wpId)->pluck('volume_id');
 
             if ($volumeIds->isEmpty()) {
                 return response()->json([
@@ -1413,7 +1413,7 @@ class WorkPackageManagementController extends Controller
                     'volumes' => $assignments->map(function($assignment) {
                         return [
                             'volume_id' => $assignment->volume_id,
-                            'volume_number' => $assignment->volume->volume_number ?? 'Unknown'
+                            'volumeNumber' => $assignment->volume->volumeNumber ?? 'Unknown'
                         ];
                     })->unique('volume_id')->values()->toArray()
                 ];
@@ -1446,7 +1446,7 @@ class WorkPackageManagementController extends Controller
 
         } catch (ModelNotFoundException $e) {
             Log::error('Work Package not found during role assignment check', [
-                'wp_id' => $request->input('wp_id'),
+                'workPackage_id' => $request->input('workPackage_id'),
                 'error' => $e->getMessage()
             ]);
 
@@ -1457,7 +1457,7 @@ class WorkPackageManagementController extends Controller
 
         } catch (Exception $e) {
             Log::error('Error checking role assignments', [
-                'wp_id' => $request->input('wp_id'),
+                'workPackage_id' => $request->input('workPackage_id'),
                 'role_id' => $request->input('role_id'),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -1473,13 +1473,13 @@ class WorkPackageManagementController extends Controller
     /**
      * Check work package associations before deletion
      */
-    public function checkWorkPackageAssociations($wp_id) 
+    public function checkWorkPackageAssociations($workPackage_id) 
     {
         try {
-            $workPackage = WorkPackage::findOrFail($wp_id);
+            $workPackage = WorkPackage::findOrFail($workPackage_id);
 
             // Mendapatkan semua volumes untuk work package ini
-            $volumes = WorkPackageVolume::where('wp_id', $wp_id)->get();
+            $volumes = WorkPackageVolume::where('workPackage_id', $workPackage_id)->get();
             $volumeIds = $volumes->pluck('volume_id');
 
             // Cek data asosiasi di seluruh volume
@@ -1490,7 +1490,7 @@ class WorkPackageManagementController extends Controller
             })->count();
             $workAssignmentsCount = Work::whereIn('volume_id', $volumeIds)->count();
             $timesheetsCount = Timesheet::whereIn('volume_id', $volumeIds)->count();
-            $humanResourcesCount = HumanResource::where('wp_id', $wp_id)->count();
+            $humanResourcesCount = HumanResource::where('workPackage_id', $workPackage_id)->count();
 
             $hasAssociations = $volumesCount > 0 || $tasksCount > 0 || $subtasksCount > 0 ||
                                 $workAssignmentsCount > 0 || $timesheetsCount > 0 || $humanResourcesCount > 0;
@@ -1516,7 +1516,7 @@ class WorkPackageManagementController extends Controller
 
         } catch (Exception $e) {
             Log::error('Error checking work package associations', [
-                'wp_id' => $wp_id,
+                'workPackage_id' => $workPackage_id,
                 'error' => $e->getMessage()
             ]);
 
@@ -1530,22 +1530,22 @@ class WorkPackageManagementController extends Controller
     /**
      * Force delete the specified work package with all associated data
      */
-    public function forceDeleteWorkPackage(Request $request, $wp_id)
+    public function forceDeleteWorkPackage(Request $request, $workPackage_id)
     {
         try {
             DB::beginTransaction();
 
-            $workPackage = WorkPackage::with(['wpCategory'])->findOrFail($wp_id);
+            $workPackage = WorkPackage::with(['wpCategory'])->findOrFail($workPackage_id);
 
             Log::info('Force deleting work package with associations', [
-                'wp_id' => $wp_id,
-                'wp_number' => $workPackage->wp_number,
+                'workPackage_id' => $workPackage_id,
+                'workPack_number' => $workPackage->workPack_number,
                 'wp_name' => $workPackage->name,
                 'force' => $request->input('force', false)
             ]);
 
             // Mendapatkan seluruh volume dari work package ini
-            $volumes = WorkPackageVolume::where('wp_id', $wp_id)->get();
+            $volumes = WorkPackageVolume::where('workPackage_id', $workPackage_id)->get();
             $volumeIds = $volumes->pluck('volume_id');
 
             // Hitung asosiasi sebelum melakukan penghapusan
@@ -1556,7 +1556,7 @@ class WorkPackageManagementController extends Controller
             })->count();
             $workAssignmentsCount = Work::whereIn('volume_id', $volumeIds)->count();
             $timesheetsCount = Timesheet::whereIn('volume_id', $volumeIds)->count();
-            $humanResourcesCount = HumanResource::where('wp_id', $wp_id)->count();
+            $humanResourcesCount = HumanResource::where('workPackage_id', $workPackage_id)->count();
 
             // Hapus semua sub tasks dari suatu task pada semua volume
             if ($subtasksCount > 0) {
@@ -1564,7 +1564,7 @@ class WorkPackageManagementController extends Controller
                 SubTask::whereIn('task_id', $taskIds)->delete();
 
                 Log::info('Deleted sub tasks', [
-                    'wp_id' => $wp_id,
+                    'workPackage_id' => $workPackage_id,
                     'subtasks_deleted' => $subtasksCount
                 ]);
             }
@@ -1574,7 +1574,7 @@ class WorkPackageManagementController extends Controller
                 Task::whereIn('volume_id', $volumeIds)->delete();
 
                 Log::info('Deleted tasks', [
-                    'wp_id' => $wp_id,
+                    'workPackage_id' => $workPackage_id,
                     'tasks_deleted' => $tasksCount
                 ]);
             }
@@ -1584,7 +1584,7 @@ class WorkPackageManagementController extends Controller
                 Timesheet::whereIn('volume_id', $volumeIds)->delete();
 
                 Log::info('Deleted timesheets', [
-                    'wp_id' => $wp_id,
+                    'workPackage_id' => $workPackage_id,
                     'timesheets_deleted' => $timesheetsCount
                 ]);
             }
@@ -1594,41 +1594,41 @@ class WorkPackageManagementController extends Controller
                 Work::whereIn('volume_id', $volumeIds)->delete();
 
                 Log::info('Deleted work assignments', [
-                    'wp_id' => $wp_id,
+                    'workPackage_id' => $workPackage_id,
                     'work_assignments_deleted' => $workAssignmentsCount
                 ]);
             }
 
             // Hapus semua human resources untuk work package ini
             if ($humanResourcesCount > 0) {
-                HumanResource::where('wp_id', $wp_id)->delete();
+                HumanResource::where('workPackage_id', $workPackage_id)->delete();
 
                 Log::info('Deleted human resources', [
-                    'wp_id' => $wp_id,
+                    'workPackage_id' => $workPackage_id,
                     'human_resources_deleted' => $humanResourcesCount
                 ]);
             }
 
             // Hapus semua volume untuk work package ini
             if ($volumesCount > 0) {
-                WorkPackageVolume::where('wp_id', $wp_id)->delete();
+                WorkPackageVolume::where('workPackage_id', $workPackage_id)->delete();
 
                 Log::info('Deleted volumes', [
-                    'wp_id' => $wp_id,
+                    'workPackage_id' => $workPackage_id,
                     'volumes_deleted' => $volumesCount
                 ]);
             }
 
             // Hapus work package itu sendiri
             $workPackageData = [
-                'wp_id' => $workPackage->wp_id,
-                'wp_number' => $workPackage->wp_number,
+                'workPackage_id' => $workPackage->workPackage_id,
+                'workPack_number' => $workPackage->workPack_number,
                 'name' => $workPackage->name,
                 'category_id' => $workPackage->category_id,
                 'category_name' => $workPackage->wpCategory->name ?? 'Unknown',
                 'duration' => $workPackage->duration,
-                'volume_qty' => $workPackage->volume_qty,
-                'actual_scope_contract' => $workPackage->actual_scope_contract,
+                'volumeQTY' => $workPackage->volumeQTY,
+                'actualScope' => $workPackage->actualScope,
                 'deliverable' => $workPackage->deliverable
             ];
 
@@ -1637,7 +1637,7 @@ class WorkPackageManagementController extends Controller
             DB::commit();
 
             Log::info('Work Package force deleted successfully', [
-                'deleted_work_package' => $workPackageData,
+                'deleted_trs_workPackage' => $workPackageData,
                 'associated_data_deleted' => [
                     'volumes' => $volumesCount,
                     'tasks' => $tasksCount,
@@ -1654,7 +1654,7 @@ class WorkPackageManagementController extends Controller
                 'success' => true,
                 'message' => 'Work Package dan semua data terkait berhasil dihapus',
                 'deleted_data' => [
-                    'work_package' => $workPackageData,
+                    'trs_workPackage' => $workPackageData,
                     'volumes_deleted' => $volumesCount,
                     'tasks_deleted' => $tasksCount,
                     'subtasks_deleted' => $subtasksCount,
@@ -1668,7 +1668,7 @@ class WorkPackageManagementController extends Controller
             DB::rollback();
 
             Log::warning('Work Package not found for deletion', [
-                'wp_id' => $wp_id
+                'workPackage_id' => $workPackage_id
             ]);
 
             return response()->json([
@@ -1680,7 +1680,7 @@ class WorkPackageManagementController extends Controller
             DB::rollback();
 
             Log::error('Error force deleting work package', [
-                'wp_id' => $wp_id,
+                'workPackage_id' => $workPackage_id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

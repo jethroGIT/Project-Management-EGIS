@@ -31,7 +31,7 @@ class PerformanceFinanceController extends Controller
         $workPackage = $volume->workPackage;
 
         $humanResources = HumanResource::with('role')
-            ->where('wp_id', $workPackage->wp_id)
+            ->where('workPackage_id', $workPackage->workPackage_id)
             ->orderBy('hresource_id')
             ->get();
 
@@ -73,7 +73,7 @@ class PerformanceFinanceController extends Controller
         $costsPerRole = $humanResources->map(function ($hResource) use ($mandaysPerRole) {
             $roleId = $hResource->role_id;
             $roleName = optional($hResource->role)->name ?? 'Unknown Role';
-            $resourceCost = optional($hResource->role)->resource_cost ?? 0;
+            $resourceCost = optional($hResource->role)->resourceCost ?? 0;
 
             $timesheetMandays = $mandaysPerRole[$roleId] ?? 0;
 
@@ -86,7 +86,7 @@ class PerformanceFinanceController extends Controller
                 'role_name' => $roleName,
                 'jtk' => $hResource->jtk,
                 'jhk' => $hResource->jhk,
-                'resource_cost' => $resourceCost,
+                'resourceCost' => $resourceCost,
                 'timesheet_count' => $timesheetMandays,
                 'by_yoy' => $byYoyCost,
                 'realization_cost' => $realizationCost,
@@ -148,16 +148,16 @@ class PerformanceFinanceController extends Controller
     {
         // Validasi input
         $validated = $request->validate([
-            'resource_cost' => 'required|array',
-            'resource_cost.*' => 'numeric|min:0',
+            'resourceCost' => 'required|array',
+            'resourceCost.*' => 'numeric|min:0',
         ]);
 
         $updated = [];
 
         try {
-            foreach ($validated['resource_cost'] as $role_id => $resource_cost) {
+            foreach ($validated['resourceCost'] as $role_id => $resourceCost) {
                 $role = Role::findOrFail($role_id);
-                $role->update(['resource_cost' => $resource_cost]);
+                $role->update(['resourceCost' => $resourceCost]);
                 $updated[$role_id] = $role;
             }
             return response()->json([

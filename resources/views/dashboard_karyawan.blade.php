@@ -125,30 +125,30 @@
                                         <div class="fw-semibold fs-7 mb-2 mt-2 d-inline-block status-timesheet text-white rounded-pill px-2
                                             {{ $isBelumIsi ? 'bg-danger' : 
                                             ($isMandaysCukup ? 'bg-warning' : 
-                                            ($isPeriodeMelewati ? 'bg-info' : 'bg-primary')) }}" id="status-timesheet-{{$wp->wp_id}}">
+                                            ($isPeriodeMelewati ? 'bg-info' : 'bg-primary')) }}" id="status-timesheet-{{$wp->workPackage_id}}">
                                                 {{$wp->timesheetStatus}}
                                         </div>
                                         <div class="text-gray-800 fw-semibold fs-6 mt-1">
-                                            <span class="badge badge-light text-dark">WO {{$wp->wo_number ?? 0}}</span> WP {{$wp->wp_number}} {{$wp->name}}
+                                            <span class="badge badge-light text-dark">WO {{$wp->workNumber_id ?? 0}}</span> WP {{$wp->workPack_number}} {{$wp->name}}
                                         </div>
                                         <div class="text-gray-700 fw-semibold fs-7 mt-1 mb-2">
                                             @if($wp->activeVolume)
-                                                {{ \Carbon\Carbon::parse($wp->activeVolume->start_date)->translatedFormat('d F Y') }}
+                                                {{ \Carbon\Carbon::parse($wp->activeVolume->startDate)->translatedFormat('d F Y') }}
                                                 -
-                                                {{ \Carbon\Carbon::parse($wp->activeVolume->end_date)->translatedFormat('d F Y') }}
+                                                {{ \Carbon\Carbon::parse($wp->activeVolume->endDate)->translatedFormat('d F Y') }}
                                             @elseif($isPeriodeMelewati)
                                                 @php
-                                                    // Ambil volume yang periodenya sudah lewat dengan end_date terbaru
+                                                    // Ambil volume yang periodenya sudah lewat dengan endDate terbaru
                                                     $expiredVolume = $wp->workPackageVolumes
                                                         ->filter(function($v) use ($today) {
-                                                            return $v->end_date && $v->end_date < now()->toDateString();
+                                                            return $v->endDate && $v->endDate < now()->toDateString();
                                                         })
-                                                        ->sortByDesc('end_date')
+                                                        ->sortByDesc('endDate')
                                                         ->first();
                                                 @endphp
-                                                {{ \Carbon\Carbon::parse($expiredVolume->start_date)->translatedFormat('d F Y') }}
+                                                {{ \Carbon\Carbon::parse($expiredVolume->startDate)->translatedFormat('d F Y') }}
                                                 -
-                                                {{ \Carbon\Carbon::parse($expiredVolume->end_date)->translatedFormat('d F Y') }}
+                                                {{ \Carbon\Carbon::parse($expiredVolume->endDate)->translatedFormat('d F Y') }}
                                             @else
                                                 <span class="text-muted">Tidak ada periode aktif</span>
                                             @endif
@@ -167,7 +167,7 @@
                                         @elseif($isPeriodeMelewati)
                                             <!-- Periode melewati kontrak, ambil volume terakhir -->
                                             @php
-                                                $lastVolume = $wp->workPackageVolumes->sortByDesc('end_date')->first();
+                                                $lastVolume = $wp->workPackageVolumes->sortByDesc('endDate')->first();
                                             @endphp
                                             @if($lastVolume)
                                                 <button class="btn btn-secondary btn-sm d-flex align-items-center p-2 ms-1" 
@@ -215,7 +215,7 @@
                                     <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
                                 </svg>
                             </span>
-                            <select name="execution_year"
+                            <select name="executionYear"
                                     id="tahunFilterPeriod"
                                     class="form-select"
                             >
@@ -433,7 +433,7 @@
     // Fungsi untuk memperbarui status timesheet di UI
     function updateStatusTimesheetUI(data) {
         data.workPackagesActive.forEach(function(wp) {
-            const el = document.getElementById('status-timesheet-' + wp.wp_id);
+            const el = document.getElementById('status-timesheet-' + wp.workPackage_id);
             if (el) {
                 el.textContent = wp.timesheetStatus;
                 const wrapper = el.closest('.d-flex.align-items-center.mb-6.rounded.px-0');

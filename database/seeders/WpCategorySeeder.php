@@ -16,57 +16,57 @@ class WpCategorySeeder extends Seeder
         $categories = [
             [
                 'project_id' => 1,
-                'category_number' => '1',
+                'categoryNumber' => '1',
                 'name' => 'Management of Information Security Risk - Company Business Development'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '2',
+                'categoryNumber' => '2',
                 'name' => 'Management of Information Security Compliance - Business Regulations'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '3',
+                'categoryNumber' => '3',
                 'name' => 'Management of Human Security Risk Programs'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '4',
+                'categoryNumber' => '4',
                 'name' => 'Management of Information Security Risk - IT/OT'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '5',
+                'categoryNumber' => '5',
                 'name' => 'Management of Enterprise Security Architecture'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '6',
+                'categoryNumber' => '6',
                 'name' => 'Management of Information Security Management System (ISMS)'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '7',
+                'categoryNumber' => '7',
                 'name' => 'Management of Information Security Compliance'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '8',
+                'categoryNumber' => '8',
                 'name' => 'Management of Privacy and Protection of Personal Identifiable Information (PII)'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '9',
+                'categoryNumber' => '9',
                 'name' => 'Management of Security Initiative Technical Assessment & Engineering Design -  IT/ OT'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '10',
+                'categoryNumber' => '10',
                 'name' => 'Management of Information Security Governance'
             ],
             [
                 'project_id' => 1,
-                'category_number' => '11',
+                'categoryNumber' => '11',
                 'name' => 'Information Security Advisory & Consultancy Services'
             ],
         ];

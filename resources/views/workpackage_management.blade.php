@@ -38,8 +38,8 @@
                                     @if(isset($categories) && $categories->count() > 0)
                                         @foreach($categories as $category)
                                             <option value="{{ $category->category_id }}">
-                                                @if(isset($category->category_number))
-                                                    {{ $category->category_number }}.
+                                                @if(isset($category->categoryNumber))
+                                                    {{ $category->categoryNumber }}.
                                                 @endif
                                                 {{ $category->name }}
                                             </option>
@@ -107,12 +107,12 @@
                         @if(isset($workPackagesData) && $workPackagesData->count() > 0)
                             @foreach($workPackagesData as $wp)
                                 <tr class="task-row">
-                                    <td>{{ $wp['category_number'] }}. {{ $wp['category_name'] }}</td>
-                                    <td>{{ $wp['wp_number'] }}</td>
+                                    <td>{{ $wp['categoryNumber'] }}. {{ $wp['category_name'] }}</td>
+                                    <td>{{ $wp['workPack_number'] }}</td>
                                     <td>{{ $wp['name'] }}</td>
-                                    <td class="text-center">{{ $wp['volume_qty'] }}</td>
+                                    <td class="text-center">{{ $wp['volumeQTY'] }}</td>
                                     <td class="text-center">{{ $wp['duration'] }} hari</td>
-                                    <td>{{ $wp['actual_scope_contract'] ?? 'Belum ada actual scope' }}</td>
+                                    <td>{{ $wp['actualScope'] ?? 'Belum ada actual scope' }}</td>
                                     <td>
                                         @if($wp['deliverable'])
                                             <!-- {{ $wp['deliverable'] }} -->
@@ -131,20 +131,20 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editWorkPackage({{ $wp['wp_id'] }})">
+                                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="editWorkPackage({{ $wp['workPackage_id'] }})">
                                                         <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>
                                                         Edit
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteWorkPackage({{ $wp['wp_id'] }})">
+                                                    <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="deleteWorkPackage({{ $wp['workPackage_id'] }})">
                                                         <i class="bi bi-trash me-3 fs-2 text-dark"></i>
                                                         Hapus
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('wp-management.detail', ['wp_id' => $wp['wp_id']]) }}">
+                                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('wp-management.detail', ['workPackage_id' => $wp['workPackage_id']]) }}">
                                                         <i class="bi bi-eye me-3 fs-2 text-dark"></i>
                                                         Lihat Detail
                                                     </a>
@@ -241,9 +241,9 @@
                                                     <option value="">Pilih Work Package</option>
                                                     @if(isset($categories) && $categories->count() > 0)
                                                         @foreach($categories as $category)
-                                                            <option value="{{ $category->category_id }}" data-number="{{ $category->category_number ?? '' }}">
-                                                                @if(isset($category->category_number))
-                                                                    {{ $category->category_number }}.
+                                                            <option value="{{ $category->category_id }}" data-number="{{ $category->categoryNumber ?? '' }}">
+                                                                @if(isset($category->categoryNumber))
+                                                                    {{ $category->categoryNumber }}.
                                                                 @endif
                                                                 {{ $category->name }}
                                                             </option>
@@ -259,7 +259,7 @@
                                             <div class="form-group mb-4">
                                                 <label class="form-label fw-bold required">Nomor Sub Work Package</label>
                                                 <div class="input-group">
-                                                    <span class="input-group-text" id="wp_number_display" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nomor work package saat ini">-</span>
+                                                    <span class="input-group-text" id="workPack_number_display" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nomor work package saat ini">-</span>
                                                     <input type="number" name="wp_sequence" id="wp_sequence" class="form-control" placeholder="1" min="1" required/>
                                                 </div>
                                                 <div class="form-text">
@@ -282,7 +282,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group mb-4">
                                                 <label class="form-label fw-bold required">Volume Quantity</label>
-                                                <input type="number" name="volume_qty" class="form-control" placeholder="0" min="1" value="1" required/>
+                                                <input type="number" name="volumeQTY" class="form-control" placeholder="0" min="1" value="1" required/>
                                                 <div class="form-text">Jumlah volume untuk kategori Work Package ini</div>
                                             </div>
                                         </div>
@@ -297,7 +297,7 @@
 
                                     <div class="form-group mb-4">
                                         <label class="form-label fw-bold">Actual Scope Contract</label>
-                                        <input type="text" name="actual_scope_contract" class="form-control" placeholder="Masukkan Actual Scope"/>
+                                        <input type="text" name="actualScope" class="form-control" placeholder="Masukkan Actual Scope"/>
                                     </div>
 
                                     <div class="form-group mb-4">
@@ -560,7 +560,7 @@ function initMultiStepModal() {
             getNextWpNumber(categoryId);
         } else {
             $('#wp_sequence').val('');
-            $('#wp_number_display').text('');
+            $('#workPack_number_display').text('');
         }
     });
 
@@ -651,18 +651,18 @@ function getNextWpNumber(categoryId) {
         data: { category_id: categoryId },
         success: function(response) {
             if (response.success) {
-                // Extract sequence number dari wp_number
-                const parts = response.wp_number.split('.');
+                // Extract sequence number dari workPack_number
+                const parts = response.workPack_number.split('.');
                 const sequence = parts[parts.length - 1];
 
                 $('#wp_sequence').val(sequence);
-                $('#wp_number_display').text(response.wp_number);
-                $('#wp_number_display').removeClass('text-danger').addClass('text-success');
+                $('#workPack_number_display').text(response.workPack_number);
+                $('#workPack_number_display').removeClass('text-danger').addClass('text-success');
             }
         },
         error: function() {
             console.error('Failed to get next WP number');
-            $('#wp_number_display').text('Error').removeClass('text-success').addClass('text-danger');
+            $('#workPack_number_display').text('Error').removeClass('text-success').addClass('text-danger');
         }
     });
 }
@@ -680,19 +680,19 @@ function checkWpNumberAvailability(categoryId, sequence) {
         },
         success: function(response) {
             if (response.success) {
-                $('#wp_number_display').text(response.wp_number);
+                $('#workPack_number_display').text(response.workPack_number);
 
                 if (response.available) {
-                    $('#wp_number_display').removeClass('text-danger').addClass('text-success');
+                    $('#workPack_number_display').removeClass('text-danger').addClass('text-success');
                     $('#wp_sequence').removeClass('is-invalid');
                 } else {
-                    $('#wp_number_display').removeClass('text-success').addClass('text-danger');
+                    $('#workPack_number_display').removeClass('text-success').addClass('text-danger');
                     $('#wp_sequence').addClass('is-invalid');
                 }
             }
         },
         error: function() {
-            $('#wp_number_display').text('Error').removeClass('text-success').addClass('text-danger');
+            $('#workPack_number_display').text('Error').removeClass('text-success').addClass('text-danger');
         }
     });
 }
@@ -795,7 +795,7 @@ async function validateCurrentStep() {
     
     if (currentStep === 0) {
         // Validate basic information
-        const requiredFields = ['category_id', 'wp_sequence', 'name', 'volume_qty', 'duration'];
+        const requiredFields = ['category_id', 'wp_sequence', 'name', 'volumeQTY', 'duration'];
         
         requiredFields.forEach(field => {
             const input = $(`[name="${field}"], #${field}`);
@@ -1638,9 +1638,9 @@ function submitMultiStepForm() {
                         <p>${response.message}</p>
                         <div class="mt-3 p-3 bg-light rounded">
                             <strong>Detail Work Package:</strong><br>
-                            <strong>Nama:</strong> ${response.work_package.name}<br>
-                            <strong>Nomor:</strong> ${response.work_package.wp_number}<br>
-                            <strong>Kategori:</strong> ${response.work_package.wp_category.name}<br>
+                            <strong>Nama:</strong> ${response.trs_workPackage.name}<br>
+                            <strong>Nomor:</strong> ${response.trs_workPackage.workPack_number}<br>
+                            <strong>Kategori:</strong> ${response.trs_workPackage.trs_category.name}<br>
                             <strong>Volume:</strong> ${response.summary.volumes_created}
                         </div>
                     `,
@@ -1692,7 +1692,7 @@ function submitMultiStepForm() {
  * Function untuk edit work package (placeholder)
  */
 function editWorkPackage(wpId) {
-    window.location.href = `{{ route('wp-management.edit', ['wp_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', wpId);
+    window.location.href = `{{ route('wp-management.edit', ['workPackage_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', wpId);
 }
 
 /**
@@ -1732,7 +1732,7 @@ function checkWorkPackageAssociations(wpId) {
 
     // Pengecekan asosiasi dengan AJAX call
     $.ajax({
-        url: `{{ route('wp-management.check-wp-associations', ['wp_id' => ':wp_id']) }}`.replace(':wp_id', wpId),
+        url: `{{ route('wp-management.check-wp-associations', ['workPackage_id' => ':workPackage_id']) }}`.replace(':workPackage_id', wpId),
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN' : $('meta[name="csrf-token"]').attr('content')
@@ -1913,7 +1913,7 @@ function executeWorkPackageDelete(wpId, isForceDelete, associations) {
 
     // AJAX call
     $.ajax({
-        url: `{{ route('wp-management.force-delete-wp', ['wp_id' => ':wp_id']) }}`.replace(':wp_id', wpId),
+        url: `{{ route('wp-management.force-delete-wp', ['workPackage_id' => ':workPackage_id']) }}`.replace(':workPackage_id', wpId),
         method: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -1926,7 +1926,7 @@ function executeWorkPackageDelete(wpId, isForceDelete, associations) {
 
                 Swal.fire({
                     title: 'Kategori Work Package Berhasil Dihapus',
-                    text: `Kategori Work Package ${deletedData.work_package.wp_number} berhasil dihapus.`,
+                    text: `Kategori Work Package ${deletedData.trs_workPackage.workPack_number} berhasil dihapus.`,
                     icon: 'success',
                     buttonsStyling: false,
                     confirmButtonText: 'OK',

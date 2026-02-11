@@ -22,7 +22,7 @@ class DashboardKaryawanController extends Controller
         $volumeIds = Work::where('user_id', $user_id)->pluck('volume_id');
         
         // 2. Ambil semua WP yang terkait dengan volume tersebut
-        $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)->pluck('wp_id')->unique();
+        $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)->pluck('workPackage_id')->unique();
         
         // 3. Ambil semua WP dengan eager loading yang diperlukan
         $workPackages = WorkPackage::with([
@@ -31,8 +31,8 @@ class DashboardKaryawanController extends Controller
                 'humanResources',
                 'workPackageVolumes.task.subTask'
             ])
-            ->whereIn('wp_id', $wpIds)
-            ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
+            ->whereIn('workPackage_id', $wpIds)
+            ->orderByRaw("CAST(SUBSTRING_INDEX(workPack_number, '.', 1) AS SIGNED) ASC, CAST(SUBSTRING_INDEX(workPack_number, '.', -1) AS SIGNED) ASC")
             ->get();
         
         $wpCount = $workPackages->count();
@@ -43,11 +43,11 @@ class DashboardKaryawanController extends Controller
         foreach ($workPackages as $wp) {
             // Cek apakah ada volume dari WP ini yang dikerjakan user
             $userVolume = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->first();
-            $woId = $userVolume ? $userVolume->wo_id : null;
+            $woId = $userVolume ? $userVolume->workOrder_id : null;
             
             // if (!$woId) {
             //     $wp->volumes_count = 0;
-            //     $wp->execution_year = '-';
+            //     $wp->executionYear = '-';
             //     $wp->status = 'Berjalan';
             //     $wp->performance = 0;
             //     $berjalan++;
@@ -55,12 +55,12 @@ class DashboardKaryawanController extends Controller
             // }
             
             // Ambil volume dengan WO yang sama
-            $volumesWithSameWo = $wp->workPackageVolumes->where('wo_id', $woId);
+            $volumesWithSameWo = $wp->workPackageVolumes->where('workOrder_id', $woId);
             $wp->volumes_count = $volumesWithSameWo->count();
             
-            // Ambil execution_year dari volume
-            $executionYears = $volumesWithSameWo->pluck('execution_year')->unique()->filter();
-            $wp->execution_year = $executionYears->count() === 1 
+            // Ambil executionYear dari volume
+            $executionYears = $volumesWithSameWo->pluck('executionYear')->unique()->filter();
+            $wp->executionYear = $executionYears->count() === 1 
                 ? $executionYears->first() 
                 : $executionYears->implode(', ');
             
@@ -85,26 +85,26 @@ class DashboardKaryawanController extends Controller
         
         // 6. Data untuk timeline dan filter tahun
         $executionYear = WorkPackageVolume::whereIn('volume_id', $volumeIds)
-            ->whereNotNull('execution_year')
+            ->whereNotNull('executionYear')
             ->distinct()
-            ->orderBy('execution_year', 'asc')
-            ->pluck('execution_year');
+            ->orderBy('executionYear', 'asc')
+            ->pluck('executionYear');
             
         $currentYear = date('Y');
-        $selectedYear = $request->input('execution_year', 
+        $selectedYear = $request->input('executionYear', 
             $executionYear->contains($currentYear) ? $currentYear : $executionYear->first());
             
-        $wpvWithPeriod = WorkPackageVolume::whereIn('work_package_volume.volume_id', $volumeIds)
-            ->whereNotNull('work_package_volume.end_date')
-            ->whereNotNull('work_package_volume.wo_id')
-            ->where('work_package_volume.execution_year', $selectedYear)
+        $wpvWithPeriod = WorkPackageVolume::whereIn('trs_workPackVolume.volume_id', $volumeIds)
+            ->whereNotNull('trs_workPackVolume.endDate')
+            ->whereNotNull('trs_workPackVolume.workOrder_id')
+            ->where('trs_workPackVolume.executionYear', $selectedYear)
             ->with(['workPackage', 'workOrder', 'task.subTask'])
-            ->join('work_order as wo_sort', 'work_package_volume.wo_id', '=', 'wo_sort.wo_id')
-            ->orderByRaw('CAST(wo_sort.wo_number AS INTEGER) ASC')
-            ->select('work_package_volume.*')
+            ->join('mst_workOrder as wo_sort', 'trs_workPackVolume.workOrder_id', '=', 'wo_sort.workOrder_id')
+            ->orderByRaw('CAST(wo_sort.workNumber_id AS SIGNED) ASC')
+            ->select('trs_workPackVolume.*')
             ->get();
         
-        $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        $groupedByWo = $wpvWithPeriod->groupBy('workOrder_id');
         $woGroups = collect();
 
         foreach ($groupedByWo as $woId => $volumes) {
@@ -117,11 +117,11 @@ class DashboardKaryawanController extends Controller
 
             foreach ($volumes as $volume) {
                 // collect period bounds
-                if ($volume->start_date) $startDates[] = $volume->start_date;
-                if ($volume->end_date) $endDates[] = $volume->end_date;
+                if ($volume->startDate) $startDates[] = $volume->startDate;
+                if ($volume->endDate) $endDates[] = $volume->endDate;
 
                 // collect WP numbers
-                $wpNum = optional($volume->workPackage)->wp_number;
+                $wpNum = optional($volume->workPackage)->workPack_number;
                 if ($wpNum) $wpNumbers[$wpNum] = true;
 
                 // get tasks (use eager loaded relationship if present)
@@ -161,15 +161,15 @@ class DashboardKaryawanController extends Controller
             $groupStart = count($startDates) ? collect($startDates)->min() : null;
             $groupEnd = count($endDates) ? collect($endDates)->max() : null;
 
-            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+            $woNumber = optional($volumes->first()->workOrder)->workNumber_id ?? $woId;
 
             $woGroups->push((object)[
-                'wo_id' => $woId,
-                'wo_number' => $woNumber,
-                'start_date' => $groupStart,
-                'end_date' => $groupEnd,
+                'workOrder_id' => $woId,
+                'workNumber_id' => $woNumber,
+                'startDate' => $groupStart,
+                'endDate' => $groupEnd,
                 'performance' => $groupPerformance,
-                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'workPack_numbers' => array_values(array_keys($wpNumbers)),
                 'volumes' => $volumes, // include volumes if view needs details
             ]);
         }
@@ -207,7 +207,7 @@ class DashboardKaryawanController extends Controller
         
         foreach ($volumes as $volume) {
             // Cek apakah volume masih dalam periode
-            if (!$volume->end_date || $volume->end_date > $today) {
+            if (!$volume->endDate || $volume->endDate > $today) {
                 $allDatesExpired = false;
             }
             
@@ -242,19 +242,19 @@ class DashboardKaryawanController extends Controller
         $activeWorkPackages = collect();
 
         foreach ($workPackages as $wp) {
-            // Kelompokkan volume berdasarkan wo_id
-            $volumesByWo = $wp->workPackageVolumes->groupBy('wo_id');
+            // Kelompokkan volume berdasarkan workOrder_id
+            $volumesByWo = $wp->workPackageVolumes->groupBy('workOrder_id');
 
             foreach ($volumesByWo as $woId => $volumes) {
                 // Cek apakah ada volume aktif (dalam periode)
                 $hasActiveVolume = $volumes->contains(function ($volume) use ($today) {
-                    return $volume->start_date && $volume->end_date &&
-                        $volume->start_date <= $today && $volume->end_date >= $today;
+                    return $volume->startDate && $volume->endDate &&
+                        $volume->startDate <= $today && $volume->endDate >= $today;
                 });
 
                 // Cek apakah ada volume expired tapi performance < 100%
                 $hasExpiredVolumeWithLowPerformance = $volumes->contains(function ($volume) use ($today) {
-                    if (!($volume->end_date && $volume->end_date < $today)) return false;
+                    if (!($volume->endDate && $volume->endDate < $today)) return false;
 
                     $tasks = Task::where('volume_id', $volume->volume_id)->get();
 
@@ -278,15 +278,15 @@ class DashboardKaryawanController extends Controller
                 // Jika ada volume aktif atau expired dengan performance < 100%, tambahkan ke WP aktif
                 if ($hasActiveVolume || $hasExpiredVolumeWithLowPerformance) {
                     $activeVolume = $volumes->first(function ($v) use ($today) {
-                        return $v->start_date && $v->end_date &&
-                            $v->start_date <= $today && $v->end_date >= $today;
+                        return $v->startDate && $v->endDate &&
+                            $v->startDate <= $today && $v->endDate >= $today;
                     });
 
-                    $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+                    $woNumber = optional($volumes->first()->workOrder)->workNumber_id ?? $woId;
 
                     $wpClone = clone $wp; // Clone WP untuk menghindari konflik data
                     $wpClone->activeVolume = $activeVolume;
-                    $wpClone->wo_number = $woNumber;
+                    $wpClone->workNumber_id = $woNumber;
 
                     // Tentukan status timesheet
                     if ($hasExpiredVolumeWithLowPerformance) {
@@ -298,7 +298,7 @@ class DashboardKaryawanController extends Controller
                             ->exists();
 
                         $humanResource = $wp->humanResources
-                            ->where('wp_id', $wp->wp_id)
+                            ->where('workPackage_id', $wp->workPackage_id)
                             ->first();
 
                         $jhk = $humanResource ? $humanResource->jhk : 0;
@@ -335,17 +335,17 @@ class DashboardKaryawanController extends Controller
         $volumeIds = Work::where('user_id', $user_id)->pluck('volume_id');
 
         // 2. Ambil WorkPackageVolume dengan eager loading task dan subtask
-        $wpvWithPeriod = WorkPackageVolume::whereIn('work_package_volume.volume_id', $volumeIds)
-            ->whereNotNull('work_package_volume.end_date')
-            ->whereNotNull('work_package_volume.wo_id')
-            ->where('work_package_volume.execution_year', $year)
+        $wpvWithPeriod = WorkPackageVolume::whereIn('trs_workPackVolume.volume_id', $volumeIds)
+            ->whereNotNull('trs_workPackVolume.endDate')
+            ->whereNotNull('trs_workPackVolume.workOrder_id')
+            ->where('trs_workPackVolume.executionYear', $year)
             ->with(['workPackage', 'workOrder', 'task.subTask'])
-            ->join('work_order as wo_sort', 'work_package_volume.wo_id', '=', 'wo_sort.wo_id')
-            ->orderByRaw('CAST(wo_sort.wo_number AS INTEGER) ASC')
-            ->select('work_package_volume.*')
+            ->join('mst_workOrder as wo_sort', 'trs_workPackVolume.workOrder_id', '=', 'wo_sort.workOrder_id')
+            ->orderByRaw('CAST(wo_sort.workNumber_id AS SIGNED) ASC')
+            ->select('trs_workPackVolume.*')
             ->get();
         
-        $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        $groupedByWo = $wpvWithPeriod->groupBy('workOrder_id');
         $woGroups = collect();
 
         foreach ($groupedByWo as $woId => $volumes) {
@@ -358,11 +358,11 @@ class DashboardKaryawanController extends Controller
 
             foreach ($volumes as $volume) {
                 // collect period bounds
-                if ($volume->start_date) $startDates[] = $volume->start_date;
-                if ($volume->end_date) $endDates[] = $volume->end_date;
+                if ($volume->startDate) $startDates[] = $volume->startDate;
+                if ($volume->endDate) $endDates[] = $volume->endDate;
 
                 // collect WP numbers
-                $wpNum = optional($volume->workPackage)->wp_number;
+                $wpNum = optional($volume->workPackage)->workPack_number;
                 if ($wpNum) $wpNumbers[$wpNum] = true;
 
                 // get tasks (use eager loaded relationship if present)
@@ -402,15 +402,15 @@ class DashboardKaryawanController extends Controller
             $groupStart = count($startDates) ? collect($startDates)->min() : null;
             $groupEnd = count($endDates) ? collect($endDates)->max() : null;
 
-            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+            $woNumber = optional($volumes->first()->workOrder)->workNumber_id ?? $woId;
 
             $woGroups->push((object)[
-                'wo_id' => $woId,
-                'wo_number' => $woNumber,
-                'start_date' => $groupStart,
-                'end_date' => $groupEnd,
+                'workOrder_id' => $woId,
+                'workNumber_id' => $woNumber,
+                'startDate' => $groupStart,
+                'endDate' => $groupEnd,
                 'performance' => $groupPerformance,
-                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'workPack_numbers' => array_values(array_keys($wpNumbers)),
                 'volumes' => $volumes, // include volumes if view needs details
             ]);
         }
@@ -453,8 +453,8 @@ class DashboardKaryawanController extends Controller
         
         // 2. Ambil semua WP yang terkait dengan volume tersebut
         $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)
-            ->whereNotNull('wo_id')
-            ->pluck('wp_id')
+            ->whereNotNull('workOrder_id')
+            ->pluck('workPackage_id')
             ->unique();
         
         // 3. Ambil semua WP dengan eager loading yang diperlukan
@@ -464,15 +464,15 @@ class DashboardKaryawanController extends Controller
                 'humanResources',
                 'workPackageVolumes.task.subTask'
             ])
-            ->whereIn('wp_id', $wpIds)
-            ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
+            ->whereIn('workPackage_id', $wpIds)
+            ->orderByRaw("CAST(SUBSTRING_INDEX(workPack_number, '.', 1) AS SIGNED) ASC, CAST(SUBSTRING_INDEX(workPack_number, '.', -1) AS SIGNED) ASC")
             ->get();
         
         $wpDetails = collect();
         
-        // 4. Proses setiap WP dan kelompokkan berdasarkan wo_id
+        // 4. Proses setiap WP dan kelompokkan berdasarkan workOrder_id
         foreach ($workPackages as $wp) {
-            $volumesByWo = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->groupBy('wo_id');
+            $volumesByWo = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->groupBy('workOrder_id');
 
             foreach ($volumesByWo as $woId => $volumes) {
                 if (!$woId) continue; // Abaikan volume tanpa WO
@@ -480,9 +480,9 @@ class DashboardKaryawanController extends Controller
                 $wpClone = clone $wp; // Clone WP untuk menghindari konflik data
                 $wpClone->volumes_count = $volumes->count();
 
-                // Ambil execution_year dari volume
-                $executionYears = $volumes->pluck('execution_year')->unique()->filter();
-                $wpClone->execution_year = $executionYears->count() === 1
+                // Ambil executionYear dari volume
+                $executionYears = $volumes->pluck('executionYear')->unique()->filter();
+                $wpClone->executionYear = $executionYears->count() === 1
                     ? $executionYears->first()
                     : $executionYears->implode(', ');
 
@@ -499,8 +499,8 @@ class DashboardKaryawanController extends Controller
                     $wpClone->status = 'Berjalan';
                 }
 
-                // Tambahkan wo_number
-                $wpClone->wo_number = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+                // Tambahkan workNumber_id
+                $wpClone->workNumber_id = optional($volumes->first()->workOrder)->workNumber_id ?? $woId;
 
                 // Tambahan: Hitung mandays rencana (JHK) dari humanResources
                 $userWork = Work::where('user_id', $user_id)

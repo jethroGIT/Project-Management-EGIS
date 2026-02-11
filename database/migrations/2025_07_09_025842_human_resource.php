@@ -11,17 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('human_resource', function (Blueprint $table) {
+        Schema::create('trs_humanResource', function (Blueprint $table) {
             $table->id('hresource_id');
-            $table->unsignedBigInteger('role_id');
-            $table->unsignedBigInteger('wp_id');
-            $table->integer('jtk')->default(1); // Jumlah Tenaga Kerja
-            $table->integer('jhk'); // Jumlah Hari Kerja/mandays
+            $table->unsignedTinyInteger('role_id');
+            $table->unsignedBigInteger('workPackage_id');
+            $table->integer('jtk');
+            $table->integer('jhk');
             $table->timestamps();
 
-            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
-            $table->foreign('wp_id')->references('wp_id')->on('work_package')->onDelete('cascade');
-            $table->unique(['wp_id', 'role_id']);
+            $table->foreign('role_id')
+                ->references('role_id')
+                ->on('mst_roles')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
+
+            $table->foreign('workPackage_id')
+                ->references('workPackage_id')
+                ->on('trs_workPackage')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -30,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('human_resource');
+        Schema::dropIfExists('trs_humanResource');
     }
 };

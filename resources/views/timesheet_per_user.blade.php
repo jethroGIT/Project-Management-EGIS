@@ -10,7 +10,7 @@
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
                 <div>
-                    <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
+                    <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->workPack_number }} {{ $workPackage->name }}</h2>
                     <div class="mb-2 px-2 rounded-1"  style="background-color: #d7e7f5; color: #1c1f21; width: fit-content;">
                         {{$user->name}}
                         <i class="bi bi-info-circle text-primary ms-1"

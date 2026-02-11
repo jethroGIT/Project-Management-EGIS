@@ -5,13 +5,13 @@
     <div class="d-flex justify-content-between align-items-center mt-0 mb-5">
         <div>
             <h1 class="mt-0 mb-5">Detail Kategori Work Package</h1>
-            <h4 class="">{{ $workPackage->wp_number }} {{ $workPackage->name }}</h4>
+            <h4 class="">{{ $workPackage->workPack_number }} {{ $workPackage->name }}</h4>
         </div>
         <div class="text-end">
             <a href="{{ route('wp-management') }}" class="btn btn-light me-2">
                 <i class="bi bi-arrow-left"></i> Kembali
             </a>
-            <button class="btn btn-primary" onclick="editWorkPackage({{ $workPackage->wp_id }})">
+            <button class="btn btn-primary" onclick="editWorkPackage({{ $workPackage->workPackage_id }})">
                 <i class="bi bi-pencil-square"></i> Edit Data
             </button>
         </div>
@@ -33,7 +33,7 @@
                             <!-- <tr>
                                 <td class="fw-bold text-muted" style="width: 140px;">Nomor WP:</td>
                                 <td>
-                                    <span class="badge badge-light-primary fs-6">{{ $workPackage->wp_number }}</span>
+                                    <span class="badge badge-light-primary fs-6">{{ $workPackage->workPack_number }}</span>
                                 </td>
                             </tr>
                             <tr>
@@ -49,7 +49,7 @@
                                 <td class="fw-bold text-muted">Total Volume</td>
                                 <td class="fw-bold text-muted">:</td>
                                 <td>
-                                    <span class="badge badge-light-info badge-lg">{{ $workPackage->volume_qty }} Volume</span>
+                                    <span class="badge badge-light-info badge-lg">{{ $workPackage->volumeQTY }} Volume</span>
                                 </td>
                             </tr>
                             <tr>
@@ -62,7 +62,7 @@
                             <tr>
                                 <td class="fw-bold text-muted">Actual Scope</td>
                                 <td class="fw-bold text-muted">:</td>
-                                <td>{{ $workPackage->actual_scope_contract ?: 'Belum ada actual scope' }}</td>
+                                <td>{{ $workPackage->actualScope ?: 'Belum ada actual scope' }}</td>
                             </tr>
                             <tr>
                                 <td class="fw-bold text-muted">Deliverable</td>
@@ -105,14 +105,14 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <h4 class="card-title mb-0">
                                                     <i class="bi bi-folder-fill text-primary me-2"></i>
-                                                    Volume {{ $volume['volume_number'] }}
+                                                    Volume {{ $volume['volumeNumber'] }}
                                                 </h4>
-                                                <span class="badge badge-light-info">{{ $volume['execution_year'] ?? '-' }}</span>
+                                                <span class="badge badge-light-info">{{ $volume['executionYear'] ?? '-' }}</span>
                                             </div>
 
                                             <!-- Volume Status Badge -->
                                             <div class="mb-3">
-                                                @if(!$volume['start_date'] && !$volume['end_date'] && !$volume['execution_year'])
+                                                @if(!$volume['startDate'] && !$volume['endDate'] && !$volume['executionYear'])
                                                     <span class="badge badge-light-info">
                                                         <i class="bi bi-exclamation-triangle me-1"></i>
                                                         Belum Konfigurasi
@@ -126,8 +126,8 @@
                                                     Work Order
                                                 </div>
                                                 <div class="fs-7">
-                                                    @if ($volume['wo_number'])
-                                                        WO {{ $volume['wo_number'] }}
+                                                    @if ($volume['workNumber_id'])
+                                                        WO {{ $volume['workNumber_id'] }}
                                                     @else
                                                         <span>Belum tersedia</span>
                                                     @endif
@@ -140,7 +140,7 @@
                                                     Periode Pelaksanaan
                                                 </div>
                                                 <div class="fs-7">
-                                                    @if($volume['start_date'] && $volume['end_date'])
+                                                    @if($volume['startDate'] && $volume['endDate'])
                                                         {{ $volume['period_formatted'] }}
                                                     @else
                                                         <span>
@@ -186,9 +186,9 @@
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <h4 class="card-title mb-0">
                                                     <i class="bi bi-folder-fill text-primary me-2"></i>
-                                                    Volume {{ $volume['volume_number'] }}
+                                                    Volume {{ $volume['volumeNumber'] }}
                                                 </h4>
-                                                <span class="badge badge-light-info">{{ $volume['execution_year'] }}</span>
+                                                <span class="badge badge-light-info">{{ $volume['executionYear'] }}</span>
                                             </div>
 
                                             <div class="mb-4">
@@ -197,8 +197,8 @@
                                                     Work Order
                                                 </div>
                                                 <div class="fs-7">
-                                                    @if ($volume['wo_number'])
-                                                        WO {{ $volume['wo_number'] }}
+                                                    @if ($volume['workNumber_id'])
+                                                        WO {{ $volume['workNumber_id'] }}
                                                     @else
                                                         <span>Belum tersedia</span>
                                                     @endif
@@ -477,14 +477,14 @@ $(document).ready(function() {
  * Function untuk edit work package (placeholder)
  */
 function editWorkPackage(wpId) {
-    window.location.href = `{{ route('wp-management.edit', ['wp_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', wpId);
+    window.location.href = `{{ route('wp-management.edit', ['workPackage_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', wpId);
 }
 
 /**
  * Function untuk manage volume (placeholder for future)
  */
 function manageVolume(volumeId) {
-    const referrerUrl = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId) + '?referrer=detail&wp_id={{ $workPackage->wp_id }}';
+    const referrerUrl = `{{ route('work-package.detail', ['volume_id' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', volumeId) + '?referrer=detail&workPackage_id={{ $workPackage->workPackage_id }}';
     window.location.href = referrerUrl;
 }
 

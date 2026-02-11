@@ -29,13 +29,13 @@
                 <tbody>
                     @forelse($workPackages as $wp)
                         <tr style="font-size: 0.93rem;">
-                            <td>{{ $wp->wo_number }}</td>
-                            <td>{{ $wp->wp_number }}</td>
+                            <td>{{ $wp->workNumber_id }}</td>
+                            <td>{{ $wp->workPack_number }}</td>
                             <td>{{ $wp->name }}</td>
                             <td class="text-center">{{$wp->planned_mandays}}</td>
                             <td class="text-center">{{$wp->actual_mandays}}</td>
                             <td class="text-center">{{ $wp->volumes_count }}</td>
-                            <td class="text-center">{{ $wp->execution_year }}</td>
+                            <td class="text-center">{{ $wp->executionYear }}</td>
                             <td class="text-center">
                                 <div class="d-flex align-items-center">
                                     <div class="progress w-100" style="height: 8px;">

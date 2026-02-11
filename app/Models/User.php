@@ -2,26 +2,23 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-// use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
-
-// use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     use HasRoles;
-    protected $table = 'user';
+
+    protected $table = 'users';
 
     protected $primaryKey = 'user_id';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        // 'role_id',
         'name',
         'email',
         'password',
@@ -47,24 +44,6 @@ class User extends Authenticatable
         return $this->hasMany(Work::class, 'user_id', 'user_id');
     }
 
-    // untuk menerapkan spatie permission, tidak boleh ada relasi role
-    // public function role()
-    // {
-    //     return $this->belongsTo(Role::class, 'role_id', 'role_id');
-    // }
-
-    public function humanResource() {
-        return $this->hasOne(HumanResource::class, 'role_id', 'role_id');
-    }
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array<string, string>
-     */
-    // protected $casts = [
-    //     'email_verified_at' => 'datetime',
-    // ];
-
     /**
      * Helper method untuk mendapatkan role utama
      */
@@ -89,6 +68,6 @@ class User extends Authenticatable
     public function getPrimaryRoleIdAttribute()
     {
         $primaryRoleName = $this->primary_role;
-        return $this->roles()->where('name', $primaryRoleName)->first()?->id;
+        return $this->roles()->where('name', $primaryRoleName)->first()?->role_id;
     }
 }

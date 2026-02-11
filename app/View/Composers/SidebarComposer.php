@@ -17,49 +17,49 @@ class SidebarComposer
         $workOrdersQuery = WorkOrder::with([
             'workPackageVolumes' => function ($query) use ($isKaryawan, $userId) {
                 $query->with('workPackage')
-                    ->whereNotNull('start_date')
-                    ->whereNotNull('end_date')
-                    ->whereNotNull('execution_year');
+                    ->whereNotNull('startDate')
+                    ->whereNotNull('endDate')
+                    ->whereNotNull('executionYear');
                 if ($isKaryawan && $userId) {
                     // Hanya volume yang dikerjakan user (dari tabel work)
                     $query->whereHas('work', function ($w) use ($userId) {
                         $w->where('work.user_id', $userId);
                     });
                 }
-                $query->orderBy('volume_number');
+                $query->orderBy('volumeNumber');
             }
         ])
         ->whereHas('workPackageVolumes', function ($query) use ($isKaryawan, $userId) {
-            $query->whereNotNull('start_date')
-                ->whereNotNull('end_date')
-                ->whereNotNull('execution_year');
+            $query->whereNotNull('startDate')
+                ->whereNotNull('endDate')
+                ->whereNotNull('executionYear');
             if ($isKaryawan && $userId) {
                 $query->whereHas('work', function ($w) use ($userId) {
                     $w->where('work.user_id', $userId);
                 });
             }
         })
-        ->orderBy('wo_number');
+        ->orderBy('workNumber_id');
 
         $workOrdersByYear = $workOrdersQuery->get()
             ->groupBy(function($workOrder) {
                 $firstVolume = $workOrder->workPackageVolumes->first();
-                return $firstVolume ? $firstVolume->execution_year : 'Unknown';
+                return $firstVolume ? $firstVolume->executionYear : 'Unknown';
             });
 
         $workPackagesByYear = WorkPackageVolume::with('workPackage')
-            ->whereNotNull('start_date')
-            ->whereNotNull('end_date')
-            ->whereNotNull('execution_year')
-            ->orderBy('execution_year')
-            ->orderBy('volume_number')
+            ->whereNotNull('startDate')
+            ->whereNotNull('endDate')
+            ->whereNotNull('executionYear')
+            ->orderBy('executionYear')
+            ->orderBy('volumeNumber')
             ->get()
-            ->groupBy('execution_year');
+            ->groupBy('executionYear');
 
-        // Mendapatkan wo_id yang sedang aktif dari route
+        // Mendapatkan workOrder_id yang sedang aktif dari route
         $currentWoId = null;
         if (request()->routeIs('wo.content-list')) {
-            $currentWoId = request()->route('wo_id');
+            $currentWoId = request()->route('workOrder_id');
         }
         
         // Mendapatkan volume_id yang sedang aktif dari route
@@ -86,7 +86,7 @@ class SidebarComposer
         if ($currentWoId) {
             foreach ($workOrdersByYear as $year => $workOrders) {
                 foreach ($workOrders as $workOrder) {
-                    if ($workOrder->wo_id == $currentWoId) {
+                    if ($workOrder->workOrder_id == $currentWoId) {
                         $activeWoYear = $year;
                         break 2;
                     }

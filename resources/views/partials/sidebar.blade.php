@@ -199,14 +199,14 @@
                                 @foreach($workOrdersByYear as $year => $workOrders)
                                     @php
                                         // Urutkan work orders berdasarkan nomor WO
-                                        $sortedWorkOrders = $workOrders->sortBy('wo_number');
+                                        $sortedWorkOrders = $workOrders->sortBy('workNumber_id');
 
                                         // Cek jika tahun tersebut memiliki volume yang aktif
                                         $isYearActive = false;
                                         $hasActiveWo = false;
                                         if (isset($currentWoId)) {
                                             foreach ($sortedWorkOrders as $workOrder) {
-                                                if ($workOrder->wo_id == $currentWoId) {
+                                                if ($workOrder->workOrder_id == $currentWoId) {
                                                     $isYearActive = true;
                                                     $hasActiveWo = true;
                                                     break;
@@ -229,13 +229,13 @@
                                         <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveWo ? 'show' : '' }}">
                                             @foreach($sortedWorkOrders as $workOrder)
                                                 @php
-                                                    $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->wo_id;
+                                                    $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->workOrder_id;
 
                                                     // Hitung jumlah volume dan WP
                                                     $volumeCount = $workOrder->workPackageVolumes->count();
-                                                    $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.wp_number')->unique()->count();
+                                                    $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.workPack_number')->unique()->count();
 
-                                                    $fullTitle = "WO {$workOrder->wo_number} ({$volumeCount} Volume, {$wpCount} WP)";
+                                                    $fullTitle = "WO {$workOrder->workNumber_id} ({$volumeCount} Volume, {$wpCount} WP)";
                                                     $maxLength = 35;
                                                     $truncatedTitle = strlen($fullTitle) > $maxLength ?
                                                         substr($fullTitle, 0, $maxLength) . "..." :
@@ -244,7 +244,7 @@
                                                 <div class="menu-item">
                                                     <a 
                                                         class="menu-link {{ $isWoActive ? 'active' : '' }}" 
-                                                        href="{{ route('wo.content-list', ['wo_id' => $workOrder->wo_id]) }}"
+                                                        href="{{ route('wo.content-list', ['workOrder_id' => $workOrder->workOrder_id]) }}"
                                                         data-bs-toggle="tooltip" 
                                                         data-bs-placement="right" 
                                                         data-bs-custom-class="sidebar-tooltip" 
@@ -279,14 +279,14 @@
                             @foreach($workOrdersByYear as $year => $workOrders)
                                 @php
                                     // Urutkan work orders berdasarkan nomor WO
-                                    $sortedWorkOrders = $workOrders->sortBy('wo_number');
+                                    $sortedWorkOrders = $workOrders->sortBy('workNumber_id');
 
                                     // Cek jika tahun tersebut memiliki volume yang aktif
                                     $isYearActive = false;
                                     $hasActiveWo = false;
                                     if (isset($currentWoId)) {
                                         foreach ($sortedWorkOrders as $workOrder) {
-                                            if ($workOrder->wo_id == $currentWoId) {
+                                            if ($workOrder->workOrder_id == $currentWoId) {
                                                 $isYearActive = true;
                                                 $hasActiveWo = true;
                                                 break;
@@ -309,13 +309,13 @@
                                     <div class="menu-sub menu-sub-accordion menu-active-bg {{ $hasActiveWo ? 'show' : '' }}">
                                         @foreach($sortedWorkOrders as $workOrder)
                                             @php
-                                                $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->wo_id;
+                                                $isWoActive = isset($currentWoId) && $currentWoId == $workOrder->workOrder_id;
 
                                                 // Hitung jumlah volume dan WP
                                                 $volumeCount = $workOrder->workPackageVolumes->count();
-                                                $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.wp_number')->unique()->count();
+                                                $wpCount = $workOrder->workPackageVolumes->pluck('workPackage.workPack_number')->unique()->count();
 
-                                                $fullTitle = "WO {$workOrder->wo_number} ({$volumeCount} Volume, {$wpCount} WP)";
+                                                $fullTitle = "WO {$workOrder->workNumber_id} ({$volumeCount} Volume, {$wpCount} WP)";
                                                 $maxLength = 35;
                                                 $truncatedTitle = strlen($fullTitle) > $maxLength ?
                                                     substr($fullTitle, 0, $maxLength) . "..." :
@@ -324,7 +324,7 @@
                                             <div class="menu-item">
                                                 <a 
                                                     class="menu-link {{ $isWoActive ? 'active' : '' }}" 
-                                                    href="{{ route('wo.content-list', ['wo_id' => $workOrder->wo_id]) }}"
+                                                    href="{{ route('wo.content-list', ['workOrder_id' => $workOrder->workOrder_id]) }}"
                                                     data-bs-toggle="tooltip" 
                                                     data-bs-placement="right" 
                                                     data-bs-custom-class="sidebar-tooltip" 

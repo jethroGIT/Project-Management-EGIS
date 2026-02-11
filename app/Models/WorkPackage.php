@@ -6,19 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class WorkPackage extends Model
 {
-    protected $table = 'work_package';
+    protected $table = 'trs_workPackage';
 
-    protected $primaryKey = 'wp_id';
+    protected $primaryKey = 'workPackage_id';
 
     protected $fillable = [
         'category_id',
-        'wp_number',
+        'workPack_number',
         'name',
-        'volume_qty',
+        'volumeQTY',
         'duration',
-        'actual_scope_contract',
+        'actualScope',
         'deliverable',
-        // 'completeness',
     ];
 
     public function wpCategory()
@@ -28,11 +27,11 @@ class WorkPackage extends Model
 
     public function humanResources()
     {
-        return $this->hasMany(HumanResource::class, 'wp_id', 'wp_id');
+        return $this->hasMany(HumanResource::class, 'workPackage_id', 'workPackage_id');
     }
 
     public function workPackageVolumes()
     {
-        return $this->hasMany(WorkPackageVolume::class, 'wp_id', 'wp_id');
+        return $this->hasMany(WorkPackageVolume::class, 'workPackage_id', 'workPackage_id');
     }
 }

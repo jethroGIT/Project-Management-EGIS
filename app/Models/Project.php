@@ -9,17 +9,17 @@ class Project extends Model
 {
     use HasFactory;
 
-    protected $table = 'projects';
+    protected $table = 'mst_projects';
     protected $primaryKey = 'project_id';
 
     protected $fillable = [
         'name',
-        'total_budget',
-        'description'
+        'totalBudget',
+        'description',
     ];
 
     protected $casts = [
-        'total_budget'=> 'decimal:2'
+        'totalBudget' => 'decimal:2',
     ];
 
     /**
@@ -28,7 +28,7 @@ class Project extends Model
     public static function getBudgetByName($projectName)
     {
         $project = static::where('name', $projectName)->first();
-        return $project ? $project->total_budget : 0;
+        return $project ? $project->totalBudget : 0;
     }
 
     /**
@@ -36,6 +36,6 @@ class Project extends Model
      */
     public function getFormattedBudget()
     {
-        return 'Rp' . number_format($this->total_budget, 0, ',', '.');
+        return 'Rp' . number_format($this->totalBudget, 0, ',', '.');
     }
 }

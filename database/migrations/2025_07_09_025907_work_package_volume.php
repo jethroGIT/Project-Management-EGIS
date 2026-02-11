@@ -11,19 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('work_package_volume', function (Blueprint $table) {
+        Schema::create('trs_workPackVolume', function (Blueprint $table) {
             $table->id('volume_id');
-            $table->unsignedBigInteger('wp_id');
-            $table->unsignedBigInteger('wo_id')->nullable();
-            $table->integer('volume_number');
-            $table->integer('execution_year')->nullable();
-            // $table->decimal('completeness', 5, 2)->default(0.00);
-            $table->dateTime('start_date')->nullable();
-            $table->dateTime('end_date')->nullable();
+            $table->unsignedBigInteger('workOrder_id');
+            $table->unsignedBigInteger('workPackage_id');
+            $table->integer('volumeNumber');
+            $table->integer('executionYear');
+            $table->timestamp('startDate');
+            $table->timestamp('endDate');
             $table->timestamps();
 
-            $table->foreign('wp_id')->references('wp_id')->on('work_package')->onDelete('cascade');
-            $table->foreign('wo_id')->references('wo_id')->on('work_order')->onDelete('set null');
+            $table->foreign('workPackage_id')
+                ->references('workPackage_id')
+                ->on('trs_workPackage')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
+
+            $table->foreign('workOrder_id')
+                ->references('workOrder_id')
+                ->on('mst_workOrder')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -32,6 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('work_package_volume');
+        Schema::dropIfExists('trs_workPackVolume');
     }
 };

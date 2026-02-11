@@ -52,7 +52,7 @@ class PerformanceTaskController extends Controller
         $tasks = Task::where('volume_id', $volume_id)
             ->with(['subTask' => function($query) {
                 $query->orderBy('created_at', 'asc')
-                    ->orderBy('sub_task_id', 'asc');
+                    ->orderBy('subTask_id', 'asc');
             }])
             ->orderBy('created_at', 'asc')
             ->orderBy('task_id', 'asc')
@@ -95,7 +95,7 @@ class PerformanceTaskController extends Controller
     public function storeSubTask(Request $request) 
     {
         $request->validate([
-            'task_id' => 'required|exists:task,task_id',
+            'task_id' => 'required|exists:mst_task,task_id',
             'sub_task_name' => 'required|string|max:500'
         ], [
             'task_id.required' => 'Task ID harus diisi',
@@ -131,7 +131,7 @@ class PerformanceTaskController extends Controller
 
             // Log success
             Log::info('Sub task created successfully', [
-                'sub_task_id' => $subTask->sub_task_id,
+                'subTask_id' => $subTask->subTask_id,
                 'task_id' => $subTask->task_id,
                 'name' => $subTask->name,
                 'completeness' => $subTask->completeness
@@ -141,7 +141,7 @@ class PerformanceTaskController extends Controller
                 'success' => true,
                 'message' => 'Sub task berhasil ditambahkan',
                 'sub_task' => [
-                    'sub_task_id' => $subTask->sub_task_id,
+                    'subTask_id' => $subTask->subTask_id,
                     'task_id' => $subTask->task_id,
                     'name' => $subTask->name,
                     'completeness' => $subTask->completeness
@@ -201,7 +201,7 @@ class PerformanceTaskController extends Controller
             return response()->json([
                 'success' => true,
                 'sub_task' => [
-                    'sub_task_id' => $subTask->sub_task_id,
+                    'subTask_id' => $subTask->subTask_id,
                     'task_id' => $subTask->task_id,
                     'name' => $subTask->name,
                     'completeness' => $subTask->completeness,
@@ -218,7 +218,7 @@ class PerformanceTaskController extends Controller
 
         } catch (Exception $e) {
             Log::error('Error getting sub task for edit', [
-                'sub_task_id' => $subTaskId,
+                'subTask_id' => $subTaskId,
                 'error' => $e->getMessage()
             ]);
 
@@ -274,7 +274,7 @@ class PerformanceTaskController extends Controller
             DB::commit();
 
             Log::info('Sub task updated successfully', [
-                'sub_task_id' => $subTask->sub_task_id,
+                'subTask_id' => $subTask->subTask_id,
                 'task_id' => $subTask->task_id,
                 'old_data' => [
                     'name' => $originalName,
@@ -294,7 +294,7 @@ class PerformanceTaskController extends Controller
                 'success' => true,
                 'message' => 'Sub task berhasil diperbarui',
                 'sub_task' => [
-                    'sub_task_id' => $subTask->sub_task_id,
+                    'subTask_id' => $subTask->subTask_id,
                     'task_id' => $subTask->task_id,
                     'name' => $subTask->name,
                     'completeness' => $subTask->completeness,
@@ -316,7 +316,7 @@ class PerformanceTaskController extends Controller
             DB::rollback();
 
             Log::error('Error updating sub task', [
-                'sub_task_id' => $subTaskId,
+                'subTask_id' => $subTaskId,
                 'error' => $e->getMessage(),
                 'request_data' => $request->except(['_token', '_method']),
                 'trace' => $e->getTraceAsString()
@@ -341,7 +341,7 @@ class PerformanceTaskController extends Controller
 
             // Store data untuk logging sebelum dihapus
             $deletedData = [
-                'sub_task_id' => $subTask->sub_task_id,
+                'subTask_id' => $subTask->subTask_id,
                 'task_id' => $subTask->task_id,
                 'name' => $subTask->name,
                 'completeness' => $subTask->completeness,
@@ -383,7 +383,7 @@ class PerformanceTaskController extends Controller
             DB::rollback();
 
             Log::warning('Sub task not found for deletion', [
-                'sub_task_id' => $id,
+                'subTask_id' => $id,
                 'error' => $e->getMessage()
             ]);
 
@@ -396,7 +396,7 @@ class PerformanceTaskController extends Controller
             DB::rollback();
 
             Log::error('Error deleting sub task', [
-                'sub_task_id' => $id,
+                'subTask_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

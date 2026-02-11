@@ -8,7 +8,7 @@
                 <a href="{{route('work-package.detail', $volume_id)}}" class="btn btn-light btn-sm me-3 border border-secondary rounded-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="bi bi-arrow-left text-dark" style="margin-left: 5px"></i>
                 </a>
-                <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->wp_number }} {{ $workPackage->name }}</h2>
+                <h2 class="my-3 mb-0 mt-1">WP {{ $workPackage->workPack_number }} {{ $workPackage->name }}</h2>
             </div>
             <div class="row mt-8 align-items-center justify-content-between" style="height: 50px; padding: 0px 0px;">
                 <div class="col-md-4 d-flex align-items-center" style="height: 40px">
@@ -77,7 +77,7 @@
                                 <td class="text-center align-middle">{{ $cost['jtk'] }}</td>
                                 <td class="text-center align-middle">{{ $cost['jhk'] }}</td>
                                 <td class="text-center align-middle">{{ $cost['timesheet_count'] }}</td>
-                                <td class="text-center align-middle">{{ number_format($cost['resource_cost'], 0, ',', '.') }}</td>
+                                <td class="text-center align-middle">{{ number_format($cost['resourceCost'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['by_yoy'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">{{ number_format($cost['realization_cost'], 0, ',', '.') }}</td>
                                 <td class="text-center align-middle">
@@ -148,17 +148,17 @@
                                 <div class="input-group">
                                     <span class="input-group-text">Rp</span>
                                     <input type="text" 
-                                            name="resource_cost[{{ $cost['role_id'] }}]" 
+                                            name="resourceCost[{{ $cost['role_id'] }}]" 
                                             id="editResCost_{{ $cost['role_id'] }}" 
                                             class="form-control" placeholder="0" 
-                                            value="{{ number_format($cost['resource_cost'], 0, ',', '.') }}"
-                                            data-original="{{ number_format($cost['resource_cost'], 0, ',', '.') }}"
+                                            value="{{ number_format($cost['resourceCost'], 0, ',', '.') }}"
+                                            data-original="{{ number_format($cost['resourceCost'], 0, ',', '.') }}"
                                             required
                                     />
                                     <input type="hidden"
-                                        name="resource_cost[{{ $cost['role_id'] }}]"
+                                        name="resourceCost[{{ $cost['role_id'] }}]"
                                         id="editResCostHidden_{{ $cost['role_id'] }}"
-                                        value="{{ number_format($cost['resource_cost'], 2, '.', '') }}"
+                                        value="{{ number_format($cost['resourceCost'], 2, '.', '') }}"
                                     />
                                 </div>
                             </div>

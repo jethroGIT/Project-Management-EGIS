@@ -4,7 +4,7 @@
 <div class="">
     <div class="mt-0 mb-5">
         <h1 class="mt-0 mb-5">Work Order</h1>
-        <h4>WO {{ $workOrder->wo_number }}</h4>
+        <h4>WO {{ $workOrder->workNumber_id }}</h4>
         <p>Daftar kategori Work Package yang sudah dipanggil ke dalam Work Order</p>
     </div>
     
@@ -51,7 +51,7 @@
                                     
                                     <!-- Work Package Info -->
                                     <h5 class="card-title fw-bold mb-2">
-                                        WP {{ $volume['wp_number'] }} {{ $volume['wp_name'] }}
+                                        WP {{ $volume['workPack_number'] }} {{ $volume['wp_name'] }}
                                     </h5>
 
                                     @if($volume['volume_count'] > 1)
@@ -60,12 +60,12 @@
                                                 {{ $volume['volume_count'] }} Volume
                                             </span>
                                             <!-- <small class="text-muted">
-                                                Vol {{ implode(', ', $volume['volume_numbers']) }}
+                                                Vol {{ implode(', ', $volume['volumeNumbers']) }}
                                             </small> -->
                                         </div>
                                     @else
                                         <p class="badge badge-light-info badge-lg mb-3">
-                                            Volume ke-{{ $volume['volume_numbers'][0] }}
+                                            Volume ke-{{ $volume['volumeNumbers'][0] }}
                                         </p>
                                     @endif
                                     
@@ -82,7 +82,7 @@
                                     </div>
                                     
                                     <!-- Action Button -->
-                                    <button class="btn btn-light-primary w-100" onClick="viewVolumeDetail({{ json_encode($volume['volume_ids']) }}, '{{ $volume['wp_number'] }}')">
+                                    <button class="btn btn-light-primary w-100" onClick="viewVolumeDetail({{ json_encode($volume['volume_ids']) }}, '{{ $volume['workPack_number'] }}')">
                                         <i class="bi bi-eye me-1"></i>
                                         Lihat Detail
                                     </button>

@@ -16,27 +16,27 @@ class WorkOrderManagementController extends Controller
             ->get()
             ->sortBy(function($wp) {
                 // Urutkan dulu berdasarkan nomor kategori, lalu nomor WP
-                $catNum = intval($wp->wpCategory->category_number ?? 9999);
-                $wpNum = is_numeric($wp->wp_number) ? floatval($wp->wp_number) : $wp->wp_number;
+                $catNum = intval($wp->wpCategory->categoryNumber ?? 9999);
+                $wpNum = is_numeric($wp->workPack_number) ? floatval($wp->workPack_number) : $wp->workPack_number;
                 return sprintf('%04d-%s', $catNum, $wpNum);
             })
             ->values();
         
-        $workOrders = WorkOrder::with('workPackageVolumes.workPackage')->orderBy('wo_number', 'asc')->get();
+        $workOrders = WorkOrder::with('workPackageVolumes.workPackage')->orderBy('workNumber_id', 'asc')->get();
 
         $categories = WpCategory::with('workPackage')
-            ->orderByRaw('category_number::integer ASC')
+            ->orderByRaw('CAST(categoryNumber AS UNSIGNED) ASC')
             ->get();
         
-        $executionYears = WorkPackageVolume::whereNotNull('execution_year')
+        $executionYears = WorkPackageVolume::whereNotNull('executionYear')
             ->distinct()
-            ->orderBy('execution_year', 'asc')
-            ->pluck('execution_year');
+            ->orderBy('executionYear', 'asc')
+            ->pluck('executionYear');
 
-        // Proses data untuk table_summary_work_order
+        // Proses data untuk table_summary_mst_workOrder
         $summaryWorkOrders = $workOrders->map(function ($wo) {
             $groupedVolumes = $wo->workPackageVolumes
-                ->groupBy('wp_id')
+                ->groupBy('workPackage_id')
                 ->map(function ($volumes) {
                     return [
                         'wp' => $volumes->first()->workPackage,
@@ -45,8 +45,8 @@ class WorkOrderManagementController extends Controller
                 });
 
             return [
-                'wo_number' => $wo->wo_number,
-                'execution_year' => $wo->workPackageVolumes->first()->execution_year ?? '-',
+                'workNumber_id' => $wo->workNumber_id,
+                'executionYear' => $wo->workPackageVolumes->first()->executionYear ?? '-',
                 'grouped_volumes' => $groupedVolumes,
             ];
         });
@@ -58,11 +58,11 @@ class WorkOrderManagementController extends Controller
         // add new work order
         try {
             $request->validate([
-                'wo_number' => 'required|string|unique:work_order,wo_number',
+                'workNumber_id' => 'required|string|unique:mst_workOrder,workNumber_id',
             ]);
 
             $wo = WorkOrder::create([
-                'wo_number' => $request->wo_number,
+                'workNumber_id' => $request->workNumber_id,
             ]);
 
             return response()->json([
@@ -80,17 +80,17 @@ class WorkOrderManagementController extends Controller
         // assign multiple volumes to work order
         try {
             $request->validate([
-                'wo_id' => 'required|exists:work_order,wo_id',
+                'workOrder_id' => 'required|exists:mst_workOrder,workOrder_id',
                 'assignments' => 'required|array',
-                'assignments.*.wp_id' => 'required|exists:work_package,wp_id',
+                'assignments.*.workPackage_id' => 'required|exists:trs_workPackage,workPackage_id',
                 'assignments.*.volume_count' => 'required|integer|min:1',
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
+                'startDate' => 'required|date',
+                'endDate' => 'required|date|after_or_equal:startDate',
             ]);
 
-            $woId = $request->wo_id;
-            $startDate = $request->start_date;
-            $endDate = $request->end_date;
+            $woId = $request->workOrder_id;
+            $startDate = $request->startDate;
+            $endDate = $request->endDate;
             $assignments = $request->assignments;
             
             $updated = 0;
@@ -98,12 +98,12 @@ class WorkOrderManagementController extends Controller
             $executionYear = Carbon::parse($startDate)->year;
 
             foreach ($assignments as $assignment) {
-                $wpId = $assignment['wp_id'];
+                $wpId = $assignment['workPackage_id'];
                 $volumeCount = $assignment['volume_count'];
                 
                 // Ambil volume teratas dari WP yang belum diassign ke WO manapun
-                $volumes = WorkPackageVolume::where('wp_id', $wpId)
-                    ->whereNull('wo_id')
+                $volumes = WorkPackageVolume::where('workPackage_id', $wpId)
+                    ->whereNull('workOrder_id')
                     ->orderBy('volume_id', 'asc')
                     ->limit($volumeCount)
                     ->get();
@@ -115,10 +115,10 @@ class WorkOrderManagementController extends Controller
                 
                 foreach ($volumes as $volume) {
                     $volume->update([
-                        'wo_id' => $woId,
-                        'start_date' => $startDate,
-                        'end_date' => $endDate,
-                        'execution_year' => $executionYear
+                        'workOrder_id' => $woId,
+                        'startDate' => $startDate,
+                        'endDate' => $endDate,
+                        'executionYear' => $executionYear
                     ]);
                     $updated++;
                 }

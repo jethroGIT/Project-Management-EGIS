@@ -67,8 +67,8 @@
             @foreach($woGroups as $group)
                 @php
                     \Carbon\Carbon::setLocale('id');
-                    $start = $group->start_date ? \Carbon\Carbon::parse($group->start_date) : null;
-                    $end = $group->end_date ? \Carbon\Carbon::parse($group->end_date) : null;
+                    $start = $group->startDate ? \Carbon\Carbon::parse($group->startDate) : null;
+                    $end = $group->endDate ? \Carbon\Carbon::parse($group->endDate) : null;
 
                     $startMonth = $start ? $start->month : 1;
                     $endMonth = $end ? $end->month : $startMonth;
@@ -82,7 +82,7 @@
                     $color = $colorList[$loop->index % $colorCount];
                     $progress = $group->performance ?? 0;
                     $periodeTooltip = $start && $end ? $start->translatedFormat('d M') . ' - ' . $end->translatedFormat('d M') : ($start ? $start->translatedFormat('d M') : '-');
-                    $wpLabel = implode(', WP ', $group->wp_numbers ?: []);
+                    $wpLabel = implode(', WP ', $group->workPack_numbers ?: []);
                 @endphp
                 
                 <div class="position-relative"
@@ -109,7 +109,7 @@
                                 <!-- Left side: WP Number and Period -->
                                 <div class="d-flex align-items-center">
                                     <span class="fw-bold {{ $progress > 20 ? 'text-light' : 'text-dark' }}">
-                                        WO {{ $group->wo_number }} - WP {{ $wpLabel }}
+                                        WO {{ $group->workNumber_id }} - WP {{ $wpLabel }}
                                     </span>
                                 </div>
                                 

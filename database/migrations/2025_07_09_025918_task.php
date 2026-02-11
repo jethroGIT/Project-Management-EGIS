@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('task', function (Blueprint $table) {
+        Schema::create('mst_task', function (Blueprint $table) {
             $table->id('task_id');
             $table->unsignedBigInteger('volume_id');
             $table->text('name');
-            $table->decimal('completeness', 5, 2)->nullable();
-            $table->enum('status', ['open', 'closed'])->default('open'); // status of the task
+            $table->decimal('completeness', 5, 2);
+            $table->string('status');
             $table->timestamps();
 
-            $table->foreign('volume_id')->references('volume_id')->on('work_package_volume')->onDelete('cascade');
+            $table->foreign('volume_id')
+                ->references('volume_id')
+                ->on('trs_workPackVolume')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -28,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('task');
+        Schema::dropIfExists('mst_task');
     }
 };

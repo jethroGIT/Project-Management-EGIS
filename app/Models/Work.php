@@ -6,16 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Work extends Model
 {
-    protected $table = 'work';
+    protected $table = 'trs_work';
 
     protected $primaryKey = 'work_id';
 
     protected $fillable = [
-        // 'mandays_realization',
         'user_id',
         'volume_id',
         'role_id',
-        // 'resource_cost',
     ];
 
     public function user()
@@ -30,6 +28,6 @@ class Work extends Model
 
     public function role()
     {
-        return $this->belongsTo(Role::class, 'role_id', 'id');
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
     }
 }

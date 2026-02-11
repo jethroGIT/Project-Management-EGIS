@@ -15,7 +15,7 @@ class WOContentListController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index($wo_id)
+    public function index($workOrder_id)
     {
         try {
             // Ambil work order dengan relasi volumes
@@ -26,22 +26,22 @@ class WOContentListController extends Controller
                             'work.user', 
                             'work.role', 
                         ])
-                        ->whereNotNull('start_date')
-                        ->whereNotNull('end_date')
-                        ->whereNotNull('execution_year')
-                        ->orderBy('wp_id')
-                        ->orderBy('volume_number');
+                        ->whereNotNull('startDate')
+                        ->whereNotNull('endDate')
+                        ->whereNotNull('executionYear')
+                        ->orderBy('workPackage_id')
+                        ->orderBy('volumeNumber');
                 }
-            ])->findOrFail($wo_id);
+            ])->findOrFail($workOrder_id);
 
             // Grup volume berdasarkan kriteria yang sama
             $groupedVolumes = $workOrder->workPackageVolumes->groupBy(function($volume) {
                 return sprintf(
                     '%s_%s_%s_%s',
-                    $volume->workPackage->wp_id,
-                    $volume->wo_id,
-                    $volume->start_date,
-                    $volume->end_date
+                    $volume->workPackage->workPackage_id,
+                    $volume->workOrder_id,
+                    $volume->startDate,
+                    $volume->endDate
                 );
             });
 
@@ -52,10 +52,10 @@ class WOContentListController extends Controller
 
                 // Format periode
                 $periodFormatted = 'Belum tersedia';
-                if ($representativeVolume->start_date && $representativeVolume->end_date) {
-                    $periodFormatted = Carbon::parse($representativeVolume->start_date)->format('d M Y') . 
+                if ($representativeVolume->startDate && $representativeVolume->endDate) {
+                    $periodFormatted = Carbon::parse($representativeVolume->startDate)->format('d M Y') . 
                                      ' - ' . 
-                                     Carbon::parse($representativeVolume->end_date)->format('d M Y');
+                                     Carbon::parse($representativeVolume->endDate)->format('d M Y');
                 }
 
                 // Ambil resource info dari semua volume dalam grup
@@ -79,19 +79,19 @@ class WOContentListController extends Controller
                 $groupCompletion = $this->calculateGroupVolumeCompletion($allVolumeIds);
 
                 // Detail volume numbers
-                $volumeNumbers = $volumeGroup->pluck('volume_number')->sort()->values()->toArray();
+                $volumeNumbers = $volumeGroup->pluck('volumeNumber')->sort()->values()->toArray();
 
                 return [
                     'representative_volume_id' => $representativeVolume->volume_id,
                     'volume_ids' => $allVolumeIds,
-                    'volume_numbers' => $volumeNumbers,
+                    'volumeNumbers' => $volumeNumbers,
                     'volume_count' => $volumeCount,
-                    'wp_number' => $representativeVolume->workPackage->wp_number ?? '-',
+                    'workPack_number' => $representativeVolume->workPackage->workPack_number ?? '-',
                     'wp_name' => $representativeVolume->workPackage->name ?? '-',
-                    'wp_category' => $representativeVolume->workPackage->wpCategory->name ?? '-',
+                    'trs_category' => $representativeVolume->workPackage->wpCategory->name ?? '-',
                     'period_formatted' => $periodFormatted,
                     'duration' => $representativeVolume->workPackage->duration,
-                    'execution_year' => $representativeVolume->execution_year,
+                    'executionYear' => $representativeVolume->executionYear,
                     'resources' => $uniqueResources,
                     'resource_count' => $uniqueResources->count(),
                     'completion' => $groupCompletion
@@ -100,10 +100,10 @@ class WOContentListController extends Controller
             // $volumesData = $workOrder->workPackageVolumes->map(function($volume) {
             //     // Format periode
             //     $periodFormatted = 'Belum tersedia';
-            //     if ($volume->start_date && $volume->end_date) {
-            //         $periodFormatted = Carbon::parse($volume->start_date)->format('d M Y') . 
+            //     if ($volume->startDate && $volume->endDate) {
+            //         $periodFormatted = Carbon::parse($volume->startDate)->format('d M Y') . 
             //                          ' - ' . 
-            //                          Carbon::parse($volume->end_date)->format('d M Y');
+            //                          Carbon::parse($volume->endDate)->format('d M Y');
             //     }
 
             //     // Ambil resource info
@@ -122,13 +122,13 @@ class WOContentListController extends Controller
 
             //     return [
             //         'volume_id' => $volume->volume_id,
-            //         'volume_number' => $volume->volume_number,
-            //         'wp_number' => $volume->workPackage->wp_number ?? '-',
+            //         'volumeNumber' => $volume->volumeNumber,
+            //         'workPack_number' => $volume->workPackage->workPack_number ?? '-',
             //         'wp_name' => $volume->workPackage->name ?? '-',
-            //         'wp_category' => $volume->workPackage->wpCategory->name ?? '-',
+            //         'trs_category' => $volume->workPackage->wpCategory->name ?? '-',
             //         'period_formatted' => $periodFormatted,
             //         'duration' => $volume->workPackage->duration,
-            //         'execution_year' => $volume->execution_year,
+            //         'executionYear' => $volume->executionYear,
             //         'resources' => $resources,
             //         'resource_count' => $resources->count(),
             //         'completion' => $volumeCompletion
@@ -136,19 +136,19 @@ class WOContentListController extends Controller
             // });
 
             // Group by work package untuk statistik
-            // $wpStats = $volumesData->groupBy('wp_number')->map(function($group) {
+            // $wpStats = $volumesData->groupBy('workPack_number')->map(function($group) {
             //     return [
             //         'volume_count' => $group->count(),
             //         'wp_name' => $group->first()['wp_name'],
-            //         'wp_category' => $group->first()['wp_category']
+            //         'trs_category' => $group->first()['trs_category']
             //     ];
             // });
-            $wpStats = $volumesData->groupBy('wp_number')->map(function($group) {
+            $wpStats = $volumesData->groupBy('workPack_number')->map(function($group) {
                 return [
                     'volume_group_count' => $group->count(),
                     'total_volume_count' => $group->sum('volume_count'),
                     'wp_name' => $group->first()['wp_name'],
-                    'wp_category' => $group->first()['wp_category']
+                    'trs_category' => $group->first()['trs_category']
                 ];
             });
 

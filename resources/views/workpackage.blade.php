@@ -9,14 +9,14 @@
         @if(isset($workPackage) && isset($volume))
             <div class="col-8">
                 <h4 class="">
-                    @if (isset($volume->workOrder) && isset($volume->workOrder->wo_number))
-                        <span class="badge badge-info badge-lg">WO {{ $volume->workOrder->wo_number }}</span>
+                    @if (isset($volume->workOrder) && isset($volume->workOrder->workNumber_id))
+                        <span class="badge badge-info badge-lg">WO {{ $volume->workOrder->workNumber_id }}</span>
                     @endif
-                    WP {{ $workPackage->wp_number }} {{ $workPackage->name }}
+                    WP {{ $workPackage->workPack_number }} {{ $workPackage->name }}
                 </h4>
                 <p>Periode 
-                    @if(isset($volume->start_date) && ($volume->end_date))
-                        {{ \Carbon\Carbon::parse($volume->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->end_date)->format('d M Y') }}
+                    @if(isset($volume->startDate) && ($volume->endDate))
+                        {{ \Carbon\Carbon::parse($volume->startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($volume->endDate)->format('d M Y') }}
                     @else
                         Belum Tersedia
                     @endif
@@ -30,7 +30,7 @@
                             {{ $volumeGroupInfo['total_volumes'] }} Volume Dikelompokkan
                         </span>
                         <!-- <small class="text-muted ms-2">
-                            Vol {{ implode(', ', $volumeGroupInfo['volume_numbers']) }}
+                            Vol {{ implode(', ', $volumeGroupInfo['volumeNumbers']) }}
                         </small> -->
                     </div>
                 @endif
@@ -181,7 +181,7 @@
                                     <div class="card-body p-0">
                                         <div class="d-flex align-items-center justify-content-center gap-2">
                                             <div style="height: 80px">
-                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->wp_number }}</span>
+                                                <span class="text-muted mt-10">anda bukan personel WP {{ $workPackage->workPack_number }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -318,7 +318,7 @@
                                 </tr>
                                 @if($task->subTask->count() > 0)
                                     @foreach($task->subTask as $subTask)
-                                        <tr class="collapse deskripsi-row" id="task{{ $task->task_id }}-details" data-sub-task-id="{{ $subTask->sub_task_id }}">
+                                        <tr class="collapse deskripsi-row" id="task{{ $task->task_id }}-details" data-sub-task-id="{{ $subTask->subTask_id }}">
                                             <td></td>
                                             <th scope="row"></th>
                                             <td></td>
@@ -331,11 +331,11 @@
                                                         </a>
                                                         <ul class="dropdown-menu dropdown-menu-end rounded-0">
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->subTask_id }})">
                                                                 <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
                                                             </li>
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->subTask_id }}, '{{ addslashes($subTask->name) }}')">
                                                                 <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
                                                             </li>
                                                         </ul>
@@ -487,7 +487,7 @@
                     <form id="editSubTaskForm" method="POST">
                         @csrf
                         @method('PUT')
-                        <input type="hidden" name="sub_task_id" id="editSubTaskId" value="">
+                        <input type="hidden" name="subTask_id" id="editSubTaskId" value="">
                         <input type="hidden" name="task_id" id="editSubTaskParentTaskId" value="">
                         <div class="form-group mb-4">
                             <label class="form-label fw-bold">Task</label>
@@ -544,10 +544,10 @@
                                             <div class="input-group">
                                                 <input 
                                                     type="date" 
-                                                    name="start_date"
+                                                    name="startDate"
                                                     id="editStartDate" 
                                                     class="form-control" 
-                                                    value="{{ isset($volume) && isset($volume->start_date) ? \Carbon\Carbon::parse($volume->start_date)->format('Y-m-d') : '' }}"
+                                                    value="{{ isset($volume) && isset($volume->startDate) ? \Carbon\Carbon::parse($volume->startDate)->format('Y-m-d') : '' }}"
                                                     required 
                                                 />
                                             </div>
@@ -557,10 +557,10 @@
                                             <div class="input-group">
                                                 <input 
                                                     type="date" 
-                                                    name="end_date" 
+                                                    name="endDate" 
                                                     id="editEndDate" 
                                                     class="form-control" 
-                                                    value="{{ isset($volume) && isset($volume->end_date) ? \Carbon\Carbon::parse($volume->end_date)->format('Y-m-d') : '' }}"
+                                                    value="{{ isset($volume) && isset($volume->endDate) ? \Carbon\Carbon::parse($volume->endDate)->format('Y-m-d') : '' }}"
                                                     required
                                                 />
                                             </div>
@@ -622,8 +622,8 @@
                                 <h3 class="card-title fw-bold">Actual Scope</h3>
                             </div>
                             <p class="mb-0 fs-6 text-dark fw-semibold">
-                                @if(!empty($workPackage->actual_scope_contract))
-                                    {{ $workPackage->actual_scope_contract ?? 'N/A' }}
+                                @if(!empty($workPackage->actualScope))
+                                    {{ $workPackage->actualScope ?? 'N/A' }}
                                 @else
                                     <p class="text-muted">
                                         Belum ada Actual Scope Contract
@@ -1029,8 +1029,8 @@ function submitEditData() {
     }
 
     // Manual validation
-    const startDate = formData.get('start_date');
-    const endDate = formData.get('end_date');
+    const startDate = formData.get('startDate');
+    const endDate = formData.get('endDate');
     // const resources = formData.getAll('resources[]');
     // const jhk = formData.getAll('jhk[]');
 
@@ -1079,8 +1079,8 @@ function submitEditData() {
     const cleanFormData = new FormData();
     cleanFormData.append('_token', $('meta[name="csrf-token"]').attr('content'));
     cleanFormData.append('_method', 'PUT');
-    cleanFormData.append('start_date', startDate);
-    cleanFormData.append('end_date', endDate);
+    cleanFormData.append('startDate', startDate);
+    cleanFormData.append('endDate', endDate);
     
     // Add valid resources
     // validResources.forEach(function(resource) {
@@ -1595,7 +1595,7 @@ function editSubTask(subTaskId) {
         success: function(response) {
             if (response.success && response.subtask) {
                 // Isi field modal dengan data subtask
-                $('#editSubTaskId').val(response.subtask.sub_task_id);
+                $('#editSubTaskId').val(response.subtask.subTask_id);
                 $('#editSubTaskParentTaskId').val(response.subtask.task_id);
                 $('#editSubTaskName').val(response.subtask.name);
                 // if (response.subtask.completeness !== undefined) {

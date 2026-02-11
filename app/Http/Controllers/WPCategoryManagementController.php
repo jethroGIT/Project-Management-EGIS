@@ -17,13 +17,13 @@ class WPCategoryManagementController extends Controller
     {
         try {
             $request->validate([
-                'name' => 'required|string|max:255|unique:wp_category,name',
-                'category_number' => 'required|integer|min:1|unique:wp_category,category_number'
+                'name' => 'required|string|max:255|unique:trs_category,name',
+                'categoryNumber' => 'required|integer|min:1|unique:trs_category,categoryNumber'
             ]);
 
             $category = WpCategory::create([
                 'name' => $request->name,
-                'category_number' => (string) $request->category_number
+                'categoryNumber' => (string) $request->categoryNumber
             ]);
 
             return response()->json([
@@ -36,7 +36,7 @@ class WPCategoryManagementController extends Controller
             $errors = $e->validator->errors();
             $duplicateMessage = '';
 
-            if ($errors->has('category_number') || $errors->has('name')) {
+            if ($errors->has('categoryNumber') || $errors->has('name')) {
                 $duplicateMessage = 'Nomor atau Nama WP tidak valid atau sudah terdaftar. Periksa kembali data yang dimasukkan.';
             }
 
@@ -68,13 +68,13 @@ class WPCategoryManagementController extends Controller
         try {
             // Validasi input
             $request->validate([
-                'name' => 'required|string|max:255|unique:wp_category,name,' . $request->category_id . ',category_id',
-                'category_number' => 'required|integer|min:1|unique:wp_category,category_number,' . $request->category_id . ',category_id'
+                'name' => 'required|string|max:255|unique:trs_category,name,' . $request->category_id . ',category_id',
+                'categoryNumber' => 'required|integer|min:1|unique:trs_category,categoryNumber,' . $request->category_id . ',category_id'
             ]);
             // save
             $category = WpCategory::where('category_id', $request->category_id)
                                 ->firstOrFail();
-            if($category->name === $request->name && $category->category_number === $request->category_number){
+            if($category->name === $request->name && $category->categoryNumber === $request->categoryNumber){
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak ada perubahan yang dilakukan.'
@@ -83,7 +83,7 @@ class WPCategoryManagementController extends Controller
 
             $category->update([
                 'name' => $request->name,
-                'category_number' => (string) $request->category_number
+                'categoryNumber' => (string) $request->categoryNumber
             ]);
 
             return response()->json([
@@ -96,7 +96,7 @@ class WPCategoryManagementController extends Controller
             $errors = $e->validator->errors();
             $duplicateMessage = '';
 
-            if ($errors->has('category_number') || $errors->has('name')) {
+            if ($errors->has('categoryNumber') || $errors->has('name')) {
                 $duplicateMessage = 'Nomor atau Nama WP tidak valid atau sudah terdaftar. Periksa kembali data yang dimasukkan.';
             }
 
@@ -118,20 +118,20 @@ class WPCategoryManagementController extends Controller
             // Cari kategori berdasarkan ID
             $category = WpCategory::findOrFail($id);
 
-            // Ambil semua Work Package terkait dengan wp_number dan name
-            $workPackages = $category->workPackage()->get(['wp_number', 'name']);
+            // Ambil semua Work Package terkait dengan workPack_number dan name
+            $workPackages = $category->workPackage()->get(['workPack_number', 'name']);
 
             // Format data untuk dikembalikan
             $workPackageDetails = $workPackages->map(function ($wp) {
                 return [
-                    'wp_number' => $wp->wp_number,
+                    'workPack_number' => $wp->workPack_number,
                     'name' => $wp->name
                 ];
             });
 
             return response()->json([
                 'success' => true,
-                'deleted_work_packages' => $workPackageDetails
+                'deleted_trs_workPackages' => $workPackageDetails
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -150,11 +150,11 @@ class WPCategoryManagementController extends Controller
             // Ambil semua Work Package terkait
             $workPackages = $category->workPackage()->with('workPackageVolumes')->get();
 
-            // Periksa apakah ada volume Work Package yang memiliki wo_id
+            // Periksa apakah ada volume Work Package yang memiliki workOrder_id
             $hasAssignedWorkOrder = $workPackages->flatMap(function ($wp) {
                 return $wp->workPackageVolumes;
             })->contains(function ($volume) {
-                return !is_null($volume->wo_id);
+                return !is_null($volume->workOrder_id);
             });
 
             if ($hasAssignedWorkOrder) {
@@ -167,7 +167,7 @@ class WPCategoryManagementController extends Controller
             // Ambil nama Work Package untuk ditampilkan
             $workPackageDetails = $workPackages->map(function ($wp) {
                 return [
-                    'wp_number' => $wp->wp_number,
+                    'workPack_number' => $wp->workPack_number,
                     'name' => $wp->name
                 ];
             });
@@ -178,7 +178,7 @@ class WPCategoryManagementController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Kategori Work Package berhasil dihapus.',
-                'deleted_work_packages' => $workPackageDetails
+                'deleted_trs_workPackages' => $workPackageDetails
             ]);
         } catch (\Exception $e) {
             return response()->json([

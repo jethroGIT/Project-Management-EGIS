@@ -11,23 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('work', function (Blueprint $table) {
+        Schema::create('trs_work', function (Blueprint $table) {
             $table->id('work_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedSmallInteger('user_id');
+            $table->unsignedTinyInteger('role_id');
             $table->unsignedBigInteger('volume_id');
-            $table->unsignedBigInteger('role_id')->nullable();
-            // $table->integer('mandays_realization')->default(0);
-            // $table->decimal('resource_cost', 15, 2)->default(0.00); // biaya tenaga kerja (Rp)
             $table->timestamps();
 
-            $table->foreign('user_id')->references('user_id')->on('user')->onDelete('cascade');
-            $table->foreign('volume_id')->references('volume_id')->on('work_package_volume')->onDelete('cascade');
-            $table->unique(['user_id', 'volume_id']);
-            
-            $table->foreign('role_id')->references('id')->on('roles')->onDelete('set null');
+            $table->foreign('user_id')
+                ->references('user_id')
+                ->on('users')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
 
-            // Add composite index untuk performa query
-            $table->index(['volume_id', 'user_id', 'role_id']);
+            $table->foreign('role_id')
+                ->references('role_id')
+                ->on('mst_roles')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -36,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('work');
+        Schema::dropIfExists('trs_work');
     }
 };

@@ -24,7 +24,7 @@
             @endphp
             @foreach($grouped as $categoryId => $wps)
                 @php
-                    $categoryNumber = $wps->first()->wpCategory->category_number ?? '';
+                    $categoryNumber = $wps->first()->wpCategory->categoryNumber ?? '';
                     $categoryName = $wps->first()->wpCategory->name ?? 'Kategori Tidak Diketahui';
                     $loopIndex = $loop->index;
                     $collapseClass = ($loopIndex < 2) ? 'show' : '';
@@ -51,11 +51,11 @@
                                             <div class="d-flex justify-content-start align-items-center">
                                                 <i class="bi bi-folder-fill text-primary fs-2 me-3"></i>
                                                 <span class="text">
-                                                    WP {{$wp->wp_number}}
+                                                    WP {{$wp->workPack_number}}
                                                 </span>
                                             </div>
                                             <span class="badge badge-secondary small">
-                                                {{ $wp->workPackageVolumes->where('wo_id', null)->count() }} volume tersisa
+                                                {{ $wp->workPackageVolumes->where('workOrder_id', null)->count() }} volume tersisa
                                             </span>
                                         </div>
                                         <!-- Work Package Info -->
@@ -64,7 +64,7 @@
                                                 {{$wp->name}}
                                             </p>
                                             <!-- Action Button -->
-                                            <button class="btn btn-light-primary btn-sm" title="Lihat Detail" onclick="showDetailWP({{ $wp->wp_id }})" data-bs-toggle="modal" data-bs-target="#kt_modal_detail_wp">
+                                            <button class="btn btn-light-primary btn-sm" title="Lihat Detail" onclick="showDetailWP({{ $wp->workPackage_id }})" data-bs-toggle="modal" data-bs-target="#kt_modal_detail_wp">
                                                 <i class="bi bi-eye ms-2"></i>
                                             </button>
                                         </div>
@@ -130,13 +130,13 @@
     console.log('wpData:', wpData);
 
     function showDetailWP(wpId) {
-        const wp = wpData.find(item => item.wp_id == wpId);
+        const wp = wpData.find(item => item.workPackage_id == wpId);
         if (!wp) return;
 
         // Card Informasi Work Package (tetap seperti sebelumnya)
         let infoCard = `
             <div class="mb-6 ms-2">
-                <h5>${wp.wp_number}. ${wp.name}</h5>
+                <h5>${wp.workPack_number}. ${wp.name}</h5>
             </div>
             <div class="card card-flush shadow-sm mb-6" style="overflow-y: auto; max-height: 400px;">
                 <div class="card-header py-0" style="padding-bottom: 8px;">
@@ -153,14 +153,14 @@
                                     <tr>
                                         <td class="fw-bold text-muted">Work Package</td>
                                         <td class="fw-bold text-muted">:</td>
-                                        <td>${wp.wp_category?.name ?? 'Tidak Berkategori'}</td>
+                                        <td>${wp.trs_category?.name ?? 'Tidak Berkategori'}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">Total Volume</td>
                                         <td class="fw-bold text-muted">:</td>
                                         <td>
-                                            <span class="badge badge-light-info badge-lg">${wp.volume_qty} Volume</span>
-                                            <span class="text-muted">(Tersisa ${wp.work_package_volumes ? wp.work_package_volumes.filter(v => v.wo_id === null).length : 0} volume untuk di-assign ke WO)</span>
+                                            <span class="badge badge-light-info badge-lg">${wp.volumeQTY} Volume</span>
+                                            <span class="text-muted">(Tersisa ${wp.trs_workPackVolumes ? wp.trs_workPackVolumes.filter(v => v.workOrder_id === null).length : 0} volume untuk di-assign ke WO)</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -173,7 +173,7 @@
                                     <tr>
                                         <td class="fw-bold text-muted">Actual Scope</td>
                                         <td class="fw-bold text-muted">:</td>
-                                        <td>${wp.actual_scope_contract ? wp.actual_scope_contract : 'Belum ada actual scope'}</td>
+                                        <td>${wp.actualScope ? wp.actualScope : 'Belum ada actual scope'}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">Deliverable</td>

@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
                 'name' => 'Oki Jamhur',
                 'email' => 'oki123@gmail.com',
                 'password' => bcrypt('okij123!'),
-                // 'role' => 'Project Manager',
+                'role' => 'Project Manager',
                 'desc' => 'Project Manager dengan pengalaman 10+ tahun',
             ],
             // 2
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
                 'name' => 'Restia Moegiono',
                 'email' => 'restia123@gmail.com',
                 'password' => bcrypt('rest123!'),
-                // 'role' => 'Senior Consultant',
+                'role' => 'Senior Consultant',
                 'desc' => 'Senior Consultant dengan pengalaman 8+ tahun',
             ],
             // 3
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
                 'name' => 'Yudistira Dwi Wardhana',
                 'email' => 'yudistira123@gmail.com',
                 'password' => bcrypt('yudi123!'),
-                // 'role' => ['Associate Consultant', 'Senior Consultant'],
+                'role' => ['Associate Consultant', 'Senior Consultant'],
                 'desc' => 'Consultant dengan pengalaman 5+ tahun',
             ],
             // 4
@@ -44,7 +44,7 @@ class UserSeeder extends Seeder
                 'name' => 'Annisa Yuniar',
                 'email' => 'annisay123@gmail.com',
                 'password' => bcrypt('anny123!'),
-                // 'role' => 'Junior Consultant',
+                'role' => 'Junior Consultant',
                 'desc' => 'Junior Consultant dengan pengalaman 2+ tahun',
             ],
             // 5
@@ -52,7 +52,7 @@ class UserSeeder extends Seeder
                 'name' => 'Vanika I',
                 'email' => 'vanika123@gmail.com',
                 'password' => bcrypt('vani123!'),
-                 // 'role' => 'Technical Writer',
+                'role' => 'Technical Writer',
                 'desc' => 'Technical Writer dengan background teknis',
             ],
             // 6
@@ -60,7 +60,7 @@ class UserSeeder extends Seeder
                 'name' => 'Wahyu Winarno',
                 'email' => 'wahyu123@gmail.com',
                 'password' => bcrypt('wahy123!'),
-                // 'role' => 'Senior Consultant',
+                'role' => 'Senior Consultant',
                 'desc' => 'Senior Consultant dengan pengalaman 10+ tahun',
             ],
             // 7
@@ -68,7 +68,7 @@ class UserSeeder extends Seeder
                 'name' => 'Nus Primata Nugraheni',
                 'email' => 'nusprimata123@gmail.com',
                 'password' => bcrypt('nusp123!'),
-                // 'role' => 'Senior Consultant',
+                'role' => 'Senior Consultant',
                 'desc' => 'Senior Consultant dengan pengalaman 12+ tahun',
             ],
             // 8
@@ -76,7 +76,7 @@ class UserSeeder extends Seeder
                 'name' => 'Eko Yon Handri',
                 'email' => 'ekoyon123@gmail.com',
                 'password' => bcrypt('ekoy123!'),
-                // 'role' => 'Senior Consultant',
+                'role' => 'Senior Consultant',
                 'desc' => 'Senior Consultant dengan pengalaman 15+ tahun',
             ],
             // 9
@@ -84,7 +84,7 @@ class UserSeeder extends Seeder
                 'name' => 'Indra',
                 'email' => 'indra123@gmail.com',
                 'password' => bcrypt('indr123!'),
-                // 'role' => 'Associate Consultant',
+                'role' => 'Associate Consultant',
                 'desc' => 'Associate Consultant dengan pengalaman 5+ tahun',
             ],
             // 10
@@ -92,7 +92,7 @@ class UserSeeder extends Seeder
                 'name' => 'Bayu Samudra',
                 'email' => 'bayu123@gmail.com',
                 'password' => bcrypt('bayu123!'),
-                // 'role' => 'Junior Consultant',
+                'role' => 'Junior Consultant',
                 'desc' => 'Junior Consultant dengan pengalaman 2+ tahun',
             ],
             // 11
@@ -100,7 +100,7 @@ class UserSeeder extends Seeder
                 'name' => 'Galuh Dhipa',
                 'email' => 'galuhd123@gmail.com',
                 'password' => bcrypt('galu123!'),
-                // 'role' => 'Junior Consultant',
+                'role' => 'Junior Consultant',
                 'desc' => 'Junior Consultant dengan pengalaman 2+ tahun',
             ],
             // 12
@@ -108,7 +108,7 @@ class UserSeeder extends Seeder
                 'name' => 'Decky',
                 'email' => 'decky123@gmail.com',
                 'password' => bcrypt('deck123!'),
-                // 'role' => 'Technical Writer',
+                'role' => 'Technical Writer',
                 'desc' => 'Technical Writer dengan background teknis',
             ],
             // 13
@@ -116,7 +116,7 @@ class UserSeeder extends Seeder
                 'name' => 'Issa',
                 'email' => 'issa123@gmail.com',
                 'password' => bcrypt('issa123!'),
-                // 'role' => 'Associate Consultant',
+                'role' => 'Associate Consultant',
                 'desc' => 'Associate Consultant dengan pengalaman 5+ tahun',
             ],
             // 14
@@ -124,16 +124,15 @@ class UserSeeder extends Seeder
                 'name' => 'Ariya',
                 'email' => 'ariya123@gmail.com',
                 'password' => bcrypt('ariya123!'),
-                // 'role' => 'Junior Consultant',
+                'role' => 'Junior Consultant',
                 'desc' => 'Junior Consultant dengan pengalaman 2+ tahun',
             ],
         ];
         foreach ($workers as $worker) {
-            // $role = $worker['role'];
-            // unset($worker['role']);
-            $worker = User::create($worker);
-            // $worker->assignRole(['karyawan',$role]);
-            $worker->assignRole('karyawan');
+            $role = $worker['role'];
+            unset($worker['role']);
+            $user = User::create($worker);
+            $user->assignRole(array_merge(['karyawan'], (array) $role));
         };
 
         $admin= User::create([

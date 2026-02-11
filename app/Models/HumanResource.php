@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class HumanResource extends Model
 {
-    protected $table = 'human_resource';
+    protected $table = 'trs_humanResource';
 
     protected $primaryKey = 'hresource_id';
 
     protected $fillable = [
-        'wp_id',
+        'workPackage_id',
         'role_id',
         'jtk',
         'jhk',
@@ -19,11 +19,11 @@ class HumanResource extends Model
 
     public function role()
     {
-        return $this->belongsTo(Role::class, 'role_id', 'id');
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
     }
 
     public function workPackage()
     {
-        return $this->belongsTo(WorkPackage::class, 'wp_id', 'wp_id');
+        return $this->belongsTo(WorkPackage::class, 'workPackage_id', 'workPackage_id');
     }
 }

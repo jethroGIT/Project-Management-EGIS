@@ -17,11 +17,11 @@ class WorkPackageSeeder extends Seeder
         $workpackages = [
             [
                 'category_id' => 1,
-                'wp_number' => '1.1',
+                'workPack_number' => '1.1',
                 'name' => 'Merger & Acquisition (M&A) - Information Security Due Dilligence',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 46,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan assessment pre-M&A, yang memuat aspek assessment mengenai
                                     1. Culture, yang meliputi aspek:
                                     ▪ Program Security Awareness dan pelaksanaannya
@@ -59,11 +59,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 1,
-                'wp_number' => '1.2',
+                'workPack_number' => '1.2',
                 'name' => 'Merger & Acquisition (M&A) - In-Depth/ Combination Assessment',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 46,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => '1. Laporan assessment kombinasi yang meliputi pelaporan dari kegiatan:
                                     a. Validated vulnerability assessment
                                     b. Social engineering
@@ -76,11 +76,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 2,
-                'wp_number' => '2.1',
+                'workPack_number' => '2.1',
                 'name' => 'Control/Framework Assessment',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 31,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan assessment, yang memuat:
                                     1. Laporan studi regulasi.
                                     2. Proses dan analisis kontrol regulasi dan penentuan control yang akan
@@ -89,11 +89,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 2,
-                'wp_number' => '2.2',
+                'workPack_number' => '2.2',
                 'name' => 'Change Management Plan',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 80,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan change management plan, yang memuat:
                                     1. Hasil analisis gap
                                     2. Desain penyesuaian proses beserta STK yang menjadi acuan proses
@@ -112,11 +112,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 2,
-                'wp_number' => '2.3',
+                'workPack_number' => '2.3',
                 'name' => 'Implementation Assistance, Mentoring, & Monitoring',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 50,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Implementation Assistance, Mentoring, & Monitoring, yang
                                     memuat:
                                     1. Rincian kegiatan implementasi
@@ -125,11 +125,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 2,
-                'wp_number' => '2.4',
+                'workPack_number' => '2.4',
                 'name' => 'Post Implementation Review',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 14,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Post Implementation Review, yang memuat:
                                     1. Identifikasi dampak yang diharapkan diperbandingkan terhadap dampak
                                     yang diperoleh
@@ -140,11 +140,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 2,
-                'wp_number' => '2.5',
+                'workPack_number' => '2.5',
                 'name' => 'Revisit',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 26,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Revisit, yang memuat:
                                     1. Poin penyesuaian
                                     2. Resume hasil penyesuaian beserta dokumen teknis hasil penyesuaian
@@ -152,11 +152,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 3,
-                'wp_number' => '3.1',
+                'workPack_number' => '3.1',
                 'name' => 'Human Security Risk Awareness Program Planning',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 22,
-                'actual_scope_contract' => '"Human firewall design program (awareness) - IS competency matrix"',
+                'actualScope' => '"Human firewall design program (awareness) - IS competency matrix"',
                 'deliverable' => 'Laporan perencanaan pengembangan awareness keamanan informasi,
                                     yang memuat:
                                     1. Metode pembangunan awareness
@@ -170,11 +170,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 3,
-                'wp_number' => '3.2',
+                'workPack_number' => '3.2',
                 'name' => 'Human Security Capabilities Development Program Planning',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 33,
-                'actual_scope_contract' => '"Human firewall implementation program (pelatihan/certification) - IS competency matrix"',
+                'actualScope' => '"Human firewall implementation program (pelatihan/certification) - IS competency matrix"',
                 'deliverable' => 'Laporan perencanaan pengembangan SDM keamanan informasi, yang
                                     memuat:
                                     1. Resume studi framework
@@ -189,11 +189,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 3,
-                'wp_number' => '3.3',
+                'workPack_number' => '3.3',
                 'name' => 'Implementation Assistance, Mentoring, & Monitoring',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 44,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Implementation Assistance, Mentoring, & Monitoring, yang
                                     memuat:
                                     1. Rincian kegiatan implementasi
@@ -202,11 +202,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 3,
-                'wp_number' => '3.4',
+                'workPack_number' => '3.4',
                 'name' => 'Post Implementation Review',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 11,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Post Implementation Review, yang memuat:
                                     1. Identifikasi dampak yang diharapkan diperbandingkan terhadap dampak
                                     yang diperoleh
@@ -217,11 +217,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 3,
-                'wp_number' => '3.5',
+                'workPack_number' => '3.5',
                 'name' => 'Revisit',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 22,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Revisit, yang memuat:
                                     1. Poin penyesuaian
                                     2. Resume hasil penyesuaian desain beserta dokumen teknis hasil
@@ -229,11 +229,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 4,
-                'wp_number' => '4.1',
+                'workPack_number' => '4.1',
                 'name' => 'Risk identification, analysis, treatment, socialization',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 86,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan risk identification, assessment/analysis, treatment/mitigation,
                                     sosialisasi, yang memuat:
                                     1. Hasil Identifikasi risiko, meliputi:
@@ -259,11 +259,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 4,
-                'wp_number' => '4.2',
+                'workPack_number' => '4.2',
                 'name' => 'Implementation Assistance, Mentoring, & Monitoring',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 40,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Implementation Assistance, Mentoring, & Monitoring, yang
                                     memuat:
                                     1. Rincian kegiatan implementasi
@@ -273,11 +273,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 4,
-                'wp_number' => '4.3',
+                'workPack_number' => '4.3',
                 'name' => 'Post Implementation Review',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 14,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Post Implementation Review, yang memuat:
                                     1. Identifikasi dampak yang diharapkan diperbandingkan terhadap dampak
                                     yang diperoleh
@@ -288,11 +288,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 4,
-                'wp_number' => '4.4',
+                'workPack_number' => '4.4',
                 'name' => 'Revisit',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 26,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Revisit, yang memuat:
                                     1. Poin penyesuaian
                                     2. Resume hasil penyesuaian beserta dokumen teknis hasil penyesuaian
@@ -300,11 +300,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 5,
-                'wp_number' => '5.1',
+                'workPack_number' => '5.1',
                 'name' => 'Enterprise Security Posture Assessment ',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 62,
-                'actual_scope_contract' => 'ESA',
+                'actualScope' => 'ESA',
                 'deliverable' => '6.5.1.Laporan hasil assessment security posture PERUSAHAAN, yang memuat:
                                     1. Gambaran umum current practices information/ cyber security di
                                     PERUSAHAAN
@@ -319,11 +319,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 5,
-                'wp_number' => '5.2',
+                'workPack_number' => '5.2',
                 'name' => 'Penyusunan Enterprise Security Architecture',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 102,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan hasil penyusunan Enterprise Security Architecture, yang memuat:
                                     1. Resume studi framework
                                     2. Hasil analisis kebutuhan dan analisis referensi framework
@@ -339,11 +339,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 5,
-                'wp_number' => '5.3',
+                'workPack_number' => '5.3',
                 'name' => 'Penyusunan Roadmap & Implementation Plan',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 48,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Roadmap & Desain Implementasi, yang memuat:
                                     1. Hasil analisis gap kondisi arsitektur ideal terhadap existing security posture
                                     2. Hasil identifikasi program/ inisiatif information/ cyber security baik strategis,
@@ -355,11 +355,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 5,
-                'wp_number' => '5.4',
+                'workPack_number' => '5.4',
                 'name' => 'Penyusunan governance framework enterprise security architecture, roadmap, implementation plan/strategy (people - process - technology)',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 72,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan kerangka tata kelola penerapan enterprise security architecture,
                                     roadmap, dan strategi implementasi
                                     1. Organisasi penanggung jawab pelaksana
@@ -369,11 +369,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 5,
-                'wp_number' => '5.5',
+                'workPack_number' => '5.5',
                 'name' => 'Implementation Assistance, Mentoring, & Monitoring',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 38,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Implementation Assistance, Mentoring, & Monitoring, yang
                                     memuat:
                                     1. Rincian kegiatan implementasi
@@ -382,11 +382,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 5,
-                'wp_number' => '5.6',
+                'workPack_number' => '5.6',
                 'name' => 'Post Implementation Review',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 14,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Post Implementation Review, yang memuat:
                                     1. Identifikasi dampak yang diharapkan diperbandingkan terhadap dampak
                                     yang diperoleh
@@ -397,11 +397,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 5,
-                'wp_number' => '5.7',
+                'workPack_number' => '5.7',
                 'name' => 'Revisit',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 26,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Revisit, yang memuat:
                                     1. Poin penyesuaian
                                     2. Resume hasil penyesuaian beserta dokumen teknis hasil penyesuaian
@@ -409,11 +409,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 6,
-                'wp_number' => '6.1',
+                'workPack_number' => '6.1',
                 'name' => 'Initial Advisory & Consultancy - Information Security Management System (ISMS)',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 180,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => '1. Laporan Perencanaan & Persiapan Pre-Audit
                                     a. Laporan studi standar/ best practice yang menjadi acuan.
                                     b. Laporan Assessment yang mencakup:
@@ -448,11 +448,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 6,
-                'wp_number' => '6.2',
+                'workPack_number' => '6.2',
                 'name' => 'Revisit Advisory & Consultancy - Information Security Management System (ISMS)',
-                'volume_qty' => 2,
+                'volumeQTY' => 2,
                 'duration' => 100,
-                'actual_scope_contract' => 'Project ISO 27001 : 2022',
+                'actualScope' => 'Project ISO 27001 : 2022',
                 'deliverable' => '1. Hasil Analisis dan pendefinisian lingkup 
                                     2. Desain penyesuaian proses 
                                     3. Hasil desain proses 
@@ -460,11 +460,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 7,
-                'wp_number' => '7.1',
+                'workPack_number' => '7.1',
                 'name' => 'Initial Advisory & Consultancy - Information Security Compliance Assessment',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 180,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Initial Advisory & Consultancy - Information Security
                                     Compliance, yang mencakup:
                                     1. Laporan Perencanaan & Persiapan Pre-Assessment
@@ -502,11 +502,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 7,
-                'wp_number' => '7.2',
+                'workPack_number' => '7.2',
                 'name' => 'Revisit Advisory & Consultancy - Information Security Compliance Assessment',
-                'volume_qty' => 5,
+                'volumeQTY' => 5,
                 'duration' => 100,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => '1. Hasil analisis dan pendefinisian lingkup yang akan diterapkan serta
                                     kebutuhan untuk pemenuhannya
                                     2. Desain penyesuaian proses
@@ -521,11 +521,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 8,
-                'wp_number' => '8.1',
+                'workPack_number' => '8.1',
                 'name' => 'Privacy/ PII Processing Compliance Assessment',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 70,
-                'actual_scope_contract' => '"Initial Stage :  
+                'actualScope' => '"Initial Stage :  
                                             -Kick-off Meeting 
                                             Pembahasan penyesuaian lingkup sesuai Peran IT 
 
@@ -544,11 +544,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 8,
-                'wp_number' => '8.2',
+                'workPack_number' => '8.2',
                 'name' => 'Privacy/ PII Protection Implementation Plan',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 108,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan desain implementasi perlindungan data pribadi (PDP), yang
                                     memuat:
                                     1. Framework untuk asesmen perlindungan data pribadi
@@ -561,11 +561,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 8,
-                'wp_number' => '8.3',
+                'workPack_number' => '8.3',
                 'name' => 'Implementation Assistance, Mentoring, & Monitoring',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 34,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Implementation Assistance, Mentoring, & Monitoring, yang
                                     memuat:
                                     1. Rincian kegiatan implementasi
@@ -574,11 +574,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 8,
-                'wp_number' => '8.4',
+                'workPack_number' => '8.4',
                 'name' => 'Post Implementation Review',
-                'volume_qty' => 1,
+                'volumeQTY' => 1,
                 'duration' => 14,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Post Implementation Review, yang memuat:
                                     1. Identifikasi dampak yang diharapkan diperbandingkan terhadap dampak
                                     yang diperoleh
@@ -589,11 +589,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 8,
-                'wp_number' => '8.5',
+                'workPack_number' => '8.5',
                 'name' => 'Revisit',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 26,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Revisit, memuat:
                                     1. Poin penyesuaian
                                     2. Resume hasil penyesuaian desain beserta dokumen teknis hasil
@@ -601,11 +601,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 9,
-                'wp_number' => '9.1',
+                'workPack_number' => '9.1',
                 'name' => 'Control/Framework Assessment & Design',
-                'volume_qty' => 4,
+                'volumeQTY' => 4,
                 'duration' => 166,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Assessment & Engineering Design, yang mencakup:
                                     1. Hasil assessment kondisi existing terkait penerapan sistem, dengan
                                     menggunakan framework yang sesuai
@@ -621,11 +621,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 9,
-                'wp_number' => '9.2',
+                'workPack_number' => '9.2',
                 'name' => 'Implementation Assistance, Mentoring, & Monitoring',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 40,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Implementation Assistance, Mentoring, & Monitoring, yang
                                     memuat:
                                     1. Rincian kegiatan implementasi
@@ -634,11 +634,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 9,
-                'wp_number' => '9.3',
+                'workPack_number' => '9.3',
                 'name' => 'Post Implementation Review',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 14,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Post Implementation Review, yang memuat:
                                     1. Identifikasi dampak yang diharapkan diperbandingkan terhadap dampak
                                     yang diperoleh
@@ -649,11 +649,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 9,
-                'wp_number' => '9.4',
+                'workPack_number' => '9.4',
                 'name' => 'Revisit',
-                'volume_qty' => 3,
+                'volumeQTY' => 3,
                 'duration' => 26,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Laporan Revisit, yang memuat:
                                     1. Poin penyesuaian
                                     2. Resume hasil penyesuaian desain beserta dokumen teknis hasil
@@ -661,11 +661,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 10,
-                'wp_number' => '10.1',
+                'workPack_number' => '10.1',
                 'name' => 'Initial Design - Information Security Policy, Procedures, Guideline',
-                'volume_qty' => 36,
+                'volumeQTY' => 36,
                 'duration' => 16,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Initial Design - Information Security Policy, Procedures, Guideline
                                     Dokumen sistem tata kerja (STK) baru, baik kebijakan (pedoman), prosedur
                                     (Tata Kerja Organisasi/ Tata Kerja Individu), dan guideline baru sesuai
@@ -673,11 +673,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 10,
-                'wp_number' => '10.2',
+                'workPack_number' => '10.2',
                 'name' => 'Revisit - Information Security Policy, Procedures, Guideline',
-                'volume_qty' => 18,
+                'volumeQTY' => 18,
                 'duration' => 12,
-                'actual_scope_contract' => '',
+                'actualScope' => '',
                 'deliverable' => 'Revisit - Information Security Policy, Procedures, Guideline
                                     Pembaruan dari dokumen sistem tata kerja (STK), baik kebijakan (pedoman),
                                     prosedur (Tata Kerja Organisasi/ Tata Kerja Individu), dan guideline sesuai
@@ -685,11 +685,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 11,
-                'wp_number' => '11.1',
+                'workPack_number' => '11.1',
                 'name' => 'Information Security Assistance, Support, & Monitoring Services',
-                'volume_qty' => 1,
-                // 'duration' => 0,
-                'actual_scope_contract' => 'Onsite consultant',
+                'volumeQTY' => 1,
+                'duration' => 0,
+                'actualScope' => 'Onsite consultant',
                 'deliverable' => 'Laporan Pelaksanaan Information Security Assistance, Support, &
                                     Monitoring Services, yang memuat:
                                     1. Activity Log / Activirty Record
@@ -697,11 +697,11 @@ class WorkPackageSeeder extends Seeder
             ],
             [
                 'category_id' => 11,
-                'wp_number' => '11.2',
+                'workPack_number' => '11.2',
                 'name' => 'Human Security Risk Awareness Services',
-                'volume_qty' => 12,
-                // 'duration' => 0,
-                'actual_scope_contract' => '"Executive Leaders Forum on Cybersecurity 1.0:
+                'volumeQTY' => 12,
+                'duration' => 0,
+                'actualScope' => '"Executive Leaders Forum on Cybersecurity 1.0:
 Empowering Oil and Gas Leaders with Critical Insight into Cybersecurity and Data Privacy Fundamentals"',
                 'deliverable' => 'Laporan Pelaksanaan Program Human Risk Security Awareness
                                     Services, per kegiatan yang memuat:
@@ -714,11 +714,11 @@ Empowering Oil and Gas Leaders with Critical Insight into Cybersecurity and Data
             ],
             [
                 'category_id' => 11,
-                'wp_number' => '11.3',
+                'workPack_number' => '11.3',
                 'name' => 'Human Security Risk Capabilities Development Services',
-                'volume_qty' => 40,
-                // 'duration' => 0,
-                'actual_scope_contract' => '"Focus Group Discussion (FGD) 
+                'volumeQTY' => 40,
+                'duration' => 0,
+                'actualScope' => '"Focus Group Discussion (FGD) 
 Upskilling & Sertifikasi Certified in Risk & Information System Control (CRISC)"',
                 'deliverable' => 'Laporan Pelaksanaan Program Human Risk Security Capabilities
                                     Development Services, per kegiatan yang memuat:
@@ -730,11 +730,11 @@ Upskilling & Sertifikasi Certified in Risk & Information System Control (CRISC)"
             ],
             [
                 'category_id' => 11,
-                'wp_number' => '11.4',
+                'workPack_number' => '11.4',
                 'name' => 'General Information Security Services',
-                'volume_qty' => 30,
-                // 'duration' => 0,
-                'actual_scope_contract' => '',
+                'volumeQTY' => 30,
+                'duration' => 0,
+                'actualScope' => '',
                 'deliverable' => 'Laporan Pelaksanaan Program Information Security Services, per
                                     kegiatan yang memuat:
                                     1. Materi

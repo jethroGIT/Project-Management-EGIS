@@ -55,8 +55,8 @@
                                     @foreach($categories as $category)
                                         @if($category->workPackage && $category->workPackage->count() > 0)
                                             <option value="{{ $category->category_id }}">
-                                                @if(isset($category->category_number))
-                                                    {{ $category->category_number }}.
+                                                @if(isset($category->categoryNumber))
+                                                    {{ $category->categoryNumber }}.
                                                 @endif
                                                 {{ $category->name }}
                                             </option>
@@ -82,7 +82,7 @@
             <!-- Table -->
             {{-- No WP, no WO, nama WP, volume by contract, volume realisasi, volume remaining, action lihat detail --}}
             <div class="table-responsive mb-2" style="overflow-x: auto; width: 100%;">
-                <table id="table_work_order" class="table table-hover gy-4 gs-3 border rounded w-100">
+                <table id="table_mst_workOrder" class="table table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="text-center fw-bolder fs-6 text-gray-800 px-7">
                             <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping WP category --}}
@@ -109,22 +109,22 @@
                         @forelse($workPackages as $wp)
                             <tr>
                                 @php
-                                    $totalWithWO = $wp->workPackageVolumes->whereNotNull('wo_id')->count();
-                                    $remaining = $wp->volume_qty - $totalWithWO;
+                                    $totalWithWO = $wp->workPackageVolumes->whereNotNull('workOrder_id')->count();
+                                    $remaining = $wp->volumeQTY - $totalWithWO;
                                 @endphp
 
                                 {{-- Kolom tersembunyi untuk grouping --}}
                                 <td style="display: none;">{{$wp->wpCategory->name ?? '-'}}</td>
-                                <td class="align-middle text-center">{{$wp->wp_number}}</td>
+                                <td class="align-middle text-center">{{$wp->workPack_number}}</td>
                                 <td class="align-middle">{{$wp->name}}</td>
                                 @foreach($executionYears as $year)
                                     <td class="align-middle text-center">
                                         @php
                                             $woNumbers = $wp->workPackageVolumes
-                                                ->where('execution_year', $year)
+                                                ->where('executionYear', $year)
                                                 ->whereNotNull('workOrder')
-                                                ->sortBy(fn($vol) => $vol->workOrder->wo_number)
-                                                ->pluck('workOrder.wo_number')
+                                                ->sortBy(fn($vol) => $vol->workOrder->workNumber_id)
+                                                ->pluck('workOrder.workNumber_id')
                                                 ->filter()
                                                 ->unique()
                                                 ->map(fn($num) => 'WO ' . $num)
@@ -133,14 +133,14 @@
                                         {{ $woNumbers ?: '-' }}
                                     </td>
                                 @endforeach
-                                <td class="align-middle text-center">{{$wp->volume_qty}}</td>
+                                <td class="align-middle text-center">{{$wp->volumeQTY}}</td>
                                 <td class="align-middle text-center">{{$totalWithWO}}</td>
                                 <td class="align-middle text-center">{{$remaining}}</td>
                                 <td class="align-middle text-center">
                                     {{-- Button Lihat Detail --}}
                                     <button type="button" class="btn btn-success btn-sm" title="Lihat Detail" 
                                             data-bs-toggle="modal" data-bs-target="#kt_modal_detail_wo" 
-                                            data-wp-id="{{ $wp->wp_id }}"
+                                            data-wp-id="{{ $wp->workPackage_id }}"
                                     >
                                         <i class="bi bi-eye fs-2 text-center p-0"></i>
                                     </button>
@@ -166,7 +166,7 @@
                     <h3 class="card-title fw-bold p-0">Summary by Work Orders</h3>
                 </div>
                 <div class="card-body py-0">
-                    <table id="table_summary_work_order" class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
+                    <table id="table_summary_mst_workOrder" class="table border bordered-gray-300 table-row-bordered table-sm table-row-gray-300 gs-3">
                         <thead style="font-size: 1.1rem;">
                             <tr>
                                 <th scope="col" style="display: none;">WP Group Key</th> {{-- untuk grouping WP category --}}
@@ -180,9 +180,9 @@
                                 @foreach($summary['grouped_volumes'] as $group)
                                     <tr>
                                         <td scope="col" style="display: none;">
-                                            WO {{ $summary['wo_number'] }} - ({{ $summary['execution_year'] }})
+                                            WO {{ $summary['workNumber_id'] }} - ({{ $summary['executionYear'] }})
                                         </td>
-                                        <td class="align-middle text-center">{{ $group['wp']->wp_number ?? '-' }}</td>
+                                        <td class="align-middle text-center">{{ $group['wp']->workPack_number ?? '-' }}</td>
                                         <td class="align-middle">{{ $group['wp']->name ?? '-' }}</td>
                                         <td class="text-center align-middle">{{ $group['count'] }}</td>
                                     </tr>
@@ -204,9 +204,9 @@
                 <h3 class="modal-title">Detail Work Order</h3>
             </div>
             <div class="modal-body">
-                <span class="badge badge-primary" id="work_package_no">WP </span>
-                <p id="work_package_name">WP </p>
-                <table id="modal_work_order" class="table table-hover gy-4 gs-3 border rounded w-100">
+                <span class="badge badge-primary" id="trs_workPackage_no">WP </span>
+                <p id="trs_workPackage_name">WP </p>
+                <table id="modal_mst_workOrder" class="table table-hover gy-4 gs-3 border rounded w-100">
                     <thead>
                         <tr class="text-center fw-bold fs-6 text-gray-800 px-7">
                             <th scope="col" style="display:none;">WO Group</th>
@@ -242,18 +242,18 @@
                             <h6 class="mb-0">Work Order</h6>
                         </div>
                         @php
-                            $latestWO = $workOrders->sortByDesc('wo_number')->first();
+                            $latestWO = $workOrders->sortByDesc('workNumber_id')->first();
                         @endphp
                         @if($latestWO)
                             <div class="mb-3 px-2 py-2 rounded border border-info">
                                 <div class="fw-bold text-info mb-1">
                                     <i class="bi bi-clock-history me-1"></i>
-                                    Work Order Sebelumnya: WO {{ $latestWO->wo_number }} ({{ $latestWO->workPackageVolumes->pluck('execution_year')->unique()->filter()->implode(', ') ?: '-' }})
+                                    Work Order Sebelumnya: WO {{ $latestWO->workNumber_id }} ({{ $latestWO->workPackageVolumes->pluck('executionYear')->unique()->filter()->implode(', ') ?: '-' }})
                                 </div>
                                 <div class="text-dark small">
                                     WP:
                                     @php
-                                        $wpNumbers = $latestWO->workPackageVolumes->pluck('workPackage.wp_number')->unique()->filter();
+                                        $wpNumbers = $latestWO->workPackageVolumes->pluck('workPackage.workPack_number')->unique()->filter();
                                     @endphp
                                     @if($wpNumbers->isNotEmpty())
                                         @foreach($wpNumbers as $wpNum)
@@ -288,12 +288,12 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold required">Start Date</label>
-                                <input type="date" name="start_date" id="addVolumeStartDate" 
+                                <input type="date" name="startDate" id="addVolumeStartDate" 
                                     class="form-control" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold required">End Date</label>
-                                <input type="date" name="end_date" id="addVolumeEndDate" 
+                                <input type="date" name="endDate" id="addVolumeEndDate" 
                                     class="form-control" required>
                             </div>
                         </div>
@@ -335,20 +335,20 @@
                 @php
                     function wpOptionText($wp) {
                         $maxLength = 100; // atur sesuai kebutuhan
-                        $text = trim($wp->wp_number . ' ' . $wp->name);
+                        $text = trim($wp->workPack_number . ' ' . $wp->name);
                         return strlen($text) > $maxLength
                             ? mb_substr($text, 0, $maxLength) . '...'
                             : $text;
                     }
                 @endphp
-                <select name="wp_id" class="form-select wpSelect mb-2" required>
+                <select name="workPackage_id" class="form-select wpSelect mb-2" required>
                     <option value="">Pilih Kategori Work Package</option>
                     @foreach($workPackages as $wp)
                         @php
-                            $remaining = $wp->volume_qty - $wp->workPackageVolumes->whereNotNull('wo_id')->count();
+                            $remaining = $wp->volumeQTY - $wp->workPackageVolumes->whereNotNull('workOrder_id')->count();
                         @endphp
                         @if($remaining > 0)
-                            <option value="{{ $wp->wp_id }}" data-remaining="{{ $remaining }}" data-total="{{ $wp->volume_qty }}">
+                            <option value="{{ $wp->workPackage_id }}" data-remaining="{{ $remaining }}" data-total="{{ $wp->volumeQTY }}">
                                 {{ wpOptionText($wp) }}
                             </option>
                         @endif
@@ -416,11 +416,11 @@
 
         $('#kt_modal_detail_wo').on('hidden.bs.modal', function () {
             // Reset konten modal
-            $('#work_package_no').text('WP');
-            $('#work_package_name').text('WP');
-            $('#modal_work_order tbody').html('');
+            $('#trs_workPackage_no').text('WP');
+            $('#trs_workPackage_name').text('WP');
+            $('#modal_mst_workOrder tbody').html('');
             // Destroy DataTable agar tidak error saat modal dibuka lagi
-            const $table = $('#modal_work_order');
+            const $table = $('#modal_mst_workOrder');
             if ($.fn.DataTable.isDataTable($table)) {
                 $table.DataTable().destroy();
             }
@@ -436,7 +436,7 @@
     }
 
     function initTabelWorkOrder() {
-        const table = $('#table_work_order').DataTable({
+        const table = $('#table_mst_workOrder').DataTable({
             scrollY: '350px',
             scrollX: true,
             ordering: false, 
@@ -456,7 +456,7 @@
     }
 
     function initTableSummary() {
-        const table = $('#table_summary_work_order').DataTable({
+        const table = $('#table_summary_mst_workOrder').DataTable({
             scrollY: '325px',
             scrollX: true,
             resposive: true,
@@ -477,27 +477,27 @@
     }
 
     function initTableModalWO(){
-        $('#table_work_order').on('click', '.btn-success[data-wp-id]', function() {
+        $('#table_mst_workOrder').on('click', '.btn-success[data-wp-id]', function() {
             const wpId = $(this).data('wp-id');
-            const wp = window.wpData.find(w => w.wp_id == wpId);
+            const wp = window.wpData.find(w => w.workPackage_id == wpId);
 
-            $('#work_package_no').text(wp ? 'WP - ' + wp.wp_number : 'WP');
-            $('#work_package_name').text(wp ? wp.name : 'WP');
+            $('#trs_workPackage_no').text(wp ? 'WP - ' + wp.workPack_number : 'WP');
+            $('#trs_workPackage_name').text(wp ? wp.name : 'WP');
 
             let rows = '';
-            if (wp && wp.work_package_volumes) {
-                // Urutkan volume berdasarkan wo_number ascending
-                const sortedVolumes = [...wp.work_package_volumes]
-                    .filter(vol => vol.wo_id && vol.work_order)
-                    .sort((a, b) => a.work_order.wo_number - b.work_order.wo_number);
+            if (wp && wp.trs_workPackVolumes) {
+                // Urutkan volume berdasarkan workNumber_id ascending
+                const sortedVolumes = [...wp.trs_workPackVolumes]
+                    .filter(vol => vol.workOrder_id && vol.mst_workOrder)
+                    .sort((a, b) => a.mst_workOrder.workNumber_id - b.mst_workOrder.workNumber_id);
 
                 sortedVolumes.forEach(function(vol) {
-                    const groupKey = `WO ${vol.work_order.wo_number} (${vol.execution_year ?? '-'})`;
-                    const period = `${formatTanggal(vol.start_date)} - ${formatTanggal(vol.end_date)}`;
+                    const groupKey = `WO ${vol.mst_workOrder.workNumber_id} (${vol.executionYear ?? '-'})`;
+                    const period = `${formatTanggal(vol.startDate)} - ${formatTanggal(vol.endDate)}`;
                     rows += `
                         <tr class="text-center px-7" style="font-size:0.95rem;">
                             <td style="display:none;">${groupKey}</td>
-                            <td class="align-middle text-center">${vol.volume_number ?? '-'}</td>
+                            <td class="align-middle text-center">${vol.volumeNumber ?? '-'}</td>
                             <td class="align-middle text-center">${period}</td>
                         </tr>
                     `;
@@ -508,11 +508,11 @@
             }
 
             // Isi tbody
-            $('#modal_work_order tbody').html(rows);
+            $('#modal_mst_workOrder tbody').html(rows);
 
             // Inisialisasi DataTables dengan rowGroup
             setTimeout(function() {
-                const $table = $('#modal_work_order');
+                const $table = $('#modal_mst_workOrder');
                 if ($.fn.DataTable.isDataTable($table)) {
                     $table.DataTable().destroy();
                 }
@@ -569,7 +569,7 @@
 
     function applyFilter() {
         const categoryId = $('#kategoriFilter').val();
-        const table = $('#table_work_order').DataTable();
+        const table = $('#table_mst_workOrder').DataTable();
 
         if (categoryId) {
             // Ambil nama kategori dari dropdown
@@ -590,7 +590,7 @@
 
     function resetFilter() {
         $('#kategoriFilter').val('');
-        const table = $('#table_work_order').DataTable();
+        const table = $('#table_mst_workOrder').DataTable();
         table.columns().search('').draw();
         $('#filterCollapse').collapse('hide');
     }
@@ -704,16 +704,16 @@
                         if (assignedCount > 0) {
                             // Gather information about assigned volumes
                             const wpId = this.value;
-                            const wp = window.wpData.find(w => w.wp_id == wpId);
+                            const wp = window.wpData.find(w => w.workPackage_id == wpId);
                             
-                            if (wp && wp.work_package_volumes) {
+                            if (wp && wp.trs_workPackVolumes) {
                                 // Get volumes that have been assigned to WOs
-                                const assignedVolumes = wp.work_package_volumes.filter(vol => vol.wo_id && vol.work_order);
+                                const assignedVolumes = wp.trs_workPackVolumes.filter(vol => vol.workOrder_id && vol.mst_workOrder);
                                 
                                 // Group volumes by work order
                                 const volumesByWO = {};
                                 assignedVolumes.forEach(vol => {
-                                    const woNumber = vol.work_order.wo_number;
+                                    const woNumber = vol.mst_workOrder.workNumber_id;
                                     if (!volumesByWO[woNumber]) {
                                         volumesByWO[woNumber] = {
                                             count: 0,
@@ -724,11 +724,11 @@
                                     volumesByWO[woNumber].count++;
                                     
                                     // Get start and end date (use the same for all volumes in a WO)
-                                    if (!volumesByWO[woNumber].startDate || new Date(vol.start_date) < new Date(volumesByWO[woNumber].startDate)) {
-                                        volumesByWO[woNumber].startDate = vol.start_date;
+                                    if (!volumesByWO[woNumber].startDate || new Date(vol.startDate) < new Date(volumesByWO[woNumber].startDate)) {
+                                        volumesByWO[woNumber].startDate = vol.startDate;
                                     }
-                                    if (!volumesByWO[woNumber].endDate || new Date(vol.end_date) > new Date(volumesByWO[woNumber].endDate)) {
-                                        volumesByWO[woNumber].endDate = vol.end_date;
+                                    if (!volumesByWO[woNumber].endDate || new Date(vol.endDate) > new Date(volumesByWO[woNumber].endDate)) {
+                                        volumesByWO[woNumber].endDate = vol.endDate;
                                     }
                                 });
                                 
@@ -780,10 +780,10 @@
         // Hitung WP yang masih punya volume belum di-assign WO
         // const availableWPIds = window.wpData
         //     .filter(wp =>
-        //         wp.work_package_volumes &&
-        //         wp.work_package_volumes.some(vol => !vol.wo_id)
+        //         wp.trs_workPackVolumes &&
+        //         wp.trs_workPackVolumes.some(vol => !vol.workOrder_id)
         //     )
-        //     .map(wp => wp.wp_id);
+        //     .map(wp => wp.workPackage_id);
         const wpSelectOptions = document.querySelectorAll('.wpSelect option');
         const availableWPOptions = Array.from(wpSelectOptions).filter(option => {
             return option.value && parseInt(option.dataset.remaining || 0) > 0;
@@ -818,10 +818,10 @@
     }
 
     function getRecommendedWoNumber() {
-        // Ambil semua wo_number dari window.wpData dan workOrders
+        // Ambil semua workNumber_id dari window.wpData dan workOrders
         let usedNumbers = [];
         if (window.workOrders) {
-            usedNumbers = window.workOrders.map(wo => parseInt(wo.wo_number, 10)).filter(n => !isNaN(n));
+            usedNumbers = window.workOrders.map(wo => parseInt(wo.workNumber_id, 10)).filter(n => !isNaN(n));
         }
         // Cari nilai terbesar, lalu +1
         let recommended = 1;
@@ -915,7 +915,7 @@
             }
             
             assignments.push({
-                wp_id: wpId,
+                workPackage_id: wpId,
                 volume_count: volumeCount
             });
         });
@@ -942,7 +942,7 @@
             method: 'POST',
             data: {
                 _token: form.find('[name="_token"]').val(),
-                wo_number: newWoNumber
+                workNumber_id: newWoNumber
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -959,9 +959,9 @@
                 });
             },
             success: function (response) {
-                if (response.success && response.data && response.data.wo_id) {
+                if (response.success && response.data && response.data.workOrder_id) {
                     // Assign volume ke WO baru
-                    assignVolumesToWO(response.data.wo_id, assignments, form);
+                    assignVolumesToWO(response.data.workOrder_id, assignments, form);
                 } else {
                     Swal.fire({
                         title: "Gagal Membuat WO",
@@ -992,16 +992,16 @@
         });
     }
 
-    function assignVolumesToWO(wo_id, assignments, form) {
+    function assignVolumesToWO(workOrder_id, assignments, form) {
         $.ajax({
             url: "{{ route('work-order.assign') }}",
             method: 'PUT',
             data: {
                 _token: form.find('[name="_token"]').val(),
-                wo_id: wo_id,
-                assignments: assignments, //isinya array {wp_id, volume_count}
-                start_date: $('#addVolumeStartDate').val(),
-                end_date: $('#addVolumeEndDate').val()
+                workOrder_id: workOrder_id,
+                assignments: assignments, //isinya array {workPackage_id, volume_count}
+                startDate: $('#addVolumeStartDate').val(),
+                endDate: $('#addVolumeEndDate').val()
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

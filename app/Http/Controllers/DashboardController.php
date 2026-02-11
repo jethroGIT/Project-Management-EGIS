@@ -27,14 +27,14 @@ class DashboardController extends Controller
         // Hitung total Work Order yang tersedia
         $totalWorkOrders = WorkOrder::with(['workPackageVolumes' => function($query) {
             $query->with('workPackage')
-                ->whereNotNull('start_date')
-                ->whereNotNull('end_date')
-                ->whereNotNull('execution_year');
+                ->whereNotNull('startDate')
+                ->whereNotNull('endDate')
+                ->whereNotNull('executionYear');
         }])
         ->whereHas('workPackageVolumes', function($query) {
-            $query->whereNotNull('start_date')
-                ->whereNotNull('end_date')
-                ->whereNotNull('execution_year');
+            $query->whereNotNull('startDate')
+                ->whereNotNull('endDate')
+                ->whereNotNull('executionYear');
         })
         ->count();
 
@@ -62,27 +62,27 @@ class DashboardController extends Controller
 
         $barChartWpSDMData = [
             'labels' => $userWorkPackageData->pluck('name')->toArray(),
-            'data' => $userWorkPackageData->pluck('work_package_count')->toArray(),
+            'data' => $userWorkPackageData->pluck('trs_workPackage_count')->toArray(),
             'details' => $userWorkPackageData->toArray(),
             'total_users' => $userWorkPackageData->count()
         ];
 
         // Get execution years for the period diagram filter
-        $executionYear = WorkPackageVolume::whereNotNull(['end_date', 'wo_id'])
+        $executionYear = WorkPackageVolume::whereNotNull(['endDate', 'workOrder_id'])
             ->distinct()
-            ->orderBy('execution_year', 'asc')
-            ->pluck('execution_year');
+            ->orderBy('executionYear', 'asc')
+            ->pluck('executionYear');
             
-        $wpvWithPeriod = WorkPackageVolume::whereNotNull('work_package_volume.end_date')
-            ->whereNotNull('work_package_volume.wo_id')
-            ->where('work_package_volume.execution_year', $selectedYear)
+        $wpvWithPeriod = WorkPackageVolume::whereNotNull('trs_workPackVolume.endDate')
+            ->whereNotNull('trs_workPackVolume.workOrder_id')
+            ->where('trs_workPackVolume.executionYear', $selectedYear)
             ->with(['workPackage', 'workOrder', 'task.subTask'])
-            ->join('work_order as wo_sort', 'work_package_volume.wo_id', '=', 'wo_sort.wo_id')
-            ->orderByRaw('CAST(wo_sort.wo_number AS INTEGER) ASC')
-            ->select('work_package_volume.*')
+            ->join('mst_workOrder as wo_sort', 'trs_workPackVolume.workOrder_id', '=', 'wo_sort.workOrder_id')
+            ->orderByRaw('CAST(wo_sort.workNumber_id AS SIGNED) ASC')
+            ->select('trs_workPackVolume.*')
             ->get();
         
-        $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        $groupedByWo = $wpvWithPeriod->groupBy('workOrder_id');
         $woGroups = collect();
 
         foreach ($groupedByWo as $woId => $volumes) {
@@ -95,11 +95,11 @@ class DashboardController extends Controller
 
             foreach ($volumes as $volume) {
                 // collect period bounds
-                if ($volume->start_date) $startDates[] = $volume->start_date;
-                if ($volume->end_date) $endDates[] = $volume->end_date;
+                if ($volume->startDate) $startDates[] = $volume->startDate;
+                if ($volume->endDate) $endDates[] = $volume->endDate;
 
                 // collect WP numbers
-                $wpNum = optional($volume->workPackage)->wp_number;
+                $wpNum = optional($volume->workPackage)->workPack_number;
                 if ($wpNum) $wpNumbers[$wpNum] = true;
 
                 // get tasks (use eager loaded relationship if present)
@@ -139,15 +139,15 @@ class DashboardController extends Controller
             $groupStart = count($startDates) ? collect($startDates)->min() : null;
             $groupEnd = count($endDates) ? collect($endDates)->max() : null;
 
-            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+            $woNumber = optional($volumes->first()->workOrder)->workNumber_id ?? $woId;
 
             $woGroups->push((object)[
-                'wo_id' => $woId,
-                'wo_number' => $woNumber,
-                'start_date' => $groupStart,
-                'end_date' => $groupEnd,
+                'workOrder_id' => $woId,
+                'workNumber_id' => $woNumber,
+                'startDate' => $groupStart,
+                'endDate' => $groupEnd,
                 'performance' => $groupPerformance,
-                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'workPack_numbers' => array_values(array_keys($wpNumbers)),
                 'volumes' => $volumes, // include volumes if view needs details
             ]);
         }
@@ -178,7 +178,7 @@ class DashboardController extends Controller
 
             // Hitung Work Package yang sudah memiliki Work Order
             $wpWithWorkOrder = WorkPackage::whereHas('workPackageVolumes', function($query) {
-                $query->whereNotNull('wo_id');
+                $query->whereNotNull('workOrder_id');
             })->count();
 
             // Hitung Work Package yang belum memiliki Work Order
@@ -245,8 +245,8 @@ class DashboardController extends Controller
                 }
 
                 $wpCompletionDetails[] = [
-                    'wp_id' => $wp->wp_id,
-                    'wp_number' => $wp->wp_number,
+                    'workPackage_id' => $wp->workPackage_id,
+                    'workPack_number' => $wp->workPack_number,
                     'wp_name' => $wp->name,
                     'volume_count' => $volumeCount,
                     'volume_completions' => $volumeCompletions,
@@ -361,15 +361,15 @@ class DashboardController extends Controller
                         'workPackage.humanResources.role',
                         'task.subTask'
                     ])
-                    ->whereNotNull('start_date')
-                    ->whereNotNull('end_date')
-                    ->whereNotNull('execution_year');
+                    ->whereNotNull('startDate')
+                    ->whereNotNull('endDate')
+                    ->whereNotNull('executionYear');
                 }
             ])
             ->whereHas('workPackageVolumes', function($query) {
-                $query->whereNotNull('start_date')
-                    ->whereNotNull('end_date')
-                    ->whereNotNull('execution_year');
+                $query->whereNotNull('startDate')
+                    ->whereNotNull('endDate')
+                    ->whereNotNull('executionYear');
             })
             ->get();
 
@@ -383,7 +383,7 @@ class DashboardController extends Controller
                 $woCompletionStatus = [];
 
                 // Group volume berdasarkan Work Package
-                $volumesByWP = $wo->workPackageVolumes->groupBy('wp_id');
+                $volumesByWP = $wo->workPackageVolumes->groupBy('workPackage_id');
 
                 foreach ($volumesByWP as $wpId => $volumes) {
                     $firstVolume = $volumes->first();
@@ -415,8 +415,8 @@ class DashboardController extends Controller
                     }
 
                     $wpCompletionStatus[] = [
-                        'wp_id' => $wpId,
-                        'wp_number' => $workPackage->wp_number,
+                        'workPackage_id' => $wpId,
+                        'workPack_number' => $workPackage->workPack_number,
                         'wp_name' => $workPackage->name,
                         'wp_value' => $wpValue,
                         'volume_count' => $volumes->count(),
@@ -435,8 +435,8 @@ class DashboardController extends Controller
                 }
 
                 $woDetails[] = [
-                    'wo_id' => $wo->wo_id,
-                    'wo_number' => $wo->wo_number,
+                    'workOrder_id' => $wo->workOrder_id,
+                    'workNumber_id' => $wo->workNumber_id,
                     'total_value' => $woTotalValue,
                     'is_completed' => $woIsCompleted,
                     'wp_count' => $volumesByWP->count(),
@@ -493,7 +493,7 @@ class DashboardController extends Controller
             $totalByYoy = 0;
 
             foreach ($humanResources as $hResource) {
-                $resourceCost = optional($hResource->role)->resource_cost ?? 0;
+                $resourceCost = optional($hResource->role)->resourceCost ?? 0;
                 $jhk = $hResource->jhk ?? 0;
                 $jtk = $hResource->jtk ?? 0;
 
@@ -506,7 +506,7 @@ class DashboardController extends Controller
 
         } catch (Exception $e) {
             Log::error('Error calculating WP Value', [
-                'wp_id' => $workPackage->wp_id,
+                'workPackage_id' => $workPackage->workPackage_id,
                 'error' => $e->getMessage()
             ]);
 
@@ -523,12 +523,12 @@ class DashboardController extends Controller
             // Ambil semua Work Package yang sudah dipanggil oleh Work Order
             $workPackagesWithWO = WorkPackage::with([
                 'workPackageVolumes' => function($query) {
-                    $query->whereNotNull('wo_id');
+                    $query->whereNotNull('workOrder_id');
                 },
                 'workPackageVolumes.task.subTask'
             ])
             ->whereHas('workPackageVolumes', function($query) {
-                $query->whereNotNull('wo_id');
+                $query->whereNotNull('workOrder_id');
             })
             ->get();
 
@@ -538,7 +538,7 @@ class DashboardController extends Controller
 
             foreach ($workPackagesWithWO as $wp) {
                 // Hanya ambil volume yang memiliki Work Order untuk evaluasi completion
-                $volumesWithWO = $wp->workPackageVolumes->whereNotNull('wo_id');
+                $volumesWithWO = $wp->workPackageVolumes->whereNotNull('workOrder_id');
 
                 $volumeCompletions = [];
                 $totalVolumeCompletion = 0;
@@ -562,8 +562,8 @@ class DashboardController extends Controller
                 }
 
                 $wpCompletionDetails[] = [
-                    'wp_id' => $wp->wp_id,
-                    'wp_number' => $wp->wp_number,
+                    'workPackage_id' => $wp->workPackage_id,
+                    'workPack_number' => $wp->workPack_number,
                     'wp_name' => $wp->name,
                     'total_volumes' => $wp->workPackageVolumes->count(),
                     'volume_with_wo' => $volumeCount,
@@ -619,7 +619,7 @@ class DashboardController extends Controller
 
         // Hitung WP yang sudah memiliki WO
         $wpWithWorkOrder = WorkPackage::whereHas('workPackageVolumes', function($query) {
-            $query->whereNotNull('wo_id');
+            $query->whereNotNull('workOrder_id');
         })->count();
 
         // Hitung WP yang belum memiliki WO
@@ -649,21 +649,21 @@ class DashboardController extends Controller
                 'workOrder',
                 'task.subTask',
             ])
-            ->whereNotNull('work_package_volume.wo_id')
-            ->whereNotNull('work_package_volume.start_date')
-            ->whereNotNull('work_package_volume.end_date')
+            ->whereNotNull('trs_workPackVolume.workOrder_id')
+            ->whereNotNull('trs_workPackVolume.startDate')
+            ->whereNotNull('trs_workPackVolume.endDate')
             ->whereHas('workPackage')
             ->whereHas('workOrder')
-            ->where('execution_year', $year)
-            ->orderByRaw('
-                CAST(wo_number_from_wo.wo_number AS INTEGER) ASC,
-                CAST(SPLIT_PART(wp_number_from_wp.wp_number, \'.\', 1) AS INTEGER) ASC,
-                CAST(SPLIT_PART(wp_number_from_wp.wp_number, \'.\', 2) AS INTEGER) ASC,
-                work_package_volume.volume_number ASC
-            ')
-            ->join('work_order as wo_number_from_wo', 'work_package_volume.wo_id', '=', 'wo_number_from_wo.wo_id')
-            ->join('work_package as wp_number_from_wp', 'work_package_volume.wp_id', '=', 'wp_number_from_wp.wp_id')
-            ->select('work_package_volume.*')
+            ->where('executionYear', $year)
+            ->orderByRaw("
+                CAST(workNumber_id_from_wo.workNumber_id AS SIGNED) ASC,
+                CAST(SUBSTRING_INDEX(workPack_number_from_wp.workPack_number, '.', 1) AS SIGNED) ASC,
+                CAST(SUBSTRING_INDEX(workPack_number_from_wp.workPack_number, '.', -1) AS SIGNED) ASC,
+                trs_workPackVolume.volumeNumber ASC
+            ")
+            ->join('mst_workOrder as workNumber_id_from_wo', 'trs_workPackVolume.workOrder_id', '=', 'workNumber_id_from_wo.workOrder_id')
+            ->join('trs_workPackage as workPack_number_from_wp', 'trs_workPackVolume.workPackage_id', '=', 'workPack_number_from_wp.workPackage_id')
+            ->select('trs_workPackVolume.*')
             ->get();
 
             if ($volumes->isEmpty()) {
@@ -681,13 +681,13 @@ class DashboardController extends Controller
 
             // Group volumes berdasarkan kombinasi WO dan WP
             $groupedVolumes = $volumes->groupBy(function($volume) {
-                return $volume->workOrder->wo_number . '_' . $volume->workPackage->wp_number;
+                return $volume->workOrder->workNumber_id . '_' . $volume->workPackage->workPack_number;
             });
 
             foreach ($groupedVolumes as $groupKey => $volumeGroup) {
                 $firstVolume = $volumeGroup->first();
-                $woNumber = $firstVolume->workOrder->wo_number;
-                $wpNumber = $firstVolume->workPackage->wp_number;
+                $woNumber = $firstVolume->workOrder->workNumber_id;
+                $wpNumber = $firstVolume->workPackage->workPack_number;
                 $wpName = $firstVolume->workPackage->name;
 
                 // Hitung rata-rata completion dari semua volume dalam grup ini
@@ -703,8 +703,8 @@ class DashboardController extends Controller
                 $label = "WP {$wpNumber} (WO {$woNumber})";
 
                 // Jika WP ini ada di multiple WO, tambahkan info WO
-                // $wpInMultipleWO = $volumes->where('workPackage.wp_number', $wpNumber)
-                //     ->groupBy('wo_id')->count() > 1;
+                // $wpInMultipleWO = $volumes->where('workPackage.workPack_number', $wpNumber)
+                //     ->groupBy('workOrder_id')->count() > 1;
                 
                 // if ($wpInMultipleWO) {
                 //     $label .= " (WO {$woNumber})";
@@ -720,23 +720,23 @@ class DashboardController extends Controller
 
                 // Simpan detail
                 $chartData[$label] = [
-                    'wo_number' => $woNumber,
-                    'wp_number' => $wpNumber,
+                    'workNumber_id' => $woNumber,
+                    'workPack_number' => $wpNumber,
                     'wp_name' => $wpName,
                     'volume_count' => $volumeCount,
                     'completion' => $avgCompletion,
                     'volume_ids' => $volumeGroup->pluck('volume_id')->toArray(),
-                    'volume_numbers' => $volumeGroup->pluck('volume_number')->sort()->values()->toArray(),
-                    'execution_year' => $firstVolume->execution_year,
-                    'start_date' => $firstVolume->start_date,
-                    'end_date' => $firstVolume->end_date
+                    'volumeNumbers' => $volumeGroup->pluck('volumeNumber')->sort()->values()->toArray(),
+                    'executionYear' => $firstVolume->executionYear,
+                    'startDate' => $firstVolume->startDate,
+                    'endDate' => $firstVolume->endDate
                 ];
             }
 
             Log::info('WP Progress By WO Chart Data Generated', [
                 'total_combinations' => count($labels),
-                'unique_wo_count' => $volumes->pluck('wo_id')->unique()->count(),
-                'unique_wp_count' => $volumes->pluck('wp_id')->unique()->count()
+                'unique_wo_count' => $volumes->pluck('workOrder_id')->unique()->count(),
+                'unique_wp_count' => $volumes->pluck('workPackage_id')->unique()->count()
             ]);
 
             return [
@@ -769,16 +769,16 @@ class DashboardController extends Controller
     private function getAvailableYears()
     {
         try {
-            $years = WorkPackageVolume::whereNotNull('execution_year')
-                ->whereNotNull('wo_id')
-                ->whereNotNull('start_date')
-                ->whereNotNull('end_date')
+            $years = WorkPackageVolume::whereNotNull('executionYear')
+                ->whereNotNull('workOrder_id')
+                ->whereNotNull('startDate')
+                ->whereNotNull('endDate')
                 ->whereHas('workPackage')
                 ->whereHas('workOrder')
-                ->select('execution_year')
+                ->select('executionYear')
                 ->distinct()
-                ->orderBy('execution_year', 'asc')
-                ->pluck('execution_year')
+                ->orderBy('executionYear', 'asc')
+                ->pluck('executionYear')
                 ->toArray();
 
             // Jika tidak ada data, return current year
@@ -851,7 +851,7 @@ class DashboardController extends Controller
                 ->map(function($user) {
                     // Hitung jumlah unique work package yang dikerjakan user ini
                     $workPackageIds = $user->work
-                        ->pluck('volume.workPackage.wp_id')
+                        ->pluck('volume.workPackage.workPackage_id')
                         ->filter() // Remove null values
                         ->unique()
                         ->count();
@@ -859,14 +859,14 @@ class DashboardController extends Controller
                     return [
                         'user_id' => $user->user_id,
                         'name' => $user->name,
-                        'work_package_count' => $workPackageIds,
+                        'trs_workPackage_count' => $workPackageIds,
                         'work_assignments_count' => $user->work->count()
                     ];
                 })
                 ->filter(function($user) {
-                    return $user['work_package_count'] > 0;
+                    return $user['trs_workPackage_count'] > 0;
                 })
-                ->sortByDesc('work_package_count')
+                ->sortByDesc('trs_workPackage_count')
                 ->values();
     
             return $userWorkPackageData;
@@ -893,12 +893,12 @@ class DashboardController extends Controller
                 'workPackage',
                 'workOrder'
             ])
-            ->whereNotNull('wo_id')
-            ->whereNotNull('start_date')
-            ->whereNotNull('end_date')
-            ->orderBy('wo_id')
-            ->orderBy('wp_id')
-            ->orderBy('volume_number')
+            ->whereNotNull('workOrder_id')
+            ->whereNotNull('startDate')
+            ->whereNotNull('endDate')
+            ->orderBy('workOrder_id')
+            ->orderBy('workPackage_id')
+            ->orderBy('volumeNumber')
             ->get();
 
             $projectData = collect();
@@ -913,38 +913,38 @@ class DashboardController extends Controller
                 }
 
                 $projectData->push([
-                    'wo_number' => $volume->workOrder->wo_number ?? '-',
-                    'wp_number' => $volume->workPackage->wp_number ?? '-',
+                    'workNumber_id' => $volume->workOrder->workNumber_id ?? '-',
+                    'workPack_number' => $volume->workPackage->workPack_number ?? '-',
                     'wp_name' => $volume->workPackage->name ?? '-',
                     'volume_id' => $volume->volume_id,
-                    'volume_number' => $volume->volume_number,
-                    'volume_qty' => 1,
+                    'volumeNumber' => $volume->volumeNumber,
+                    'volumeQTY' => 1,
                     'completion' => $completion,
-                    'execution_year' => $volume->execution_year,
-                    'start_date' => $volume->start_date,
-                    'end_date' => $volume->end_date
+                    'executionYear' => $volume->executionYear,
+                    'startDate' => $volume->startDate,
+                    'endDate' => $volume->endDate
                 ]);
             }
 
             // Grup berdasarkan WO dan WP menggabungkan volume yang sama
             $groupedData = $projectData->groupBy(function($item) {
-                return $item['wo_number'] . '_' . $item['wp_number'];
+                return $item['workNumber_id'] . '_' . $item['workPack_number'];
             })->map(function($group) {
                 $first = $group->first();
                 $totalVolumes = $group->count();
                 $avgCompletion = round($group->avg('completion'), 1);
 
                 return [
-                    'wo_number' => $first['wo_number'],
-                    'wp_number' => $first['wp_number'],
+                    'workNumber_id' => $first['workNumber_id'],
+                    'workPack_number' => $first['workPack_number'],
                     'wp_name' => $first['wp_name'],
-                    'volume_qty' => $totalVolumes,
+                    'volumeQTY' => $totalVolumes,
                     'completion' => $avgCompletion,
-                    'execution_year' => $first['execution_year'],
+                    'executionYear' => $first['executionYear'],
                     'volume_ids' => $group->pluck('volume_id')->toArray()
                 ];
             })
-            ->sortBy(['wo_number', 'wp_number'])
+            ->sortBy(['workNumber_id', 'workPack_number'])
             ->values();
 
             return $groupedData;
@@ -995,16 +995,16 @@ class DashboardController extends Controller
         $year = $request->get('year', Carbon::now()->year);
 
         // Ambil semua WorkPackageVolume yang memiliki periode untuk tahun yang dipilih
-        $wpvWithPeriod = WorkPackageVolume::whereNotNull('work_package_volume.end_date')
-            ->whereNotNull('work_package_volume.wo_id')
-            ->where('work_package_volume.execution_year', $year)
+        $wpvWithPeriod = WorkPackageVolume::whereNotNull('trs_workPackVolume.endDate')
+            ->whereNotNull('trs_workPackVolume.workOrder_id')
+            ->where('trs_workPackVolume.executionYear', $year)
             ->with(['workPackage', 'workOrder', 'task.subTask'])
-            ->join('work_order as wo_sort', 'work_package_volume.wo_id', '=', 'wo_sort.wo_id')
-            ->orderByRaw('CAST(wo_sort.wo_number AS INTEGER) ASC')
-            ->select('work_package_volume.*')
+            ->join('mst_workOrder as wo_sort', 'trs_workPackVolume.workOrder_id', '=', 'wo_sort.workOrder_id')
+            ->orderByRaw('CAST(wo_sort.workNumber_id AS SIGNED) ASC')
+            ->select('trs_workPackVolume.*')
             ->get();
         
-        $groupedByWo = $wpvWithPeriod->groupBy('wo_id');
+        $groupedByWo = $wpvWithPeriod->groupBy('workOrder_id');
         $woGroups = collect();
 
         foreach ($groupedByWo as $woId => $volumes) {
@@ -1017,11 +1017,11 @@ class DashboardController extends Controller
 
             foreach ($volumes as $volume) {
                 // collect period bounds
-                if ($volume->start_date) $startDates[] = $volume->start_date;
-                if ($volume->end_date) $endDates[] = $volume->end_date;
+                if ($volume->startDate) $startDates[] = $volume->startDate;
+                if ($volume->endDate) $endDates[] = $volume->endDate;
 
                 // collect WP numbers
-                $wpNum = optional($volume->workPackage)->wp_number;
+                $wpNum = optional($volume->workPackage)->workPack_number;
                 if ($wpNum) $wpNumbers[$wpNum] = true;
 
                 // get tasks (use eager loaded relationship if present)
@@ -1061,15 +1061,15 @@ class DashboardController extends Controller
             $groupStart = count($startDates) ? collect($startDates)->min() : null;
             $groupEnd = count($endDates) ? collect($endDates)->max() : null;
 
-            $woNumber = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+            $woNumber = optional($volumes->first()->workOrder)->workNumber_id ?? $woId;
 
             $woGroups->push((object)[
-                'wo_id' => $woId,
-                'wo_number' => $woNumber,
-                'start_date' => $groupStart,
-                'end_date' => $groupEnd,
+                'workOrder_id' => $woId,
+                'workNumber_id' => $woNumber,
+                'startDate' => $groupStart,
+                'endDate' => $groupEnd,
                 'performance' => $groupPerformance,
-                'wp_numbers' => array_values(array_keys($wpNumbers)),
+                'workPack_numbers' => array_values(array_keys($wpNumbers)),
                 'volumes' => $volumes, // include volumes if view needs details
             ]);
         }
@@ -1113,9 +1113,9 @@ class DashboardController extends Controller
         // 1. Ambil volume_id yang dikerjakan oleh user
         $volumeIds = Work::where('user_id', $user->user_id)->pluck('volume_id')->toArray();
         
-        // 2. Ambil wp_id dari volume tersebut
+        // 2. Ambil workPackage_id dari volume tersebut
         $wpIds = WorkPackageVolume::whereIn('volume_id', $volumeIds)
-            ->pluck('wp_id')
+            ->pluck('workPackage_id')
             ->unique()
             ->toArray();
         
@@ -1126,16 +1126,16 @@ class DashboardController extends Controller
             'humanResources',
             'workPackageVolumes.task.subTask'
         ])
-        ->whereIn('wp_id', $wpIds)
-        ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
+        ->whereIn('workPackage_id', $wpIds)
+        ->orderByRaw("CAST(SUBSTRING_INDEX(workPack_number, '.', 1) AS SIGNED) ASC, CAST(SUBSTRING_INDEX(workPack_number, '.', -1) AS SIGNED) ASC")
         ->get();
         
         $wpDetails = collect();
         $today = now();
         
-        // 4. Proses setiap WP dan kelompokkan berdasarkan wo_id
+        // 4. Proses setiap WP dan kelompokkan berdasarkan workOrder_id
         foreach ($workPackages as $wp) {
-            $volumesByWo = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->groupBy('wo_id');
+            $volumesByWo = $wp->workPackageVolumes->whereIn('volume_id', $volumeIds)->groupBy('workOrder_id');
 
             foreach ($volumesByWo as $woId => $volumes) {
                 if (!$woId) continue; // Abaikan volume tanpa WO
@@ -1143,9 +1143,9 @@ class DashboardController extends Controller
                 $wpClone = clone $wp; // Clone WP untuk menghindari konflik data
                 $wpClone->volumes_count = $volumes->count();
 
-                // Ambil execution_year dari volume
-                $executionYears = $volumes->pluck('execution_year')->unique()->filter();
-                $wpClone->execution_year = $executionYears->count() === 1
+                // Ambil executionYear dari volume
+                $executionYears = $volumes->pluck('executionYear')->unique()->filter();
+                $wpClone->executionYear = $executionYears->count() === 1
                     ? $executionYears->first()
                     : $executionYears->implode(', ');
 
@@ -1162,8 +1162,8 @@ class DashboardController extends Controller
                     $wpClone->status = 'Berjalan';
                 }
 
-                // Tambahkan wo_number
-                $wpClone->wo_number = optional($volumes->first()->workOrder)->wo_number ?? $woId;
+                // Tambahkan workNumber_id
+                $wpClone->workNumber_id = optional($volumes->first()->workOrder)->workNumber_id ?? $woId;
 
                 // Tambahan: Hitung mandays rencana (JHK) dari humanResources
                 $userWork = Work::where('user_id', $user->user_id)
@@ -1230,7 +1230,7 @@ class DashboardController extends Controller
         
         foreach ($volumes as $volume) {
             // Cek apakah volume masih dalam periode
-            if (!$volume->end_date || $volume->end_date > $today) {
+            if (!$volume->endDate || $volume->endDate > $today) {
                 $allDatesExpired = false;
             }
             

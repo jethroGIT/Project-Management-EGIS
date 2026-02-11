@@ -21,13 +21,13 @@ class ProfileUserController extends Controller
         $role = null;
         if($user->hasRole('admin')){
             $adminRole = Role::where('name', 'admin')->first();
-            $roleIds = $adminRole->id;
+            $roleIds = $adminRole->role_id;
             $role = $adminRole;
         }else{
             $roleIds = $user->work->pluck('role_id')->filter()->unique();
             if ($roleIds->count()) {
                 $role = Role::find($roleIds->first());
-                $resourceCost = $role ? $role->resource_cost : 0;
+                $resourceCost = $role ? $role->resourceCost : 0;
             }
         }
 

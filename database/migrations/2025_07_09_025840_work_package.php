@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('work_package', function (Blueprint $table) {
-            $table->id('wp_id');
+        Schema::create('trs_workPackage', function (Blueprint $table) {
+            $table->id('workPackage_id');
             $table->unsignedBigInteger('category_id');
-            $table->string('wp_number',10)->unique();
+            $table->string('workPack_number', 10);
             $table->string('name');
-            $table->integer('volume_qty')->default(1);
-            $table->integer('duration')->nullable(); // in days
-            $table->text('actual_scope_contract')->nullable();
-            $table->text('deliverable')->nullable();
-            // $table->decimal('completeness', 5, 2)->default(0.00);
+            $table->integer('volumeQTY');
+            $table->integer('duration');
+            $table->text('actualScope');
+            $table->text('deliverable');
             $table->timestamps();
 
-            // semula on delete set null
-            $table->foreign('category_id')->references('category_id')->on('wp_category')->onDelete('cascade');
+            $table->foreign('category_id')
+                ->references('category_id')
+                ->on('trs_category')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -33,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('work_package');
+        Schema::dropIfExists('trs_workPackage');
     }
 };

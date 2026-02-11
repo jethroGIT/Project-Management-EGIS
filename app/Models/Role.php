@@ -6,25 +6,20 @@ use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
 {
-    protected $table = 'roles';
+    protected $table = 'mst_roles';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'role_id';
 
     protected $fillable = [
         'name',
         'guard_name',
-        'alt_name',
+        'altName',
         'desc',
-        'resource_cost',
+        'resourceCost',
     ];
-
-    // public function users()
-    // {
-    //     return $this->hasMany(User::class, 'role_id', 'role_id');
-    // }
 
     public function humanResources()
     {
-        return $this->hasMany(HumanResource::class, 'role_id', 'id');
+        return $this->hasMany(HumanResource::class, 'role_id', 'role_id');
     }
 }

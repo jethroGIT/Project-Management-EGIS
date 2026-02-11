@@ -16,7 +16,7 @@ class ProjectSeeder extends Seeder
         $projects = [
             [
                 'name' => 'Project EGIS',
-                'total_budget' => 12704350000, // Rp 12.704.350.000
+                'totalBudget' => 12704350000, // Rp 12.704.350.000
                 'description' => 'Proyek EGIS (Enterprise Governance Information Security)'
             ]
         ];

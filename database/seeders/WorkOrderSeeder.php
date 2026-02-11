@@ -16,55 +16,55 @@ class WorkOrderSeeder extends Seeder
     {
         $workOrders = [
             [
-                'wo_number' => 1
+                'workNumber_id' => 1
             ],
             [
-                'wo_number' => 2
+                'workNumber_id' => 2
             ],
             [
-                'wo_number' => 3
+                'workNumber_id' => 3
             ],
             [
-                'wo_number' => 4
+                'workNumber_id' => 4
             ],
             [
-                'wo_number' => 5
+                'workNumber_id' => 5
             ],
             [
-                'wo_number' => 6
+                'workNumber_id' => 6
             ],
             [
-                'wo_number' => 7
+                'workNumber_id' => 7
             ],
             [
-                'wo_number' => 8
+                'workNumber_id' => 8
             ],
             [
-                'wo_number' => 9
+                'workNumber_id' => 9
             ],
             [
-                'wo_number' => 10
+                'workNumber_id' => 10
             ],
             [
-                'wo_number' => 11
+                'workNumber_id' => 11
             ],
             [
-                'wo_number' => 12
+                'workNumber_id' => 12
             ],
             [
-                'wo_number' => 13
+                'workNumber_id' => 13
             ],
             [
-                'wo_number' => 14
+                'workNumber_id' => 14
             ],
             [
-                'wo_number' => 15
+                'workNumber_id' => 15
             ],
             [
-                'wo_number' => 16
+                'workNumber_id' => 16
             ],
             [
-                'wo_number' => 17
+                'workNumber_id' => 17
             ],
         ];
         foreach ($workOrders as $workOrder) {

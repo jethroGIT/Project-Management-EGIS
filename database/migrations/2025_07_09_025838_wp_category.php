@@ -11,14 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('wp_category', function (Blueprint $table) {
+        Schema::create('trs_category', function (Blueprint $table) {
             $table->id('category_id');
             $table->unsignedBigInteger('project_id');
-            $table->string('category_number')->unique();
-            $table->string('name', 100)->unique();
-            $table->timestamps();
+            $table->string('categoryNumber');
+            $table->string('name', 100);
+            $table->timestamp('created_at');
+            $table->timestamp('updated_at')->nullable();
 
-            $table->foreign('project_id')->references('project_id')->on('projects')->onDelete('cascade');
+            $table->foreign('project_id')
+                ->references('project_id')
+                ->on('mst_projects')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -27,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('wp_category');
+        Schema::dropIfExists('trs_category');
     }
 };

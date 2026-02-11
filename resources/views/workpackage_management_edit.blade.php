@@ -10,7 +10,7 @@
             </h1>
         </div>
         <div class="text-end">
-            <a href="{{ route('wp-management.detail', $workPackage->wp_id) }}" class="btn btn-light me-2">
+            <a href="{{ route('wp-management.detail', $workPackage->workPackage_id) }}" class="btn btn-light me-2">
                 Batal
             </a>
             <button type="button" class="btn btn-primary" onclick="saveWorkPackage()">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- Edit Form  -->
-    <form id="editWorkPackageForm" method="POST" action="{{ route('wp-management.update', $workPackage->wp_id) }}">
+    <form id="editWorkPackageForm" method="POST" action="{{ route('wp-management.update', $workPackage->workPackage_id) }}">
         @csrf
         @method('PUT')
 
@@ -55,10 +55,10 @@
                     <div class="col-md-6 mb-4">
                         <label class="form-label fw-bold">Nomor Sub Work Package</label>
                         <div class="input-group">
-                            <span class="input-group-text" id="edit_wp_number_display" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nomor work package saat ini">
-                                {{ $workPackage->wp_number }}
+                            <span class="input-group-text" id="edit_workPack_number_display" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nomor work package saat ini">
+                                {{ $workPackage->workPack_number }}
                             </span>
-                            <input type="number" name="wp_sequence" id="edit_wp_sequence" class="form-control" placeholder="1" min="1" value="{{ explode('.', $workPackage->wp_number)[1] ?? '' }}" required/>
+                            <input type="number" name="wp_sequence" id="edit_wp_sequence" class="form-control" placeholder="1" min="1" value="{{ explode('.', $workPackage->workPack_number)[1] ?? '' }}" required/>
                         </div>
                         <div class="form-text">
                             Nomor urut dalam WP (contoh: untuk WP 3, input 2 akan menghasilkan 3.2)
@@ -101,10 +101,10 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold">Actual Scope Contract</label>
                         <textarea 
-                            name="actual_scope_contract" 
+                            name="actualScope" 
                             class="form-control" 
                             placeholder="Masukkan actual scope contract"
-                        >{{ trim($workPackage->actual_scope_contract) }}</textarea>
+                        >{{ trim($workPackage->actualScope) }}</textarea>
                     </div>
 
                     <!-- Deliverable -->
@@ -150,7 +150,7 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="card-title mb-0">
                                                 <i class="bi bi-folder-fill text-primary me-2"></i>
-                                                Volume {{ $volume['volume_number'] }}
+                                                Volume {{ $volume['volumeNumber'] }}
                                             </h5>
                                             @if($volumesData->count() > 0)
                                                 <button type="button" class="btn btn-light-danger btn-lg" onclick="removeVolume(this, '{{ $volume['volume_id'] }}')">
@@ -161,11 +161,11 @@
 
                                         <!-- Hidden inputs -->
                                         <!-- <input type="hidden" name="volumes[{{ $index }}][volume_id]" value="{{ $volume['volume_id'] }}">
-                                        <input type="hidden" name="volumes[{{ $index }}][volume_number]" value="{{ $volume['volume_number'] }}"> -->
+                                        <input type="hidden" name="volumes[{{ $index }}][volumeNumber]" value="{{ $volume['volumeNumber'] }}"> -->
 
                                         <!-- Volume Status Badge -->
                                         <div class="mb-3">
-                                            @if($volume['start_date'] && $volume['end_date'] && $volume['execution_year'] && $volume['wo_id'])
+                                            @if($volume['startDate'] && $volume['endDate'] && $volume['executionYear'] && $volume['workOrder_id'])
                                                 <span class="badge badge-light-success">
                                                     <i class="bi bi-check-circle me-1"></i>
                                                     Dikonfigurasi
@@ -185,8 +185,8 @@
                                                 Work Order
                                             </div>
                                             <div class="fs-7">
-                                                @if($volume['wo_number'] ?? false)
-                                                    <span>WO {{ $volume['wo_number'] }}</span>
+                                                @if($volume['workNumber_id'] ?? false)
+                                                    <span>WO {{ $volume['workNumber_id'] }}</span>
                                                 @else
                                                     <span>Belum ditentukan</span>
                                                 @endif
@@ -199,7 +199,7 @@
                                                 Periode Pelaksanaan
                                             </div>
                                             <div class="fs-7">
-                                                @if($volume['start_date'] && $volume['end_date'])
+                                                @if($volume['startDate'] && $volume['endDate'])
                                                     {{ $volume['period_formatted'] }}
                                                 @else
                                                     <span>
@@ -248,11 +248,11 @@
                                         <div class="mt-auto">
                                             <button
                                                 type="button" 
-                                                class="btn {{ $volume['start_date'] && $volume['end_date'] ? 'btn-light-primary' : 'btn-warning' }} btn-sm w-100"
+                                                class="btn {{ $volume['startDate'] && $volume['endDate'] ? 'btn-light-primary' : 'btn-warning' }} btn-sm w-100"
                                                 onclick="editVolumeDetails('{{ $volume['volume_id'] }}')"
                                                 title="Edit konfigurasi volume"
                                             >
-                                                    @if($volume['start_date'] && $volume['end_date'])
+                                                    @if($volume['startDate'] && $volume['endDate'])
                                                         <i class="bi bi-pencil-square me-1"></i>
                                                         Edit Volume
                                                     @else
@@ -321,8 +321,8 @@
                                         @foreach($roles as $role)
                                             @if($role->name !== 'admin' && $role->name !== 'karyawan')
                                                 <option 
-                                                    value="{{ $role->id }}" 
-                                                    {{ $hr['role_id'] == $role->id ? 'selected' : '' }}
+                                                    value="{{ $role->role_id }}" 
+                                                    {{ $hr['role_id'] == $role->role_id ? 'selected' : '' }}
                                                 >
                                                     {{ $role->name }}
                                                 </option>
@@ -457,7 +457,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold required">Nomor Volume</label>
-                                    <select name="volume_number" id="volumeNumberSelect" class="form-select" required>
+                                    <select name="volumeNumber" id="volumeNumberSelect" class="form-select" required>
                                         <option value="">Pilih Nomor Volume</option>
                                     </select>
                                     <div class="form-text">Pilih nomor volume yang akan diaktifkan</div>
@@ -485,13 +485,13 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold required">Start Date</label>
-                                    <input type="date" name="start_date" id="addVolumeStartDate" 
+                                    <input type="date" name="startDate" id="addVolumeStartDate" 
                                         class="form-control" required>
                                     <div class="form-text">Tanggal mulai pelaksanaan volume</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold required">End Date</label>
-                                    <input type="date" name="end_date" id="addVolumeEndDate" 
+                                    <input type="date" name="endDate" id="addVolumeEndDate" 
                                         class="form-control" required>
                                     <div class="form-text">Tanggal selesai pelaksanaan volume</div>
                                 </div>
@@ -625,9 +625,9 @@ let humanResourceIndex = {{ $humanResourcesData->count() }};
 let maxUserIndex = 0;
 
 let volumeIndex = {{ $volumesData->count() }};
-let maxVolumeNumber = {{ $volumesData->max('volume_number') ?? 0 }};
+let maxVolumeNumber = {{ $volumesData->max('volumeNumber') ?? 0 }};
 
-let originalWpNumber = "{{ $workPackage->wp_number }}";
+let originalWpNumber = "{{ $workPackage->workPack_number }}";
 let originalCategoryId = "{{ $workPackage->category_id }}";
 
 let temporaryAssignments = {};
@@ -643,8 +643,8 @@ $(document).ready(function() {
     // Date validation
     $('input[type="date"]').on('change', function() {
         const container = $(this).closest('.volume-item');
-        const startDate = container.find('input[name*="[start_date]"]').val();
-        const endDate = container.find('input[name*="[end_date]"]').val();
+        const startDate = container.find('input[name*="[startDate]"]').val();
+        const endDate = container.find('input[name*="[endDate]"]').val();
         
         if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
             Swal.fire({
@@ -678,7 +678,7 @@ function initEditFormValidation() {
             // Get next available number for new category
             getNextWpNumber(categoryId);
         } else {
-            $('#edit_wp_number_display').text('-');
+            $('#edit_workPack_number_display').text('-');
         }
     });
 
@@ -697,7 +697,7 @@ function initEditFormValidation() {
     $('input[name="name"]').on('input', function() {
         const name = $(this).val().trim();
         const input = $(this);
-        const currentWpId = '{{ $workPackage->wp_id }}';
+        const currentWpId = '{{ $workPackage->workPackage_id }}';
 
         // Clear previous timeout
         clearTimeout(editNameValidationTimeout);
@@ -722,7 +722,7 @@ function initEditFormValidation() {
     $('input[name="name"]').on('blur', function() {
         const name = $(this).val().trim();
         const input = $(this);
-        const currentWpId = '{{ $workPackage->wp_id }}';
+        const currentWpId = '{{ $workPackage->workPackage_id }}';
 
         if (name.length > 0) {
             checkWorkPackageName(name, currentWpId, input);
@@ -741,18 +741,18 @@ function getNextWpNumber(categoryId) {
         success: function(response) {
             if (response.success) {
                 // Extract sequence number
-                const parts = response.wp_number.split('.');
+                const parts = response.workPack_number.split('.');
                 const sequence = parts[parts.length - 1];
 
                 $('#edit_wp_sequence').val(sequence);
-                $('#edit_wp_number_display').text(response.wp_number);
-                $('#edit_wp_number_display').removeClass('text-danger').addClass('text-success');
+                $('#edit_workPack_number_display').text(response.workPack_number);
+                $('#edit_workPack_number_display').removeClass('text-danger').addClass('text-success');
                 $('#edit_wp_sequence').removeClass('is-invalid');
             }
         },
         error: function() {
             console.error('Failed to get next WP number');
-            $('#edit_wp_number_display').text('Error').removeClass('text-success').addClass('text-danger');
+            $('#edit_workPack_number_display').text('Error').removeClass('text-success').addClass('text-danger');
         }
     });
 }
@@ -767,21 +767,21 @@ function checkEditWpNumberAvailability(categoryId, sequence) {
         },
         success: function(response) {
             if (response.success) {
-                $('#edit_wp_number_display').text(response.wp_number);
+                $('#edit_workPack_number_display').text(response.workPack_number);
 
-                const isCurrentWpNumber = response.wp_number === originalWpNumber;
+                const isCurrentWpNumber = response.workPack_number === originalWpNumber;
 
                 if (response.available || isCurrentWpNumber) {
-                    $('#edit_wp_number_display').removeClass('text-danger').addClass('text-success');
+                    $('#edit_workPack_number_display').removeClass('text-danger').addClass('text-success');
                     $('#edit_wp_sequence').removeClass('is-invalid');
                 } else {
-                    $('#edit_wp_number_display').removeClass('text-success').addClass('text-danger');
+                    $('#edit_workPack_number_display').removeClass('text-success').addClass('text-danger');
                     $('#edit_wp_sequence').addClass('is-invalid');
                 }
             }
         },
         error: function() {
-            $('#edit_wp_number_display').text('Error').removeClass('text-success').addClass('text-danger');        
+            $('#edit_workPack_number_display').text('Error').removeClass('text-success').addClass('text-danger');        
         }
     });
 }
@@ -846,7 +846,7 @@ async function saveWorkPackage() {
     // Validate Work Package name
     const nameInput = $('input[name="name"]');
     const nameValue = nameInput.val().trim();
-    const currentWpId = '{{ $workPackage->wp_id }}';
+    const currentWpId = '{{ $workPackage->workPackage_id }}';
     
     if (nameValue) {
         try {
@@ -980,7 +980,7 @@ async function saveWorkPackage() {
     formData.append('wp_sequence', $('#edit_wp_sequence').val());
 
     // if (Object.keys(temporaryAssignments).length > 0) {
-    //     formData.append('work_order_assignments', JSON.stringify(temporaryAssignments));
+    //     formData.append('mst_workOrder_assignments', JSON.stringify(temporaryAssignments));
     // }
 
     // Volume changes to FormData
@@ -1280,7 +1280,7 @@ function addHumanResource() {
                         <option value="">Pilih Jabatan</option>
                         @foreach($roles as $role)
                             @if ($role->name !== 'admin' && $role->name !== 'karyawan')
-                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                <option value="{{ $role->role_id }}">{{ $role->name }}</option>
                             @endif
                         @endforeach
                     </select>
@@ -1672,7 +1672,7 @@ function removeHumanResource(button) {
         url: `{{ route('wp-management.check-role-assignments') }}`,
         method: 'GET',
         data: {
-            wp_id: {{ $workPackage->wp_id }},
+            workPackage_id: {{ $workPackage->workPackage_id }},
             role_id: selectedRoleId
         },
         headers: {
@@ -1889,10 +1889,10 @@ function executeAddVolume() {
     const periodFormatted = formatPeriod(startDate, endDate);
 
     const newVolumeData = {
-        volume_number: parseInt(volumeNumber),
-        start_date: startDate,
-        end_date: endDate,
-        execution_year: executionYear,
+        volumeNumber: parseInt(volumeNumber),
+        startDate: startDate,
+        endDate: endDate,
+        executionYear: executionYear,
         period_formatted: periodFormatted,
         temp_id: 'temp_' + Date.now(),
         action: 'show_existing'
@@ -1950,16 +1950,16 @@ function addVolumeCardDOM(volumeData) {
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-folder-fill text-primary me-2"></i>
-                            Volume ${volumeData.volume_number}
+                            Volume ${volumeData.volumeNumber}
                         </h5>
-                        <button type="button" class="btn btn-light-danger btn-sm" onclick="removeTemporaryVolume(this, '${volumeData.temp_id}', ${volumeData.volume_number})">
+                        <button type="button" class="btn btn-light-danger btn-sm" onclick="removeTemporaryVolume(this, '${volumeData.temp_id}', ${volumeData.volumeNumber})">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
 
                     <!-- Hidden inputs -->
-                    <!-- <input type="hidden" name="volumes[new_${volumeData.volume_number}][volume_id]" value="new">
-                    <input type="hidden" name="volumes[new_${volumeData.volume_number}][volume_number]" value="${volumeData.volume_number}"> -->
+                    <!-- <input type="hidden" name="volumes[new_${volumeData.volumeNumber}][volume_id]" value="new">
+                    <input type="hidden" name="volumes[new_${volumeData.volumeNumber}][volumeNumber]" value="${volumeData.volumeNumber}"> -->
 
                     <!-- Volume Status Badge -->
                     <div class="mb-3">
@@ -2089,7 +2089,7 @@ function loadAvailableVolumeNumbers() {
     select.find('option:gt(0)').remove();
     
     const totalVolumeQty = {{ $totalVolumeQty }};
-    // const currentVolumes = @json($volumesData->pluck('volume_number')->toArray());
+    // const currentVolumes = @json($volumesData->pluck('volumeNumber')->toArray());
     const currentVolumes = [];
     const volumeElements = document.querySelectorAll('.volume-item');
 
@@ -2395,7 +2395,7 @@ function updateNoVolumeMessage() {
  */
 function editVolumeDetails(volumeId) {
     if (volumeId && !volumeId.toString().startsWith('new_')) {
-        const referrerUrl = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId) + '?referrer=edit&wp_id={{ $workPackage->wp_id }}';
+        const referrerUrl = `{{ route('work-package.detail', ['volume_id' => ':volume_id']) }}`.replace(':volume_id', volumeId) + '?referrer=edit&workPackage_id={{ $workPackage->workPackage_id }}';
         window.location.href = referrerUrl;
     } else {
         Swal.fire({

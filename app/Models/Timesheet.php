@@ -6,17 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Timesheet extends Model
 {
-    protected $table = 'timesheet';
+    protected $table = 'trs_timesheet';
 
     protected $primaryKey = 'timesheet_id';
 
     protected $fillable = [
         'user_id',
         'volume_id',
-        // 'sub_task_id',
         'execution_date',
         'activity',
-        'duration'
+        'duration',
     ];
 
     public function user()
@@ -28,5 +27,4 @@ class Timesheet extends Model
     {
         return $this->belongsTo(WorkPackageVolume::class, 'volume_id', 'volume_id');
     }
-
 }

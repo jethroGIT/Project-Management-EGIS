@@ -11,19 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('timesheet', function (Blueprint $table) {
+        Schema::create('trs_timesheet', function (Blueprint $table) {
             $table->id('timesheet_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedSmallInteger('user_id');
             $table->unsignedBigInteger('volume_id');
-            // $table->unsignedBigInteger('sub_task_id');
             $table->date('execution_date');
             $table->text('activity');
-            $table->decimal('duration', 2, 1);
+            $table->decimal('duration', 3, 1);
             $table->timestamps();
 
-            $table->foreign('user_id')->references('user_id')->on('user')->onDelete('cascade');
-            $table->foreign('volume_id')->references('volume_id')->on('work_package_volume')->onDelete('cascade');
-            // $table->foreign('sub_task_id')->references('sub_task_id')->on('sub_task')->onDelete('cascade');
+            $table->foreign('user_id')
+                ->references('user_id')
+                ->on('users')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
+
+            $table->foreign('volume_id')
+                ->references('volume_id')
+                ->on('trs_workPackVolume')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -32,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('timesheet');
+        Schema::dropIfExists('trs_timesheet');
     }
 };

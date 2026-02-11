@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class WpCategory extends Model
 {
-    protected $table = 'wp_category';
+    protected $table = 'trs_category';
 
     protected $primaryKey = 'category_id';
 
     protected $fillable = [
-        'category_number',
+        'project_id',
+        'categoryNumber',
         'name',
     ];
 

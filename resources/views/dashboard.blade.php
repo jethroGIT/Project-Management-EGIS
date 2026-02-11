@@ -258,7 +258,7 @@
                             <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
                         </svg>
                     </span>
-                    <select name="execution_year"
+                    <select name="executionYear"
                             id="tahunFilterPeriod"
                             class="form-select"
                     >
@@ -693,20 +693,20 @@ function initWpProgressChart(charData) {
                             
                         //     // Volume details
                         //     if (details.volume_count > 1) {
-                        //         afterLabels.push(`Volume Numbers: ${details.volume_numbers.join(', ')}`);
+                        //         afterLabels.push(`Volume Numbers: ${details.volumeNumbers.join(', ')}`);
                         //     } else {
-                        //         afterLabels.push(`Volume Number: ${details.volume_numbers[0] || 'N/A'}`);
+                        //         afterLabels.push(`Volume Number: ${details.volumeNumbers[0] || 'N/A'}`);
                         //     }
                             
                         //     // Execution year
-                        //     if (details.execution_year) {
-                        //         afterLabels.push(`Year: ${details.execution_year}`);
+                        //     if (details.executionYear) {
+                        //         afterLabels.push(`Year: ${details.executionYear}`);
                         //     }
                             
                         //     // Period information
-                        //     if (details.start_date && details.end_date) {
-                        //         const startDate = new Date(details.start_date).toLocaleDateString('id-ID');
-                        //         const endDate = new Date(details.end_date).toLocaleDateString('id-ID');
+                        //     if (details.startDate && details.endDate) {
+                        //         const startDate = new Date(details.startDate).toLocaleDateString('id-ID');
+                        //         const endDate = new Date(details.endDate).toLocaleDateString('id-ID');
                         //         afterLabels.push(`Period: ${startDate} - ${endDate}`);
                         //     }
     

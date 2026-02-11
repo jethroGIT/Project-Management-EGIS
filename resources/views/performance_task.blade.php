@@ -11,7 +11,7 @@
                 </a>
                 <h2 class="my-3 mb-3">
                     @if(isset($workPackage))
-                        WP {{ $workPackage->wp_number }} {{ $workPackage->name }}
+                        WP {{ $workPackage->workPack_number }} {{ $workPackage->name }}
                     @else
                         WP tidak diketahui
                     @endif
@@ -104,7 +104,7 @@
                                 <!-- Sub Tasks -->
                                 @if($task->subTask->count() > 0)
                                     @foreach($task->subTask as $subTask)
-                                        <tr class="collapse deskripsi-row" id="task{{ $task->task_id }}-details" data-sub-task-id="{{ $subTask->sub_task_id }}">
+                                        <tr class="collapse deskripsi-row" id="task{{ $task->task_id }}-details" data-sub-task-id="{{ $subTask->subTask_id }}">
                                             <td></td>
                                             <th scope="row"></th>
                                             <td></td>
@@ -118,11 +118,11 @@
                                                         </a>
                                                         <ul class="dropdown-menu dropdown-menu-end rounded-0">
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->sub_task_id }})">
+                                                                <a class="dropdown-item d-flex align-items-center" href="#" onClick="editSubTask({{ $subTask->subTask_id }})">
                                                                 <i class="bi bi-pencil-square me-3 fs-2 text-dark"></i>Edit</a>
                                                             </li>
                                                             <li>
-                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->sub_task_id }}, '{{ addslashes($subTask->name) }}')">
+                                                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" onClick="deleteSubTaskConfirmation({{ $subTask->subTask_id }}, '{{ addslashes($subTask->name) }}')">
                                                                 <i class="bi bi-trash me-3 fs-2 text-dark"></i>Hapus</a>
                                                             </li>
                                                         </ul>
@@ -231,7 +231,7 @@
                 <form id="editSubTaskForm" method="POST">
                     @csrf
                     @method('PUT')
-                    <input type="hidden" name="sub_task_id" id="editSubTaskId" value="">
+                    <input type="hidden" name="subTask_id" id="editSubTaskId" value="">
                     
                     <div class="form-group mb-4">
                         <label class="form-label fw-bold">Task</label>
@@ -528,7 +528,7 @@
                 
                 if (response.success) {
                     // Populate modal dengan data sub task
-                    $('#editSubTaskId').val(response.sub_task.sub_task_id);
+                    $('#editSubTaskId').val(response.sub_task.subTask_id);
                     $('#editSubTaskTaskName').val(response.sub_task.task_name);
                     $('#editSubTaskName').val(response.sub_task.name);
                     

@@ -47,7 +47,7 @@ class ResourceManagementController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:user,email',
+            'email' => 'required|email|max:255|unique:users,email',
             'desc' => 'nullable|string|max:1000', 
             'password' => 'nullable|string|min:6|confirmed'
         ], [
@@ -141,14 +141,14 @@ class ResourceManagementController extends Controller
             $currentRoleId = null;
 
             if ($userRoles->contains('admin')) {
-                $currentRoleId = Role::where('name', 'admin')->first()?->id;
+                $currentRoleId = Role::where('name', 'admin')->first()?->role_id;
             } else {
                 $karyawanRole = $userRoles->filter(function($roleName) {
                     return $roleName !== 'karyawan';
                 })->first();
 
                 if ($karyawanRole) {
-                    $currentRoleId = Role::where('name', $karyawanRole)->first()?->id;
+                    $currentRoleId = Role::where('name', $karyawanRole)->first()?->role_id;
                 }
             }
 
@@ -189,7 +189,7 @@ class ResourceManagementController extends Controller
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('user', 'email')->ignore($id, 'user_id')
+                Rule::unique('users', 'email')->ignore($id, 'user_id')
             ],
             'password' => [
                 'nullable', 

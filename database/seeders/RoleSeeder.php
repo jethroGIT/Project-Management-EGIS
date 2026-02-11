@@ -18,55 +18,55 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'Project Manager', 
                 'guard_name' => 'web',
-                'alt_name' => 'Manajer Proyek', 
+                'altName' => 'Manajer Proyek', 
                 'desc' => 'PM',
-                'resource_cost' => 2150000.00
+                'resourceCost' => 2150000.00
             ],
             [
                 'name' => 'Senior Consultant', 
                 'guard_name' => 'web',
-                'alt_name' => 'Ahli Utama', 
+                'altName' => 'Ahli Utama', 
                 'desc' => 'SC',
-                'resource_cost' => 2700000.00
+                'resourceCost' => 2700000.00
             ],
             [
                 'name' => 'Associate Consultant', 
                 'guard_name' => 'web',
-                'alt_name' => 'Ahli Madya', 
+                'altName' => 'Ahli Madya', 
                 'desc' => 'ASC',
-                'resource_cost' => 2175000.00
+                'resourceCost' => 2175000.00
             ],
             [
                 'name' => 'Junior Consultant', 
                 'guard_name' => 'web',
-                'alt_name' => 'Ahli Muda', 
+                'altName' => 'Ahli Muda', 
                 'desc'=> 'JC',
-                'resource_cost' => 1700000.00
+                'resourceCost' => 1700000.00
             ],
             [
                 'name' => 'Technical Writer', 
                 'guard_name' => 'web',
-                'alt_name' => null, 
+                'altName' => '', 
                 'desc' => 'TW',
-                'resource_cost' => 800000.00
+                'resourceCost' => 800000.00
             ],
             [
                 'name' => 'On-Site Consultant', 
                 'guard_name' => 'web',
-                'alt_name' => null, 
-                'desc' => null,
-                'resource_cost' => 0.00
+                'altName' => '', 
+                'desc' => '',
+                'resourceCost' => 0.00
             ],
             [
                 'name' => 'admin', 
                 'guard_name' => 'web',
-                'alt_name' => 'administrator', 
-                'desc' => null
+                'altName' => 'administrator', 
+                'desc' => ''
             ],
             [
                 'name' => 'karyawan', 
                 'guard_name' => 'web',
-                'alt_name' => null, 
+                'altName' => '', 
                 'desc' => 'role umum untuk Project Manager, Senior Consultant, Associate Consultant, 
                             Junior Consultant, Technical Writer, dan On-Site Consultant'
             ],

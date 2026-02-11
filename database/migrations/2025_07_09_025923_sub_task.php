@@ -11,14 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sub_task', function (Blueprint $table) {
-            $table->id('sub_task_id');
+        Schema::create('trs_subTask', function (Blueprint $table) {
+            $table->id('subTask_id');
             $table->unsignedBigInteger('task_id');
             $table->text('name');
-            $table->decimal('completeness', 5, 2)->default(0.00);
-            $table->timestamps();
+            $table->decimal('completeness', 5, 2);
+            $table->string('trs_subTaskcol', 45)->nullable();
 
-            $table->foreign('task_id')->references('task_id')->on('task')->onDelete('cascade');
+            $table->foreign('task_id')
+                ->references('task_id')
+                ->on('mst_task')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
         });
     }
 
@@ -27,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sub_task');
+        Schema::dropIfExists('trs_subTask');
     }
 };

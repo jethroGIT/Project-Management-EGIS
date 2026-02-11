@@ -70,7 +70,7 @@ class WorkPackageController extends Controller
         }
 
         $humanResources = HumanResource::with('role')
-            ->where('wp_id', $workPackage->wp_id)
+            ->where('workPackage_id', $workPackage->workPackage_id)
             ->orderBy('hresource_id')
             ->get();
 
@@ -94,8 +94,8 @@ class WorkPackageController extends Controller
                 $roleId = $work->role_id;
                 $roleName = $work->role ? $work->role->name : 'No Role';
 
-                // Ambil human resource berdasarkan role_id dan wp_id
-                $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+                // Ambil human resource berdasarkan role_id dan workPackage_id
+                $humanResource = HumanResource::where('workPackage_id', $workPackage->workPackage_id)
                     ->where('role_id', $roleId)
                     ->first();
                 
@@ -131,7 +131,7 @@ class WorkPackageController extends Controller
         //     $roleId = $workRecord->role_id ?? null;
         //     $roleName = $workRecord->role->name ?? 'No Role';
 
-        //     $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+        //     $humanResource = HumanResource::where('workPackage_id', $workPackage->workPackage_id)
         //         ->where('role_id', $roleId)
         //         ->first();
 
@@ -196,13 +196,13 @@ class WorkPackageController extends Controller
 
                 // Ambil role yang sesuai dengan assign role dari human resources
                 $userRoleIds = $user->roles->pluck('id')->toArray();
-                $hrRoleIds = HumanResource::where('wp_id', $workPackage->wp_id)->pluck('role_id')->toArray();
+                $hrRoleIds = HumanResource::where('workPackage_id', $workPackage->workPackage_id)->pluck('role_id')->toArray();
                 $matchingRoleIds = array_intersect($userRoleIds, $hrRoleIds);
 
                 if (!empty($matchingRoleIds)) {
                     // Prioritaskan role turunan (bukan admin/karyawan)
-                    $adminRoleId = Role::where('name', 'admin')->first()?->id;
-                    $karyawanRoleId = Role::where('name', 'karyawan')->first()?->id;
+                    $adminRoleId = Role::where('name', 'admin')->first()?->role_id;
+                    $karyawanRoleId = Role::where('name', 'karyawan')->first()?->role_id;
 
                     $preferredRoleIds = array_filter($matchingRoleIds, function($id) use ($adminRoleId, $karyawanRoleId) {
                         return $id !== $adminRoleId && $id !== $karyawanRoleId;
@@ -223,7 +223,7 @@ class WorkPackageController extends Controller
                 // Hanya return user yang memiliki role yang sesuai dengan human resources
                 if ($roleId && in_array($roleId, $hrRoleIds)) {
                     // Ambil JHK dari Human Resource untuk role ini
-                    $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+                    $humanResource = HumanResource::where('workPackage_id', $workPackage->workPackage_id)
                         ->where('role_id', $roleId)
                         ->first();
 
@@ -289,11 +289,11 @@ class WorkPackageController extends Controller
         $works = Work::with(['user.roles', 'role'])->where('volume_id', $volume_id)->get();
         // $timesheets = Timesheet::with('user.roles')->where('volume_id', $volume_id)->get();
 
-        // $resourceCostPerRole = $works->groupBy(fn($w) => $w->user->roles->get(1)?->id ?? $w->user->roles->first()?->id)
-        //     ->map(fn($group) => $group->first()->user->roles->get(1)?->resource_cost ?? $group->first()->user->roles->first()?->resource_cost ?? 0);
+        // $resourceCostPerRole = $works->groupBy(fn($w) => $w->user->roles->get(1)?->role_id ?? $w->user->roles->first()?->role_id)
+        //     ->map(fn($group) => $group->first()->user->roles->get(1)?->resourceCost ?? $group->first()->user->roles->first()?->resourceCost ?? 0);
 
         // Hitung aktivitas per role dari timesheet
-        // $timesheetCountPerRole = $timesheets->groupBy(fn($t) => $t->user->roles->get(1)?->id ?? $t->user->roles->first()?->id)
+        // $timesheetCountPerRole = $timesheets->groupBy(fn($t) => $t->user->roles->get(1)?->role_id ?? $t->user->roles->first()?->role_id)
         //     ->map(fn($group) => $group->count());
         $timesheets = Timesheet::with(['user.roles'])
             ->where('volume_id', $volume_id)
@@ -303,7 +303,7 @@ class WorkPackageController extends Controller
         $resourceCostPerRole = $works->groupBy('role_id')
             ->map(function($group) {
                 $workRecord = $group->first();
-                return $workRecord->role ? $workRecord->role->resource_cost : 0;
+                return $workRecord->role ? $workRecord->role->resourceCost : 0;
             });
 
         // Hitung aktivitas per role dari work assignment
@@ -335,7 +335,7 @@ class WorkPackageController extends Controller
 
         // Mendapatkan informasi referrer dari query parameter
         $referrer = $request->get('referrer');
-        $wpId = $request->get('wp_id');
+        $wpId = $request->get('workPackage_id');
 
         // Menentukan URL kembali berdasarkan referrer
         $backUrl = null;
@@ -343,11 +343,11 @@ class WorkPackageController extends Controller
         $showBackButton = false;
 
         if ($referrer === 'detail' && $wpId) {
-            $backUrl = route('wp-management.detail', ['wp_id' => $wpId]);
+            $backUrl = route('wp-management.detail', ['workPackage_id' => $wpId]);
             $backText = 'Kembali ke Detail WP';
             $showBackButton = true;
         } else if ($referrer === 'edit' && $wpId) {
-            $backUrl = route('wp-management.edit', ['wp_id' => $wpId]);
+            $backUrl = route('wp-management.edit', ['workPackage_id' => $wpId]);
             $backText = 'Kembali ke Edit WP';
             $showBackButton = true;
         }
@@ -381,16 +381,16 @@ class WorkPackageController extends Controller
     private function getVolumeGroupInfo($volume)
     {
         $relatedVolumes = WorkPackageVolume::where('volume_id', '!=', $volume->volume_id)
-            ->where('wo_id', $volume->wo_id)
-            ->where('wp_id', $volume->wp_id)
-            ->where('start_date', $volume->start_date)
-            ->where('end_date', $volume->end_date)
-            ->where('execution_year', $volume->execution_year)
-            ->orderBy('volume_number')
+            ->where('workOrder_id', $volume->workOrder_id)
+            ->where('workPackage_id', $volume->workPackage_id)
+            ->where('startDate', $volume->startDate)
+            ->where('endDate', $volume->endDate)
+            ->where('executionYear', $volume->executionYear)
+            ->orderBy('volumeNumber')
             ->get();
 
-        $allVolumeNumbers = collect([$volume->volume_number])
-            ->merge($relatedVolumes->pluck('volume_number'))
+        $allVolumeNumbers = collect([$volume->volumeNumber])
+            ->merge($relatedVolumes->pluck('volumeNumber'))
             ->sort()
             ->values()
             ->toArray();
@@ -401,11 +401,11 @@ class WorkPackageController extends Controller
         return [
             'is_grouped' => $isGrouped,
             'total_volumes' => $totalVolumes,
-            'volume_numbers' => $allVolumeNumbers,
+            'volumeNumbers' => $allVolumeNumbers,
             'related_volume_ids' => $relatedVolumes->pluck('volume_id')->toArray(),
-            'wo_number' => optional($volume->workOrder)->wo_number,
-            'period_formatted' => $volume->start_date && $volume->end_date ? 
-                Carbon::parse($volume->start_date)->format('d M Y') . ' - ' . Carbon::parse($volume->end_date)->format('d M Y') : 
+            'workNumber_id' => optional($volume->workOrder)->workNumber_id,
+            'period_formatted' => $volume->startDate && $volume->endDate ? 
+                Carbon::parse($volume->startDate)->format('d M Y') . ' - ' . Carbon::parse($volume->endDate)->format('d M Y') : 
                 'Belum tersedia',
             
         ];
@@ -417,9 +417,9 @@ class WorkPackageController extends Controller
     public function storeTask(Request $request)
     {
         $request->validate([
-            'volume_id' => 'required|exists:work_package_volume,volume_id',
+            'volume_id' => 'required|exists:trs_workPackVolume,volume_id',
             'task_name' => 'required|string|max:255',
-            // 'reference_task_id' => 'nullable|exists:task,task_id',
+            // 'reference_task_id' => 'nullable|exists:mst_task,task_id',
             // 'insert_position' => 'nullable|in:above,below'
         ]);
 
@@ -499,7 +499,7 @@ class WorkPackageController extends Controller
     {
         $request->validate([
             'task_name' => 'required|string|max:255',
-            'volume_id' => 'required|exists:work_package_volume,volume_id'
+            'volume_id' => 'required|exists:trs_workPackVolume,volume_id'
         ]);
 
         try {
@@ -635,7 +635,7 @@ class WorkPackageController extends Controller
     public function storeSubTask(Request $request)
     {
         $request->validate([
-            'task_id' => 'required|exists:task,task_id',
+            'task_id' => 'required|exists:mst_task,task_id',
             'subtask_name' => 'required|string|max:255',
         ]);
 
@@ -697,7 +697,7 @@ class WorkPackageController extends Controller
             return response()->json([
                 'success' => true,
                 'subtask' => [
-                    'sub_task_id' => $subTask->sub_task_id,
+                    'subTask_id' => $subTask->subTask_id,
                     'task_id' => $subTask->task_id,
                     'name' => $subTask->name,
                     'task_name' => $task->name ?? null,
@@ -725,14 +725,14 @@ class WorkPackageController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'sub_task_id' => 'required|exists:sub_task,sub_task_id',
-            'task_id' => 'required|exists:task,task_id'
+            'subTask_id' => 'required|exists:trs_subTask,subTask_id',
+            'task_id' => 'required|exists:mst_task,task_id'
         ]);
 
         try {
             DB::beginTransaction();
 
-            $subTask = SubTask::where('sub_task_id', $subTaskId)
+            $subTask = SubTask::where('subTask_id', $subTaskId)
                 ->where('task_id', $request->task_id)
                 ->firstOrFail();
 
@@ -756,7 +756,7 @@ class WorkPackageController extends Controller
                 'success' => true,
                 'message' => 'Sub Task berhasil diperbarui',
                 'subtask' => [
-                    'sub_task_id' => $subTask->sub_task_id,
+                    'subTask_id' => $subTask->subTask_id,
                     'name' => $subTask->name,
                     'task_id' => $subTask->task_id,
                     'task_name' => $task->name,
@@ -776,7 +776,7 @@ class WorkPackageController extends Controller
 
             Log::error('Error updating sub task', [
                 'message' => $e->getMessage(),
-                'sub_task_id' => $subTaskId,
+                'subTask_id' => $subTaskId,
                 'task_id' => $request->task_id,
                 'subtask_name' => $request->subtask_name,
                 'trace' => $e->getTraceAsString()
@@ -817,7 +817,7 @@ class WorkPackageController extends Controller
             DB::commit();
 
             Log::info('Sub Task deleted successfully', [
-                'sub_task_id' => $subTaskId,
+                'subTask_id' => $subTaskId,
                 'name' => $subTask->name,
                 'task_id' => $subTask->task_id
             ]);
@@ -857,11 +857,11 @@ class WorkPackageController extends Controller
     public function updateVolumeData(Request $request, $volume_id)
     {
         $request->validate([
-            // 'work_order_number' => 'required|integer|min:1|max:999',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date'
+            // 'mst_workOrder_number' => 'required|integer|min:1|max:999',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date|after_or_equal:startDate'
             // 'resources' => 'nullable|array',
-            // 'resources.*' => 'exists:user,user_id',
+            // 'resources.*' => 'exists:users,user_id',
             // 'jhk' => 'nullable|array',
             // 'jhk.*' => 'nullable|integer|min:0'
         ]);
@@ -872,8 +872,8 @@ class WorkPackageController extends Controller
             // Update tanggal periode work package volume
             $volume = WorkPackageVolume::findOrFail($volume_id);
 
-            // Update execution_year dari data start_date
-            $executionYear = Carbon::parse($request->start_date)->year;
+            // Update executionYear dari data startDate
+            $executionYear = Carbon::parse($request->startDate)->year;
 
             // Mapping resource Jumlah Harian Kerja
             // $resourceJhkMapping = [];
@@ -886,13 +886,13 @@ class WorkPackageController extends Controller
             // }
 
             // Deteksi Perubahan
-            $originalStartDate = Carbon::parse($volume->start_date)->format('Y-m-d');
-            $originalEndDate = Carbon::parse($volume->end_date)->format('Y-m-d');
-            $originalExecutionYear = $volume->execution_year;
+            $originalStartDate = Carbon::parse($volume->startDate)->format('Y-m-d');
+            $originalEndDate = Carbon::parse($volume->endDate)->format('Y-m-d');
+            $originalExecutionYear = $volume->executionYear;
             // $originalResources = Work::where('volume_id', $volume_id)->pluck('user_id')->sort()->values()->toArray();
 
-            $newStartDate = $request->start_date;
-            $newEndDate = $request->end_date;
+            $newStartDate = $request->startDate;
+            $newEndDate = $request->endDate;
             $newExecutionYear = $executionYear;
             // $newResources = collect($request->resources ?? [])
             //     ->filter()
@@ -913,11 +913,11 @@ class WorkPackageController extends Controller
             //             continue; // skip jika user atau role tidak valid
             //         }
 
-            //         $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+            //         $roleId = $user->roles->get(1)?->role_id ?? $user->roles->first()?->role_id;
 
-            //         // Cari jhk lama dari human_resource berdasarkan role_id dan wp_id
+            //         // Cari jhk lama dari human_resource berdasarkan role_id dan workPackage_id
             //         $hr = HumanResource::where('role_id', $roleId)
-            //             ->where('wp_id', $volume->wp_id)
+            //             ->where('workPackage_id', $volume->workPackage_id)
             //             ->first();
 
             //         $originalJhk = $hr ? (int) $hr->jhk : 0;
@@ -944,9 +944,9 @@ class WorkPackageController extends Controller
                     'no_changes' => true,
                     'message' => 'Tidak ada perubahan data yang terdeteksi.',
                     'original_data' => [
-                        'start_date' => $originalStartDate,
-                        'end_date' => $originalEndDate,
-                        'execution_year' => $originalExecutionYear
+                        'startDate' => $originalStartDate,
+                        'endDate' => $originalEndDate,
+                        'executionYear' => $originalExecutionYear
                         // 'resources_count' => count($originalResources),
                         // 'jhk_changed' => $jhkChanged,
                     ]
@@ -955,10 +955,10 @@ class WorkPackageController extends Controller
 
             // Cari volume lain dalam grup yang sama untuk sinkronisasi
             $relatedVolumes = WorkPackageVolume::where('volume_id', '!=', $volume_id)
-                ->where('wo_id', $volume->wo_id)
-                ->where('start_date', $volume->start_date)
-                ->where('end_date', $volume->end_date)
-                ->where('execution_year', $volume->execution_year)
+                ->where('workOrder_id', $volume->workOrder_id)
+                ->where('startDate', $volume->startDate)
+                ->where('endDate', $volume->endDate)
+                ->where('executionYear', $volume->executionYear)
                 ->get();
             
             $isGrouped = $relatedVolumes->count() > 0;
@@ -966,18 +966,18 @@ class WorkPackageController extends Controller
 
             // Update volume
             $volume->update([
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'execution_year' => $executionYear
+                'startDate' => $request->startDate,
+                'endDate' => $request->endDate,
+                'executionYear' => $executionYear
             ]);
 
             // Update semua volume dalam grup yangs sama
             if ($isGrouped) {
                 foreach ($relatedVolumes as $relatedVolume) {
                     $relatedVolume->update([
-                        'start_date' => $request->start_date,
-                        'end_date' => $request->end_date,
-                        'execution_year' => $executionYear
+                        'startDate' => $request->startDate,
+                        'endDate' => $request->endDate,
+                        'executionYear' => $executionYear
                     ]);
                     $updatedVolumeIds[] = $relatedVolume->volume_id;
                 }
@@ -987,7 +987,7 @@ class WorkPackageController extends Controller
             // Work::where('volume_id', $volume_id)->delete();
 
             // Tambah assignments baru berdasarkan user_id
-            // $wpId = $volume->wp_id;
+            // $wpId = $volume->workPackage_id;
             // foreach ($newResources as $index => $userId) {
             //     $user = User::with('roles')->find($userId);
             //     $roleId = null;
@@ -995,14 +995,14 @@ class WorkPackageController extends Controller
             //     if ($user && $user->roles->isNotEmpty()) {
             //         // Cari role yang sesuai dengan human resources work package ini
             //         $userRoleIds = $user->roles->pluck('id')->toArray();
-            //         $wpRoleIds = HumanResource::where('wp_id', $wpId)->pluck('role_id')->toArray();
+            //         $wpRoleIds = HumanResource::where('workPackage_id', $wpId)->pluck('role_id')->toArray();
                     
             //         // Ambil role yang matching
             //         $matchingRoleIds = array_intersect($userRoleIds, $wpRoleIds);
                     
             //         // Filter out admin dan karyawan
-            //         $adminRoleId = Role::where('name', 'admin')->first()?->id;
-            //         $karyawanRoleId = Role::where('name', 'karyawan')->first()?->id;
+            //         $adminRoleId = Role::where('name', 'admin')->first()?->role_id;
+            //         $karyawanRoleId = Role::where('name', 'karyawan')->first()?->role_id;
                     
             //         $validRoleIds = array_filter($matchingRoleIds, function($id) use ($adminRoleId, $karyawanRoleId) {
             //             return $id !== $adminRoleId && $id !== $karyawanRoleId;
@@ -1012,7 +1012,7 @@ class WorkPackageController extends Controller
             //             $roleId = reset($validRoleIds);
             //         } else {
             //             // Fallback: ambil role pertama dari human resources
-            //             $firstHR = HumanResource::where('wp_id', $wpId)->first();
+            //             $firstHR = HumanResource::where('workPackage_id', $wpId)->first();
             //             $roleId = $firstHR ? $firstHR->role_id : null;
             //         }
             //     }
@@ -1030,12 +1030,12 @@ class WorkPackageController extends Controller
             //         // Cari role user terkait
             //         // $user = User::with('roles')->find($userId);
             //         // if ($user && $user->roles->isNotEmpty()) {
-            //         //     $roleId = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+            //         //     $roleId = $user->roles->get(1)?->role_id ?? $user->roles->first()?->role_id;
             //         // }
                     
             //         // Update jhk di HumanResource
             //         $hr = HumanResource::where('role_id', $roleId)
-            //                             ->where('wp_id', $wpId)
+            //                             ->where('workPackage_id', $wpId)
             //                             ->first();
             //         if ($hr) {
             //             $hr->jhk = $jhkValue;
@@ -1051,9 +1051,9 @@ class WorkPackageController extends Controller
 
             Log::info('Volume data updated successfully', [
                 'volume_id' => $volume_id,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'execution_year' => $executionYear
+                'startDate' => $request->startDate,
+                'endDate' => $request->endDate,
+                'executionYear' => $executionYear
                 // 'resources_count' => $resourcesCount,
                 // 'role_ids' => $newResources,
                 // 'has_resources' => $resourcesCount > 0
@@ -1068,9 +1068,9 @@ class WorkPackageController extends Controller
                 'message' => $responseMessage,
                 'data' => [
                     'volume_id' => $volume->volume_id,
-                    'start_date' => $volume->start_date,
-                    'end_date' => $volume->end_date,
-                    'execution_year' => $volume->execution_year
+                    'startDate' => $volume->startDate,
+                    'endDate' => $volume->endDate,
+                    'executionYear' => $volume->executionYear
                     // 'resources_count' => $resourcesCount,
                     // 'has_resources' => $resourcesCount > 0
                 ]
@@ -1090,9 +1090,9 @@ class WorkPackageController extends Controller
             Log::error('Error updating volume data', [
                 'message' => $e->getMessage(),
                 'volume_id' => $volume_id,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'execution_year' => $executionYear ?? null,
+                'startDate' => $request->startDate,
+                'endDate' => $request->endDate,
+                'executionYear' => $executionYear ?? null,
                 // 'resources' => $request->resources,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -1124,7 +1124,7 @@ class WorkPackageController extends Controller
     //         ]);
 
     //         $resource = HumanResource::where('hresource_id', $request->hresource_id)
-    //                             ->where('wp_id', $workPackage->wp_id)
+    //                             ->where('workPackage_id', $workPackage->workPackage_id)
     //                             ->where('role_id', $request->role_id)
     //                             ->firstOrFail();
     //         $resource->jhk = $request->jhk;
@@ -1154,10 +1154,10 @@ class WorkPackageController extends Controller
 
             // Cari volume lain yang memiliki kriteria sama
             $relatedVolumes = WorkPackageVolume::where('volume_id', '!=', $volumeId)
-                ->where('wo_id', $sourceVolume->wo_id)
-                ->where('start_date', $sourceVolume->start_date)
-                ->where('end_date', $sourceVolume->end_date)
-                ->where('execution_year', $sourceVolume->execution_year)
+                ->where('workOrder_id', $sourceVolume->workOrder_id)
+                ->where('startDate', $sourceVolume->startDate)
+                ->where('endDate', $sourceVolume->endDate)
+                ->where('executionYear', $sourceVolume->executionYear)
                 ->get();
             
             if ($relatedVolumes->count() > 0) {

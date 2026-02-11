@@ -38,8 +38,8 @@
                                     <option value="">Pilih Kategori Work Package</option>
                                     @if(isset($workPackagesFilter) && $workPackagesFilter->count() > 0)
                                         @foreach($workPackagesFilter as $wp)
-                                            <option value="{{ $wp->wp_id }}">
-                                                {{ trim(preg_replace('/\s+/', ' ', $wp->wp_number . ' - ' . $wp->name)) }}
+                                            <option value="{{ $wp->workPackage_id }}">
+                                                {{ trim(preg_replace('/\s+/', ' ', $wp->workPack_number . ' - ' . $wp->name)) }}
                                             </option>
                                         @endforeach
                                     @endif
@@ -194,10 +194,10 @@
                             <div class="col-md-6">
                                 <label for="wo_select" class="form-label fw-bold">Work Order</label>
                                 <div class="input-group">
-                                    <select class="form-select" name="wo_id" id="wo_select" required> 
+                                    <select class="form-select" name="workOrder_id" id="wo_select" required> 
                                         <option value="">Pilih Work Order</option>
                                         @foreach($workOrders as $wo)
-                                            <option value="{{ $wo['wo_id'] }}">WO {{ $wo['wo_number'] }} - ({{ $wo['year'] }})</option>
+                                            <option value="{{ $wo['workOrder_id'] }}">WO {{ $wo['workNumber_id'] }} - ({{ $wo['year'] }})</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -229,7 +229,7 @@
                     <div class="col-md-12 mb-6" id="wpSelectContainer" style="display: none;">
                         <label for="wp_select" class="form-label fw-bold">Kategori Work Package</label>
                         <div class="input-group">
-                            <select class="form-select form-select-solid" name="wp_id" id="wp_select" required>
+                            <select class="form-select form-select-solid" name="workPackage_id" id="wp_select" required>
                                 <option value="">Pilih Kategori Work Package</option>
                             </select>
                         </div>
@@ -331,10 +331,10 @@
                             <div class="col-md-6">
                                 <label for="edit_wo_select" class="form-label fw-bold">Work Order</label>
                                 <div class="input-group">
-                                    <select class="form-select" name="wo_id" id="edit_wo_select" required disabled> 
+                                    <select class="form-select" name="workOrder_id" id="edit_wo_select" required disabled> 
                                         <option value="">Pilih Work Order</option>
                                         @foreach($workOrders as $wo)
-                                            <option value="{{ $wo['wo_id'] }}">WO {{ $wo['wo_number'] }} - ({{ $wo['year'] }})</option>
+                                            <option value="{{ $wo['workOrder_id'] }}">WO {{ $wo['workNumber_id'] }} - ({{ $wo['year'] }})</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -364,7 +364,7 @@
                     <div class="col-md-12 mb-6" id="editWpSelectContainer" style="display: none;">
                         <label for="edit_wp_select" class="form-label fw-bold">Kategori Work Package</label>
                         <div class="input-group">
-                            <select class="form-select form-select-solid" name="wp_id" id="edit_wp_select" required>
+                            <select class="form-select form-select-solid" name="workPackage_id" id="edit_wp_select" required>
                                 <option value="">Pilih Kategori Work Package</option>
                             </select>
                         </div>
@@ -605,7 +605,7 @@
                     spinner.style.visibility = 'hidden';
 
                     if (data.success) {
-                        const workPackages = data.work_packages;
+                        const workPackages = data.trs_workPackages;
                         woAssignedInfoContainer.innerHTML = ''; // Kosongkan container lagi (jika ada sisa)
                         woAssignedInfo.style.display = 'flex'; // Tampilkan lagi flex container untuk periode
 
@@ -613,11 +613,11 @@
                         periodInfoElement.textContent = data.period;
 
                         // Loop melalui WP dan tampilkan informasi
-                        data.work_packages.forEach(wp => {
+                        data.trs_workPackages.forEach(wp => {
                             const wpInfoElement = document.createElement('div');
                             wpInfoElement.classList.add('text-dark', 'small', 'wo-assigned-info', 'ms-3', 'mb-1', 'd-flex', 'justify-content-start', 'gap-2');
                             wpInfoElement.innerHTML = `
-                                <span>WP ${wp.wp_number}:</span>
+                                <span>WP ${wp.workPack_number}:</span>
                                 <span>${wp.volume_count} Volume</span>
                             `;
                             woAssignedInfoContainer.appendChild(wpInfoElement);
@@ -631,8 +631,8 @@
                             // Tambahkan opsi WP ke dropdown
                             workPackages.forEach(wp => {
                                 const option = document.createElement('option');
-                                option.value = wp.wp_id;
-                                option.textContent = `${wp.wp_number} - ${wp.name}`;
+                                option.value = wp.workPackage_id;
+                                option.textContent = `${wp.workPack_number} - ${wp.name}`;
                                 wpSelect.appendChild(option);
                             });
 
@@ -702,7 +702,7 @@
         currentPersonelGroups = 0;
 
         // Fetch data personel berdasarkan WO dan WP
-        fetch(`/timesheet-management/personel?wo_id=${woId}${wpId ? `&wp_id=${wpId}` : ''}`)
+        fetch(`/timesheet-management/personel?workOrder_id=${woId}${wpId ? `&workPackage_id=${wpId}` : ''}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -942,7 +942,7 @@
             
             // Perlu fetch volume_id lagi untuk memastikan, atau simpan di global state saat fetchPersonelAndMandays
             // Sederhananya, kita bisa ambil volume_id dari data fetch personel
-            fetch(`/timesheet-management/personel?wo_id=${woId}${wpId ? `&wp_id=${wpId}` : ''}`)
+            fetch(`/timesheet-management/personel?workOrder_id=${woId}${wpId ? `&workPackage_id=${wpId}` : ''}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.volume_id) {
@@ -1120,9 +1120,9 @@
             return;
         }
 
-        formData.append('wo_id', woId);
+        formData.append('workOrder_id', woId);
         if (wpId) {
-            formData.append('wp_id', wpId);
+            formData.append('workPackage_id', wpId);
         }
 
         // Kirim data menggunakan AJAX
@@ -1224,7 +1224,7 @@
 
     // Fungsi untuk memuat data personel dari WP
     function loadPersonnelData(woId, wpId) {
-        fetch(`/timesheet-management/personel?wo_id=${woId}${wpId ? `&wp_id=${wpId}` : ''}`)
+        fetch(`/timesheet-management/personel?workOrder_id=${woId}${wpId ? `&workPackage_id=${wpId}` : ''}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -1322,20 +1322,20 @@
 
                 // Ambil informasi dari aktivitas pertama untuk mengisi WO dan WP
                 const firstActivity = activities[0];
-                if (!firstActivity.work_package) {
+                if (!firstActivity.trs_workPackage) {
                     Swal.fire('Error', 'Data Kategori Work Package tidak tersedia.', 'error');
                     return;
                 }
 
                 // Isi dropdown WO dan WP
-                editWoSelect.value = firstActivity.wo_id;
+                editWoSelect.value = firstActivity.workOrder_id;
 
                 // Fetch work packages untuk WO yang dipilih
-                fetch(`/timesheet-management/${firstActivity.wo_id}/work-packages`)
+                fetch(`/timesheet-management/${firstActivity.workOrder_id}/work-packages`)
                     .then(response => response.json())
                     .then(wpData => {
-                        if (wpData.success && wpData.work_packages) {
-                            const workPackages = wpData.work_packages;
+                        if (wpData.success && wpData.trs_workPackages) {
+                            const workPackages = wpData.trs_workPackages;
 
                             // Jika ada lebih dari 1 WP, tampilkan dropdown
                             if (workPackages.length > 1) {
@@ -1344,18 +1344,18 @@
 
                                 workPackages.forEach(wp => {
                                     const option = document.createElement('option');
-                                    option.value = wp.wp_id;
-                                    option.textContent = `${wp.wp_number} - ${wp.name}`;
+                                    option.value = wp.workPackage_id;
+                                    option.textContent = `${wp.workPack_number} - ${wp.name}`;
                                     editWpSelect.appendChild(option);
                                 });
 
-                                editWpSelect.value = firstActivity.work_package.wp_id;
+                                editWpSelect.value = firstActivity.trs_workPackage.workPackage_id;
                                 editWpSelect.setAttribute('disabled', 'true');
                             } else {
                                 editWpSelectContainer.style.display = 'none';
                             }
-                            console.log('Loading personnel for WO:', firstActivity.wo_id, 'WP:', firstActivity.work_package.wp_id);
-                            loadPersonnelData(firstActivity.wo_id, firstActivity.work_package.wp_id);
+                            console.log('Loading personnel for WO:', firstActivity.workOrder_id, 'WP:', firstActivity.trs_workPackage.workPackage_id);
+                            loadPersonnelData(firstActivity.workOrder_id, firstActivity.trs_workPackage.workPackage_id);
                         }
                     })
                     .catch(error => {

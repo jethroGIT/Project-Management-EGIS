@@ -10,7 +10,7 @@ class WorkPackagesListController extends Controller
 {
     public function index(){
         $workPackages = WorkPackage::with(['workPackageVolumes' => function($query) {
-            $query->whereNull('wo_id');
+            $query->whereNull('workOrder_id');
         },'wpCategory', 'humanResources.role'])->get();
 
         // Filter hanya WP yang punya volume belum ber-WO
@@ -18,7 +18,7 @@ class WorkPackagesListController extends Controller
             return $wp->workPackageVolumes->count() > 0;
         })->sortBy(function($wp) {
             // Pastikan urutan numerik, misal 1.1, 1.2, 2.1, dst
-            return floatval($wp->wp_number);
+            return floatval($wp->workPack_number);
         })
         ->values();
 

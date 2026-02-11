@@ -38,7 +38,7 @@ class TimesheetController extends Controller
 
         // ambil jhk
         $humanResources = HumanResource::with('role')
-            ->where('wp_id', $workPackage->wp_id)
+            ->where('workPackage_id', $workPackage->workPackage_id)
             ->orderBy('role_id') 
             ->get();
 
@@ -74,7 +74,7 @@ class TimesheetController extends Controller
         // daftar unique timesheet dari bulan yang dipilih
         $usersInSelectedMonth = $timesheets->pluck('user')->unique('user_id')
                                             ->sortBy(function($user) {
-                                                return $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+                                                return $user->roles->get(1)?->role_id ?? $user->roles->first()?->role_id;
                                 })->values();
 
         $assignedUsers = User::whereHas('work', function($query) use ($volume_id) {
@@ -91,7 +91,7 @@ class TimesheetController extends Controller
             $roleId = $workRecord->role_id ?? null;
             $roleName = $workRecord->role->name ?? 'No Role';
 
-            $humanResource = HumanResource::where('wp_id', $workPackage->wp_id)
+            $humanResource = HumanResource::where('workPackage_id', $workPackage->workPackage_id)
                                             ->where('role_id', $roleId)
                                             ->first();
 
@@ -125,13 +125,13 @@ class TimesheetController extends Controller
             if (!$user || !$user->roles || $user->roles->isEmpty()) {
                 return null;
             }
-            return $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+            return $user->roles->get(1)?->role_id ?? $user->roles->first()?->role_id;
         })->map(function ($entriesPerRole) {
             return $entriesPerRole->sum('duration');
         });
 
-        $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date');
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
         $monthTimesheets = $timesheets->filter(function ($timesheet) use ($selectedMonth, $startDate, $endDate) {
             $date = Carbon::parse($timesheet->execution_date);
             
@@ -162,15 +162,15 @@ class TimesheetController extends Controller
             ->where('user_id', $user_id)
             ->whereIn('volume_id', function ($query) use ($volume) {
                 $query->select('volume_id')
-                    ->from('work_package_volume')
-                    ->where('wp_id', $volume->wp_id)
-                    ->where('wo_id', $volume->wo_id);
+                    ->from('trs_workPackVolume')
+                    ->where('workPackage_id', $volume->workPackage_id)
+                    ->where('workOrder_id', $volume->workOrder_id);
             })
             ->orderBy('execution_date', 'asc')
             ->get()
             ->groupBy(function ($activity) {
-                // Kelompokkan berdasarkan execution_date dan wo_id
-                return $activity->execution_date . '-' . $activity->volume->wo_id;
+                // Kelompokkan berdasarkan execution_date dan workOrder_id
+                return $activity->execution_date . '-' . $activity->volume->workOrder_id;
             })
             ->map(function ($group) {
                 // Ambil aktivitas pertama dalam grup
@@ -200,19 +200,19 @@ class TimesheetController extends Controller
         $roleId = $workRecord->role_id ?? null;
         $roleName = $workRecord && $workRecord->role ? $workRecord->role->name : 'No Role';
 
-        // $role_id = $user->roles->get(1)?->id ?? $user->roles->first()?->id;
+        // $role_id = $user->roles->get(1)?->role_id ?? $user->roles->first()?->role_id;
         
         // ambil jhk
-        $humanResources = HumanResource::where('wp_id', $workPackage->wp_id)
+        $humanResources = HumanResource::where('workPackage_id', $workPackage->workPackage_id)
             ->where('role_id', $roleId)
             ->first();
 
         // menghitung jumlah aktivitas dari role tertentu
         $activitiesCount = $activities->sum('duration');
 
-        if ($volume->start_date && $volume->end_date) {
-            $startDate = Carbon::parse($volume->start_date)->format('Y-m-d');
-            $endDate = Carbon::parse($volume->end_date)->format('Y-m-d');
+        if ($volume->startDate && $volume->endDate) {
+            $startDate = Carbon::parse($volume->startDate)->format('Y-m-d');
+            $endDate = Carbon::parse($volume->endDate)->format('Y-m-d');
             $dateNow = Carbon::now()->format('Y-m-d');
 
             if ($startDate <= $dateNow && $dateNow <= $endDate) {
@@ -244,9 +244,9 @@ class TimesheetController extends Controller
             // Ambil volume yang sedang diproses
             $currentVolume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
 
-            // Cari semua volume milik WP yang memiliki wo_id yang sama
-            $relatedVolumes = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
-                ->where('wo_id', $currentVolume->wo_id)
+            // Cari semua volume milik WP yang memiliki workOrder_id yang sama
+            $relatedVolumes = WorkPackageVolume::where('workPackage_id', $currentVolume->workPackage_id)
+                ->where('workOrder_id', $currentVolume->workOrder_id)
                 ->get();
 
             // Jika tidak ada volume terkait, hanya simpan untuk volume saat ini
@@ -335,9 +335,9 @@ class TimesheetController extends Controller
                 // Ambil volume yang sedang diproses
                 $currentVolume = WorkPackageVolume::with('workPackage')->findOrFail($volume_id);
 
-                // Cari semua volume milik WP yang memiliki wo_id yang sama
-                $relatedVolumes = WorkPackageVolume::where('wp_id', $currentVolume->wp_id)
-                                                    ->where('wo_id', $currentVolume->wo_id)
+                // Cari semua volume milik WP yang memiliki workOrder_id yang sama
+                $relatedVolumes = WorkPackageVolume::where('workPackage_id', $currentVolume->workPackage_id)
+                                                    ->where('workOrder_id', $currentVolume->workOrder_id)
                                                     ->pluck('volume_id');
                 
                 // Periksa apakah ada entri timesheet lain pada tanggal yang sama

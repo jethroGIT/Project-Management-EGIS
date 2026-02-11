@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Spatie\Permission\Models\Permission;
+use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 

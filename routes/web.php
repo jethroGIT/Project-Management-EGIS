@@ -42,14 +42,14 @@ Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin'])->group(
     // Manajemen Work Package
     Route::get('/wp-management', [WorkPackageManagementController::class, 'index'])->name('wp-management');
     Route::post('/wp-management', [WorkPackageManagementController::class, 'store'])->name('wp-management.store');
-    Route::get('/wp-management/detail/{wp_id}', [WorkPackageManagementController::class, 'detail'])->name('wp-management.detail');
-    Route::get('/wp-management/{wp_id}/edit', [WorkPackageManagementController::class, 'edit'])->name('wp-management.edit');
-    Route::put('/wp-management/{wp_id}', [WorkPackageManagementController::class, 'update'])->name('wp-management.update');
+    Route::get('/wp-management/detail/{workPackage_id}', [WorkPackageManagementController::class, 'detail'])->name('wp-management.detail');
+    Route::get('/wp-management/{workPackage_id}/edit', [WorkPackageManagementController::class, 'edit'])->name('wp-management.edit');
+    Route::put('/wp-management/{workPackage_id}', [WorkPackageManagementController::class, 'update'])->name('wp-management.update');
     Route::get('/wp-management/users-with-roles', [WorkPackageManagementController::class, 'getUsersWithRoles'])->name('wp-management.users-with-roles');
     Route::get('/wp-management/next-wp-number', [WorkPackageManagementController::class, 'getNextWpNumber'])->name('wp-management.next-wp-number');
     Route::get('/wp-management/check-wp-number', [WorkPackageManagementController::class, 'checkWpNumberAvailability'])->name('wp-management.check-wp-number');
-    Route::get('/wp-management/{wp_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
-    Route::delete('/wp-management/{wp_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
+    Route::get('/wp-management/{workPackage_id}/check-associations', [WorkPackageManagementController::class, 'checkWorkPackageAssociations'])->name('wp-management.check-wp-associations');
+    Route::delete('/wp-management/{workPackage_id}/force-delete', [WorkPackageManagementController::class, 'forceDeleteWorkPackage'])->name('wp-management.force-delete-wp');
     Route::get('/wp-management/check-role-assignments', [WorkPackageManagementController::class, 'checkRoleAssignments'])->name('wp-management.check-role-assignments');
     Route::get('/wp-management/check-wp-name', [WorkPackageManagementController::class, 'checkWorkPackageName'])->name('wp-management.check-wp-name');
 
@@ -142,7 +142,7 @@ Route::middleware(['web', 'auth', 'prevent-back-history', 'role:admin|karyawan']
     Route::get('/work-package', [WorkPackageController::class, 'index'])->name('work-package');
     Route::get('/work-package/{volume_id}', [WorkPackageController::class, 'detail'])->name('work-package.detail');
 
-    Route::get('/work-order/{wo_id}/content', [WOContentListController::class, 'index'])->name('wo.content-list');
+    Route::get('/work-order/{workOrder_id}/content', [WOContentListController::class, 'index'])->name('wo.content-list');
 
     // work packages list
     Route::get('/workpackages-list', [WorkPackagesListController::class, 'index'])->name('workpackages-list');

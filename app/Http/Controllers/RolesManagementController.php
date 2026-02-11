@@ -37,31 +37,31 @@ class RolesManagementController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:30|unique:roles,name',
-            'alt_name' => 'nullable|string|max:30',
+            'name' => 'required|string|max:30|unique:mst_roles,name',
+            'altName' => 'nullable|string|max:30',
             'desc' => 'nullable|string|max:10',
-            'resource_cost' => 'numeric|min:0'
+            'resourceCost' => 'numeric|min:0'
         ], [
             'name.required' => 'Nama peran harus diisi',
             'name.unique' => 'Nama peran sudah ada dalam sistem',
             'name.max' => 'Nama peran maksimal 30 karakter',
             'desc.max' => 'Singkatan maksimal 10 karakter',
-            'resource_cost.numeric' => 'Biaya tenaga kerja harus diisi dengan nominal uang',
-            'resource_cost.min' => 'Biaya tenaga kerja tidak boleh negatif'
+            'resourceCost.numeric' => 'Biaya tenaga kerja harus diisi dengan nominal uang',
+            'resourceCost.min' => 'Biaya tenaga kerja tidak boleh negatif'
         ]);
 
         try {
             DB::beginTransaction();
 
             // Parse resource cost
-            $costString = str_replace(['.', ',', 'Rp', ' '], '', $request->resource_cost);
+            $costString = str_replace(['.', ',', 'Rp', ' '], '', $request->resourceCost);
             $cost = (float) $costString;
 
             $role = Role::create([
                 'name' => trim($request->name),
-                'alt_name' => $request->alt_name ? trim($request->alt_name) : null,
+                'altName' => $request->altName ? trim($request->altName) : null,
                 'desc' => $request->desc ? trim($request->desc) : null,
-                'resource_cost' => $cost,
+                'resourceCost' => $cost,
                 'guard_name' => 'web'
             ]);
 
@@ -69,22 +69,22 @@ class RolesManagementController extends Controller
 
             // Log success
             Log::info('Role created successfully', [
-                'role_id' => $role->id,
+                'role_id' => $role->role_id,
                 'name' => $role->name,
                 'description' => $role->desc,
-                'resource_cost' => $role->resource_cost
+                'resourceCost' => $role->resourceCost
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Peran berhasil ditambahkan',
                 'role' => [
-                    'role_id' => $role->id,
+                    'role_id' => $role->role_id,
                     'name' => $role->name,
-                    'alt_name' => $role->alt_name,
+                    'altName' => $role->altName,
                     'desc' => $role->desc,
-                    'resource_cost' => $role->resource_cost,
-                    'resource_cost_formatted' => 'Rp' . number_format($role->resource_cost, 0, ',', '.')
+                    'resourceCost' => $role->resourceCost,
+                    'resourceCost_formatted' => 'Rp' . number_format($role->resourceCost, 0, ',', '.')
                 ]
             ]);
 
@@ -115,14 +115,14 @@ class RolesManagementController extends Controller
             return response()->json([
                 'success' => true,
                 'role' => [
-                    'role_id' => $role->id,
+                    'role_id' => $role->role_id,
                     'name' => $role->name,
-                    'alt_name' => $role->alt_name,
+                    'altName' => $role->altName,
                     'desc' => $role->desc,
-                    'resource_cost' => $role->resource_cost,
-                    'resource_cost_formatted' => $role->resource_cost == intval($role->resource_cost)
-                        ? intval($role->resource_cost)
-                        : $role->resource_cost
+                    'resourceCost' => $role->resourceCost,
+                    'resourceCost_formatted' => $role->resourceCost == intval($role->resourceCost)
+                        ? intval($role->resourceCost)
+                        : $role->resourceCost
                 ]
             ]);
 
@@ -151,18 +151,18 @@ class RolesManagementController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'name' => 'required|string|max:30|unique:roles,name,' . $id . ',id',
-            'alt_name' => 'nullable|string|max:30',
+            'name' => 'required|string|max:30|unique:mst_roles,name,' . $id . ',id',
+            'altName' => 'nullable|string|max:30',
             'desc' => 'nullable|string|max:10',
-            'resource_cost' => 'numeric|min:0'
+            'resourceCost' => 'numeric|min:0'
         ], [
             'name.required' => 'Nama peran harus diisi',
             'name.unique' => 'Nama peran sudah ada dalam sistem',
             'name.max' => 'Nama peran maksimal 30 karakter',
             'desc.max' => 'Singkatan maksimal 10 karakter',
-            // 'resource_cost.required' => 'Biaya tenaga kerja harus diisi',
-            'resource_cost.numeric' => 'Biaya tenaga kerja harus diisi dengan nominal uang',
-            'resource_cost.min' => 'Biaya tenaga kerja tidak boleh negatif'
+            // 'resourceCost.required' => 'Biaya tenaga kerja harus diisi',
+            'resourceCost.numeric' => 'Biaya tenaga kerja harus diisi dengan nominal uang',
+            'resourceCost.min' => 'Biaya tenaga kerja tidak boleh negatif'
         ]);
 
         try {
@@ -172,16 +172,16 @@ class RolesManagementController extends Controller
 
             // Deteksi perubahan data
             $originalName = $role->name;
-            $originalAltName = $role->alt_name;
+            $originalAltName = $role->altName;
             $originalDesc = $role->desc;
-            $originalResourceCost = $role->resource_cost;
+            $originalResourceCost = $role->resourceCost;
 
             $newName = trim($request->name);
-            $newAltName = $request->alt_name ? trim($request->alt_name) : null;
+            $newAltName = $request->altName ? trim($request->altName) : null;
             $newDesc = $request->desc ? trim($request->desc) : null;
 
             // Parse resource cost
-            $resourceCostInput = $request->resource_cost;
+            $resourceCostInput = $request->resourceCost;
 
             if (is_string($resourceCostInput)) {
                 $costString = str_replace(['.', ',', 'Rp', ' '], '', $resourceCostInput);
@@ -208,37 +208,37 @@ class RolesManagementController extends Controller
                     'message' => 'Tidak ada perubahan data yang terdeteksi.',
                     'current_data' => [
                         'name' => $originalName,
-                        'alt_name' => $originalAltName,
+                        'altName' => $originalAltName,
                         'desc' => $originalDesc,
-                        'resource_cost' => $originalResourceCost,
-                        'resource_cost_display' => 'Rp' . number_format($originalResourceCost, 0, ',', '.')
+                        'resourceCost' => $originalResourceCost,
+                        'resourceCost_display' => 'Rp' . number_format($originalResourceCost, 0, ',', '.')
                     ]
                 ], 200);
             }
 
             // Update role
             $role->name = $newName;
-            $role->alt_name = $newAltName;
+            $role->altName = $newAltName;
             $role->desc = $newDesc;
-            $role->resource_cost = $newResourceCost;
+            $role->resourceCost = $newResourceCost;
             $role->save();
 
             DB::commit();
 
             // Log success
             Log::info('Role updated successfully', [
-                'role_id' => $role->id,
+                'role_id' => $role->role_id,
                 'old_data' => [
                     'name' => $originalName,
-                    'alt_name' => $originalAltName,
+                    'altName' => $originalAltName,
                     'desc' => $originalDesc,
-                    'resource_cost' => $originalResourceCost
+                    'resourceCost' => $originalResourceCost
                 ],
                 'new_data' => [
                     'name' => $role->name,
-                    'alt_name' => $role->alt_name,
+                    'altName' => $role->altName,
                     'desc' => $role->desc,
-                    'resource_cost' => $role->resource_cost
+                    'resourceCost' => $role->resourceCost
                 ],
                 'updated_by' => auth()->id() ?? 'system'
             ]);
@@ -247,12 +247,12 @@ class RolesManagementController extends Controller
                 'success' => true,
                 'message' => 'Peran berhasil diperbarui',
                 'role' => [
-                    'role_id' => $role->id,
+                    'role_id' => $role->role_id,
                     'name' => $role->name,
-                    'alt_name' => $role->alt_name,
+                    'altName' => $role->altName,
                     'desc' => $role->desc,
-                    'resource_cost' => $role->resource_cost,
-                    'resource_cost_formatted' => 'Rp' . number_format($role->resource_cost, 0, ',', '.'),
+                    'resourceCost' => $role->resourceCost,
+                    'resourceCost_formatted' => 'Rp' . number_format($role->resourceCost, 0, ',', '.'),
                     'last_updated' => $role->updated_at ? $role->updated_at->format('d M Y H:i') : 'Tidak diketahui'
                 ]
             ]);
@@ -325,11 +325,11 @@ class RolesManagementController extends Controller
 
             // Simpan data untuk log
             $roleData = [
-                'role_id' => $role->id,
+                'role_id' => $role->role_id,
                 'name' => $role->name,
-                'alt_name' => $role->alt_name,
+                'altName' => $role->altName,
                 'desc' => $role->desc,
-                'resource_cost' => $role->resource_cost
+                'resourceCost' => $role->resourceCost
             ];
 
             // Hapus role

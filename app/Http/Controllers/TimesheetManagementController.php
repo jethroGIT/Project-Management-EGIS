@@ -48,24 +48,24 @@ class TimesheetManagementController extends Controller
 
         // Group aktivitas berdasarkan WP, WO, dan tanggal
         $groupedActivities = $timesheets->groupBy(function ($timesheet) {
-            // Gabungkan berdasarkan wp_id, wo_id, dan execution_date
-            $wpId = optional($timesheet->volume->workPackage)->wp_id;
-            $woId = optional($timesheet->volume)->wo_id;
+            // Gabungkan berdasarkan workPackage_id, workOrder_id, dan execution_date
+            $wpId = optional($timesheet->volume->workPackage)->workPackage_id;
+            $woId = optional($timesheet->volume)->workOrder_id;
             $executionDate = $timesheet->execution_date;
 
             return $wpId . '_' . $woId . '_' . $executionDate;
         })->map(function ($group) {
             // Gabungkan aktivitas untuk volume yang sama
             $firstItem = $group->first();
-            $volumes = $group->pluck('volume.volume_number')->unique()->sort()->values()->toArray();
+            $volumes = $group->pluck('volume.volumeNumber')->unique()->sort()->values()->toArray();
             $volumeCount = count($volumes); // Hitung jumlah volume
             $users = $group->pluck('user')->unique('user_id')->values();
 
             return [
-                'wp_number' => optional($firstItem->volume->workPackage)->wp_number,
+                'workPack_number' => optional($firstItem->volume->workPackage)->workPack_number,
                 'wp_name' => optional($firstItem->volume->workPackage)->name,
                 'execution_date' => $firstItem->execution_date, // Ambil langsung dari item pertama
-                'volumes' => implode(', ', $volumes), // Gabungkan volume_number
+                'volumes' => implode(', ', $volumes), // Gabungkan volumeNumber
                 'timesheets' => [
                     'timesheet_ids' => $group->pluck('timesheet_id')->toArray(),
                     'volume_ids' => $group->pluck('volume_id')->unique()->toArray(),
@@ -87,34 +87,34 @@ class TimesheetManagementController extends Controller
                         'activities' => array_unique($userActivities['activities']), // Hilangkan duplikasi aktivitas
                     ];
                 })->toArray(),
-                'wpGroupKey' => trim(preg_replace('/\s+/', ' ', optional($firstItem->volume->workPackage)->wp_number . ' - ' . optional($firstItem->volume->workPackage)->name)),
+                'wpGroupKey' => trim(preg_replace('/\s+/', ' ', optional($firstItem->volume->workPackage)->workPack_number . ' - ' . optional($firstItem->volume->workPackage)->name)),
             ];
-        })->sortBy('wp_number')->values();
+        })->sortBy('workPack_number')->values();
 
         // Ambil semua WO dan WP
-        $workOrders = WorkPackageVolume::whereNotNull('wo_id')
+        $workOrders = WorkPackageVolume::whereNotNull('workOrder_id')
             ->with(['workPackage'])
             ->get()
-            ->groupBy('wo_id')
+            ->groupBy('workOrder_id')
             ->map(function ($volumes, $woId) {
                 return [
-                    'wo_id' => $woId,
-                    'wo_number' => optional($volumes->first()->workOrder)->wo_number,
-                    'year' => optional($volumes->first())->execution_year,
-                    'work_packages' => $volumes->pluck('workPackage')->unique('wp_id')->values(),
+                    'workOrder_id' => $woId,
+                    'workNumber_id' => optional($volumes->first()->workOrder)->workNumber_id,
+                    'year' => optional($volumes->first())->executionYear,
+                    'trs_workPackages' => $volumes->pluck('workPackage')->unique('workPackage_id')->values(),
                 ];
             })
-            ->sortBy('wo_number')->values();
+            ->sortBy('workNumber_id')->values();
 
         // Ambil WP berdasarkan WO
-        $wpByWo = WorkPackageVolume::whereNotNull('wo_id')
+        $wpByWo = WorkPackageVolume::whereNotNull('workOrder_id')
             ->with(['workPackage'])
             ->get()
-            ->groupBy('wo_id')
+            ->groupBy('workOrder_id')
             ->map(function ($volumes) {
                 // Hitung jumlah volume dan periode pengerjaan
-                $startDates = $volumes->pluck('start_date')->filter()->sort()->values();
-                $endDates = $volumes->pluck('end_date')->filter()->sort()->values();
+                $startDates = $volumes->pluck('startDate')->filter()->sort()->values();
+                $endDates = $volumes->pluck('endDate')->filter()->sort()->values();
 
                 $period = 'N/A';
                 if ($startDates->isNotEmpty() && $endDates->isNotEmpty()) {
@@ -123,32 +123,32 @@ class TimesheetManagementController extends Controller
                     $period = "$startDate - $endDate";
                 }
 
-                // Gabungkan data WP berdasarkan wp_id
-                $workPackages = $volumes->groupBy('wp_id')->map(function ($wpVolumes) {
+                // Gabungkan data WP berdasarkan workPackage_id
+                $workPackages = $volumes->groupBy('workPackage_id')->map(function ($wpVolumes) {
                     $firstVolume = $wpVolumes->first();
                     return [
-                        'wp_id' => $firstVolume->workPackage->wp_id,
-                        'wp_number' => $firstVolume->workPackage->wp_number,
+                        'workPackage_id' => $firstVolume->workPackage->workPackage_id,
+                        'workPack_number' => $firstVolume->workPackage->workPack_number,
                         'name' => $firstVolume->workPackage->name,
                         'volume_count' => $wpVolumes->count(), // Hitung jumlah volume dalam WP
                     ];
-                })->sortBy('wp_number')->values(); // Pastikan hasilnya adalah array
+                })->sortBy('workPack_number')->values(); // Pastikan hasilnya adalah array
 
                 return [
                     'period' => $period, // Periode pengerjaan
-                    'work_packages' => $workPackages, // Daftar WP dalam WO
+                    'trs_workPackages' => $workPackages, // Daftar WP dalam WO
                 ];
             })->toArray(); // Konversi hasil akhir menjadi array
 
-        $workPackagesFilter = WorkPackage::whereIn('wp_id', function($query) {
-            $query->select('wp_id')
-                ->from('work_package_volume')
+        $workPackagesFilter = WorkPackage::whereIn('workPackage_id', function($query) {
+            $query->select('workPackage_id')
+                ->from('trs_workPackVolume')
                 ->whereIn('volume_id', function($subQuery) {
                     $subQuery->select('volume_id')
-                        ->from('timesheet');
+                        ->from('trs_timesheet');
                 });
         })
-        ->orderByRaw('CAST(SPLIT_PART(wp_number, \'.\', 1) AS INTEGER) ASC, CAST(SPLIT_PART(wp_number, \'.\', 2) AS INTEGER) ASC')
+        ->orderByRaw("CAST(SUBSTRING_INDEX(workPack_number, '.', 1) AS SIGNED) ASC, CAST(SUBSTRING_INDEX(workPack_number, '.', -1) AS SIGNED) ASC")
         ->get();
 
         return view('timesheet_management', compact('groupedActivities', 'workOrders', 'wpByWo', 'usersCount',
@@ -160,18 +160,18 @@ class TimesheetManagementController extends Controller
         try {
             // Validasi input
             $request->validate([
-                'wo_id' => 'required|exists:work_package_volume,wo_id',
+                'workOrder_id' => 'required|exists:trs_workPackVolume,workOrder_id',
                 'execution_date' => 'required|date',
                 'activities' => 'required|array',
                 'personel_ids' => 'required|array',
                 'durations' => 'required|array',
-                'wp_id' => [
-                    'nullable', // wp_id bersifat opsional
+                'workPackage_id' => [
+                    'nullable', // workPackage_id bersifat opsional
                     function ($attribute, $value, $fail) use ($request) {
-                        // Validasi wp_id hanya jika diperlukan
-                        $woId = $request->input('wo_id');
-                        $workPackages = WorkPackageVolume::where('wo_id', $woId)
-                            ->pluck('wp_id')
+                        // Validasi workPackage_id hanya jika diperlukan
+                        $woId = $request->input('workOrder_id');
+                        $workPackages = WorkPackageVolume::where('workOrder_id', $woId)
+                            ->pluck('workPackage_id')
                             ->unique()
                             ->toArray();
 
@@ -182,17 +182,17 @@ class TimesheetManagementController extends Controller
                 ],
             ]);
 
-            $woId = $request->input('wo_id');
-            $wpId = $request->input('wp_id'); // Optional jika WP tidak dipilih
+            $woId = $request->input('workOrder_id');
+            $wpId = $request->input('workPackage_id'); // Optional jika WP tidak dipilih
             $executionDate = $request->input('execution_date');
             $personelIds = $request->input('personel_ids');
             $durations = $request->input('durations');
             $activities = $request->input('activities');
 
             // Ambil semua volume_id berdasarkan work order dan work package
-            $volumeQuery = WorkPackageVolume::where('wo_id', $woId);
+            $volumeQuery = WorkPackageVolume::where('workOrder_id', $woId);
             if ($wpId) {
-                $volumeQuery->where('wp_id', $wpId);
+                $volumeQuery->where('workPackage_id', $wpId);
             }
             $volumes = $volumeQuery->get();
 
@@ -298,8 +298,8 @@ class TimesheetManagementController extends Controller
                     'duration' => $group->avg('duration'), // Total durasi dari semua volume
                     'volume_ids' => $group->pluck('volume.volume_id')->unique()->values()->toArray(), // Gabungkan volume_ids
                     'timesheet_ids' => $group->pluck('timesheet_id')->values()->toArray(), // Gabungkan timesheet_ids
-                    'work_package' => $firstActivity->volume->workPackage, // Ambil work package dari aktivitas pertama
-                    'wo_id' => $firstActivity->volume->wo_id, // Ambil work order ID dari aktivitas pertama
+                    'trs_workPackage' => $firstActivity->volume->workPackage, // Ambil work package dari aktivitas pertama
+                    'workOrder_id' => $firstActivity->volume->workOrder_id, // Ambil work order ID dari aktivitas pertama
                 ];
             })->values();
 
@@ -522,8 +522,8 @@ class TimesheetManagementController extends Controller
                 'duration' => $timesheet->duration,
                 'volume_ids' => $timesheet->volume->pluck('volume_id')->toArray(),
                 'timesheet_ids' => [$timesheet->timesheet_id],
-                'work_package' => $workPackage,
-                'wo_id' => $timesheet->volume->wo_id,
+                'trs_workPackage' => $workPackage,
+                'workOrder_id' => $timesheet->volume->workOrder_id,
             ];
         });
     }
@@ -564,9 +564,9 @@ class TimesheetManagementController extends Controller
 
             // Ambil JHK/Mandays Rencana dari tabel human_resource
             $mandaysPlan = HumanResource::where('role_id', $roleId)
-                ->where('wp_id', function ($query) use ($volumeId) {
-                    $query->select('wp_id')
-                        ->from('work_package_volume')
+                ->where('workPackage_id', function ($query) use ($volumeId) {
+                    $query->select('workPackage_id')
+                        ->from('trs_workPackVolume')
                         ->where('volume_id', $volumeId)
                         ->limit(1);
                 })
@@ -596,9 +596,9 @@ class TimesheetManagementController extends Controller
     public function getWorkPackagesByWO($woId)
     {
         try {
-            // Ambil data work packages berdasarkan wo_id
-            $volumes = WorkPackageVolume::where('wo_id', $woId)
-                ->with('workPackage') // Relasi ke tabel work_package
+            // Ambil data work packages berdasarkan workOrder_id
+            $volumes = WorkPackageVolume::where('workOrder_id', $woId)
+                ->with('workPackage') // Relasi ke tabel trs_workPackage
                 ->get();
 
             if ($volumes->isEmpty()) {
@@ -610,25 +610,25 @@ class TimesheetManagementController extends Controller
 
             // Ambil periode dari salah satu volume (karena semua volume dalam WO memiliki periode yang sama)
             $firstVolume = $volumes->first();
-            $startDate = \Carbon\Carbon::parse($firstVolume->start_date)->translatedFormat('d M Y');
-            $endDate = \Carbon\Carbon::parse($firstVolume->end_date)->translatedFormat('d M Y');
+            $startDate = \Carbon\Carbon::parse($firstVolume->startDate)->translatedFormat('d M Y');
+            $endDate = \Carbon\Carbon::parse($firstVolume->endDate)->translatedFormat('d M Y');
             $period = "$startDate - $endDate";
 
-            // Kelompokkan data work packages berdasarkan wp_id
-            $workPackages = $volumes->groupBy('wp_id')->map(function ($wpVolumes) {
+            // Kelompokkan data work packages berdasarkan workPackage_id
+            $workPackages = $volumes->groupBy('workPackage_id')->map(function ($wpVolumes) {
                 $firstVolume = $wpVolumes->first();
                 return [
-                    'wp_id' => $firstVolume->workPackage->wp_id,
-                    'wp_number' => $firstVolume->workPackage->wp_number,
+                    'workPackage_id' => $firstVolume->workPackage->workPackage_id,
+                    'workPack_number' => $firstVolume->workPackage->workPack_number,
                     'name' => $firstVolume->workPackage->name,
                     'volume_count' => $wpVolumes->count(), // Hitung jumlah volume dalam WP
                 ];
-            })->sortBy('wp_number')->values(); // Ubah hasil menjadi array numerik
+            })->sortBy('workPack_number')->values(); // Ubah hasil menjadi array numerik
 
             return response()->json([
                 'success' => true,
                 'period' => $period, // Periode pengerjaan WO
-                'work_packages' => $workPackages,
+                'trs_workPackages' => $workPackages,
             ]);
         } catch (\Exception $e) {
             // Tangani error
@@ -642,10 +642,10 @@ class TimesheetManagementController extends Controller
     public function getPersonelByWO(Request $request)
     {
         try {
-            $woId = $request->query('wo_id'); // Ambil Work Order ID dari query parameter
-            $wpId = $request->query('wp_id') ?? null; // Ambil Work Package ID dari query parameter (opsional)
+            $woId = $request->query('workOrder_id'); // Ambil Work Order ID dari query parameter
+            $wpId = $request->query('workPackage_id') ?? null; // Ambil Work Package ID dari query parameter (opsional)
 
-            // Validasi bahwa wo_id wajib ada
+            // Validasi bahwa workOrder_id wajib ada
             if (!$woId) {
                 return response()->json([
                     'success' => false,
@@ -653,11 +653,11 @@ class TimesheetManagementController extends Controller
                 ], 400);
             }
 
-            // Ambil salah satu volume_id berdasarkan wo_id dan wp_id (jika ada)
-            $volumeQuery = WorkPackageVolume::where('wo_id', $woId);
+            // Ambil salah satu volume_id berdasarkan workOrder_id dan workPackage_id (jika ada)
+            $volumeQuery = WorkPackageVolume::where('workOrder_id', $woId);
 
             if ($wpId) {
-                $volumeQuery->where('wp_id', $wpId);
+                $volumeQuery->where('workPackage_id', $wpId);
             }
 
             $volume = $volumeQuery->first(); // Ambil salah satu volume

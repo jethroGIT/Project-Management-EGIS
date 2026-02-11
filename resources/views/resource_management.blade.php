@@ -150,7 +150,7 @@
                                     <select name="role_id" class="form-select" required>
                                         <option value="">Pilih Role</option>
                                         @foreach($roles as $role)
-                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                            <option value="{{ $role->role_id }}">{{ $role->name }}</option>
                                         @endforeach
                                     </select>
                                 </div> -->
@@ -281,7 +281,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $role->name }}</td>
                             <td>{{ $role->desc ?? 'N/A' }}</td>
-                            <td>Rp{{ number_format($role->resource_cost, 0, ',', '.') }}</td>
+                            <td>Rp{{ number_format($role->resourceCost, 0, ',', '.') }}</td>
                             <td>
                                 <div class="d-flex gap-2">
                                     <!-- Edit Button -->
@@ -289,7 +289,7 @@
                                         type="button" 
                                         class="btn btn-warning btn-sm" 
                                         title="Edit Peran"
-                                        onClick="editRole({{ $role->id }})"
+                                        onClick="editRole({{ $role->role_id }})"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                                             <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
@@ -302,7 +302,7 @@
                                         type="button" 
                                         class="btn btn-danger btn-sm" 
                                         title="Hapus Peran"
-                                        onClick="deleteRoleConfirmation({{ $role->id }}, '{{ addslashes($role->name) }}')"
+                                        onClick="deleteRoleConfirmation({{ $role->role_id }}, '{{ addslashes($role->name) }}')"
                                     >
                                         <!-- <i class="bi bi-power fs-6"></i> -->
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
@@ -352,7 +352,7 @@
 
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Nama Alternatif (Opsional)</label>
-                                    <input type="text" name="alt_name" id="addRoleAltName" class="form-control" placeholder="Contoh: Manajer Proyek" maxlength="30"/>
+                                    <input type="text" name="altName" id="addRoleAltName" class="form-control" placeholder="Contoh: Manajer Proyek" maxlength="30"/>
                                 </div>
 
                                 <div class="form-group mb-4">
@@ -365,7 +365,7 @@
                                     <label class="form-label fw-bold">Biaya Tenaga Kerja</label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="text" name="resource_cost" id="addRoleCost" class="form-control" placeholder="0" required/>
+                                        <input type="text" name="resourceCost" id="addRoleCost" class="form-control" placeholder="0" required/>
                                     </div>
                                 </div>
                             </form>
@@ -406,7 +406,7 @@
 
                                 <div class="form-group mb-4">
                                     <label class="form-label fw-bold">Nama Alternatif (Opsional)</label>
-                                    <input type="text" name="alt_name" id="editRoleAltName" class="form-control" placeholder="Contoh: Manajer Proyek" maxlength="30"/>
+                                    <input type="text" name="altName" id="editRoleAltName" class="form-control" placeholder="Contoh: Manajer Proyek" maxlength="30"/>
                                 </div>
 
                                 <div class="form-group mb-4">
@@ -421,7 +421,7 @@
                                         <span class="input-group-text">Rp</span>
                                         <input 
                                             type="text" 
-                                            name="resource_cost" 
+                                            name="resourceCost" 
                                             id="editRoleCost" 
                                             class="form-control" 
                                             placeholder="0" 
@@ -1038,8 +1038,8 @@ function submitAddRole() {
 
     const formData = new FormData(form[0]);
     
-    // Replace resource_cost dengan nilai yang bersih
-    formData.set('resource_cost', resourceCostClean);
+    // Replace resourceCost dengan nilai yang bersih
+    formData.set('resourceCost', resourceCostClean);
 
     $.ajax({
         url: form.attr('action'),
@@ -1172,9 +1172,9 @@ function editRole(roleId) {
                 // Populate modal dengan data role
                 $('#editRoleId').val(response.role.role_id);
                 $('#editRoleName').val(response.role.name);
-                $('#editRoleAltName').val(response.role.alt_name || '');
+                $('#editRoleAltName').val(response.role.altName || '');
                 $('#editRoleDesc').val(response.role.desc || '');
-                $('#editRoleCost').val(response.role.resource_cost_formatted);
+                $('#editRoleCost').val(response.role.resourceCost_formatted);
                 
                 // Set form action
                 $('#editRoleForm').attr('action', `/roles-management/${roleId}`);
@@ -1270,8 +1270,8 @@ function submitEditRole() {
     // Create Form Data
     const formData = new FormData(form[0]);
 
-    // Replace resource_cost dengan nilai yang bersih
-    formData.set('resource_cost', resourceCostClean);
+    // Replace resourceCost dengan nilai yang bersih
+    formData.set('resourceCost', resourceCostClean);
 
     $.ajax({
         url: `/roles-management/${roleId}`,
