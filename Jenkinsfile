@@ -1,37 +1,38 @@
 pipeline {
     agent any
+
     environment {
         IMAGE = "ghcr.io/jethrogit/egis-laravel:latest"
-        COMPOSE_DIR = "/home/devops/Project-Management-EGIS"
+        COMPOSE_DIR = "/opt/egis-laravel"
     }
 
     stages {
 
-        stage('Login to GHCR') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'github-ghcr',
-                        usernameVariable: 'GITHUB_USER',
-                        passwordVariable: 'GITHUB_TOKEN'
-                    )
-                ]) {
-                    sh '''
-                        echo "$GITHUB_TOKEN" | docker login ghcr.io \
-                            -u "$GITHUB_USER" \
-                            --password-stdin
-                    '''
-                }
-            }
-        }
+        // stage('Login to GHCR') {
+        //     steps {
+        //         withCredentials([
+        //             usernamePassword(
+        //                 credentialsId: 'github-ghcr',
+        //                 usernameVariable: 'GITHUB_USER',
+        //                 passwordVariable: 'GITHUB_TOKEN'
+        //             )
+        //         ]) {
+        //             sh '''
+        //                 echo "$GITHUB_TOKEN" | docker login ghcr.io \
+        //                     -u "$GITHUB_USER" \
+        //                     --password-stdin
+        //             '''
+        //         }
+        //     }
+        // }
 
-        stage('Pull Latest Image') {
-            steps {
-                sh '''
-                    docker pull $IMAGE
-                '''
-            }
-        }
+        // stage('Pull Latest Image') {
+        //     steps {
+        //         sh '''
+        //             docker pull $IMAGE
+        //         '''
+        //     }
+        // }
 
         stage('Deploy') {
             steps {
@@ -48,7 +49,7 @@ pipeline {
             steps {
                 sh '''
                     docker exec egis-laravel \
-                        php artisan migrate --force
+                    php artisan migrate --force
                 '''
             }
         }

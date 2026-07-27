@@ -27,7 +27,12 @@ jobs:
           docker build \
             -t ghcr.io/jethrogit/egis-laravel:latest \
             -t ghcr.io/jethrogit/egis-laravel:${{ github.sha }} .
+
       - name: Push Docker Image
         run: |
           docker push ghcr.io/jethrogit/egis-laravel:latest
           docker push ghcr.io/jethrogit/egis-laravel:${{ github.sha }}
+
+      - name: Trigger Jenkins Deployment
+        run: |
+          curl -X POST http://43.133.220.198:8080/job/egis-laravel-deploy/build?token=deploy
