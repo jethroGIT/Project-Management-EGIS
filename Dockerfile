@@ -40,6 +40,7 @@ COPY composer.json composer.lock ./
 
 RUN composer install \
     --no-dev \
+    --no-scripts \
     --prefer-dist \
     --optimize-autoloader
 
@@ -48,6 +49,8 @@ COPY . .
 
 # Copy hasil build frontend dari stage frontend
 COPY --from=frontend /app/public/build ./public/build
+
+RUN composer dump-autoload --optimize
 
 RUN php artisan package:discover --ansi
 
