@@ -8,23 +8,23 @@ pipeline {
 
     stages {
 
-        // stage('Login to GHCR') {
-        //     steps {
-        //         withCredentials([
-        //             usernamePassword(
-        //                 credentialsId: 'github-ghcr',
-        //                 usernameVariable: 'GITHUB_USER',
-        //                 passwordVariable: 'GITHUB_TOKEN'
-        //             )
-        //         ]) {
-        //             sh '''
-        //                 echo "$GITHUB_TOKEN" | docker login ghcr.io \
-        //                     -u "$GITHUB_USER" \
-        //                     --password-stdin
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Login to GHCR') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'github-ghcr',
+                        usernameVariable: 'GITHUB_USER',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "$GITHUB_TOKEN" | docker login ghcr.io \
+                            -u "$GITHUB_USER" \
+                            --password-stdin
+                    '''
+                }
+            }
+        }
 
         // stage('Pull Latest Image') {
         //     steps {
