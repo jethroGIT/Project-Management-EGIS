@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     environment {
         IMAGE = "ghcr.io/jethrogit/egis-laravel:latest"
         COMPOSE_DIR = "/home/devops/Project-Management-EGIS"
