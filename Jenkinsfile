@@ -25,7 +25,6 @@ pipeline {
                 }
             }
         }
-
         // stage('Pull Latest Image') {
         //     steps {
         //         sh '''
