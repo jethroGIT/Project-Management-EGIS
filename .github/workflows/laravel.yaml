@@ -17,6 +17,12 @@ jobs:
     - name: Install Composer
       run:
         composer install
+    - name: Setup Laravel Environment
+      env:
+        APP_KEY: ${{ secrets.APP_KEY }}
+      run: |
+        cp .env.example .env
+        echo "APP_KEY=$APP_KEY" >> .env
     - name: Laravel Test
       run:
         php artisan test
